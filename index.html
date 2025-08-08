@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+     <link rel="icon" type="image/png" href="/images/Codang.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đại hội Đảng bộ Tỉnh</title>
+    <link rel="stylesheet" href="style-portal.css" />
+    <style>
+      /* CSS cho Lịch trình (đã có) */
+      #schedule-list {
+        text-align: left;
+      }
+      .announcement-group {
+        margin-bottom: 15px;
+        border-left: 3px solid #b71c1c;
+        padding-left: 10px;
+      }
+      .announcement-group h4 {
+        margin: 0 0 5px 0;
+        color: #333;
+      }
+      .announcement-item {
+        display: flex;
+        margin-bottom: 5px;
+      }
+      .announcement-time {
+        font-weight: bold;
+        min-width: 60px;
+        color: #000;
+      }
+      .announcement-content {
+        color: #555;
+      }
+      .announcement-date {
+        font-weight: bold;
+        color: #d32f2f;
+        margin-top: -5px;
+        margin-bottom: 15px;
+        font-style: italic;
+      }
+
+      /* --- CSS CHO THÔNG BÁO CHUNG --- */
+      #general-announcements-container {
+        margin-bottom: 10px;
+        padding-bottom: 15px;
+        border-bottom: 1px dashed #ffc107;
+      }
+      .general-announcement-item {
+        background-color: #fffde7;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 8px;
+        font-size: 0.95em;
+        color: #5d4037;
+        border-left: 4px solid #ffab00;
+        display: flex;
+        align-items: center;
+      }
+      .general-announcement-item::before {
+        content: "🔔";
+        margin-right: 10px;
+        font-size: 1.2em;
+      }
+      /* --- CSS CHO DROPDOWN --- */
+      .dropdown {
+        position: relative;
+        display: inline-block;
+      }
+      .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 100%;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+      .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        text-align: left;
+      }
+      .dropdown-content a:hover {
+        background-color: #ddd;
+      }
+      .dropdown:hover .dropdown-content {
+        display: block;
+      }
+      .dropdown .nav-button {
+        width: 100%;
+      }
+
+      /* --- CSS CHO ACCORDION --- */
+      .accordion-header {
+        background-color: #f1f1f1;
+        color: #444;
+        cursor: pointer;
+        padding: 15px;
+        width: 100%;
+        border: none;
+        text-align: left;
+        outline: none;
+        font-size: 1em;
+        font-weight: bold;
+        transition: 0.4s;
+        border-bottom: 1px solid #ddd;
+        border-radius: 4px;
+        margin-bottom: 2px;
+      }
+      .accordion-header:hover,
+      .accordion-header.active {
+        background-color: #e0e0e0;
+      }
+      .accordion-content {
+        padding: 0 18px;
+        background-color: white;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.2s ease-out;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .announcement-group {
+        border-left: none;
+        padding-left: 0;
+        margin-bottom: 0;
+      }
+      .announcement-group h4 {
+        display: none;
+      }
+
+      /* --- THAY ĐỔI: CSS CHO TIÊU ĐỀ PHỤ --- */
+      .detail-announcement-title {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #ad5353; /* Thay đổi màu chữ */
+        margin-top: 0px; /* Giảm khoảng cách phía trên */
+        padding-bottom: 5px; /* Giảm khoảng cách dưới đường kẻ */
+        border-bottom: 1px solid #e0e0e0;
+        margin-bottom: 8px; /* Giảm khoảng cách phía dưới */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="portal-container">
+      <header class="portal-header">
+        <img
+          src="./images/Anhbac.png"
+          alt="Logo Đảng Cộng sản Việt Nam"
+          class="logo"
+        />
+        <h1>CHÀO MỪNG CÁC ĐẠI BIỂU</h1>
+        <h2>VỀ DỰ ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ TỈNH THÁI NGUYÊN</h2>
+        <h2>NHIỆM KỲ 2025-2030</h2>
+      </header>
+
+      <nav class="navigation-menu">
+        <div class="left-column">
+          <div class="info-panel">
+            <h3>THÔNG BÁO CHUNG</h3>
+            <p id="announcement-date" class="announcement-date"></p>
+
+            <div id="general-announcements-container"></div>
+
+            <div id="schedule-list">
+              <p>Đang tải thông báo...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-column">
+          <div class="dropdown">
+            <a href="#" class="nav-button">
+              <h3>TRA CỨU THÔNG TIN</h3>
+              <p>Tìm kiếm thông tin đại biểu, khách mời, đơn vị...</p>
+            </a>
+            <div class="dropdown-content">
+              <a href="./TraCuuDaiBieu/tracuu_daibieu.html"
+                >Đại biểu chính thức</a
+              >
+              <a href="./TraCuuDaiBieu/tracuu_khachmoi.html"
+                >Đại biểu khách mời</a
+              >
+            </div>
+          </div>
+          <a href="./ViTriChoNgoi/vitridaibieu.html" class="nav-button">
+            <h3>SƠ ĐỒ VỊ TRÍ GHẾ NGỒI</h3>
+            <p>Hiển thị trực quan sơ đồ bố trí chỗ ngồi trong hội trường.</p>
+          </a>
+        </div>
+      </nav>
+
+      <footer class="portal-footer">
+        <p>Ban Tổ chức Đại hội</p>
+        <p>Thái Nguyên, năm 2025</p>
+      </footer>
+    </div>
+
+    <script>
+        // ✅ SỬA LỖI: SỬ DỤNG ĐÚNG API URL ĐANG HOẠT ĐỘNG
+      const apiUrl = 'https://script.google.com/macros/s/AKfycbxtztCEyEd0OIbY6dSQ_iZlQVcT0QONi0I71Vvh3Pd5hXGdA69tzpTA6SnjmNEpc8zCKA/exec?type=thongbao';
+
+        const generalContainer = document.getElementById("general-announcements-container");
+        const scheduleContainer = document.getElementById("schedule-list");
+        const dateElement = document.getElementById("announcement-date");
+
+        fetch(apiUrl)
+            .then((response) => {
+                // ✅ CẢI TIẾN: Kiểm tra xem API có trả về lỗi không (ví dụ: lỗi 404, 500)
+                if (!response.ok) {
+                    throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data && data.announcementDate) {
+                    dateElement.innerText = `Ngày ${data.announcementDate}`;
+                }
+
+                if (data && data.announcements && data.announcements.length > 0) {
+                    const generalAnnouncements = data.announcements.filter(
+                        (item) => item.loai === "Thông báo chung"
+                    );
+                    const scheduleAnnouncements = data.announcements.filter(
+                        (item) => item.loai === "Lịch trình"
+                    );
+
+                    // 1. Hiển thị Thông báo chung
+                    generalContainer.innerHTML = "";
+                    if (generalAnnouncements.length > 0) {
+                        generalAnnouncements.forEach((item) => {
+                            const p = document.createElement("p");
+                            p.className = "general-announcement-item";
+                            p.textContent = item.noiDung;
+                            generalContainer.appendChild(p);
+                        });
+                    }
+
+                    // 2. Hiển thị Lịch trình chi tiết
+                    scheduleContainer.innerHTML = "";
+                    if (scheduleAnnouncements.length > 0) {
+                        const detailTitle = document.createElement("h4");
+                        detailTitle.className = "detail-announcement-title";
+                        detailTitle.textContent = "Thông báo chi tiết";
+                        scheduleContainer.appendChild(detailTitle);
+
+                        const groupedSchedules = scheduleAnnouncements.reduce(
+                            (acc, item) => {
+                                const group = item.nhom || "Lịch trình khác";
+                                if (!acc[group]) {
+                                    acc[group] = [];
+                                }
+                                acc[group].push(item);
+                                return acc;
+                            }, {}
+                        );
+
+                        for (const groupName in groupedSchedules) {
+                            const accordionItem = document.createElement("div");
+                            accordionItem.className = "accordion-item";
+
+                            const accordionHeader = document.createElement("button");
+                            accordionHeader.className = "accordion-header";
+                            accordionHeader.innerText = groupName;
+
+                            const accordionContent = document.createElement("div");
+                            accordionContent.className = "accordion-content";
+
+                            groupedSchedules[groupName].forEach((item) => {
+                                const itemDiv = document.createElement("div");
+                                itemDiv.className = "announcement-item";
+                                itemDiv.innerHTML = `<span class="announcement-time">${item.thoiGian || ""}</span><span class="announcement-content">${item.noiDung || "N/A"}</span>`;
+                                accordionContent.appendChild(itemDiv);
+                            });
+
+                            accordionItem.appendChild(accordionHeader);
+                            accordionItem.appendChild(accordionContent);
+                            scheduleContainer.appendChild(accordionItem);
+                        }
+                        activateAccordion();
+                    } else {
+                        scheduleContainer.innerHTML = "";
+                    }
+                } else {
+                    generalContainer.innerHTML = "";
+                    scheduleContainer.innerHTML = "<p>Không có thông báo mới.</p>";
+                }
+            })
+            .catch((error) => {
+                console.error("Lỗi khi tải thông báo:", error);
+                scheduleContainer.innerHTML =
+                    '<p style="color: red;">Không thể tải được thông báo. Vui lòng thử lại sau.</p>';
+            });
+
+        function activateAccordion() {
+            const accordionHeaders = document.querySelectorAll(
+                "#schedule-list .accordion-header"
+            );
+            accordionHeaders.forEach((header) => {
+                header.addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    const content = this.nextElementSibling;
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                    }
+                });
+            });
+        }
+    </script>
+  </body>
+</html>
