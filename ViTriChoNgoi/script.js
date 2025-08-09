@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. KHAI BÁO BIẾN VÀ CẤU HÌNH
   // =======================================================================
   const apiUrl =
-    "https://script.google.com/macros/s/AKfycbxtztCEyEd0OIbY6dSQ_iZlQVcT0QONi0I71Vvh3Pd5hXGdA69tzpTA6SnjmNEpc8zCKA/exec?type=sodo";
+    "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=sodo";
   const btnKhaiMac = document.getElementById("btnKhaiMac");
   const btnBeMac = document.getElementById("btnBeMac");
   const mainTitle = document.querySelector("h1");

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
-    <link rel="icon" type="image/png" href="/images/Codang.png">
+    <link rel="icon" type="image/png" href="/images/Codang.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tra cứu Đại biểu Chính thức</title>
@@ -54,136 +54,191 @@
     </div>
 
     <script>
-      // Gọi API với type=daibieu
-      const apiUrl =        "https://script.google.com/macros/s/AKfycbxtztCEyEd0OIbY6dSQ_iZlQVcT0QONi0I71Vvh3Pd5hXGdA69tzpTA6SnjmNEpc8zCKA/exec?type=daibieu";
-
+      // Biến toàn cục để lưu trữ danh sách đại biểu
       let allDelegates = [];
-      const table = document.getElementById("delegateTable"); // <-- Lấy thẻ table
+      const table = document.getElementById("delegateTable");
       const tableBody = document.getElementById("tableBody");
       const tabsContainer = document.getElementById("filter-tabs");
 
-      function createFilterTabs() {
-          const priorityOrder = [
-            "Thường trực Tỉnh ủy",
-            "Ủy viên BTV Tỉnh ủy",
-            "Đảng bộ các cơ quan Đảng tỉnh",
-            "Đảng bộ UBND tỉnh",
-            "Đảng bộ Công an",
-            "Đảng bộ Quân sự",
-            "Xã, phường 1", // Cập nhật tên nhóm chung
-            "Xã, phường 2", // Cập nhật tên nhóm chung
-            "Xã, phường 3", // Cập nhật tên nhóm chung
-            "Xã, phường 4", // Cập nhật tên nhóm chung
-          ];
+      /**
+       * Hàm chính để bắt đầu chạy logic của trang
+       */
+      function initializeApp() {
+        // 1. KIỂM TRA CACHE TRÌNH DUYỆT TRƯỚC TIÊN
+        const cachedDataString = sessionStorage.getItem("daiHoiData");
 
-          // ✅ LOGIC MỚI: Tạo nhóm chính bằng cách loại bỏ A/B
-          const uniqueMainGroups = [
-            ...new Set(
-              allDelegates
-                .map((d) => {
-                  if (d.nhomDonVi) {
-                    // Nếu tên nhóm kết thúc bằng A hoặc B, loại bỏ ký tự đó
-                    if (/[AB]$/.test(d.nhomDonVi)) {
-                      return d.nhomDonVi.slice(0, -1);
-                    }
-                    return d.nhomDonVi;
-                  }
-                  return null;
-                })
-                .filter(Boolean)
-            ),
-          ];
+        if (cachedDataString) {
+          // 2. NẾU CÓ DỮ LIỆU: Lấy dữ liệu từ cache, không cần gọi API
+          console.log("Tìm thấy dữ liệu trong sessionStorage. Đang xử lý...");
+          const fullData = JSON.parse(cachedDataString);
 
-          uniqueMainGroups.sort((a, b) => {
-            const indexA = priorityOrder.indexOf(a);
-            const indexB = priorityOrder.indexOf(b);
-            const effectiveIndexA = indexA === -1 ? Infinity : indexA;
-            const effectiveIndexB = indexB === -1 ? Infinity : indexB;
-
-            if (effectiveIndexA !== effectiveIndexB) {
-              return effectiveIndexA - effectiveIndexB;
-            }
-            return a.localeCompare(b, "vi");
-          });
-
-          tabsContainer.innerHTML = "";
-          const allButton = document.createElement("button");
-          allButton.className = "filter-btn active";
-          allButton.innerText = "Tất cả";
-          allButton.onclick = () => displayDelegates("Tất cả");
-          tabsContainer.appendChild(allButton);
-
-          uniqueMainGroups.forEach((unit) => {
-            const unitButton = document.createElement("button");
-            unitButton.className = "filter-btn";
-            unitButton.innerText = unit;
-            unitButton.onclick = () => displayDelegates(unit);
-            tabsContainer.appendChild(unitButton);
-          });
-      }
-
-      // =================================================================
-      // HÀM DISPLAYDELEGATES ĐÃ ĐƯỢC CẬP NHẬT
-      // =================================================================
-      function displayDelegates(unitFilter) {
-          const groupsToHideFor = ["Thường trực Tỉnh ủy", "Ủy viên BTV Tỉnh ủy"];
-          const shouldHideColumns = groupsToHideFor.includes(unitFilter);
-
-          table.classList.toggle("an-cot-phu", shouldHideColumns);
-          const colspanValue = shouldHideColumns ? 6 : 8;
-
-          tableBody.innerHTML = "";
-
-          // ✅ LOGIC MỚI: Lọc theo tên nhóm chung
-          const delegatesToDisplay =
-            unitFilter === "Tất cả"
-              ? allDelegates
-              : allDelegates.filter((d) => d.nhomDonVi && d.nhomDonVi.startsWith(unitFilter));
-
-          document.querySelectorAll(".filter-btn").forEach((btn) => {
-            btn.classList.toggle("active", btn.innerText === unitFilter);
-          });
-
-          if (delegatesToDisplay.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="${colspanValue}" style="text-align:center;">Không có đại biểu nào.</td></tr>`;
-            return;
+          // Trang này chỉ cần danh sách đại biểu chính thức
+          if (fullData && fullData.officialDelegates) {
+            renderPage(fullData.officialDelegates);
+          } else {
+            // Nếu cache có nhưng không có dữ liệu đại biểu, thì mới gọi API
+            console.warn(
+              "Cache có nhưng thiếu dữ liệu đại biểu. Đang gọi API dự phòng..."
+            );
+            fetchData();
           }
-
-          delegatesToDisplay.forEach((delegate, index) => {
-            const sttDisplay = unitFilter === "Tất cả" ? delegate.stt : index + 1;
-            const newRow = document.createElement("tr");
-
-            newRow.innerHTML = `
-                    <td class="text-center">${sttDisplay}</td>
-                    <td>${delegate.hoTen}</td>
-                    <td>${delegate.donVi}</td>
-                    <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
-                    <td class="text-center">${delegate.viTriPhienKhac || ""}</td>
-                    <td class="text-center">${delegate.toThaoLuan || ""}</td>
-                    <td class="cot-phu">${delegate.khachSan || ""}</td>
-                    <td class="cot-phu text-center">${delegate.soPhong || ""}</td>
-                  `;
-            tableBody.appendChild(newRow);
-          });
-
-          document.getElementById("searchBox").value = "";
-          filterTable();
+        } else {
+          // 3. NẾU KHÔNG CÓ DỮ LIỆU: Gọi API như bình thường (phương án dự phòng)
+          console.log(
+            "Không tìm thấy dữ liệu trong sessionStorage. Đang gọi API..."
+          );
+          fetchData();
+        }
       }
-      // =================================================================
+
+      /**
+       * Hàm chịu trách nhiệm gọi API để lấy dữ liệu
+       */
+      function fetchData() {
+        const apiUrl =
+          "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=daibieu";
+        const initialColspan = 8; // Dùng cho thông báo lỗi
+
+        fetch(apiUrl)
+          .then((response) => {
+            if (!response.ok)
+              throw new Error("Lỗi mạng hoặc không gọi được API");
+            return response.json();
+          })
+          .then((data) => {
+            if (data && data.delegates) {
+              renderPage(data.delegates);
+            } else {
+              tableBody.innerHTML = `<tr><td colspan="${initialColspan}" style="text-align:center; color:red;">Dữ liệu nhận được không đúng định dạng.</td></tr>`;
+            }
+          })
+          .catch((error) => {
+            console.error("Lỗi khi tải dữ liệu:", error);
+            tableBody.innerHTML = `<tr><td colspan="${initialColspan}" style="text-align:center; color:red;">Không thể tải dữ liệu. Vui lòng kiểm tra lại URL hoặc cài đặt API.</td></tr>`;
+          });
+      }
+
+      /**
+       * Hàm chịu trách nhiệm hiển thị toàn bộ nội dung trang sau khi có dữ liệu
+       * @param {Array} delegatesData - Mảng chứa danh sách đại biểu
+       */
+      function renderPage(delegatesData) {
+        allDelegates = delegatesData;
+        createFilterTabs();
+        displayDelegates("Tất cả");
+        console.log("Trang đã được hiển thị thành công với dữ liệu.");
+      }
+
+      // --- CÁC HÀM TIỆN ÍCH (giữ nguyên, không cần sửa) ---
+
+      function createFilterTabs() {
+        const priorityOrder = [
+          "Thường trực Tỉnh ủy",
+          "Ủy viên BTV Tỉnh ủy",
+          "Đảng bộ các cơ quan Đảng tỉnh",
+          "Đảng bộ UBND tỉnh",
+          "Đảng bộ Công an",
+          "Đảng bộ Quân sự",
+          "Xã, phường 1",
+          "Xã, phường 2",
+          "Xã, phường 3",
+          "Xã, phường 4",
+        ];
+        const uniqueMainGroups = [
+          ...new Set(
+            allDelegates
+              .map((d) => {
+                if (d.nhomDonVi) {
+                  if (/[AB]$/.test(d.nhomDonVi))
+                    return d.nhomDonVi.slice(0, -1);
+                  return d.nhomDonVi;
+                }
+                return null;
+              })
+              .filter(Boolean)
+          ),
+        ];
+
+        uniqueMainGroups.sort((a, b) => {
+          const indexA = priorityOrder.indexOf(a),
+            indexB = priorityOrder.indexOf(b);
+          const effectiveIndexA = indexA === -1 ? Infinity : indexA;
+          const effectiveIndexB = indexB === -1 ? Infinity : indexB;
+          if (effectiveIndexA !== effectiveIndexB)
+            return effectiveIndexA - effectiveIndexB;
+          return a.localeCompare(b, "vi");
+        });
+
+        tabsContainer.innerHTML = "";
+        const allButton = document.createElement("button");
+        allButton.className = "filter-btn active";
+        allButton.innerText = "Tất cả";
+        allButton.onclick = () => displayDelegates("Tất cả");
+        tabsContainer.appendChild(allButton);
+
+        uniqueMainGroups.forEach((unit) => {
+          const unitButton = document.createElement("button");
+          unitButton.className = "filter-btn";
+          unitButton.innerText = unit;
+          unitButton.onclick = () => displayDelegates(unit);
+          tabsContainer.appendChild(unitButton);
+        });
+      }
+
+      function displayDelegates(unitFilter) {
+        const groupsToHideFor = ["Thường trực Tỉnh ủy", "Ủy viên BTV Tỉnh ủy"];
+        const shouldHideColumns = groupsToHideFor.includes(unitFilter);
+        table.classList.toggle("an-cot-phu", shouldHideColumns);
+        const colspanValue = shouldHideColumns ? 6 : 8;
+        tableBody.innerHTML = "";
+
+        const delegatesToDisplay =
+          unitFilter === "Tất cả"
+            ? allDelegates
+            : allDelegates.filter(
+                (d) => d.nhomDonVi && d.nhomDonVi.startsWith(unitFilter)
+              );
+
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((btn) =>
+            btn.classList.toggle("active", btn.innerText === unitFilter)
+          );
+
+        if (delegatesToDisplay.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="${colspanValue}" style="text-align:center;">Không có đại biểu nào.</td></tr>`;
+          return;
+        }
+
+        delegatesToDisplay.forEach((delegate, index) => {
+          const sttDisplay = unitFilter === "Tất cả" ? delegate.stt : index + 1;
+          const newRow = document.createElement("tr");
+          newRow.innerHTML = `
+                <td class="text-center">${sttDisplay}</td>
+                <td>${delegate.hoTen}</td>
+                <td>${delegate.donVi}</td>
+                <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
+                <td class="text-center">${delegate.viTriPhienKhac || ""}</td>
+                <td class="text-center">${delegate.toThaoLuan || ""}</td>
+                <td class="cot-phu">${delegate.khachSan || ""}</td>
+                <td class="cot-phu text-center">${delegate.soPhong || ""}</td>
+            `;
+          tableBody.appendChild(newRow);
+        });
+        document.getElementById("searchBox").value = "";
+        filterTable();
+      }
 
       function filterTable() {
-        const input = document.getElementById("searchBox");
-        const filter = input.value.toUpperCase();
-        const tr = tableBody.getElementsByTagName("tr");
-
+        const input = document.getElementById("searchBox"),
+          filter = input.value.toUpperCase(),
+          tr = tableBody.getElementsByTagName("tr");
         for (let i = 0; i < tr.length; i++) {
-          const tdName = tr[i].getElementsByTagName("td")[1];
-          const tdUnit = tr[i].getElementsByTagName("td")[2];
-
+          const tdName = tr[i].getElementsByTagName("td")[1],
+            tdUnit = tr[i].getElementsByTagName("td")[2];
           if (tdName || tdUnit) {
-            const nameText = tdName.textContent || tdName.innerText;
-            const unitText = tdUnit.textContent || tdUnit.innerText;
-
+            const nameText = tdName.textContent || tdName.innerText,
+              unitText = tdUnit.textContent || tdUnit.innerText;
             if (
               nameText.toUpperCase().indexOf(filter) > -1 ||
               unitText.toUpperCase().indexOf(filter) > -1
@@ -196,28 +251,8 @@
         }
       }
 
-      // Cập nhật colspan trong các hàm fetch
-      const initialColspan = 8;
-      fetch(apiUrl)
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Lỗi mạng hoặc không gọi được API");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          if (data && data.delegates) {
-            allDelegates = data.delegates;
-            createFilterTabs();
-            displayDelegates("Tất cả");
-          } else {
-            tableBody.innerHTML = `<tr><td colspan="${initialColspan}" style="text-align:center; color:red;">Dữ liệu nhận được không đúng định dạng.</td></tr>`;
-          }
-        })
-        .catch((error) => {
-          console.error("Lỗi khi tải dữ liệu:", error);
-          tableBody.innerHTML = `<tr><td colspan="${initialColspan}" style="text-align:center; color:red;">Không thể tải dữ liệu. Vui lòng kiểm tra lại URL hoặc cài đặt API.</td></tr>`;
-        });
+      // --- BẮT ĐẦU CHẠY ỨNG DỤNG ---
+      initializeApp();
     </script>
 
     <a href="../index.html" class="home-button" title="Về Trang chủ">
