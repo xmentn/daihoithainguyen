@@ -171,15 +171,15 @@ h2 {
 
 /* Màu cho các nhóm Nguyên BTV */
 .seat.ntv_congan {
-  background-color: #90EE90; /* Xanh lá cây nhạt (LightGreen) */
+  background-color: #90ee90; /* Xanh lá cây nhạt (LightGreen) */
   color: black;
 }
 .seat.ntv_quandoi {
-  background-color: #9ACD32; /* Vàng-Xanh lá (YellowGreen) */
+  background-color: #9acd32; /* Vàng-Xanh lá (YellowGreen) */
   color: black;
 }
 .seat.ntv_bandang {
-  background-color: #FFB6C1; /* Hồng nhạt (LightPink) */
+  background-color: #ffb6c1; /* Hồng nhạt (LightPink) */
   color: black;
 }
 .seat.ntv_thanhuy {
@@ -195,11 +195,11 @@ h2 {
   color: white;
 }
 .seat.nguyenthuongtruchdbt {
-  background-color: #4B0082; /* Màu Chàm (Indigo) */
+  background-color: #4b0082; /* Màu Chàm (Indigo) */
   color: white;
 }
 .seat.daibieumoi {
-  background-color: #F08080;
+  background-color: #f08080;
   color: white;
 }
 .seat.thuky {
@@ -227,11 +227,11 @@ h2 {
   color: #2d3748;
 }
 .seat.thutruongdonvi {
-  background-color: #FF8C00; /* Màu Cam đậm (DarkOrange) */
+  background-color: #ff8c00; /* Màu Cam đậm (DarkOrange) */
   color: white;
 }
 .seat.uyvienubkt {
-  background-color: #8B4513;/* Màu Xanh Lục đậm (DarkCyan) */
+  background-color: #8b4513; /* Màu Xanh Lục đậm (DarkCyan) */
   color: white;
 }
 /*
@@ -256,41 +256,41 @@ h2 {
 
 /* Cặp màu cho Xã, phường 1 */
 .seat.xaphuong1a {
-  background-color: #24E372; /* SeaGreen */
+  background-color: #24e372; /* SeaGreen */
   color: black;
 }
 .seat.xaphuong1b {
-  background-color: #8FBC8F; /* DarkSeaGreen */
+  background-color: #8fbc8f; /* DarkSeaGreen */
   color: black;
 }
 
 /* Cặp màu cho Xã, phường 2 */
 .seat.xaphuong2a {
-  background-color: #67A5F5;; /* SteelBlue */
+  background-color: #67a5f5; /* SteelBlue */
   color: white;
 }
 .seat.xaphuong2b {
-  background-color: #AACDFA; /* LightSteelBlue */
+  background-color: #aacdfa; /* LightSteelBlue */
   color: black;
 }
 
 /* Cặp màu cho Xã, phường 3 */
 .seat.xaphuong3b {
-  background-color: #F7EF83; /* Chocolate */
-  color: black
+  background-color: #f7ef83; /* Chocolate */
+  color: black;
 }
 .seat.xaphuong3a {
-  background-color: #F4A460; /* SandyBrown */
+  background-color: #f4a460; /* SandyBrown */
   color: black;
 }
 
 /* Cặp màu cho Xã, phường 4 */
 .seat.xaphuong4a {
-  background-color: #6A5ACD; /* SlateBlue */
+  background-color: #6a5acd; /* SlateBlue */
   color: white;
 }
 .seat.xaphuong4b {
-  background-color: #E883F7; /* MediumPurple */
+  background-color: #e883f7; /* MediumPurple */
   color: white;
 }
 /* --- TOOLTIP & CHÚ THÍCH & NÚT HOME --- */
@@ -390,7 +390,7 @@ h2 {
 .legend-swatches .seat {
   margin: 0 !important; /* Ghi đè lên margin cũ */
   margin-left: -8px !important; /* Làm cho các ô màu gối lên nhau */
-  border: 1px solid rgba(0,0,0,0.2);
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .legend-swatches .seat:first-child {
@@ -403,4 +403,13 @@ h2 {
   display: flex;
   align-items: center;
   font-size: 14px;
+}
+.seating-section.continental {
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
+  padding: 10px 0;
+}
+
+.seat-row.continental-row {
+  justify-content: center; /* Căn giữa các ghế trong hàng */
+  width: 100%;
 }
