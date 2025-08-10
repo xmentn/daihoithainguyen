@@ -36,7 +36,7 @@
             <th rowspan="2">Họ và Tên</th>
             <th rowspan="2">Đơn vị</th>
             <th colspan="2">Vị trí chỗ ngồi</th>
-            <th rowspan="2">Tổ thảo luận</th>
+            <!-- ✅ ĐÃ XÓA CỘT "TỔ THẢO LUẬN" -->
             <th rowspan="2" class="cot-phu">Tên khách sạn</th>
             <th rowspan="2" class="cot-phu">Số phòng</th>
           </tr>
@@ -47,7 +47,8 @@
         </thead>
         <tbody id="tableBody">
           <tr>
-            <td colspan="8" style="text-align: center">Đang tải dữ liệu...</td>
+            <!-- ✅ CẬP NHẬT COLSPAN TỪ 8 XUỐNG 7 -->
+            <td colspan="7" style="text-align: center">Đang tải dữ liệu...</td>
           </tr>
         </tbody>
       </table>
@@ -97,7 +98,8 @@
       function fetchData() {
         const apiUrl =
           "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=daibieu";
-        const initialColspan = 8; // Dùng cho thông báo lỗi
+        // ✅ CẬP NHẬT COLSPAN TỪ 8 XUỐNG 7
+        const initialColspan = 7;
 
         fetch(apiUrl)
           .then((response) => {
@@ -129,7 +131,7 @@
         console.log("Trang đã được hiển thị thành công với dữ liệu.");
       }
 
-      // --- CÁC HÀM TIỆN ÍCH (giữ nguyên, không cần sửa) ---
+      // --- CÁC HÀM TIỆN ÍCH ---
 
       function createFilterTabs() {
         const priorityOrder = [
@@ -189,7 +191,9 @@
         const groupsToHideFor = ["Thường trực Tỉnh ủy", "Ủy viên BTV Tỉnh ủy"];
         const shouldHideColumns = groupsToHideFor.includes(unitFilter);
         table.classList.toggle("an-cot-phu", shouldHideColumns);
-        const colspanValue = shouldHideColumns ? 6 : 8;
+
+        // ✅ CẬP NHẬT COLSPAN TỪ 6, 8 THÀNH 5, 7
+        const colspanValue = shouldHideColumns ? 5 : 7;
         tableBody.innerHTML = "";
 
         const delegatesToDisplay =
@@ -213,16 +217,16 @@
         delegatesToDisplay.forEach((delegate, index) => {
           const sttDisplay = unitFilter === "Tất cả" ? delegate.stt : index + 1;
           const newRow = document.createElement("tr");
+          // ✅ ĐÃ XÓA DÒNG HIỂN THỊ "TỔ THẢO LUẬN"
           newRow.innerHTML = `
                 <td class="text-center">${sttDisplay}</td>
                 <td>${delegate.hoTen}</td>
                 <td>${delegate.donVi}</td>
                 <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
                 <td class="text-center">${delegate.viTriPhienKhac || ""}</td>
-                <td class="text-center">${delegate.toThaoLuan || ""}</td>
                 <td class="cot-phu">${delegate.khachSan || ""}</td>
                 <td class="cot-phu text-center">${delegate.soPhong || ""}</td>
-            `;
+              `;
           tableBody.appendChild(newRow);
         });
         document.getElementById("searchBox").value = "";

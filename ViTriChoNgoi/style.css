@@ -186,15 +186,15 @@ h2 {
   background-color: #33cccc; /* Xanh da trời nhạt (LightBlue) */
   color: black;
 }
-.seat.nguyenlanhdaohd {
+.seat.ntv_hdnd {
   background-color: #ff99cc; /* Màu Bạc (Silver) */
   color: black;
 }
-.seat.nguyenlanhdaoub {
+.seat.ntv_ubnd {
   background-color: #008080; /* Màu Xanh mòng két (Teal) */
   color: white;
 }
-.seat.nguyenthuongtruchdbt {
+.seat.nguyenlanhdaokhac {
   background-color: #4b0082; /* Màu Chàm (Indigo) */
   color: white;
 }
