@@ -416,7 +416,9 @@ document.addEventListener("DOMContentLoaded", () => {
         { type: "spacer", count: 1 },
         { type: "group", seats: 12 },
         { type: "spacer", count: 1 },
-        { type: "group", seats: 22 },
+        { type: "group", seats: 11 },
+        { type: "center_marker" }, // Chỉ là một điểm đánh dấu, không tạo khoảng trống
+        { type: "group", seats: 11 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 11 },
         { type: "spacer", count: 1 },
@@ -430,9 +432,12 @@ document.addEventListener("DOMContentLoaded", () => {
         { type: "spacer", count: 1 },
         { type: "group", seats: 12 },
         { type: "spacer", count: 1 },
-        { type: "group", seats: 25 },
+        { type: "group", seats: 13 },
+        { type: "center_marker" },
+        { type: "group", seats: 12 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 12 },
+        { type: "spacer", count: 1 },
         { type: "group", seats: 2 },
       ],
     },
@@ -445,7 +450,9 @@ document.addEventListener("DOMContentLoaded", () => {
         { type: "spacer", count: 1 },
         { type: "group", seats: 8 },
         { type: "spacer", count: 1 },
-        { type: "group", seats: 8 },
+        { type: "group", seats: 4 },
+        { type: "center_marker" },
+        { type: "group", seats: 4 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 8 },
         { type: "spacer", count: 1 },
@@ -463,9 +470,12 @@ document.addEventListener("DOMContentLoaded", () => {
         { type: "spacer", count: 1 },
         { type: "group", seats: 13 },
         { type: "spacer", count: 1 },
-        { type: "group", seats: 24 },
+        { type: "group", seats: 12 },
+        { type: "center_marker" },
+        { type: "group", seats: 12 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 13 },
+        { type: "spacer", count: 1 },
         { type: "group", seats: 2 },
       ],
     },
@@ -476,7 +486,9 @@ document.addEventListener("DOMContentLoaded", () => {
         { type: "spacer", count: 1 },
         { type: "group", seats: 7 },
         { type: "spacer", count: 1 },
-        { type: "group", seats: 8 },
+        { type: "group", seats: 4 },
+        { type: "center_marker" },
+        { type: "group", seats: 4 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 7 },
         { type: "spacer", count: 1 },
@@ -555,6 +567,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Nguyên Ủy viên BTV - Thành ủy": "ntv_thanhuy",
     "Nguyên Ủy viên BTV - HĐND": "ntv_hdnd",
     "Nguyên Ủy viên BTV - UBND": "ntv_ubnd",
+    "Đại biểu Quốc hội": "quochoi",
   };
   /* function getStatusFromDonVi(donVi) {
     for (const key in donViToStatusMap) {
@@ -1043,8 +1056,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /**
-   * ✅ HÀM NÂNG CẤP: Vẽ sơ đồ cho các tầng liền khối có cấu trúc linh hoạt
-   * Đọc cấu hình 'items' để vẽ cả nhóm ghế và khoảng trống.
+   * ✅ HÀM NÂNG CẤP V2: Vẽ sơ đồ liền khối với số ghế chẵn/lẻ từ TRUNG TÂM ra.
+   * Tự động đánh số 1, 3, 5... từ giữa ra bên trái và 2, 4, 6... từ giữa ra bên phải.
+   */
+  /**
+   * ✅ HÀM NÂNG CẤP V3: Vẽ sơ đồ liền khối, chia đôi "vô hình" để đánh số.
+   * Nhận biết "center_marker" để chia đôi hàng ghế mà không tạo khoảng trống.
    */
   function renderContinentalFloor(
     floorConfigObj,
@@ -1059,45 +1076,84 @@ document.addEventListener("DOMContentLoaded", () => {
 
     rowOrder.forEach((rowKey) => {
       const config = floorConfigObj[rowKey];
-      // Kiểm tra xem có 'items' không
       if (!config || !config.items || !Array.isArray(config.items)) return;
 
       const rowEl = document.createElement("div");
       rowEl.classList.add("seat-row", "continental-row");
 
-      // Thêm nhãn tên hàng vào bên trái
+      // === BƯỚC 1: TÍNH TOÁN SỐ LƯỢNG GHẾ MỖI BÊN ===
+      let leftSideSeatsCount = 0;
+      let rightSideSeatsCount = 0;
+      let isLeftSideOfMarker = true;
+
+      config.items.forEach((item) => {
+        if (item.type === "group") {
+          if (isLeftSideOfMarker) {
+            leftSideSeatsCount += item.seats;
+          } else {
+            rightSideSeatsCount += item.seats;
+          }
+        } else if (
+          item.type === "center_aisle" ||
+          item.type === "center_marker"
+        ) {
+          isLeftSideOfMarker = false;
+        }
+      });
+
+      // === BƯỚC 2: TẠO MẢNG SỐ GHẾ CHO MỖI BÊN ===
+      const leftSideNumbers = [];
+      for (let i = 0; i < leftSideSeatsCount; i++) {
+        leftSideNumbers.push((leftSideSeatsCount - i) * 2 - 1);
+      }
+
+      const rightSideNumbers = [];
+      for (let i = 0; i < rightSideSeatsCount; i++) {
+        rightSideNumbers.push((i + 1) * 2);
+      }
+
+      // === BƯỚC 3: VẼ GHẾ DỰA TRÊN MẢNG ĐÃ TÍNH TOÁN ===
       const leftLabel = document.createElement("div");
       leftLabel.classList.add("row-label");
       leftLabel.textContent = config.rowLabel;
       rowEl.appendChild(leftLabel);
 
-      let seatCounter = 1; // Biến đếm để đánh số ghế tuần tự
+      isLeftSideOfMarker = true;
+      let leftSeatIndex = 0;
+      let rightSeatIndex = 0;
 
-      // Lặp qua cấu trúc 'items' của hàng
       config.items.forEach((item) => {
         if (item.type === "group" && item.seats > 0) {
-          // Nếu là một nhóm ghế, tạo ra các ghế
           for (let i = 0; i < item.seats; i++) {
-            const seatNumber = seatCounter;
-            const fullSeatId = `${floorPrefix}-${config.rowLabel}-${seatNumber}`;
+            let seatNumber;
+            if (isLeftSideOfMarker) {
+              seatNumber = leftSideNumbers[leftSeatIndex];
+              leftSeatIndex++;
+            } else {
+              seatNumber = rightSideNumbers[rightSeatIndex];
+              rightSeatIndex++;
+            }
 
+            const fullSeatId = `${floorPrefix}-${config.rowLabel}-${seatNumber}`;
             const seatDiv = createSeatDiv(
               seatNumber,
               fullSeatId,
               activeSeatMap
             );
             rowEl.appendChild(seatDiv);
-            seatCounter++; // Tăng biến đếm
           }
         } else if (item.type === "spacer" && item.count > 0) {
-          // Nếu là khoảng trống, tạo ra spacer
-          // Hàm createSpacerDiv đã có sẵn từ code tầng 1
-          const spacerDiv = createSpacerDiv(item.count);
-          rowEl.appendChild(spacerDiv);
+          rowEl.appendChild(createSpacerDiv(item.count));
+        } else if (item.type === "center_aisle" && item.count > 0) {
+          // center_aisle vẫn tạo khoảng trống
+          rowEl.appendChild(createSpacerDiv(item.count));
+          isLeftSideOfMarker = false;
+        } else if (item.type === "center_marker") {
+          // ✅ LOGIC MỚI: center_marker chỉ chuyển cờ, không tạo khoảng trống
+          isLeftSideOfMarker = false;
         }
       });
 
-      // Thêm nhãn tên hàng vào bên phải
       const rightLabel = document.createElement("div");
       rightLabel.classList.add("row-label");
       rightLabel.textContent = config.rowLabel;
@@ -1106,6 +1162,7 @@ document.addEventListener("DOMContentLoaded", () => {
       targetContainer.appendChild(rowEl);
     });
   }
+
   function setupTooltips(activeSeatMap) {
     const allSeats = document.querySelectorAll(".seating-section .seat");
     allSeats.forEach((seat) => {
