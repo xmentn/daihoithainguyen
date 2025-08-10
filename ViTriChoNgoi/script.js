@@ -520,6 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
       meVN: "Anh hùng, Mẹ VNAH",
       thuky: "Thư ký",
       uyvienubkt: "Ủy viên UBKT",
+	   quochoi: "Đại biểu Quốc hội",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
