@@ -1,250 +1,73 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
+    <link rel="icon" type="image/png" href="/images/Codang.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sơ đồ chụp ảnh lưu niệm</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
-    <style>
-      /* --- Cài đặt chung --- */
-      body {
-        font-family: "Roboto", sans-serif;
-        background-color: #f4f7f9;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        color: #333;
-      }
-
-      /* --- Khung chứa chính --- */
-      .container {
-        width: 100%;
-        max-width: 1200px;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        text-align: center;
-        overflow-x: auto;
-      }
-
-      h1 {
-        color: #b71c1c;
-        font-size: 2em;
-        margin-bottom: 5px;
-      }
-
-      .subtitle {
-        font-size: 1.3em;
-        font-weight: 500;
-        color: #444;
-        margin-top: 0;
-        margin-bottom: 25px;
-      }
-
-      p {
-        color: #555;
-        margin-bottom: 30px;
-        font-size: 1.1em;
-      }
-
-      /* --- Khu vực bục chụp ảnh --- */
-      #photo-stand {
-        display: flex;
-        flex-direction: column-reverse;
-        align-items: center;
-        gap: 10px;
-        margin-top: 20px;
-        width: max-content;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      /* --- Mỗi hàng chụp ảnh --- */
-      .photo-row {
-        display: flex;
-        justify-content: center;
-        flex-wrap: nowrap;
-        gap: 8px;
-        padding: 10px;
-        background-color: #e3e8ed;
-        border-radius: 8px;
-        border: 1px solid #d1d9e0;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-        position: relative;
-        margin-bottom: 15px;
-      }
-
-      /* --- Nhãn tên hàng (Hàng 1, Hàng 2...) --- */
-      .row-label {
-        position: absolute;
-        bottom: -25px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #6c757d;
-        color: white;
-        padding: 3px 12px;
-        border-radius: 12px;
-        font-size: 0.9em;
-        font-weight: 500;
-      }
-
-      /* --- Vị trí của mỗi người --- */
-      .person {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background-color: #ffffff;
-        color: #333;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: 500;
-        font-size: 0.9em;
-        border: 1.5px solid #b0bec5;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        position: relative;
-        flex-shrink: 0;
-      }
-
-      .person:hover {
-        transform: scale(1.1);
-        background-color: #b71c1c;
-        color: white;
-        border-color: #9a1010;
-        z-index: 10;
-      }
-
-      .person.odd {
-        background-color: #e3f2fd;
-      }
-      .person.even {
-        background-color: #fff3e0;
-      }
-      .person.odd:hover,
-      .person.even:hover {
-        background-color: #b71c1c;
-      }
-
-      /* ✅ THÊM CSS CHO NÚT VỀ TRANG CHỦ */
-      .home-button {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #d32f2f;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        z-index: 1000;
-      }
-
-      .home-button svg {
-        width: 28px;
-        height: 28px;
-      }
-
-      .home-button span {
-        display: none;
-      }
-
-      .home-button:hover {
-        background-color: #b71c1c;
-        transform: scale(1.1);
-      }
-    </style>
+    <title>Sơ Đồ Ghế Ngồi</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>SƠ ĐỒ CHỤP ẢNH LƯU NIỆM</h1>
-      <h2 class="subtitle">Đại biểu Trung ương với BCH Đảng bộ tỉnh</h2>
-      <p id="total-count">Tổng số: 0 người</p>
+    <h1>SƠ ĐỒ BỐ TRÍ CHỖ NGỒI</h1>
+    <div class="view-switcher">
+      <button id="btnKhaiMac" class="active">Phiên Khai mạc</button>
+      <button id="btnBeMac">Phiên khác</button>
+    </div>
 
-      <div id="photo-stand">
-        <!-- Các hàng và vị trí sẽ được tạo bởi JavaScript -->
+    <h3 id="total-seat-count-display">Tổng số ghế: 0</h3>
+    <h3 id="assigned-seat-count-display"></h3>
+
+    <div class="floor-title-container">
+      <h2>TẦNG 1 (<span id="t1-seat-count">0</span> ghế)</h2>
+      <div class="floor-separator"></div>
+    </div>
+    <div class="floor-layout" id="tang-1-layout">
+      <div class="seating-section" id="seating-chart-t1-left">
+        <h3>Khu Trái</h3>
+      </div>
+      <div class="seating-section" id="seating-chart-t1-middle">
+        <h3>Khu Giữa</h3>
+      </div>
+      <div class="seating-section" id="seating-chart-t1-right">
+        <h3>Khu Phải</h3>
       </div>
     </div>
 
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // Cấu hình số lượng người mỗi hàng
-        const photoLayout = [
-          { label: "Hàng 1", count: 22 },
-          { label: "Hàng 2", count: 25 },
-          { label: "Hàng 3", count: 28 },
-        ];
+    <div class="floor-title-container">
+      <h2>TẦNG 2 (<span id="t2-seat-count">0</span> ghế)</h2>
+      <div class="floor-separator"></div>
+    </div>
+    <div class="floor-layout" id="tang-2-layout">
+      <div
+        id="seating-chart-t2-continental"
+        class="seating-section continental"
+      ></div>
+    </div>
 
-        const stand = document.getElementById("photo-stand");
-        let totalCount = 0;
+    <div class="floor-title-container">
+      <h2>TẦNG 3 (<span id="t3-seat-count">0</span> ghế)</h2>
+      <div class="floor-separator"></div>
+    </div>
+    <div class="floor-layout" id="tang-3-layout">
+      <div
+        id="seating-chart-t3-continental"
+        class="seating-section continental"
+      ></div>
+    </div>
+    <div id="tooltip" class="tooltip-container" style="display: none">
+      <img id="tooltip-image" src="" alt="Ảnh" />
+      <h3 id="tooltip-name"></h3>
+      <p id="tooltip-title"></p>
+      <p id="tooltip-details"></p>
+      <p>Mã ghế: <strong id="tooltip-seat-id"></strong></p>
+    </div>
 
-        // Lặp qua cấu hình để tạo sơ đồ
-        photoLayout.forEach((rowData) => {
-          totalCount += rowData.count;
-          const rowDiv = document.createElement("div");
-          rowDiv.className = "photo-row";
+    <div id="scrollable-legend">
+      <h3>Chú Thích:</h3>
+      <div class="legend-grid-container"></div>
+    </div>
 
-          const labelDiv = document.createElement("div");
-          labelDiv.className = "row-label";
-          labelDiv.textContent = rowData.label;
-
-          const isOddCount = rowData.count % 2 !== 0;
-          const halfCount = Math.floor(rowData.count / 2);
-
-          const leftNumbers = [];
-          const leftSideCount = isOddCount ? halfCount + 1 : halfCount;
-          for (let i = 0; i < leftSideCount; i++) {
-            leftNumbers.push((leftSideCount - i) * 2 - 1);
-          }
-
-          const rightNumbers = [];
-          for (let i = 0; i < halfCount; i++) {
-            rightNumbers.push((i + 1) * 2);
-          }
-
-          leftNumbers.forEach((num) => {
-            const personDiv = document.createElement("div");
-            personDiv.className = "person odd";
-            personDiv.textContent = num;
-            personDiv.title = `Vị trí số ${num}`;
-            rowDiv.appendChild(personDiv);
-          });
-
-          rightNumbers.forEach((num) => {
-            const personDiv = document.createElement("div");
-            personDiv.className = "person even";
-            personDiv.textContent = num;
-            personDiv.title = `Vị trí số ${num}`;
-            rowDiv.appendChild(personDiv);
-          });
-
-          rowDiv.appendChild(labelDiv);
-          stand.appendChild(rowDiv);
-        });
-
-        document.getElementById(
-          "total-count"
-        ).textContent = `Tổng số: ${totalCount} người`;
-      });
-    </script>
-
-    <!-- ✅ THÊM NÚT VỀ TRANG CHỦ VÀO CUỐI BODY -->
+    <script src="script.js"></script>
     <a href="../index.html" class="home-button" title="Về trang chủ">
       <svg
         xmlns="http://www.w3.org/2000/svg"
