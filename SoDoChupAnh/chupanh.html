@@ -135,7 +135,7 @@
         background-color: #b71c1c;
       }
 
-      /* ✅ THÊM CSS CHO NÚT VỀ TRANG CHỦ */
+      /* --- CSS CHO NÚT VỀ TRANG CHỦ --- */
       .home-button {
         position: fixed;
         bottom: 20px;
@@ -169,6 +169,20 @@
         background-color: #b71c1c;
         transform: scale(1.1);
       }
+
+      /* --- CSS CHO TOOLTIP --- */
+      .tooltip {
+        position: absolute;
+        display: none;
+        background-color: #333;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.9em;
+        pointer-events: none;
+        z-index: 100;
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -182,9 +196,93 @@
       </div>
     </div>
 
+    <!-- THÊM THẺ TOOLTIP VÀO BODY -->
+    <div id="tooltip" class="tooltip"></div>
+
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // Cấu hình số lượng người mỗi hàng
+        // DANH SÁCH TÊN ĐẠI BIỂU MẪU
+        const delegateNames = [
+          // Hàng 1 (22 người)
+          "Nguyễn Văn An",
+          "Phạm Văn Thọ",
+          "Bùi Văn Lương",
+          "Trần Thị Lộc",
+          "Nguyễn Thanh Bình",
+          "Đại biểu TW 6",
+          "Đỗ Đức Công",
+          "Đại biểu TW 4",
+          "Phạm Hoàng Sơn",
+          "Đại biểu TW2",
+          "Trịnh Việt Hùng",
+          "Phan Văn Giang",
+          "Nguyễn Đăng Bình",
+          "Đại biểu TW 3",
+          "Đinh Quang Tuyên",
+          "Đại biểu TW 5",
+          "Dương Văn Tiến",
+          "Hoàng Thu Trang",
+          "Lường Đức Thắng",
+          "Đỗ Thị Minh Hoa",
+          "Bùi Đức Hải",
+          "Vũ Duy Hoàng",
+          // Hàng 2 (25 người)
+          "Nguyễn Thị Ái",
+          "Trần Văn Bách",
+          "Lê Thị Cẩm",
+          "Phạm Văn Dũng",
+          "Hoàng Thị Đào",
+          "Vũ Văn Biên",
+          "Đặng Thị Gấm",
+          "Bùi Văn Hiếu",
+          "Hồ Thị Kim",
+          "Dương Văn Long",
+          "Ngô Thị Mai",
+          "Đỗ Văn Nam",
+          "Phan Thị Nguyệt",
+          "Lý Văn Phong",
+          "Mai Thị Quyên",
+          "Tô Văn Sơn",
+          "Trịnh Thị Tâm",
+          "Chu Văn Thái",
+          "Lương Thị Thảo",
+          "Giang Văn Toàn",
+          "Trương Thị Tươi",
+          "Vương Văn Vĩnh",
+          "Nguyễn Văn Hưng",
+          "Trần Thị Hà",
+          "Lê Văn Hải",
+          // Hàng 3 (28 người)
+          "Phạm Thị Anh",
+          "Hoàng Văn Bảy",
+          "Vũ Thị Châu",
+          "Đặng Văn Dân",
+          "Bùi Thị Diệp",
+          "Hồ Văn Đức",
+          "Dương Thị Hiền",
+          "Ngô Văn Hoàng",
+          "Đỗ Thị Huệ",
+          "Phan Văn Hữu",
+          "Lý Thị Hương",
+          "Mai Văn Khoa",
+          "Tô Thị Lệ",
+          "Trịnh Văn Lộc",
+          "Chu Thị Lý",
+          "Lương Văn Mạnh",
+          "Giang Thị Mơ",
+          "Trương Văn Nghĩa",
+          "Vương Thị Nhung",
+          "Nguyễn Văn Phi",
+          "Trần Thị Quỳnh",
+          "Lê Văn Sang",
+          "Phạm Thị Thắm",
+          "Hoàng Văn Thông",
+          "Vũ Thị Thúy",
+          "Đặng Văn Tùng",
+          "Bùi Thị Vân",
+          "Hồ Văn Vũ",
+        ];
+
         const photoLayout = [
           { label: "Hàng 1", count: 22 },
           { label: "Hàng 2", count: 25 },
@@ -192,9 +290,10 @@
         ];
 
         const stand = document.getElementById("photo-stand");
+        const tooltip = document.getElementById("tooltip");
         let totalCount = 0;
+        let nameIndex = 0;
 
-        // Lặp qua cấu hình để tạo sơ đồ
         photoLayout.forEach((rowData) => {
           totalCount += rowData.count;
           const rowDiv = document.createElement("div");
@@ -218,21 +317,20 @@
             rightNumbers.push((i + 1) * 2);
           }
 
-          leftNumbers.forEach((num) => {
+          const createPersonDiv = (num, type) => {
             const personDiv = document.createElement("div");
-            personDiv.className = "person odd";
-            personDiv.textContent = num;
-            personDiv.title = `Vị trí số ${num}`;
-            rowDiv.appendChild(personDiv);
-          });
+            const personName = delegateNames[nameIndex] || "Chưa có tên";
 
-          rightNumbers.forEach((num) => {
-            const personDiv = document.createElement("div");
-            personDiv.className = "person even";
+            personDiv.className = `person ${type}`;
             personDiv.textContent = num;
-            personDiv.title = `Vị trí số ${num}`;
+            personDiv.dataset.name = personName;
+
             rowDiv.appendChild(personDiv);
-          });
+            nameIndex++;
+          };
+
+          leftNumbers.forEach((num) => createPersonDiv(num, "odd"));
+          rightNumbers.forEach((num) => createPersonDiv(num, "even"));
 
           rowDiv.appendChild(labelDiv);
           stand.appendChild(rowDiv);
@@ -240,11 +338,26 @@
 
         document.getElementById(
           "total-count"
-        ).textContent = `Tổng số: ${totalCount} đại biểu`;
+        ).textContent = `Tổng số: ${totalCount} người`;
+
+        // THÊM SỰ KIỆN CHO TOOLTIP
+        const allPersons = document.querySelectorAll(".person");
+        allPersons.forEach((person) => {
+          person.addEventListener("mouseenter", function (e) {
+            tooltip.textContent = this.dataset.name;
+            tooltip.style.display = "block";
+          });
+          person.addEventListener("mousemove", function (e) {
+            tooltip.style.left = e.pageX + 10 + "px";
+            tooltip.style.top = e.pageY + 10 + "px";
+          });
+          person.addEventListener("mouseleave", function (e) {
+            tooltip.style.display = "none";
+          });
+        });
       });
     </script>
 
-    <!-- ✅ THÊM NÚT VỀ TRANG CHỦ VÀO CUỐI BODY -->
     <a href="../index.html" class="home-button" title="Về trang chủ">
       <svg
         xmlns="http://www.w3.org/2000/svg"
