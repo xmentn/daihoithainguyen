@@ -1,0 +1,338 @@
+/* CSS cho Lịch trình (đã có) */
+#schedule-list {
+  text-align: left;
+}
+.announcement-group {
+  margin-bottom: 15px;
+  border-left: 3px solid #b71c1c;
+  padding-left: 10px;
+}
+.announcement-group h4 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+.announcement-item {
+  display: flex;
+  margin-bottom: 5px;
+}
+.announcement-time {
+  font-weight: bold;
+  min-width: 60px;
+  color: #000;
+}
+.announcement-content {
+  color: #555;
+}
+.announcement-date {
+  font-weight: bold;
+  color: #d32f2f;
+  margin-top: -5px;
+  margin-bottom: 15px;
+  font-style: italic;
+}
+
+/* --- CSS CHO THÔNG BÁO CHUNG --- */
+#general-announcements-container {
+  margin-bottom: 10px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #ffc107;
+}
+.general-announcement-item {
+  background-color: #fffde7;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  color: #5d4037;
+  border-left: 4px solid #ffab00;
+  display: flex;
+  align-items: center;
+}
+.general-announcement-item::before {
+  content: "🔔";
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+/* --- CSS CHO DROPDOWN --- */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 100%;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  text-align: left;
+}
+.dropdown-content a:hover {
+  background-color: #ddd;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+.dropdown .nav-button {
+  width: 100%;
+}
+
+/* --- CSS CHO ACCORDION --- */
+.accordion-header {
+  background-color: #f1f1f1;
+  color: #444;
+  cursor: pointer;
+  padding: 15px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 1em;
+  font-weight: bold;
+  transition: 0.4s;
+  border-bottom: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 2px;
+}
+.accordion-header:hover,
+.accordion-header.active {
+  background-color: #e0e0e0;
+}
+.accordion-content {
+  padding: 0 18px;
+  background-color: white;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+  border-bottom: 1px solid #f0f0f0;
+}
+.announcement-group {
+  border-left: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.announcement-group h4 {
+  display: none;
+}
+
+/* --- THAY ĐỔI: CSS CHO TIÊU ĐỀ PHỤ --- */
+.detail-announcement-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #ad5353; /* Thay đổi màu chữ */
+  margin-top: 0px; /* Giảm khoảng cách phía trên */
+  padding-bottom: 5px; /* Giảm khoảng cách dưới đường kẻ */
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 8px; /* Giảm khoảng cách phía dưới */
+}
+
+/* style-portal.css - PHIÊN BẢN HOÀN CHỈNH VÀ TỐI ƯU */
+
+/* --- CÀI ĐẶT CHUNG & FONT --- */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+
+body {
+  font-family: "Roboto", sans-serif;
+  margin: 0;
+  background-color: #f0f2f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px 0; /* Thêm padding để màn hình nhỏ không bị dính */
+}
+
+/* --- KHUNG CHỨA CHÍNH --- */
+.portal-container {
+  width: 100%;
+  max-width: 1000px; /* Tăng độ rộng tối đa để các cột thoáng hơn */
+  text-align: center;
+  padding: 20px;
+}
+
+/* --- TIÊU ĐỀ TRANG --- */
+.portal-header {
+  margin-bottom: 40px;
+}
+
+.logo {
+  width: 150px; /* Giảm kích thước logo một chút cho cân đối */
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.portal-header h1 {
+  color: #ff0000;
+  font-size: 2 em;
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  font-family: "UTM HelvetIns", sans-serif;
+}
+
+.portal-header h2 {
+  color: #0d47a1; /* Đã đổi sang màu xanh đậm theo yêu cầu trước */
+  font-size: 1.8em;
+  font-weight: 300;
+  margin: 5px 0 0 0;
+  text-transform: uppercase;
+  font-family: "UTM HelvetIns", sans-serif; /* Đã đổi sang font chữ UTM HelvetIns theo yêu cầu trước */
+}
+
+/* --- BỐ CỤC 2 CỘT MỚI --- */
+.navigation-menu {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Chia thành 2 cột với độ rộng bằng nhau */
+  gap: 30px; /* Khoảng cách giữa 2 cột */
+  align-items: start; /* Các cột sẽ có chiều cao bằng nhau */
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column; /* Xếp 2 nút theo chiều dọc */
+  gap: 30px; /* Khoảng cách giữa 2 nút */
+}
+
+/* --- ĐỊNH DẠNG CÁC Ô NỘI DUNG --- */
+.info-panel,
+.nav-button {
+  width: 100%; /* Tự co giãn theo độ rộng của cột chứa nó */
+  height: 100%; /* Chiều cao co giãn theo nội dung */
+  box-sizing: border-box; /* Đảm bảo padding không làm vỡ layout */
+  display: flex;
+  flex-direction: column;
+  padding: 25px 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.info-panel {
+  background-color: #fff8e1;
+  border-top: 5px solid #ffc107;
+  text-align: left;
+}
+
+.nav-button {
+  background-color: #ffffff;
+  color: #333;
+  text-decoration: none;
+  border-top: 5px solid #0d47a1;
+  justify-content: center; /* Căn giữa nội dung cho các nút chức năng */
+}
+
+.nav-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* --- ĐỊNH DẠNG CHỮ BÊN TRONG CÁC Ô --- */
+.info-panel h3 {
+  margin: 0 0 15px 0;
+  font-size: 1.2em;
+  color: #af5200;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.nav-button h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.2em;
+  color: #0d47a1;
+  text-transform: uppercase;
+}
+
+.info-panel p {
+  margin: 0;
+  font-size: 0.95em;
+  line-height: 1.6;
+  color: #555;
+  /* Cho phép cuộn nếu nội dung quá dài */
+  overflow-y: auto;
+  max-height: 300px; /* Giới hạn chiều cao tối đa của vùng văn bản */
+}
+
+.nav-button p {
+  margin: 0;
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: #666;
+}
+
+/* --- CHÂN TRANG --- */
+.portal-footer {
+  margin-top: 50px;
+  color: #777;
+  font-size: 0.9em;
+}
+
+.portal-footer p {
+  margin: 5px 0;
+}
+/* --- ĐỊNH DẠNG BỔ SUNG CHO KHUNG THÔNG BÁO --- */
+/* Định dạng cho dòng ngày tháng (ví dụ: Ngày 21/6/2025) */
+.announcement-date {
+  font-weight: bold;
+  color: #af5200; /* Dùng màu của tiêu đề h3 cho đồng bộ */
+  margin-top: -10px; /* Kéo lên một chút cho gần tiêu đề */
+  margin-bottom: 15px;
+  font-style: italic;
+  text-align: center; /* Căn giữa cho đẹp */
+}
+
+/* Định dạng cho mỗi nhóm thông báo (ví dụ: Khách sạn Kim Thái) */
+.announcement-group {
+  margin-bottom: 15px;
+}
+
+/* Định dạng cho tiêu đề của nhóm thông báo */
+.announcement-group h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1em;
+  font-weight: 700; /* In đậm */
+  border-bottom: 1px solid #ddd; /* Thêm đường kẻ dưới cho rõ ràng */
+  padding-bottom: 5px;
+}
+
+/* Định dạng cho mỗi mục thông báo (mỗi dòng) */
+.announcement-item {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 0.95em; /* Giữ kích thước font như trong class .info-panel p */
+  line-height: 1.6;
+}
+
+/* Định dạng cho cột thời gian (ví dụ: 06h30) */
+.announcement-time {
+  font-weight: 700; /* In đậm thời gian */
+  min-width: 65px; /* Đảm bảo các cột thời gian thẳng hàng */
+  color: #000;
+}
+
+/* Định dạng cho cột nội dung */
+.announcement-content {
+  color: #555;
+}
+/* Dàn layout 5 cột cho các tầng */
+/* --- BỐ CỤC MỚI, ĐÁNG TIN CẬY HƠN --- */
+
+/* Các khu vực ghế, ví dụ khu giữa rộng hơn */
+.seat-block.middle-block {
+  min-width: 500px; /* Điều chỉnh để khu giữa luôn có độ rộng nhất định */
+  justify-content: center;
+}
+.seat-block.left-block {
+  justify-content: flex-end; /* Dồn ghế về phía lối đi */
+}
+.seat-block.right-block {
+  justify-content: flex-start; /* Dồn ghế về phía lối đi */
+}

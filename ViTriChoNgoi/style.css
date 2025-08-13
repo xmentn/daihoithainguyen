@@ -1,0 +1,415 @@
+/* --- CÀI ĐẶT CHUNG & FONT --- */
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f0f2f5;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: auto;
+}
+
+/* --- TIÊU ĐỀ --- */
+h1 {
+  color: #b71c1c;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+h2 {
+  color: #333;
+  margin-bottom: 10px;
+  font-size: 1.5em;
+}
+.seating-section h3 {
+  font-size: 1.1em;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+  width: 100%;
+  text-align: center;
+}
+#scrollable-legend h3 {
+  text-align: center;
+  font-size: 1.4em;
+  margin-bottom: 0;
+}
+#total-seat-count-display {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #b71c1c;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+/* --- NÚT CHUYỂN ĐỔI PHIÊN --- */
+.view-switcher {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.view-switcher button {
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: 500;
+  border: 2px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  margin: 0 5px;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+.view-switcher button:hover {
+  border-color: #0d47a1;
+}
+.view-switcher button.active {
+  background-color: #0d47a1;
+  color: white;
+  border-color: #0d47a1;
+}
+
+/* --- BỐ CỤC SƠ ĐỒ GHẾ --- */
+.floor-title-container {
+  width: 100%;
+  margin-top: 30px;
+}
+.floor-separator {
+  height: 2px;
+  background-color: #ddd;
+  width: 100%;
+  margin-top: -5px;
+  margin-bottom: 20px;
+}
+.floor-layout {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  width: fit-content;
+  margin: 0 auto 30px auto;
+  align-items: flex-start;
+}
+.seating-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 15px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+.seating-section[id$="-left"] {
+  align-items: flex-end;
+}
+.seating-section[id$="-right"] {
+  align-items: flex-start;
+}
+.seating-section[id$="-middle"] {
+  align-items: center;
+}
+
+/* --- ĐỊNH DẠNG HÀNG GHẾ VÀ GHẾ --- */
+.seat-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 7px;
+  width: 100%;
+  min-height: 34px;
+}
+.row-label {
+  min-width: 25px;
+  margin: 0 4px;
+  font-weight: bold;
+  text-align: center;
+  color: #4a5568;
+  font-size: 0.9em;
+}
+.seat-spacer {
+  flex-shrink: 0;
+}
+.seat {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #a0aec0;
+  border-radius: 5px;
+  margin: 2.5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.7em;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  user-select: none;
+  flex-shrink: 0;
+}
+.seat:hover {
+  transform: scale(1.2);
+  z-index: 5;
+  position: relative;
+}
+
+/* --- MÀU SẮC CÁC LOẠI GHẾ --- */
+.seat.available {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+.seat.thuongtruc {
+  background-color: #ffff00;
+  color: #2d3748;
+}
+.seat.banthuongvu {
+  background-color: #ecc94b;
+  color: #2d3748;
+}
+.seat.nguyenthuongtruc {
+  background-color: #ffdead;
+  color: #2d3748;
+}
+/* --- Thêm vào phần MÀU SẮC CÁC LOẠI GHẾ --- */
+
+/* Màu cho các nhóm Nguyên BTV */
+.seat.ntv_congan {
+  background-color: #90ee90; /* Xanh lá cây nhạt (LightGreen) */
+  color: black;
+}
+.seat.ntv_quandoi {
+  background-color: #9acd32; /* Vàng-Xanh lá (YellowGreen) */
+  color: black;
+}
+.seat.ntv_bandang {
+  background-color: #ffb6c1; /* Hồng nhạt (LightPink) */
+  color: black;
+}
+.seat.ntv_thanhuy {
+  background-color: #33cccc; /* Xanh da trời nhạt (LightBlue) */
+  color: black;
+}
+.seat.ntv_hdnd {
+  background-color: #ff99cc; /* Màu Bạc (Silver) */
+  color: black;
+}
+.seat.ntv_ubnd {
+  background-color: #008080; /* Màu Xanh mòng két (Teal) */
+  color: white;
+}
+.seat.nguyenlanhdaokhac {
+  background-color: #4b0082; /* Màu Chàm (Indigo) */
+  color: white;
+}
+.seat.daibieumoi {
+  background-color: #f08080;
+  color: white;
+}
+.seat.thuky {
+  background-color: #5d52f3;
+  color: white;
+}
+.seat.coquandang {
+  background-color: #f87431;
+  color: white;
+}
+.seat.ubndtinh {
+  background-color: #736aff;
+  color: white;
+}
+.seat.congan {
+  background-color: #00ff00;
+  color: #2d3748;
+}
+.seat.quandoi {
+  background-color: #52d017;
+  color: white;
+}
+.seat.meVN {
+  background-color: #ff66ff;
+  color: #2d3748;
+}
+.seat.quochoi {
+  background-color: #ff8c00; /* Màu Cam đậm (DarkOrange) */
+  color: white;
+}
+.seat.uyvienubkt {
+  background-color: #8b4513; /* Màu Xanh Lục đậm (DarkCyan) */
+  color: white;
+}
+/*
+.seat.xaphuong1 {
+  background-color: #20B2AA; /* Màu Xanh biển nhạt (LightSeaGreen) 
+  color: black;
+}
+.seat.xaphuong2 {
+  background-color: #9370DB;
+  color: white;
+}
+.seat.xaphuong3 {
+  background-color: #ff00ff;
+  color: white;
+}
+.seat.xaphuong4 {
+  background-color: #cc9900;
+  color: black;
+}
+*/
+/* === MÀU SẮC CÁC NHÓM XÃ, PHƯỜNG XEN KẼ === */
+
+/* Cặp màu cho Xã, phường 1 */
+.seat.xaphuong1a {
+  background-color: #24e372; /* SeaGreen */
+  color: black;
+}
+.seat.xaphuong1b {
+  background-color: #8fbc8f; /* DarkSeaGreen */
+  color: black;
+}
+
+/* Cặp màu cho Xã, phường 2 */
+.seat.xaphuong2a {
+  background-color: #67a5f5; /* SteelBlue */
+  color: white;
+}
+.seat.xaphuong2b {
+  background-color: #aacdfa; /* LightSteelBlue */
+  color: black;
+}
+
+/* Cặp màu cho Xã, phường 3 */
+.seat.xaphuong3b {
+  background-color: #f7ef83; /* Chocolate */
+  color: black;
+}
+.seat.xaphuong3a {
+  background-color: #f4a460; /* SandyBrown */
+  color: black;
+}
+
+/* Cặp màu cho Xã, phường 4 */
+.seat.xaphuong4a {
+  background-color: #6a5acd; /* SlateBlue */
+  color: white;
+}
+.seat.xaphuong4b {
+  background-color: #e883f7; /* MediumPurple */
+  color: white;
+}
+/* --- TOOLTIP & CHÚ THÍCH & NÚT HOME --- */
+.tooltip-container {
+  display: none;
+  position: absolute;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  padding: 15px 20px;
+  width: 280px;
+  z-index: 1000;
+  pointer-events: none;
+}
+.tooltip-container img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  margin-bottom: 12px;
+  display: block;
+  margin: 0 auto 12px;
+  border: 2px solid #e5e7eb;
+  object-fit: cover;
+}
+.tooltip-container h3 {
+  margin: 0 0 8px 0;
+  color: #111827;
+  font-size: 1.15em;
+  text-align: center;
+}
+.tooltip-container p {
+  margin: 6px 0;
+  font-size: 0.9em;
+  color: #4b5563;
+  line-height: 1.4;
+}
+#scrollable-legend {
+  width: 100%;
+  max-width: 1200px;
+}
+.legend-grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 10px 25px;
+  padding: 20px;
+  margin-top: 15px;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.legend-grid-container > div {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+.legend-grid-container .seat {
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+.home-button {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1000;
+  background-color: #b71c1c;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+.home-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  background-color: #a31818;
+}
+.seating-section[id$="-left"] .seat-row {
+  justify-content: flex-end;
+}
+/* Tìm các hàng ghế trong khu vực giữa và căn giữa chúng */
+.seating-section[id$="-middle"] .seat-row {
+  justify-content: center;
+}
+/* --- CSS CHO CHÚ THÍCH GỘP MÀU --- */
+.legend-swatches {
+  display: inline-flex;
+  margin-right: 10px;
+  vertical-align: middle; /* Căn giữa các ô màu với dòng chữ */
+}
+
+.legend-swatches .seat {
+  margin: 0 !important; /* Ghi đè lên margin cũ */
+  margin-left: -8px !important; /* Làm cho các ô màu gối lên nhau */
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.legend-swatches .seat:first-child {
+  margin-left: 0 !important; /* Ô màu đầu tiên không bị lệch */
+  z-index: 1; /* Đảm bảo ô đầu tiên nằm trên */
+}
+
+/* Sửa lại một chút cho phần hiển thị chung */
+.legend-grid-container > div {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+.seating-section.continental {
+  width: 100%; /* Chiếm toàn bộ chiều rộng */
+  padding: 10px 0;
+}
+
+.seat-row.continental-row {
+  justify-content: center; /* Căn giữa các ghế trong hàng */
+  width: 100%;
+}

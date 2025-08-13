@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <link rel="icon" type="image/png" href="/images/Codang.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đại hội Đảng bộ Tỉnh</title>
+    <link rel="stylesheet" href="css/style-index.css" />
+  </head>
+  <body>
+    <div class="portal-container">
+      <header class="portal-header">
+        <img
+          src="./images/Anhbac.png"
+          alt="Logo Đảng Cộng sản Việt Nam"
+          class="logo"
+        />
+        <h1>CHÀO MỪNG CÁC ĐẠI BIỂU</h1>
+        <h2>VỀ DỰ ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ TỈNH THÁI NGUYÊN</h2>
+        <h2>NHIỆM KỲ 2025-2030</h2>
+      </header>
+
+      <nav class="navigation-menu">
+        <div class="left-column">
+          <div class="info-panel">
+            <h3>THÔNG BÁO CHUNG</h3>
+            <p id="announcement-date" class="announcement-date"></p>
+
+            <div id="general-announcements-container"></div>
+
+            <div id="schedule-list">
+              <p>Đang tải thông báo...</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-column">
+          <div class="dropdown">
+            <a href="#" class="nav-button">
+              <h3>TRA CỨU THÔNG TIN</h3>
+              <p>Tìm kiếm thông tin đại biểu, khách mời, đơn vị...</p>
+            </a>
+            <div class="dropdown-content">
+              <a href="./TraCuuDaiBieu/tracuu_daibieu.html"
+                >Đại biểu chính thức</a
+              >
+              <a href="./TraCuuDaiBieu/tracuu_khachmoi.html"
+                >Đại biểu khách mời</a
+              >
+            </div>
+          </div>
+          <a href="./ViTriChoNgoi/vitridaibieu.html" class="nav-button">
+            <h3>SƠ ĐỒ VỊ TRÍ GHẾ NGỒI</h3>
+            <p>Hiển thị trực quan sơ đồ bố trí chỗ ngồi trong hội trường.</p>
+          </a>
+
+          <!-- ✅ KHUNG MỚI ĐÃ ĐƯỢC THÊM VÀO ĐÂY -->
+          <a href="./SoDoChupAnh/chupanh.html" class="nav-button">
+            <h3>SƠ ĐỒ CHỤP ẢNH</h3>
+            <p>Hiển thị sơ đồ vị trí chụp ảnh lưu niệm.</p>
+          </a>
+        </div>
+      </nav>
+
+      <footer class="portal-footer">
+        <p>Ban Tổ chức Đại hội</p>
+        <p>Thái Nguyên, năm 2025</p>
+      </footer>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // ✅ CHIẾN LƯỢC MỚI: Gọi 3 API riêng biệt cho từng loại dữ liệu
+        const baseUrl =
+          "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec"; // Thay bằng URL MỚI NHẤT của bạn
+
+        const announcementUrl = `${baseUrl}?type=thongbao`;
+        const officialUrl = `${baseUrl}?type=daibieu`;
+        const guestUrl = `${baseUrl}?type=khachmoi`;
+
+        const generalContainer = document.getElementById(
+          "general-announcements-container"
+        );
+        const scheduleContainer = document.getElementById("schedule-list");
+        const dateElement = document.getElementById("announcement-date");
+
+        // Sử dụng Promise.all để thực hiện các cuộc gọi API song song
+        Promise.all([
+          fetch(announcementUrl).then((res) => res.json()),
+          fetch(officialUrl).then((res) => res.json()),
+          fetch(guestUrl).then((res) => res.json()),
+        ])
+          .then(([announcementData, officialData, guestData]) => {
+            console.log("Tất cả dữ liệu đã được tải thành công.");
+
+            // ✅ Ghép dữ liệu lại thành một đối tượng lớn
+            const fullData = {
+              announcements: announcementData.announcements,
+              announcementDate: announcementData.announcementDate,
+              officialDelegates: officialData.delegates,
+              guestDelegates: guestData.delegates,
+            };
+
+            // Lưu vào cache trình duyệt
+            try {
+              sessionStorage.setItem("daiHoiData", JSON.stringify(fullData));
+              console.log(
+                "Dữ liệu Đại hội đã được ghép và lưu vào cache trình duyệt."
+              );
+            } catch (e) {
+              console.error("Lỗi khi lưu vào sessionStorage:", e);
+            }
+
+            // Hiển thị thông báo (dùng announcementData)
+            renderAnnouncements(announcementData);
+          })
+          .catch((error) => {
+            console.error("Lỗi khi tải một trong các phần dữ liệu:", error);
+            if (scheduleContainer) {
+              scheduleContainer.innerHTML =
+                '<p style="color: red;">Không thể tải được dữ liệu. Vui lòng thử lại sau.</p>';
+            }
+          });
+
+        // Tách logic hiển thị thông báo ra hàm riêng cho sạch sẽ
+        function renderAnnouncements(data) {
+          if (dateElement && data && data.announcementDate) {
+            dateElement.innerText = `Ngày ${data.announcementDate}`;
+          }
+
+          if (data && data.announcements && data.announcements.length > 0) {
+            const generalAnnouncements = data.announcements.filter(
+              (item) => item.loai === "Thông báo chung"
+            );
+            const scheduleAnnouncements = data.announcements.filter(
+              (item) => item.loai === "Lịch trình"
+            );
+
+            if (generalContainer) {
+              generalContainer.innerHTML = "";
+              if (generalAnnouncements.length > 0) {
+                generalAnnouncements.forEach((item) => {
+                  const p = document.createElement("p");
+                  p.className = "general-announcement-item";
+                  p.textContent = item.noiDung;
+                  generalContainer.appendChild(p);
+                });
+              }
+            }
+
+            if (scheduleContainer) {
+              scheduleContainer.innerHTML = "";
+              if (scheduleAnnouncements.length > 0) {
+                const detailTitle = document.createElement("h4");
+                detailTitle.className = "detail-announcement-title";
+                detailTitle.textContent = "Thông báo chi tiết";
+                scheduleContainer.appendChild(detailTitle);
+                const groupedSchedules = scheduleAnnouncements.reduce(
+                  (acc, item) => {
+                    const group = item.nhom || "Lịch trình khác";
+                    if (!acc[group]) acc[group] = [];
+                    acc[group].push(item);
+                    return acc;
+                  },
+                  {}
+                );
+                for (const groupName in groupedSchedules) {
+                  const accordionItem = document.createElement("div");
+                  accordionItem.className = "accordion-item";
+                  const accordionHeader = document.createElement("button");
+                  accordionHeader.className = "accordion-header";
+                  accordionHeader.innerText = groupName;
+                  const accordionContent = document.createElement("div");
+                  accordionContent.className = "accordion-content";
+                  groupedSchedules[groupName].forEach((item) => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "announcement-item";
+                    itemDiv.innerHTML = `<span class="announcement-time">${
+                      item.thoiGian || ""
+                    }</span><span class="announcement-content">${
+                      item.noiDung || "N/A"
+                    }</span>`;
+                    accordionContent.appendChild(itemDiv);
+                  });
+                  accordionItem.appendChild(accordionHeader);
+                  accordionItem.appendChild(accordionContent);
+                  scheduleContainer.appendChild(accordionItem);
+                }
+                activateAccordion();
+              }
+            }
+          } else {
+            if (generalContainer) generalContainer.innerHTML = "";
+            if (scheduleContainer)
+              scheduleContainer.innerHTML = "<p>Không có thông báo mới.</p>";
+          }
+        }
+
+        function activateAccordion() {
+          const accordionHeaders = document.querySelectorAll(
+            "#schedule-list .accordion-header"
+          );
+          accordionHeaders.forEach((header) => {
+            header.addEventListener("click", function () {
+              this.classList.toggle("active");
+              const content = this.nextElementSibling;
+              if (content.style.maxHeight) {
+                content.style.maxHeight = null;
+              } else {
+                content.style.maxHeight = content.scrollHeight + "px";
+              }
+            });
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

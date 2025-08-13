@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <link rel="icon" type="image/png" href="/images/Codang.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sơ Đồ Ghế Ngồi</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>SƠ ĐỒ BỐ TRÍ CHỖ NGỒI</h1>
+    <div class="view-switcher">
+      <button id="btnKhaiMac" class="active">Phiên Khai mạc</button>
+      <button id="btnBeMac">Phiên khác</button>
+    </div>
+
+    <h3 id="total-seat-count-display">Tổng số ghế: 0</h3>
+    <h3 id="assigned-seat-count-display"></h3>
+
+    <div class="floor-title-container">
+      <h2>TẦNG 1 (<span id="t1-seat-count">0</span> ghế)</h2>
+      <div class="floor-separator"></div>
+    </div>
+    <div class="floor-layout" id="tang-1-layout">
+      <div class="seating-section" id="seating-chart-t1-left">
+        <h3>Khu Trái</h3>
+      </div>
+      <div class="seating-section" id="seating-chart-t1-middle">
+        <h3>Khu Giữa</h3>
+      </div>
+      <div class="seating-section" id="seating-chart-t1-right">
+        <h3>Khu Phải</h3>
+      </div>
+    </div>
+
+    <div class="floor-title-container">
+      <h2>TẦNG 2 (<span id="t2-seat-count">0</span> ghế)</h2>
+      <div class="floor-separator"></div>
+    </div>
+    <div class="floor-layout" id="tang-2-layout">
+      <div
+        id="seating-chart-t2-continental"
+        class="seating-section continental"
+      ></div>
+    </div>
+
+    <div class="floor-title-container">
+      <h2>TẦNG 3 (<span id="t3-seat-count">0</span> ghế)</h2>
+      <div class="floor-separator"></div>
+    </div>
+    <div class="floor-layout" id="tang-3-layout">
+      <div
+        id="seating-chart-t3-continental"
+        class="seating-section continental"
+      ></div>
+    </div>
+    <div id="tooltip" class="tooltip-container" style="display: none">
+      <img id="tooltip-image" src="" alt="Ảnh" />
+      <h3 id="tooltip-name"></h3>
+      <p id="tooltip-title"></p>
+      <p id="tooltip-details"></p>
+      <p>Mã ghế: <strong id="tooltip-seat-id"></strong></p>
+    </div>
+
+    <div id="scrollable-legend">
+      <h3>Chú Thích:</h3>
+      <div class="legend-grid-container"></div>
+    </div>
+
+    <script src="script.js"></script>
+    <a href="../index.html" class="home-button" title="Về trang chủ">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        width="24"
+        height="24"
+      >
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z" />
+      </svg>
+      <span>Về Trang chủ</span>
+    </a>
+  </body>
+</html>
