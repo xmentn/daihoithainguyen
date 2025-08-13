@@ -1,361 +1,337 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sơ đồ chụp ảnh lưu niệm</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-      rel="stylesheet"
-    />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-      /* --- Cài đặt chung --- */
-      body {
-        font-family: "Roboto", sans-serif;
-        background-color: #f4f7f9;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        color: #333;
-      }
+        /* --- Cài đặt chung --- */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
 
-      /* --- Khung chứa chính --- */
-      .container {
-        width: 100%;
-        max-width: 1200px;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        padding: 30px;
-        text-align: center;
-        overflow-x: auto;
-      }
+        /* --- Khung chứa chính --- */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+            overflow-x: auto;
+        }
 
-      h1 {
-        color: #b71c1c;
-        font-size: 2em;
-        margin-bottom: 5px;
-      }
+        h1 {
+            color: #b71c1c;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
 
-      .subtitle {
-        font-size: 1.3em;
-        font-weight: 500;
-        color: #444;
-        margin-top: 0;
-        margin-bottom: 25px;
-      }
+        .subtitle {
+            font-size: 1.3em;
+            font-weight: 500;
+            color: #444;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
 
-      p {
-        color: #555;
-        margin-bottom: 30px;
-        font-size: 1.1em;
-      }
+        p {
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
 
-      /* --- Khu vực bục chụp ảnh --- */
-      #photo-stand {
-        display: flex;
-        flex-direction: column-reverse;
-        align-items: center;
-        gap: 10px;
-        margin-top: 20px;
-        width: max-content;
-        margin-left: auto;
-        margin-right: auto;
-      }
+        /* --- Khu vực bục chụp ảnh --- */
+        .photo-stand-area {
+            display: flex;
+            flex-direction: column-reverse; 
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            width: max-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-      /* --- Mỗi hàng chụp ảnh --- */
-      .photo-row {
-        display: flex;
-        justify-content: center;
-        flex-wrap: nowrap;
-        gap: 8px;
-        padding: 10px;
-        background-color: #e3e8ed;
-        border-radius: 8px;
-        border: 1px solid #d1d9e0;
-        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
-        position: relative;
-        margin-bottom: 15px;
-      }
+        /* --- Mỗi hàng chụp ảnh --- */
+        .photo-row {
+            display: flex;
+            justify-content: center;
+            flex-wrap: nowrap;
+            gap: 5px;
+            padding: 10px;
+            background-color: #e3e8ed;
+            border-radius: 8px;
+            border: 1px solid #d1d9e0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        /* --- Nhãn tên hàng (Hàng 1, Hàng 2...) --- */
+        .row-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #6c757d;
+            color: white;
+            padding: 3px 12px;
+            border-radius: 12px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
 
-      /* --- Nhãn tên hàng (Hàng 1, Hàng 2...) --- */
-      .row-label {
-        position: absolute;
-        bottom: -25px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #6c757d;
-        color: white;
-        padding: 3px 12px;
-        border-radius: 12px;
-        font-size: 0.9em;
-        font-weight: 500;
-      }
+        /* --- Vị trí của mỗi người --- */
+        .person {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #ffffff;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 500;
+            font-size: 0.8em;
+            border: 1.5px solid #b0bec5;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            position: relative;
+            flex-shrink: 0;
+        }
 
-      /* --- Vị trí của mỗi người --- */
-      .person {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background-color: #ffffff;
-        color: #333;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: 500;
-        font-size: 0.9em;
-        border: 1.5px solid #b0bec5;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        position: relative;
-        flex-shrink: 0;
-      }
+        .person:hover {
+            transform: scale(1.1);
+            background-color: #b71c1c;
+            color: white;
+            border-color: #9a1010;
+            z-index: 10;
+        }
+        
+        .person.odd { background-color: #e3f2fd; }
+        .person.even { background-color: #fff3e0; }
+        .person.odd:hover, .person.even:hover {
+             background-color: #b71c1c;
+        }
 
-      .person:hover {
-        transform: scale(1.1);
-        background-color: #b71c1c;
-        color: white;
-        border-color: #9a1010;
-        z-index: 10;
-      }
+        /* --- CSS CHO NÚT VỀ TRANG CHỦ --- */
+        .home-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            z-index: 1000;
+        }
 
-      .person.odd {
-        background-color: #e3f2fd;
-      }
-      .person.even {
-        background-color: #fff3e0;
-      }
-      .person.odd:hover,
-      .person.even:hover {
-        background-color: #b71c1c;
-      }
+        .home-button svg {
+            width: 28px;
+            height: 28px;
+        }
 
-      /* --- CSS CHO NÚT VỀ TRANG CHỦ --- */
-      .home-button {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background-color: #d32f2f;
-        color: white;
-        border: none;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        z-index: 1000;
-      }
+        .home-button span {
+            display: none;
+        }
 
-      .home-button svg {
-        width: 28px;
-        height: 28px;
-      }
+        .home-button:hover {
+            background-color: #b71c1c;
+            transform: scale(1.1);
+        }
 
-      .home-button span {
-        display: none;
-      }
+        /* --- CSS CHO TOOLTIP --- */
+        .tooltip {
+            position: absolute;
+            display: none;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+        }
+        
+        /* ✅ THÊM CSS CHO ĐƯỜNG KẺ PHÂN CÁCH */
+        .section-divider {
+            border: none;
+            border-top: 2px dashed #ccc;
+            margin: 50px 0;
+        }
 
-      .home-button:hover {
-        background-color: #b71c1c;
-        transform: scale(1.1);
-      }
-
-      /* --- CSS CHO TOOLTIP --- */
-      .tooltip {
-        position: absolute;
-        display: none;
-        background-color: #333;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 0.9em;
-        pointer-events: none;
-        z-index: 100;
-        white-space: nowrap;
-      }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1>SƠ ĐỒ CHỤP ẢNH LƯU NIỆM</h1>
-      <h2 class="subtitle">Đại biểu Trung ương với BCH Đảng bộ tỉnh</h2>
-      <p id="total-count">Tổng số: 0 người</p>
+        <!-- === SƠ ĐỒ 1 === -->
+        <h1>SƠ ĐỒ CHỤP ẢNH LƯU NIỆM</h1>
+        <h2 class="subtitle">Đại biểu Trung ương với BCH Đảng bộ tỉnh</h2>
+        <p id="total-count-1">Tổng số: 0 người</p>
+        <div id="photo-stand-1" class="photo-stand-area"></div>
 
-      <div id="photo-stand">
-        <!-- Các hàng và vị trí sẽ được tạo bởi JavaScript -->
-      </div>
+        <!-- === ĐƯỜNG KẺ PHÂN CÁCH === -->
+        <hr class="section-divider">
+
+        <!-- === SƠ ĐỒ 2 === -->
+        <h1>SƠ ĐỒ CHỤP ẢNH LƯU NIỆM</h1>
+        <h2 class="subtitle">Đại biểu dự Đại hội</h2>
+        <p id="total-count-2">Tổng số: 0 người</p>
+        <div id="photo-stand-2" class="photo-stand-area"></div>
     </div>
 
-    <!-- THÊM THẺ TOOLTIP VÀO BODY -->
+    <!-- THẺ TOOLTIP VÀ NÚT HOME -->
     <div id="tooltip" class="tooltip"></div>
+    <a href="../index.html" class="home-button" title="Về trang chủ">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        width="24"
+        height="24"
+      >
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z" />
+      </svg>
+      <span>Về Trang chủ</span>
+    </a>
 
     <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        // DANH SÁCH TÊN ĐẠI BIỂU MẪU
-        const delegateNames = [
-          // Hàng 1 (22 người)
-          "Nguyễn Văn An",
-          "Phạm Văn Thọ",
-          "Bùi Văn Lương",
-          "Trần Thị Lộc",
-          "Nguyễn Thanh Bình",
-          "Đại biểu TW 6",
-          "Đỗ Đức Công",
-          "Đại biểu TW 4",
-          "Phạm Hoàng Sơn",
-          "Đại biểu TW2",
-          "Trịnh Việt Hùng",
-          "Phan Văn Giang",
-          "Nguyễn Đăng Bình",
-          "Đại biểu TW 3",
-          "Đinh Quang Tuyên",
-          "Đại biểu TW 5",
-          "Dương Văn Tiến",
-          "Hoàng Thu Trang",
-          "Lường Đức Thắng",
-          "Đỗ Thị Minh Hoa",
-          "Bùi Đức Hải",
-          "Vũ Duy Hoàng",
-          // Hàng 2 (25 người)
-          "Nguyễn Thị Ái",
-          "Trần Văn Bách",
-          "Lê Thị Cẩm",
-          "Phạm Văn Dũng",
-          "Hoàng Thị Đào",
-          "Vũ Văn Biên",
-          "Đặng Thị Gấm",
-          "Bùi Văn Hiếu",
-          "Hồ Thị Kim",
-          "Dương Văn Long",
-          "Ngô Thị Mai",
-          "Đỗ Văn Nam",
-          "Phan Thị Nguyệt",
-          "Lý Văn Phong",
-          "Mai Thị Quyên",
-          "Tô Văn Sơn",
-          "Trịnh Thị Tâm",
-          "Chu Văn Thái",
-          "Lương Thị Thảo",
-          "Giang Văn Toàn",
-          "Trương Thị Tươi",
-          "Vương Văn Vĩnh",
-          "Nguyễn Văn Hưng",
-          "Trần Thị Hà",
-          "Lê Văn Hải",
-          // Hàng 3 (28 người)
-          "Phạm Thị Anh",
-          "Hoàng Văn Bảy",
-          "Vũ Thị Châu",
-          "Đặng Văn Dân",
-          "Bùi Thị Diệp",
-          "Hồ Văn Đức",
-          "Dương Thị Hiền",
-          "Ngô Văn Hoàng",
-          "Đỗ Thị Huệ",
-          "Phan Văn Hữu",
-          "Lý Thị Hương",
-          "Mai Văn Khoa",
-          "Tô Thị Lệ",
-          "Trịnh Văn Lộc",
-          "Chu Thị Lý",
-          "Lương Văn Mạnh",
-          "Giang Thị Mơ",
-          "Trương Văn Nghĩa",
-          "Vương Thị Nhung",
-          "Nguyễn Văn Phi",
-          "Trần Thị Quỳnh",
-          "Lê Văn Sang",
-          "Phạm Thị Thắm",
-          "Hoàng Văn Thông",
-          "Vũ Thị Thúy",
-          "Đặng Văn Tùng",
-          "Bùi Thị Vân",
-          "Hồ Văn Vũ",
-        ];
+        document.addEventListener("DOMContentLoaded", function() {
+            const tooltip = document.getElementById('tooltip');
 
-        const photoLayout = [
-          { label: "Hàng 1", count: 22 },
-          { label: "Hàng 2", count: 25 },
-          { label: "Hàng 3", count: 28 },
-        ];
+            /**
+             * Hàm chung để tạo một sơ đồ chụp ảnh
+             * @param {string} standId - ID của div chứa sơ đồ
+             * @param {string} totalCountId - ID của thẻ <p> hiển thị tổng số
+             * @param {Array} layoutConfig - Cấu hình các hàng
+             * @param {Array} names - Danh sách tên (tùy chọn)
+             */
+            function generatePhotoDiagram(standId, totalCountId, layoutConfig, names = []) {
+                const stand = document.getElementById(standId);
+                if (!stand) return;
 
-        const stand = document.getElementById("photo-stand");
-        const tooltip = document.getElementById("tooltip");
-        let totalCount = 0;
-        let nameIndex = 0;
+                let totalCount = 0;
+                let nameIndex = 0;
 
-        photoLayout.forEach((rowData) => {
-          totalCount += rowData.count;
-          const rowDiv = document.createElement("div");
-          rowDiv.className = "photo-row";
+                layoutConfig.forEach(rowData => {
+                    totalCount += rowData.count;
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'photo-row';
 
-          const labelDiv = document.createElement("div");
-          labelDiv.className = "row-label";
-          labelDiv.textContent = rowData.label;
+                    const labelDiv = document.createElement('div');
+                    labelDiv.className = 'row-label';
+                    labelDiv.textContent = rowData.label;
 
-          const isOddCount = rowData.count % 2 !== 0;
-          const halfCount = Math.floor(rowData.count / 2);
+                    const isOddCount = rowData.count % 2 !== 0;
+                    const halfCount = Math.floor(rowData.count / 2);
+                    
+                    const leftNumbers = [];
+                    const leftSideCount = isOddCount ? halfCount + 1 : halfCount;
+                    for (let i = 0; i < leftSideCount; i++) {
+                        leftNumbers.push((leftSideCount - i) * 2 - 1);
+                    }
 
-          const leftNumbers = [];
-          const leftSideCount = isOddCount ? halfCount + 1 : halfCount;
-          for (let i = 0; i < leftSideCount; i++) {
-            leftNumbers.push((leftSideCount - i) * 2 - 1);
-          }
+                    const rightNumbers = [];
+                    for (let i = 0; i < halfCount; i++) {
+                        rightNumbers.push((i + 1) * 2);
+                    }
+                    
+                    const createPersonDiv = (num, type) => {
+                        const personDiv = document.createElement('div');
+                        // Chỉ gán tên nếu hàng đó được phép và còn tên trong danh sách
+                        const personName = (rowData.hasNames && names[nameIndex]) ? names[nameIndex] : `Vị trí số ${num}`;
+                        
+                        personDiv.className = `person ${type}`;
+                        personDiv.textContent = num;
+                        personDiv.dataset.name = personName;
+                        
+                        rowDiv.appendChild(personDiv);
 
-          const rightNumbers = [];
-          for (let i = 0; i < halfCount; i++) {
-            rightNumbers.push((i + 1) * 2);
-          }
+                        if (rowData.hasNames) {
+                            nameIndex++;
+                        }
+                    };
 
-          const createPersonDiv = (num, type) => {
-            const personDiv = document.createElement("div");
-            const personName = delegateNames[nameIndex] || "Chưa có tên";
+                    leftNumbers.forEach(num => createPersonDiv(num, 'odd'));
+                    rightNumbers.forEach(num => createPersonDiv(num, 'even'));
 
-            personDiv.className = `person ${type}`;
-            personDiv.textContent = num;
-            personDiv.dataset.name = personName;
+                    rowDiv.appendChild(labelDiv);
+                    stand.appendChild(rowDiv);
+                });
 
-            rowDiv.appendChild(personDiv);
-            nameIndex++;
-          };
+                const totalCountEl = document.getElementById(totalCountId);
+                if (totalCountEl) {
+                    totalCountEl.textContent = `Tổng số: ${totalCount} người`;
+                }
+            }
 
-          leftNumbers.forEach((num) => createPersonDiv(num, "odd"));
-          rightNumbers.forEach((num) => createPersonDiv(num, "even"));
+            // --- DỮ LIỆU VÀ LỜI GỌI CHO SƠ ĐỒ 1 ---
+            const delegateNames1 = [
+                "Nguyễn Văn An", "Trần Thị Bình", "Lê Văn Cường", "Phạm Thị Dung", "Hoàng Văn Em", "Vũ Thị Giang", "Đặng Văn Hùng", "Bùi Thị Yến", "Hồ Văn Kiên", "Dương Thị Lan", "Ngô Văn Minh", "Đỗ Thị Nga", "Phan Văn Oanh", "Lý Thị Phương", "Mai Văn Quang", "Tô Thị Sen", "Trịnh Văn Thành", "Chu Thị Thủy", "Lương Văn Tuấn", "Giang Thị Uyên", "Trương Văn Việt", "Vương Thị Xuân", "Nguyễn Thị Ái", "Trần Văn Bách", "Lê Thị Cẩm", "Phạm Văn Dũng", "Hoàng Thị Đào", "Vũ Văn Biên", "Đặng Thị Gấm", "Bùi Văn Hiếu", "Hồ Thị Kim", "Dương Văn Long", "Ngô Thị Mai", "Đỗ Văn Nam", "Phan Thị Nguyệt", "Lý Văn Phong", "Mai Thị Quyên", "Tô Văn Sơn", "Trịnh Thị Tâm", "Chu Văn Thái", "Lương Thị Thảo", "Giang Văn Toàn", "Trương Thị Tươi", "Vương Văn Vĩnh", "Nguyễn Văn Hưng", "Trần Thị Hà", "Lê Văn Hải", "Phạm Thị Anh", "Hoàng Văn Bảy", "Vũ Thị Châu", "Đặng Văn Dân", "Bùi Thị Diệp", "Hồ Văn Đức", "Dương Thị Hiền", "Ngô Văn Hoàng", "Đỗ Thị Huệ", "Phan Văn Hữu", "Lý Thị Hương", "Mai Văn Khoa", "Tô Thị Lệ", "Trịnh Văn Lộc", "Chu Thị Lý", "Lương Văn Mạnh", "Giang Thị Mơ", "Trương Văn Nghĩa", "Vương Thị Nhung", "Nguyễn Văn Phi", "Trần Thị Quỳnh", "Lê Văn Sang", "Phạm Thị Thắm", "Hoàng Văn Thông", "Vũ Thị Thúy", "Đặng Văn Tùng", "Bùi Thị Vân", "Hồ Văn Vũ"
+            ];
+            const photoLayout1 = [
+                { label: "Hàng 1", count: 22, hasNames: true },
+                { label: "Hàng 2", count: 25, hasNames: true },
+                { label: "Hàng 3", count: 28, hasNames: true }
+            ];
+            generatePhotoDiagram('photo-stand-1', 'total-count-1', photoLayout1, delegateNames1);
 
-          rowDiv.appendChild(labelDiv);
-          stand.appendChild(rowDiv);
+            // --- DỮ LIỆU VÀ LỜI GỌI CHO SƠ ĐỒ 2 ---
+            const delegateNames2 = [
+                "ĐB 1", "ĐB 2", "ĐB 3", "ĐB 4", "ĐB 5", "ĐB 6", "ĐB 7", "ĐB 8", "ĐB 9", "ĐB 10", "ĐB 11", "ĐB 12", "ĐB 13", "ĐB 14", "ĐB 15", "ĐB 16", "ĐB 17", "ĐB 18", "ĐB 19", "ĐB 20", "ĐB 21", "ĐB 22", "ĐB 23", "ĐB 24", "Trịnh Việt Hùng", "ĐB 26", "ĐB 27", "ĐB 28", "ĐB 29", "ĐB 30", "ĐB 31", "ĐB 32", "ĐB 33", "ĐB 34", "ĐB 35", "ĐB 36", "ĐB 37", "ĐB 38", "ĐB 39", "ĐB 40", "ĐB 41", "ĐB 42", "ĐB 43", "ĐB 44", "ĐB 45"
+            ];
+            const photoLayout2 = [
+                { label: "Hàng 1", count: 45, hasNames: true }, // Chỉ hàng này có tên
+                { label: "Hàng 2", count: 50 },
+                { label: "Hàng 3", count: 50 },
+                { label: "Hàng 4", count: 50 },
+                { label: "Hàng 5", count: 51 },
+                { label: "Hàng 6", count: 51 },
+                { label: "Hàng 7", count: 51 },
+                { label: "Hàng 8", count: 51 },
+                { label: "Hàng 9", count: 51 }
+            ];
+            generatePhotoDiagram('photo-stand-2', 'total-count-2', photoLayout2, delegateNames2);
+
+            // --- THÊM SỰ KIỆN CHO TOOLTIP (CHO TẤT CẢ CÁC SƠ ĐỒ) ---
+            const allPersons = document.querySelectorAll('.person');
+            allPersons.forEach(person => {
+                person.addEventListener('mouseenter', function(e) {
+                    tooltip.textContent = this.dataset.name;
+                    tooltip.style.display = 'block';
+                });
+                person.addEventListener('mousemove', function(e) {
+                    tooltip.style.left = (e.pageX + 10) + 'px';
+                    tooltip.style.top = (e.pageY + 10) + 'px';
+                });
+                person.addEventListener('mouseleave', function(e) {
+                    tooltip.style.display = 'none';
+                });
+            });
         });
-
-        document.getElementById(
-          "total-count"
-        ).textContent = `Tổng số: ${totalCount} người`;
-
-        // THÊM SỰ KIỆN CHO TOOLTIP
-        const allPersons = document.querySelectorAll(".person");
-        allPersons.forEach((person) => {
-          person.addEventListener("mouseenter", function (e) {
-            tooltip.textContent = this.dataset.name;
-            tooltip.style.display = "block";
-          });
-          person.addEventListener("mousemove", function (e) {
-            tooltip.style.left = e.pageX + 10 + "px";
-            tooltip.style.top = e.pageY + 10 + "px";
-          });
-          person.addEventListener("mouseleave", function (e) {
-            tooltip.style.display = "none";
-          });
-        });
-      });
     </script>
 
     <a href="../index.html" class="home-button" title="Về trang chủ">
@@ -370,5 +346,5 @@
       </svg>
       <span>Về Trang chủ</span>
     </a>
-  </body>
+</body>
 </html>
