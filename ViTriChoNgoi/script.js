@@ -520,7 +520,7 @@ document.addEventListener("DOMContentLoaded", () => {
       meVN: "Anh hùng, Mẹ VNAH",
       thuky: "Thư ký",
       uyvienubkt: "Ủy viên UBKT",
-	   quochoi: "Đại biểu Quốc hội",
+      quochoi: "Đại biểu Quốc hội",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -1164,7 +1164,55 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-function setupTooltips(activeSeatMap) { const allSeats = document.querySelectorAll(".seating-section .seat"); allSeats.forEach((seat) => { seat.addEventListener("mouseenter", function (event) { const fullSeatId = this.dataset.id; const parts = fullSeatId.split("-"); const simpleSeatId = `${parts[parts.length - 2]}-${ parts[parts.length - 1] }`; const seatInfo = activeSeatMap.get(simpleSeatId); tooltipName.textContent = (seatInfo && seatInfo.name) || "Ghế Trống"; tooltipTitle.textContent = (seatInfo && seatInfo.title) || ""; tooltipDetails.textContent = (seatInfo && seatInfo.details) || ""; tooltipSeatIdEl.textContent = fullSeatId; if (seatInfo && seatInfo.image && seatInfo.image !== "") { tooltipImage.src = seatInfo.image; tooltipImage.style.display = "block"; } else { tooltipImage.src = ""; tooltipImage.style.display = "none"; } tooltip.style.display = "block"; const seatRect = this.getBoundingClientRect(); const tooltipRect = tooltip.getBoundingClientRect(); const scrollX = window.scrollX; const scrollY = window.scrollY; let newTop = seatRect.top + scrollY - tooltipRect.height - 10; let newLeft = seatRect.left + scrollX + seatRect.width / 2 - tooltipRect.width / 2; if (newTop < scrollY + 5) { newTop = seatRect.bottom + scrollY + 10; } if (newTop + tooltipRect.height > scrollY + window.innerHeight - 5) { newTop = scrollY + 5; } if (newLeft < scrollX + 5) { newLeft = scrollX + 5; } if (newLeft + tooltipRect.width > scrollX + window.innerWidth - 5) { newLeft = scrollX + window.innerWidth - tooltipRect.width - 5; } tooltip.style.left = `${newLeft}px`; tooltip.style.top = `${newTop}px`; }); seat.addEventListener("mouseleave", () => { tooltip.style.display = "none"; }); }); }
+  function setupTooltips(activeSeatMap) {
+    const allSeats = document.querySelectorAll(".seating-section .seat");
+    allSeats.forEach((seat) => {
+      seat.addEventListener("mouseenter", function (event) {
+        const fullSeatId = this.dataset.id;
+        const parts = fullSeatId.split("-");
+        const simpleSeatId = `${parts[parts.length - 2]}-${
+          parts[parts.length - 1]
+        }`;
+        const seatInfo = activeSeatMap.get(simpleSeatId);
+        tooltipName.textContent = (seatInfo && seatInfo.name) || "Ghế Trống";
+        tooltipTitle.textContent = (seatInfo && seatInfo.title) || "";
+        tooltipDetails.textContent = (seatInfo && seatInfo.details) || "";
+        tooltipSeatIdEl.textContent = fullSeatId;
+        if (seatInfo && seatInfo.image && seatInfo.image !== "") {
+          tooltipImage.src = seatInfo.image;
+          tooltipImage.style.display = "block";
+        } else {
+          tooltipImage.src = "";
+          tooltipImage.style.display = "none";
+        }
+        tooltip.style.display = "block";
+        const seatRect = this.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
+        let newTop = seatRect.top + scrollY - tooltipRect.height - 10;
+        let newLeft =
+          seatRect.left + scrollX + seatRect.width / 2 - tooltipRect.width / 2;
+        if (newTop < scrollY + 5) {
+          newTop = seatRect.bottom + scrollY + 10;
+        }
+        if (newTop + tooltipRect.height > scrollY + window.innerHeight - 5) {
+          newTop = scrollY + 5;
+        }
+        if (newLeft < scrollX + 5) {
+          newLeft = scrollX + 5;
+        }
+        if (newLeft + tooltipRect.width > scrollX + window.innerWidth - 5) {
+          newLeft = scrollX + window.innerWidth - tooltipRect.width - 5;
+        }
+        tooltip.style.left = `${newLeft}px`;
+        tooltip.style.top = `${newTop}px`;
+      });
+      seat.addEventListener("mouseleave", () => {
+        tooltip.style.display = "none";
+      });
+    });
+  }
 
   // ✅ HÀM CẬP NHẬT CHÚ THÍCH ĐÃ SỬA ĐỔI
   function updateLegendWithCounts(seatData, viewKey) {
