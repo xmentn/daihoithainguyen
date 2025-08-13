@@ -529,8 +529,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ubndtinh: "Đảng bộ UBND tỉnh",
       congan: "Đảng bộ Công an",
       quandoi: "Đảng bộ Bộ CHQS",
-      thutruongdonvi: "Thủ trưởng đơn vị",
-      uyvienubkt: "Ủy viên UBKT",
       xaphuong1: "Đảng bộ xã, phường 1",
       xaphuong2: "Đảng bộ xã, phường 2",
       xaphuong3: "Đảng bộ xã, phường 3",
@@ -1164,53 +1162,103 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  /**
+   * ✅ HÀM ĐÃ ĐƯỢC NÂNG CẤP
+   * Thêm sự kiện 'click' để tương thích với thiết bị cảm ứng (iPad).
+   * Giữ lại 'mouseenter' và 'mouseleave' cho máy tính.
+   * Thêm logic để ẩn tooltip khi click ra ngoài.
+   */
   function setupTooltips(activeSeatMap) {
     const allSeats = document.querySelectorAll(".seating-section .seat");
-    allSeats.forEach((seat) => {
-      seat.addEventListener("mouseenter", function (event) {
-        const fullSeatId = this.dataset.id;
-        const parts = fullSeatId.split("-");
-        const simpleSeatId = `${parts[parts.length - 2]}-${
-          parts[parts.length - 1]
-        }`;
-        const seatInfo = activeSeatMap.get(simpleSeatId);
-        tooltipName.textContent = (seatInfo && seatInfo.name) || "Ghế Trống";
-        tooltipTitle.textContent = (seatInfo && seatInfo.title) || "";
-        tooltipDetails.textContent = (seatInfo && seatInfo.details) || "";
-        tooltipSeatIdEl.textContent = fullSeatId;
-        if (seatInfo && seatInfo.image && seatInfo.image !== "") {
-          tooltipImage.src = seatInfo.image;
-          tooltipImage.style.display = "block";
-        } else {
-          tooltipImage.src = "";
-          tooltipImage.style.display = "none";
-        }
-        tooltip.style.display = "block";
-        const seatRect = this.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
-        const scrollX = window.scrollX;
-        const scrollY = window.scrollY;
-        let newTop = seatRect.top + scrollY - tooltipRect.height - 10;
-        let newLeft =
-          seatRect.left + scrollX + seatRect.width / 2 - tooltipRect.width / 2;
-        if (newTop < scrollY + 5) {
-          newTop = seatRect.bottom + scrollY + 10;
-        }
-        if (newTop + tooltipRect.height > scrollY + window.innerHeight - 5) {
-          newTop = scrollY + 5;
-        }
-        if (newLeft < scrollX + 5) {
-          newLeft = scrollX + 5;
-        }
-        if (newLeft + tooltipRect.width > scrollX + window.innerWidth - 5) {
-          newLeft = scrollX + window.innerWidth - tooltipRect.width - 5;
-        }
-        tooltip.style.left = `${newLeft}px`;
-        tooltip.style.top = `${newTop}px`;
-      });
-      seat.addEventListener("mouseleave", () => {
+    let activeTooltipSeat = null; // Biến để theo dõi ghế đang hiển thị tooltip
+
+    // Hàm chung để hiển thị tooltip
+    const showTooltip = (seatElement) => {
+      // Nếu đang có tooltip khác hiển thị, hãy ẩn nó đi
+      if (activeTooltipSeat && activeTooltipSeat !== seatElement) {
         tooltip.style.display = "none";
+      }
+
+      // Lưu lại ghế vừa được chọn
+      activeTooltipSeat = seatElement;
+
+      const fullSeatId = seatElement.dataset.id;
+      const parts = fullSeatId.split("-");
+      const simpleSeatId = `${parts[parts.length - 2]}-${
+        parts[parts.length - 1]
+      }`;
+      const seatInfo = activeSeatMap.get(simpleSeatId);
+
+      // Cập nhật nội dung cho tooltip
+      tooltipName.textContent = (seatInfo && seatInfo.name) || "Ghế Trống";
+      tooltipTitle.textContent = (seatInfo && seatInfo.title) || "";
+      tooltipDetails.textContent = (seatInfo && seatInfo.details) || "";
+      tooltipSeatIdEl.textContent = fullSeatId;
+
+      if (seatInfo && seatInfo.image && seatInfo.image !== "") {
+        tooltipImage.src = seatInfo.image;
+        tooltipImage.style.display = "block";
+      } else {
+        tooltipImage.src = "";
+        tooltipImage.style.display = "none";
+      }
+
+      // Hiển thị và định vị tooltip
+      tooltip.style.display = "block";
+      const seatRect = seatElement.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const scrollX = window.scrollX;
+      const scrollY = window.scrollY;
+
+      let newTop = seatRect.top + scrollY - tooltipRect.height - 10;
+      let newLeft =
+        seatRect.left + scrollX + seatRect.width / 2 - tooltipRect.width / 2;
+
+      // Điều chỉnh vị trí để tooltip không bị che khuất ở các cạnh màn hình
+      if (newTop < scrollY + 5) {
+        newTop = seatRect.bottom + scrollY + 10;
+      }
+      if (newLeft < scrollX + 5) {
+        newLeft = scrollX + 5;
+      }
+      if (newLeft + tooltipRect.width > scrollX + window.innerWidth - 5) {
+        newLeft = scrollX + window.innerWidth - tooltipRect.width - 5;
+      }
+
+      tooltip.style.left = `${newLeft}px`;
+      tooltip.style.top = `${newTop}px`;
+    };
+
+    // Hàm chung để ẩn tooltip
+    const hideTooltip = () => {
+      tooltip.style.display = "none";
+      activeTooltipSeat = null;
+    };
+
+    // Gán sự kiện cho từng ghế
+    allSeats.forEach((seat) => {
+      // Sự kiện cho MÁY TÍNH (dùng chuột)
+      seat.addEventListener("mouseenter", (event) => {
+        showTooltip(event.currentTarget);
       });
+      seat.addEventListener("mouseleave", hideTooltip);
+
+      // Sự kiện cho IPAD & ĐIỆN THOẠI (dùng cảm ứng)
+      seat.addEventListener("click", (event) => {
+        event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài và đóng mất tooltip ngay lập tức
+        showTooltip(event.currentTarget);
+      });
+    });
+
+    // Thêm sự kiện cho toàn bộ trang để ẩn tooltip khi người dùng bấm ra ngoài
+    document.addEventListener("click", (event) => {
+      // Nếu tooltip đang hiển thị VÀ người dùng không bấm vào một ghế khác
+      if (
+        tooltip.style.display === "block" &&
+        !event.target.classList.contains("seat")
+      ) {
+        hideTooltip();
+      }
     });
   }
 
