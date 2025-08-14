@@ -638,8 +638,9 @@ document.addEventListener("DOMContentLoaded", () => {
         allSeatData.khaiMac.push({
           id: khaiMacSeat,
           name: delegate.hoTen,
-          title: delegate.donVi,
-          details: `Tổ thảo luận: ${delegate.toThaoLuan || "N/A"}`,
+          // title: delegate.donVi,
+          title: delegate.chucVu,
+          // details: `Tổ thảo luận: ${delegate.toThaoLuan || "N/A"}`,
           status: status,
           image: "",
         });
@@ -650,8 +651,9 @@ document.addEventListener("DOMContentLoaded", () => {
         allSeatData.beMac.push({
           id: beMacSeat,
           name: delegate.hoTen,
-          title: delegate.donVi,
-          details: `Tổ thảo luận: ${delegate.toThaoLuan || "N/A"}`,
+          //title: delegate.donVi,
+          title: delegate.chucVu,
+          //  details: `Tổ thảo luận: ${delegate.toThaoLuan || "N/A"}`,
           status: status,
           image: "",
         });
