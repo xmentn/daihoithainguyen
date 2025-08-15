@@ -2439,7 +2439,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // TÌM VÀ THAY THẾ TOÀN BỘ HÀM NÀY
-  function initializeApp() {
+ function initializeApp() {
     mainTitle.textContent = "ĐANG TẢI DỮ LIỆU SƠ ĐỒ...";
     fetch(apiUrl)
       .then((response) => {
