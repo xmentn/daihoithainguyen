@@ -2529,6 +2529,3 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   initializeApp();
 });
-
-  initializeApp();
-});
