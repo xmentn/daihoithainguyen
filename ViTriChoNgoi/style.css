@@ -413,3 +413,12 @@ h2 {
   justify-content: center; /* Căn giữa các ghế trong hàng */
   width: 100%;
 }
+/* CSS cho ghế được làm nổi bật từ trang tra cứu */
+.seat.highlighted {
+  background-color: #ff4757 !important; /* Màu đỏ tươi để dễ thấy */
+  color: white !important;
+  border: 2px solid #c0392b !important;
+  transform: scale(1.1); /* Phóng to nhẹ để thu hút sự chú ý */
+  box-shadow: 0 0 15px rgba(255, 71, 87, 0.8);
+  z-index: 10;
+}

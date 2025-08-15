@@ -13,12 +13,21 @@
       <h2>ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ TỈNH THÁI NGUYÊN</h2>
       <h2>NHIỆM KỲ 2025 - 2030</h2>
       <div id="filter-tabs"></div>
-      <input
-        type="text"
-        id="searchBox"
-        onkeyup="filterTable()"
-        placeholder="Nhập tên khách mời hoặc chức vụ để tìm kiếm..."
-      />
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchBox"
+          onkeyup="filterTable()"
+          placeholder="Nhập tên khách mời hoặc chức vụ để tìm kiếm..."
+        />
+        <button
+          id="viewSeatsBtn"
+          class="view-btn"
+          title="Xem vị trí của khách mời trong danh sách"
+        >
+          Vị trí chỗ ngồi
+        </button>
+      </div>
 
       <table id="delegateTable">
         <thead>
@@ -227,10 +236,72 @@
           }
         }
       }
+      // ... sau khi kết thúc hàm filterTable()
 
+      /**
+       * Chuẩn hóa mã ghế từ dạng 'B15', 'V112' sang 'B-15', 'V1-12'
+       */
+      function normalizeSeatCode(code) {
+        if (!code || typeof code !== "string") return null;
+        let normalized = code.trim().toUpperCase();
+        if (normalized.includes("-")) {
+          return normalized;
+        }
+        if (normalized.startsWith("V1") || normalized.startsWith("V2")) {
+          const prefix = normalized.substring(0, 2);
+          const number = normalized.substring(2);
+          return `${prefix}-${number}`;
+        }
+        const firstChar = normalized.charAt(0);
+        if (firstChar >= "A" && firstChar <= "Z") {
+          const number = normalized.substring(1);
+          return `${firstChar}-${number}`;
+        }
+        return normalized;
+      }
+      /**
+       * Hàm xử lý việc xem vị trí cho khách mời (chỉ dự phiên khai mạc)
+       */
+      /**
+       * Hàm xử lý việc xem vị trí cho khách mời (chỉ dự phiên khai mạc)
+       */
+      function handleViewSeatsClick() {
+        const trs = tableBody.getElementsByTagName("tr");
+        const visibleSeats = new Set();
+        const columnIndex = 3;
+
+        for (let i = 0; i < trs.length; i++) {
+          if (trs[i].style.display !== "none") {
+            const seatCodeRaw =
+              trs[i].getElementsByTagName("td")[columnIndex]?.innerText;
+            const seatCodeNormalized = normalizeSeatCode(seatCodeRaw);
+            if (seatCodeNormalized) {
+              visibleSeats.add(seatCodeNormalized);
+            }
+          }
+        }
+
+        if (visibleSeats.size === 0) {
+          alert("Không có vị trí nào trong danh sách để xem.");
+          return;
+        }
+
+        const seatsQueryParam = Array.from(visibleSeats).join(",");
+
+        // ✅ THAY ĐỔI: Thêm &type=khachmoi vào cuối URL
+        const destinationUrl = `../ViTriChoNgoi/vitridaibieu.html?seats=${encodeURIComponent(
+          seatsQueryParam
+        )}&view=khaiMac&type=khachmoi`;
+
+        window.location.href = destinationUrl;
+      }
       // --- BẮT ĐẦU CHẠY ỨNG DỤNG ---
       initializeApp();
+      document
+        .getElementById("viewSeatsBtn")
+        .addEventListener("click", handleViewSeatsClick);
     </script>
+
     <a href="../index.html" class="home-button" title="Về Trang chủ">
       <svg
         xmlns="http://www.w3.org/2000/svg"

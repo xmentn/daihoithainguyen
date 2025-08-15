@@ -1,13 +1,16 @@
-// script.js - PHIÊN BẢN CUỐI CÙNG - SỬA LỖI TRA CỨU MÃ GHẾ
+// script.js - PHIÊN BẢN CUỐI CÙNG, XỬ LÝ CẢ 2 TRƯỜNG HỢP
 
 document.addEventListener("DOMContentLoaded", () => {
   // =======================================================================
-  // 1. KHAI BÁO BIẾN VÀ CẤU HÌNH
+  // 1. KHAI BÁO BIẾN
   // =======================================================================
+  let selectedDelegatesSeats = []; // Sẽ lưu ghế của đại biểu/khách mời được chọn
+  const allSeatElementsMap = new Map();
   const apiUrl =
     "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=sodo";
   const btnKhaiMac = document.getElementById("btnKhaiMac");
   const btnBeMac = document.getElementById("btnBeMac");
+  // ... (và các biến khác)
   const mainTitle = document.querySelector("h1");
   const tooltip = document.getElementById("tooltip");
   const tooltipImage = document.getElementById("tooltip-image");
@@ -15,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const tooltipTitle = document.getElementById("tooltip-title");
   const tooltipDetails = document.getElementById("tooltip-details");
   const tooltipSeatIdEl = document.getElementById("tooltip-seat-id");
-  // ✅ CẬP NHẬT LẠI BIẾN NÀY
   const seatingAreas = {
     t1: {
       left: document.getElementById("seating-chart-t1-left"),
@@ -31,10 +33,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const legendContainer = document.querySelector(".legend-grid-container");
 
-  // Cấu hình sơ đồ ghế (giữ nguyên)
+  // >>> DÁN TOÀN BỘ PHẦN CẤU HÌNH SƠ ĐỒ GHẾ (SEAT LAYOUT CONFIGS) CỦA BẠN VÀO ĐÂY <<<
+  // (Bao gồm các biến: seatLayoutConfigsT1, seatLayoutConfigsT2, seatLayoutConfigsT3, legendConfigs, donViToStatusMap)
   const seatLayoutConfigsT1 = {
     V1: {
-      // Hàng A được định nghĩa lại hoàn toàn
       rowLabel: "V1",
       sections: {
         left: [
@@ -43,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 23, prefix: "T1L" },
           { type: "seat", label: 21, prefix: "T1L" },
           { type: "seat", label: 19, prefix: "T1L" },
-          { type: "spacer", count: 1 }, // <-- Lối đi giữa ghế 19 và 17
+          { type: "spacer", count: 1 },
           { type: "seat", label: 17, prefix: "T1L" },
           { type: "seat", label: 15, prefix: "T1L" },
           { type: "seat", label: 13, prefix: "T1L" },
@@ -55,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 5, prefix: "T1M" },
           { type: "seat", label: 3, prefix: "T1M" },
           { type: "seat", label: 1, prefix: "T1M" },
-          { type: "spacer", count: 1 }, // <-- Lối đi giữa ghế 1 và 2
+          { type: "spacer", count: 1 },
           { type: "seat", label: 2, prefix: "T1M" },
           { type: "seat", label: 4, prefix: "T1M" },
           { type: "seat", label: 6, prefix: "T1M" },
@@ -67,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 14, prefix: "T1R" },
           { type: "seat", label: 16, prefix: "T1R" },
           { type: "seat", label: 18, prefix: "T1R" },
-          { type: "spacer", count: 1 }, // <-- Lối đi giữa ghế 18 và 20
+          { type: "spacer", count: 1 },
           { type: "seat", label: 20, prefix: "T1R" },
           { type: "seat", label: 22, prefix: "T1R" },
           { type: "seat", label: 24, prefix: "T1R" },
@@ -77,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     },
     V2: {
-      // Hàng B được cập nhật lại lối đi
       rowLabel: "V2",
       sections: {
         left: [
@@ -86,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 25, prefix: "T1L" },
           { type: "seat", label: 23, prefix: "T1L" },
           { type: "seat", label: 21, prefix: "T1L" },
-          { type: "spacer", count: 1 }, // <-- Lối đi giữa ghế 21 và 19
+          { type: "spacer", count: 1 },
           { type: "seat", label: 19, prefix: "T1L" },
           { type: "seat", label: 17, prefix: "T1L" },
           { type: "seat", label: 15, prefix: "T1L" },
@@ -99,7 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 5, prefix: "T1M" },
           { type: "seat", label: 3, prefix: "T1M" },
           { type: "seat", label: 1, prefix: "T1M" },
-          { type: "spacer", count: 1 }, // Lối đi giữa ghế 1 và 2 (giữ nguyên)
+          { type: "spacer", count: 1 },
           { type: "seat", label: 2, prefix: "T1M" },
           { type: "seat", label: 4, prefix: "T1M" },
           { type: "seat", label: 6, prefix: "T1M" },
@@ -112,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 16, prefix: "T1R" },
           { type: "seat", label: 18, prefix: "T1R" },
           { type: "seat", label: 20, prefix: "T1R" },
-          { type: "spacer", count: 1 }, // <-- Lối đi giữa ghế 20 và 22
+          { type: "spacer", count: 1 },
           { type: "seat", label: 22, prefix: "T1R" },
           { type: "seat", label: 24, prefix: "T1R" },
           { type: "seat", label: 26, prefix: "T1R" },
@@ -122,7 +123,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     },
     A: {
-      // Hàng C được định nghĩa lại để TẠO KHOẢNG TRỐNG
       rowLabel: "A",
       sections: {
         left: [
@@ -136,10 +136,9 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 19, prefix: "T1L" },
           { type: "seat", label: 17, prefix: "T1L" },
           { type: "seat", label: 15, prefix: "T1L" },
-          { type: "spacer", count: 2 }, // <-- Chỗ này tạo khoảng trống cho ghế 17, 15
+          { type: "spacer", count: 2 },
         ],
         middle: [
-          // Dãy giữa giữ nguyên
           { type: "seat", label: 13, prefix: "T1M" },
           { type: "seat", label: 11, prefix: "T1M" },
           { type: "seat", label: 9, prefix: "T1M" },
@@ -156,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 14, prefix: "T1M" },
         ],
         right: [
-          { type: "spacer", count: 2 }, // <-- Chỗ này tạo khoảng trống cho ghế 16, 18
+          { type: "spacer", count: 2 },
           { type: "seat", label: 16, prefix: "T1R" },
           { type: "seat", label: 18, prefix: "T1R" },
           { type: "seat", label: 20, prefix: "T1R" },
@@ -171,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     },
     B: {
-      // Hàng D được định nghĩa lại để TẠO KHOẢNG TRỐNG
       rowLabel: "B",
       sections: {
         left: [
@@ -183,10 +181,9 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 21, prefix: "T1L" },
           { type: "seat", label: 19, prefix: "T1L" },
           { type: "seat", label: 17, prefix: "T1L" },
-          { type: "spacer", count: 2 }, // <-- Chỗ này tạo khoảng trống cho ghế 19, 17
+          { type: "spacer", count: 2 },
         ],
         middle: [
-          // Dãy giữa giữ nguyên
           { type: "seat", label: 15, prefix: "T1M" },
           { type: "seat", label: 13, prefix: "T1M" },
           { type: "seat", label: 11, prefix: "T1M" },
@@ -205,7 +202,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 16, prefix: "T1M" },
         ],
         right: [
-          { type: "spacer", count: 2 }, // <-- Chỗ này tạo khoảng trống cho ghế 18, 20
+          { type: "spacer", count: 2 },
           { type: "seat", label: 18, prefix: "T1R" },
           { type: "seat", label: 20, prefix: "T1R" },
           { type: "seat", label: 22, prefix: "T1R" },
@@ -267,12 +264,9 @@ document.addEventListener("DOMContentLoaded", () => {
       maxEvenOverallRight: 46,
     },
     K: {
-      // Hàng L với khoảng trống ở giữa khu vực trung tâm
       rowLabel: "K",
       sections: {
         left: [
-          // Dãy trái giữ nguyên
-
           { type: "seat", label: 33, prefix: "T1L" },
           { type: "seat", label: 31, prefix: "T1L" },
           { type: "spacer", count: 1 },
@@ -282,7 +276,6 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 23, prefix: "T1L" },
         ],
         middle: [
-          // Vế trái: 11 ghế, đánh số lẻ từ 1 đến 21
           { type: "seat", label: 21, prefix: "T1M" },
           { type: "seat", label: 19, prefix: "T1M" },
           { type: "seat", label: 17, prefix: "T1M" },
@@ -295,12 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 3, prefix: "T1M" },
           { type: "seat", label: 1, prefix: "T1M" },
           { type: "seat", label: 2, prefix: "T1M" },
-
-          // Khoảng trống rộng bằng 2 ghế, nằm giữa ghế 1 và 2
           { type: "spacer", count: 2 },
-
-          // Vế phải: 10 ghế, đánh số chẵn từ 2 đến 20
-
           { type: "seat", label: 4, prefix: "T1M" },
           { type: "seat", label: 6, prefix: "T1M" },
           { type: "spacer", count: 2 },
@@ -314,7 +302,6 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 22, prefix: "T1M" },
         ],
         right: [
-          // Dãy phải giữ nguyên
           { type: "seat", label: 24, prefix: "T1R" },
           { type: "seat", label: 26, prefix: "T1R" },
           { type: "seat", label: 28, prefix: "T1R" },
@@ -326,7 +313,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     },
     L: {
-      // Hàng M được định nghĩa lại theo cấu trúc mới
       rowLabel: "L",
       sections: {
         left: [
@@ -335,9 +321,8 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "spacer", count: 1 },
           { type: "seat", label: 21, prefix: "T1L" },
           { type: "seat", label: 19, prefix: "T1L" },
-        ], // Không có ghế ở khu vực bên trái
+        ],
         middle: [
-          // Vế bên trái
           { type: "seat", label: 17, prefix: "T1L" },
           { type: "seat", label: 15, prefix: "T1L" },
           { type: "seat", label: 13, prefix: "T1L" },
@@ -347,11 +332,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 5, prefix: "T1M" },
           { type: "seat", label: 3, prefix: "T1M" },
           { type: "seat", label: 1, prefix: "T1M" },
-
-          // Khoảng trống ở giữa
           { type: "spacer", count: 7 },
-
-          // Vế bên phải
           { type: "seat", label: 2, prefix: "T1M" },
           { type: "seat", label: 4, prefix: "T1M" },
           { type: "seat", label: 6, prefix: "T1M" },
@@ -368,16 +349,14 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "spacer", count: 1 },
           { type: "seat", label: 22, prefix: "T1R" },
           { type: "seat", label: 24, prefix: "T1R" },
-        ], // Không có ghế ở khu vực bên phải
+        ],
       },
     },
     M: {
-      // Hàng N mới thêm
       rowLabel: "M",
       sections: {
-        left: [], // Không có ghế ở khu vực bên trái
+        left: [],
         middle: [
-          // Vế bên trái (9 ghế)
           { type: "seat", label: 17, prefix: "T1M" },
           { type: "seat", label: 15, prefix: "T1M" },
           { type: "seat", label: 13, prefix: "T1M" },
@@ -387,11 +366,7 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 5, prefix: "T1M" },
           { type: "seat", label: 3, prefix: "T1M" },
           { type: "seat", label: 1, prefix: "T1M" },
-
-          // Khoảng trống ở giữa
           { type: "spacer", count: 7 },
-
-          // Vế bên phải (9 ghế)
           { type: "seat", label: 2, prefix: "T1M" },
           { type: "seat", label: 4, prefix: "T1M" },
           { type: "seat", label: 6, prefix: "T1M" },
@@ -402,12 +377,10 @@ document.addEventListener("DOMContentLoaded", () => {
           { type: "seat", label: 16, prefix: "T1M" },
           { type: "seat", label: 18, prefix: "T1M" },
         ],
-        right: [], // Không có ghế ở khu vực bên phải
+        right: [],
       },
     },
   };
-
-  // ✅ SỬA LỖI: conconst -> const và sắp xếp lại hàng ghế
   const seatLayoutConfigsT2 = {
     N: {
       rowLabel: "N",
@@ -417,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
         { type: "group", seats: 12 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 11 },
-        { type: "center_marker" }, // Chỉ là một điểm đánh dấu, không tạo khoảng trống
+        { type: "center_marker" },
         { type: "group", seats: 11 },
         { type: "spacer", count: 1 },
         { type: "group", seats: 11 },
@@ -535,10 +508,6 @@ document.addEventListener("DOMContentLoaded", () => {
       xaphuong4: "Đảng bộ xã, phường 4",
     },
   };
-
-  // =======================================================================
-  // 2. CÁC HÀM XỬ LÝ DỮ LIỆU ĐỘNG (CODE MỚI)
-  // =======================================================================
   const donViToStatusMap = {
     "Thường trực Tỉnh ủy": "thuongtruc",
     "Ủy viên BTV Tỉnh ủy": "banthuongvu",
@@ -568,114 +537,21 @@ document.addEventListener("DOMContentLoaded", () => {
     "Nguyên Ủy viên BTV - UBND": "ntv_ubnd",
     "Đại biểu Quốc hội": "quochoi",
   };
-  /* function getStatusFromDonVi(donVi) {
-    for (const key in donViToStatusMap) {
-      if (donVi.includes(key)) {
-        return donViToStatusMap[key];
-      }
-    }
-    return "daibieumoi";
-  }
-  */
-  function getStatusFromDonVi(groupName) {
-    // Đổi tên tham số cho rõ ràng
-    if (!groupName) return "daibieumoi"; // Trả về mặc định nếu không có tên nhóm
-    for (const key in donViToStatusMap) {
-      if (groupName.includes(key)) {
-        // Sử dụng groupName để so sánh
-        return donViToStatusMap[key];
-      }
-    }
-    return "daibieumoi"; // Mặc định nếu không tìm thấy
-  }
-
-  /**
-   * Chuẩn hóa mã ghế từ Sheet (A17 -> A-17) và chuyển đổi dữ liệu
-   */
-  /**
-   * Chuẩn hóa mã ghế từ Sheet và chuyển đổi dữ liệu
-   * ✅ ĐÃ SỬA LỖI: Cập nhật để xử lý mã hàng ghế V1, V2
-   */
-  function transformData(delegates) {
-    const allSeatData = { khaiMac: [], beMac: [] };
-
-    const normalizeSeatCode = (code) => {
-      if (!code || typeof code !== "string") return null;
-      let normalized = code.trim().toUpperCase();
-
-      // Nếu mã ghế đã có dấu gạch ngang thì giữ nguyên, không xử lý
-      if (normalized.includes("-")) {
-        return normalized;
-      }
-
-      // Ưu tiên xử lý cho hàng V1 và V2 trước
-      if (normalized.startsWith("V1")) {
-        const seatNumber = normalized.substring(2); // Lấy phần số ghế sau "V1"
-        return `V1-${seatNumber}`;
-      }
-      if (normalized.startsWith("V2")) {
-        const seatNumber = normalized.substring(2); // Lấy phần số ghế sau "V2"
-        return `V2-${seatNumber}`;
-      }
-
-      // Xử lý cho các hàng chữ cái đơn cũ (A, B, C...)
-      if (normalized.length > 1) {
-        const firstChar = normalized.charAt(0);
-        if (firstChar >= "A" && firstChar <= "Z") {
-          const seatNumber = normalized.substring(1); // Lấy phần số ghế sau ký tự đầu
-          return `${firstChar}-${seatNumber}`;
-        }
-      }
-
-      // Nếu không khớp định dạng nào, trả về mã gốc để tránh lỗi
-      return normalized;
-    };
-
-    delegates.forEach((delegate) => {
-      const status = getStatusFromDonVi(delegate.nhomDonVi || delegate.donVi);
-      const khaiMacSeat = normalizeSeatCode(delegate.viTriKhaiMac);
-      if (khaiMacSeat) {
-        allSeatData.khaiMac.push({
-          id: khaiMacSeat,
-          name: delegate.hoTen,
-          title: delegate.donVi,
-          details: `Tổ thảo luận: ${delegate.toThaoLuan || "N/A"}`,
-          status: status,
-          image: "",
-        });
-      }
-
-      const beMacSeat = normalizeSeatCode(delegate.viTriPhienKhac);
-      if (beMacSeat) {
-        allSeatData.beMac.push({
-          id: beMacSeat,
-          name: delegate.hoTen,
-          title: delegate.donVi,
-          details: `Tổ thảo luận: ${delegate.toThaoLuan || "N/A"}`,
-          status: status,
-          image: "",
-        });
-      }
-    });
-    return allSeatData;
-  }
 
   // =======================================================================
-  // 3. CÁC HÀM TIỆN ÍCH VÀ HÀM VẼ (CÓ THAY ĐỔI)
+  // 2. CÁC HÀM TIỆN ÍCH, TÍNH TOÁN VÀ XỬ LÝ DỮ LIỆU
   // =======================================================================
+
+  // (Hàm calculateFloor1Seats và calculateSeatsContinental được đặt ở đây)
   function calculateFloor1Seats(config) {
     let total = 0;
     for (const rowKey in config) {
       const row = config[rowKey];
-
-      // Cách đếm cũ cho các hàng C, D, E...
       if (row.physicalSeatsInDiagram) {
         total += row.physicalSeatsInDiagram.left || 0;
         total += row.physicalSeatsInDiagram.middle || 0;
         total += row.physicalSeatsInDiagram.right || 0;
-      }
-      // ✅ Cập nhật: Thêm cách đếm mới cho các hàng A, B, L, M, N
-      else if (row.sections) {
+      } else if (row.sections) {
         if (row.sections.left && Array.isArray(row.sections.left)) {
           total += row.sections.left.filter(
             (item) => item.type === "seat"
@@ -695,8 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return total;
   }
-
-  // ✅ THAY THẾ HÀM CŨ: Hàm mới để đếm ghế cho tầng 2 và 3
   function calculateSeatsContinental(config) {
     let total = 0;
     for (const rowKey in config) {
@@ -711,19 +585,71 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return total;
   }
-  // ✅ CẬP NHẬT ĐỂ GỌI ĐÚNG HÀM MỚI
-  const t1Seats = calculateFloor1Seats(seatLayoutConfigsT1);
-  const t2Seats = calculateSeatsContinental(seatLayoutConfigsT2); // Gọi hàm mới
-  const t3Seats = calculateSeatsContinental(seatLayoutConfigsT3); // Gọi hàm mới
-  document.getElementById("t1-seat-count").innerText = t1Seats;
-  document.getElementById("t2-seat-count").innerText = t2Seats;
-  document.getElementById("t3-seat-count").innerText = t3Seats;
-  // Tính tổng số ghế
-  const totalSeatsAllFloors = t1Seats + t2Seats + t3Seats;
-  // Hiển thị tổng số ghế ra màn hình
-  document.getElementById(
-    "total-seat-count-display"
-  ).innerText = `Tổng số ghế: ${totalSeatsAllFloors}`;
+
+  function getStatusFromDonVi(groupName) {
+    if (!groupName) return "daibieumoi";
+    for (const key in donViToStatusMap) {
+      if (groupName.includes(key)) {
+        return donViToStatusMap[key];
+      }
+    }
+    return "daibieumoi";
+  }
+
+  function normalizeSeatCode(code) {
+    if (!code || typeof code !== "string") return null;
+    let normalized = code.trim().toUpperCase();
+    if (normalized.includes("-")) {
+      return normalized;
+    }
+    if (normalized.startsWith("V1") || normalized.startsWith("V2")) {
+      const prefix = normalized.substring(0, 2);
+      const number = normalized.substring(2);
+      return `${prefix}-${number}`;
+    }
+    if (normalized.length > 1) {
+      const firstChar = normalized.charAt(0);
+      if (firstChar >= "A" && firstChar <= "Z") {
+        const seatNumber = normalized.substring(1);
+        return `${firstChar}-${seatNumber}`;
+      }
+    }
+    return normalized;
+  }
+
+  function transformData(delegates) {
+    const allSeatData = { khaiMac: [], beMac: [] };
+    delegates.forEach((delegate) => {
+      const status = getStatusFromDonVi(delegate.nhomDonVi || delegate.donVi);
+      const khaiMacSeat = normalizeSeatCode(delegate.viTriKhaiMac);
+      if (khaiMacSeat) {
+        allSeatData.khaiMac.push({
+          id: khaiMacSeat,
+          name: delegate.hoTen,
+          title: delegate.chucVu,
+          status: status,
+          image: "",
+        });
+      }
+      const beMacSeat = normalizeSeatCode(delegate.viTriPhienKhac);
+      if (beMacSeat) {
+        allSeatData.beMac.push({
+          id: beMacSeat,
+          name: delegate.hoTen,
+          title: delegate.chucVu,
+          status: status,
+          image: "",
+        });
+      }
+    });
+    return allSeatData;
+  }
+
+  // =======================================================================
+  // 3. CÁC HÀM VẼ SƠ ĐỒ VÀ GIAO DIỆN
+  // =======================================================================
+
+  // (Các hàm createSpacerDiv, calculateContinentalLabels, countCombinedSeatTypes, createSeatDiv, renderSeatsForFloor, renderContinentalFloor, setupTooltips, updateLegendWithCounts được đặt ở đây)
   function createSpacerDiv(seatEquivalent = 1) {
     const spacer = document.createElement("div");
     spacer.classList.add("seat-spacer");
@@ -848,13 +774,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return rowParts;
   }
-  // ✅ HÀM ĐẾM MỚI ĐỂ GỘP NHÓM A/B
   function countCombinedSeatTypes(seatData) {
     if (!seatData) return {};
     const accumulator = {};
     seatData.forEach((currentSeat) => {
       let status = currentSeat.status;
-      // Nếu status là nhóm xã phường (ví dụ: xaphuong1a), gộp nó về nhóm chính (xaphuong1)
       if (status.startsWith("xaphuong") && /[ab]$/.test(status)) {
         status = status.slice(0, -1);
       }
@@ -862,30 +786,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     return accumulator;
   }
-
-  /**
-   * SỬA LỖI TẠI ĐÂY: Hàm createSeatDiv giờ sẽ nhận vào một map tra cứu
-   * để tìm thông tin ghế một cách hiệu quả.
-   */
   function createSeatDiv(displayText, fullSeatId, activeSeatMap) {
     const seatDiv = document.createElement("div");
     seatDiv.classList.add("seat");
     seatDiv.textContent = displayText;
-    seatDiv.dataset.id = fullSeatId;
-
-    // Tách mã ghế đầy đủ (T1L-A-17) thành mã ghế đơn giản (A-17) để tra cứu
     const parts = fullSeatId.split("-");
     const simpleSeatId = `${parts[parts.length - 2]}-${
       parts[parts.length - 1]
     }`;
-
+    seatDiv.dataset.id = simpleSeatId;
     const seatInfo = activeSeatMap.get(simpleSeatId);
-
     if (seatInfo && seatInfo.status) {
       seatDiv.classList.add(seatInfo.status);
     } else {
       seatDiv.classList.add("available");
     }
+    allSeatElementsMap.set(simpleSeatId, seatDiv);
     return seatDiv;
   }
   function renderSeatsForFloor(
@@ -898,36 +814,28 @@ document.addEventListener("DOMContentLoaded", () => {
     activeSeatMap
   ) {
     if (!targetLeft || !targetMiddle || !targetRight) return;
-
     targetLeft.innerHTML = "";
     targetMiddle.innerHTML = "";
     targetRight.innerHTML = "";
-
     rowOrder.forEach((rowKey) => {
       const config = floorConfigObj[rowKey];
       if (!config) return;
-
       const leftRowEl = document.createElement("div");
       leftRowEl.classList.add("seat-row");
       const middleRowEl = document.createElement("div");
       middleRowEl.classList.add("seat-row");
       const rightRowEl = document.createElement("div");
       rightRowEl.classList.add("seat-row");
-
       const leftLabel = document.createElement("div");
       leftLabel.classList.add("row-label");
       const rightLabel = document.createElement("div");
       rightLabel.classList.add("row-label");
-
       rightRowEl.appendChild(rightLabel);
-
       leftLabel.innerHTML = "&nbsp;";
       rightLabel.innerHTML = "&nbsp;";
-
       let hasLeftSeats = false;
       let hasMiddleSeats = false;
       let hasRightSeats = false;
-
       const populateSeatBlockFromItems = (items, targetRow, defaultPrefix) => {
         if (items && items.length > 0) {
           items.forEach((item) => {
@@ -948,7 +856,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         return false;
       };
-
       if (config.sections) {
         hasLeftSeats = populateSeatBlockFromItems(
           config.sections.left,
@@ -960,8 +867,6 @@ document.addEventListener("DOMContentLoaded", () => {
           rightRowEl,
           `${floorPrefix}R`
         );
-
-        // Xử lý khu vực giữa phức tạp
         if (config.sections.middle) {
           if (
             config.sections.middle.type === "continental_middle_from_config"
@@ -990,9 +895,7 @@ document.addEventListener("DOMContentLoaded", () => {
               `${floorPrefix}M`
             );
           }
-        }
-        // BỔ SUNG LOGIC CHO TẦNG 2 (HÀNG O, P)
-        else if (config.middleBlockDetailConfig) {
+        } else if (config.middleBlockDetailConfig) {
           const seatLabelsByPart = calculateContinentalLabels(
             config.middleBlockDetailConfig
           );
@@ -1007,7 +910,6 @@ document.addEventListener("DOMContentLoaded", () => {
           );
         }
       } else {
-        // Xử lý các hàng cấu hình kiểu cũ (E, F, G, H...)
         const seatLabelsByPart = calculateContinentalLabels(config);
         const leftItems = seatLabelsByPart.left.map((l) => ({
           type: "seat",
@@ -1021,7 +923,6 @@ document.addEventListener("DOMContentLoaded", () => {
           type: "seat",
           label: l,
         }));
-
         hasLeftSeats = populateSeatBlockFromItems(
           leftItems,
           leftRowEl,
@@ -1038,30 +939,18 @@ document.addEventListener("DOMContentLoaded", () => {
           `${floorPrefix}R`
         );
       }
-
       if (hasLeftSeats || hasMiddleSeats) {
         leftLabel.textContent = config.rowLabel;
       }
       if (hasRightSeats || hasMiddleSeats) {
         rightLabel.textContent = config.rowLabel;
       }
-
       leftRowEl.appendChild(leftLabel);
-
       targetLeft.appendChild(leftRowEl);
       targetMiddle.appendChild(middleRowEl);
       targetRight.appendChild(rightRowEl);
     });
   }
-
-  /**
-   * ✅ HÀM NÂNG CẤP V2: Vẽ sơ đồ liền khối với số ghế chẵn/lẻ từ TRUNG TÂM ra.
-   * Tự động đánh số 1, 3, 5... từ giữa ra bên trái và 2, 4, 6... từ giữa ra bên phải.
-   */
-  /**
-   * ✅ HÀM NÂNG CẤP V3: Vẽ sơ đồ liền khối, chia đôi "vô hình" để đánh số.
-   * Nhận biết "center_marker" để chia đôi hàng ghế mà không tạo khoảng trống.
-   */
   function renderContinentalFloor(
     floorConfigObj,
     rowOrder,
@@ -1070,21 +959,15 @@ document.addEventListener("DOMContentLoaded", () => {
     activeSeatMap
   ) {
     if (!targetContainer) return;
-
-    targetContainer.innerHTML = ""; // Xóa sơ đồ cũ
-
+    targetContainer.innerHTML = "";
     rowOrder.forEach((rowKey) => {
       const config = floorConfigObj[rowKey];
       if (!config || !config.items || !Array.isArray(config.items)) return;
-
       const rowEl = document.createElement("div");
       rowEl.classList.add("seat-row", "continental-row");
-
-      // === BƯỚC 1: TÍNH TOÁN SỐ LƯỢNG GHẾ MỖI BÊN ===
       let leftSideSeatsCount = 0;
       let rightSideSeatsCount = 0;
       let isLeftSideOfMarker = true;
-
       config.items.forEach((item) => {
         if (item.type === "group") {
           if (isLeftSideOfMarker) {
@@ -1099,28 +982,21 @@ document.addEventListener("DOMContentLoaded", () => {
           isLeftSideOfMarker = false;
         }
       });
-
-      // === BƯỚC 2: TẠO MẢNG SỐ GHẾ CHO MỖI BÊN ===
       const leftSideNumbers = [];
       for (let i = 0; i < leftSideSeatsCount; i++) {
         leftSideNumbers.push((leftSideSeatsCount - i) * 2 - 1);
       }
-
       const rightSideNumbers = [];
       for (let i = 0; i < rightSideSeatsCount; i++) {
         rightSideNumbers.push((i + 1) * 2);
       }
-
-      // === BƯỚC 3: VẼ GHẾ DỰA TRÊN MẢNG ĐÃ TÍNH TOÁN ===
       const leftLabel = document.createElement("div");
       leftLabel.classList.add("row-label");
       leftLabel.textContent = config.rowLabel;
       rowEl.appendChild(leftLabel);
-
       isLeftSideOfMarker = true;
       let leftSeatIndex = 0;
       let rightSeatIndex = 0;
-
       config.items.forEach((item) => {
         if (item.type === "group" && item.seats > 0) {
           for (let i = 0; i < item.seats; i++) {
@@ -1132,7 +1008,6 @@ document.addEventListener("DOMContentLoaded", () => {
               seatNumber = rightSideNumbers[rightSeatIndex];
               rightSeatIndex++;
             }
-
             const fullSeatId = `${floorPrefix}-${config.rowLabel}-${seatNumber}`;
             const seatDiv = createSeatDiv(
               seatNumber,
@@ -1144,57 +1019,36 @@ document.addEventListener("DOMContentLoaded", () => {
         } else if (item.type === "spacer" && item.count > 0) {
           rowEl.appendChild(createSpacerDiv(item.count));
         } else if (item.type === "center_aisle" && item.count > 0) {
-          // center_aisle vẫn tạo khoảng trống
           rowEl.appendChild(createSpacerDiv(item.count));
           isLeftSideOfMarker = false;
         } else if (item.type === "center_marker") {
-          // ✅ LOGIC MỚI: center_marker chỉ chuyển cờ, không tạo khoảng trống
           isLeftSideOfMarker = false;
         }
       });
-
       const rightLabel = document.createElement("div");
       rightLabel.classList.add("row-label");
       rightLabel.textContent = config.rowLabel;
       rowEl.appendChild(rightLabel);
-
       targetContainer.appendChild(rowEl);
     });
   }
-
-  /**
-   * ✅ HÀM ĐÃ ĐƯỢC NÂNG CẤP
-   * Thêm sự kiện 'click' để tương thích với thiết bị cảm ứng (iPad).
-   * Giữ lại 'mouseenter' và 'mouseleave' cho máy tính.
-   * Thêm logic để ẩn tooltip khi click ra ngoài.
-   */
   function setupTooltips(activeSeatMap) {
     const allSeats = document.querySelectorAll(".seating-section .seat");
-    let activeTooltipSeat = null; // Biến để theo dõi ghế đang hiển thị tooltip
-
-    // Hàm chung để hiển thị tooltip
+    let activeTooltipSeat = null;
     const showTooltip = (seatElement) => {
-      // Nếu đang có tooltip khác hiển thị, hãy ẩn nó đi
       if (activeTooltipSeat && activeTooltipSeat !== seatElement) {
         tooltip.style.display = "none";
       }
-
-      // Lưu lại ghế vừa được chọn
       activeTooltipSeat = seatElement;
-
-      const fullSeatId = seatElement.dataset.id;
-      const parts = fullSeatId.split("-");
-      const simpleSeatId = `${parts[parts.length - 2]}-${
-        parts[parts.length - 1]
-      }`;
-      const seatInfo = activeSeatMap.get(simpleSeatId);
-
-      // Cập nhật nội dung cho tooltip
+      const seatId = seatElement.dataset.id;
+      if (!seatId) {
+        return;
+      }
+      const seatInfo = activeSeatMap.get(seatId);
       tooltipName.textContent = (seatInfo && seatInfo.name) || "Ghế Trống";
       tooltipTitle.textContent = (seatInfo && seatInfo.title) || "";
       tooltipDetails.textContent = (seatInfo && seatInfo.details) || "";
-      tooltipSeatIdEl.textContent = fullSeatId;
-
+      tooltipSeatIdEl.textContent = seatId;
       if (seatInfo && seatInfo.image && seatInfo.image !== "") {
         tooltipImage.src = seatInfo.image;
         tooltipImage.style.display = "block";
@@ -1202,19 +1056,14 @@ document.addEventListener("DOMContentLoaded", () => {
         tooltipImage.src = "";
         tooltipImage.style.display = "none";
       }
-
-      // Hiển thị và định vị tooltip
       tooltip.style.display = "block";
       const seatRect = seatElement.getBoundingClientRect();
       const tooltipRect = tooltip.getBoundingClientRect();
       const scrollX = window.scrollX;
       const scrollY = window.scrollY;
-
       let newTop = seatRect.top + scrollY - tooltipRect.height - 10;
       let newLeft =
         seatRect.left + scrollX + seatRect.width / 2 - tooltipRect.width / 2;
-
-      // Điều chỉnh vị trí để tooltip không bị che khuất ở các cạnh màn hình
       if (newTop < scrollY + 5) {
         newTop = seatRect.bottom + scrollY + 10;
       }
@@ -1224,35 +1073,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (newLeft + tooltipRect.width > scrollX + window.innerWidth - 5) {
         newLeft = scrollX + window.innerWidth - tooltipRect.width - 5;
       }
-
       tooltip.style.left = `${newLeft}px`;
       tooltip.style.top = `${newTop}px`;
     };
-
-    // Hàm chung để ẩn tooltip
     const hideTooltip = () => {
       tooltip.style.display = "none";
       activeTooltipSeat = null;
     };
-
-    // Gán sự kiện cho từng ghế
     allSeats.forEach((seat) => {
-      // Sự kiện cho MÁY TÍNH (dùng chuột)
       seat.addEventListener("mouseenter", (event) => {
         showTooltip(event.currentTarget);
       });
       seat.addEventListener("mouseleave", hideTooltip);
-
-      // Sự kiện cho IPAD & ĐIỆN THOẠI (dùng cảm ứng)
       seat.addEventListener("click", (event) => {
-        event.stopPropagation(); // Ngăn sự kiện click lan ra ngoài và đóng mất tooltip ngay lập tức
+        event.stopPropagation();
         showTooltip(event.currentTarget);
       });
     });
-
-    // Thêm sự kiện cho toàn bộ trang để ẩn tooltip khi người dùng bấm ra ngoài
     document.addEventListener("click", (event) => {
-      // Nếu tooltip đang hiển thị VÀ người dùng không bấm vào một ghế khác
       if (
         tooltip.style.display === "block" &&
         !event.target.classList.contains("seat")
@@ -1261,8 +1099,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // ✅ HÀM CẬP NHẬT CHÚ THÍCH ĐÃ SỬA ĐỔI
   function updateLegendWithCounts(seatData, viewKey) {
     if (!legendContainer) return;
     const currentLegendConfig = legendConfigs[viewKey];
@@ -1271,35 +1107,46 @@ document.addEventListener("DOMContentLoaded", () => {
       legendContainer.innerHTML = "Lỗi tải chú thích.";
       return;
     }
-    // Sử dụng hàm đếm mới
     const seatCounts = countCombinedSeatTypes(seatData);
     legendContainer.innerHTML = "";
-
     for (const status in currentLegendConfig) {
       const text = currentLegendConfig[status];
       const count = seatCounts[status] || 0;
       let swatchHTML = "";
-
-      // Nếu là nhóm xã phường, hiển thị cả 2 màu A và B
       if (status.startsWith("xaphuong")) {
         swatchHTML = `<span class="seat ${status}a"></span><span class="seat ${status}b"></span>`;
       } else {
         swatchHTML = `<span class="seat ${status}"></span>`;
       }
-
-      // Chú ý: class="legend-swatches" được thêm vào
       const legendItemHTML = `<div><div class="legend-swatches">${swatchHTML}</div> ${text} (${count} ghế)</div>`;
       legendContainer.insertAdjacentHTML("beforeend", legendItemHTML);
     }
   }
 
   // =======================================================================
-  // 4. HÀM CHÍNH ĐỂ ĐIỀU KHIỂN & KHỞI TẠO (ĐƯỢC CẬP NHẬT)
+  // 4. HÀM CHÍNH ĐỂ ĐIỀU KHIỂN & KHỞI TẠO
   // =======================================================================
+
+  function highlightSelectedSeats(viewKey) {
+    document.querySelectorAll(".seat.highlighted").forEach((seat) => {
+      seat.classList.remove("highlighted");
+    });
+    if (selectedDelegatesSeats.length === 0) return;
+    const seatsToHighlight = selectedDelegatesSeats
+      .map((delegate) => delegate[viewKey])
+      .filter(Boolean);
+    seatsToHighlight.forEach((seatId) => {
+      const seatElement = allSeatElementsMap.get(seatId);
+      if (seatElement) {
+        seatElement.classList.add("highlighted");
+      }
+    });
+  }
+
   function switchView(viewKey, allSeatData, allSeatMaps) {
+    allSeatElementsMap.clear();
     const activeData = allSeatData[viewKey];
     const activeSeatMap = allSeatMaps[viewKey];
-
     const assignedSeatDisplay = document.getElementById(
       "assigned-seat-count-display"
     );
@@ -1307,12 +1154,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const assignedCount = activeData.length;
       assignedSeatDisplay.textContent = `Tổng số đại biểu, khách mời: ${assignedCount}`;
     }
-
     if (!activeData || !activeSeatMap) {
       console.error(`Không tìm thấy dữ liệu cho view: ${viewKey}`);
       return;
     }
-
     const titleText = viewKey === "khaiMac" ? "PHIÊN KHAI MẠC" : "PHIÊN KHÁC";
     mainTitle.textContent = `SƠ ĐỒ BỐ TRÍ CHỖ NGỒI ${titleText}`;
     if (viewKey === "khaiMac") {
@@ -1322,15 +1167,9 @@ document.addEventListener("DOMContentLoaded", () => {
       btnBeMac.classList.add("active");
       btnKhaiMac.classList.remove("active");
     }
-
-    // Xóa sơ đồ cũ
     document
       .querySelectorAll(".seating-section")
       .forEach((sec) => (sec.innerHTML = ""));
-
-    // === ✅ PHẦN THAY ĐỔI LOGIC VẼ SƠ ĐỒ ===
-
-    // 1. Vẽ Tầng 1 (dạng 3 khu)
     const rowOrderT1 = [
       "V1",
       "V2",
@@ -1356,8 +1195,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "T1",
       activeSeatMap
     );
-
-    // 2. Vẽ Tầng 2 (dạng liền khối)
     const rowOrderT2 = ["N", "O", "P"];
     renderContinentalFloor(
       seatLayoutConfigsT2,
@@ -1366,8 +1203,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "T2",
       activeSeatMap
     );
-
-    // 3. Vẽ Tầng 3 (dạng liền khối)
     const rowOrderT3 = ["Q", "R"];
     renderContinentalFloor(
       seatLayoutConfigsT3,
@@ -1376,15 +1211,16 @@ document.addEventListener("DOMContentLoaded", () => {
       "T3",
       activeSeatMap
     );
-
     updateLegendWithCounts(activeData, viewKey);
     setupTooltips(activeSeatMap);
+    setTimeout(() => {
+      highlightSelectedSeats(viewKey);
+    }, 100);
   }
-  // ✅ HÀM KHỞI TẠO ĐÃ ĐƯỢC NÂNG CẤP LÊN FETCH
+
   function initializeApp() {
     mainTitle.textContent = "ĐANG TẢI DỮ LIỆU SƠ ĐỒ...";
-
-    fetch(apiUrl) // Sử dụng fetch hiện đại
+    fetch(apiUrl)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
@@ -1396,13 +1232,60 @@ document.addEventListener("DOMContentLoaded", () => {
           throw new Error('Dữ liệu API không có "delegates"');
         }
 
-        const allSeatData = transformData(apiData.delegates);
+        const t1Seats = calculateFloor1Seats(seatLayoutConfigsT1);
+        const t2Seats = calculateSeatsContinental(seatLayoutConfigsT2);
+        const t3Seats = calculateSeatsContinental(seatLayoutConfigsT3);
+        document.getElementById("t1-seat-count").innerText = t1Seats;
+        document.getElementById("t2-seat-count").innerText = t2Seats;
+        document.getElementById("t3-seat-count").innerText = t3Seats;
+        const totalSeatsAllFloors = t1Seats + t2Seats + t3Seats;
+        document.getElementById(
+          "total-seat-count-display"
+        ).innerText = `Tổng số ghế: ${totalSeatsAllFloors}`;
 
-        // Tạo map để tra cứu nhanh
+        const allSeatData = transformData(apiData.delegates);
         const allSeatMaps = {
           khaiMac: new Map(allSeatData.khaiMac.map((d) => [d.id, d])),
           beMac: new Map(allSeatData.beMac.map((d) => [d.id, d])),
         };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const seatsQuery = urlParams.get("seats");
+        const navType = urlParams.get("type") || "daibieu"; // Mặc định là 'daibieu'
+
+        if (seatsQuery) {
+          // Logic cho đại biểu chính thức: tìm cả 2 ghế
+          if (navType === "daibieu") {
+            const normalizedSeatsFromURL = new Set(
+              seatsQuery.split(",").map((s) => normalizeSeatCode(s))
+            );
+            selectedDelegatesSeats = apiData.delegates
+              .filter((delegate) => {
+                const kmSeat = normalizeSeatCode(delegate.viTriKhaiMac);
+                const bmSeat = normalizeSeatCode(delegate.viTriPhienKhac);
+                return (
+                  normalizedSeatsFromURL.has(kmSeat) ||
+                  normalizedSeatsFromURL.has(bmSeat)
+                );
+              })
+              .map((delegate) => ({
+                khaiMac: normalizeSeatCode(delegate.viTriKhaiMac),
+                beMac: normalizeSeatCode(delegate.viTriPhienKhac),
+              }));
+          }
+          // Logic cho khách mời: chỉ lưu ghế khai mạc
+          else if (navType === "khachmoi") {
+            const normalizedSeatsFromURL = new Set(
+              seatsQuery.split(",").map((s) => normalizeSeatCode(s))
+            );
+            selectedDelegatesSeats = Array.from(normalizedSeatsFromURL).map(
+              (seatId) => ({
+                khaiMac: seatId,
+                beMac: null, // Khách mời không có ghế phiên khác
+              })
+            );
+          }
+        }
 
         btnKhaiMac.addEventListener("click", () =>
           switchView("khaiMac", allSeatData, allSeatMaps)
@@ -1411,8 +1294,9 @@ document.addEventListener("DOMContentLoaded", () => {
           switchView("beMac", allSeatData, allSeatMaps)
         );
 
-        // Tải view mặc định
-        switchView("khaiMac", allSeatData, allSeatMaps);
+        const viewToShow = urlParams.get("view");
+        const initialView = viewToShow === "beMac" ? "beMac" : "khaiMac";
+        switchView(initialView, allSeatData, allSeatMaps);
       })
       .catch((error) => {
         console.error("Lỗi nghiêm trọng khi khởi tạo ứng dụng:", error);
@@ -1422,6 +1306,5 @@ document.addEventListener("DOMContentLoaded", () => {
         );
       });
   }
-
   initializeApp();
 });
