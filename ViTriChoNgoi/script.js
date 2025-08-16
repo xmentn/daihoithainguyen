@@ -1,16 +1,15 @@
-// script.js - PHIÊN BẢN CUỐI CÙNG, XỬ LÝ CẢ 2 TRƯỜNG HỢP
+// script.js - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG
 
 document.addEventListener("DOMContentLoaded", () => {
   // =======================================================================
   // 1. KHAI BÁO BIẾN
   // =======================================================================
-  let selectedDelegatesSeats = []; // Sẽ lưu ghế của đại biểu/khách mời được chọn
+  let selectedDelegatesSeats = [];
   const allSeatElementsMap = new Map();
   const apiUrl =
-    "https://script.google.com/macros/s/AKfycbxb4j2eTzd11TJz_OYNE_wmTY9ppCrjC0v7b3-FaD2nacIWOAtGhrEXzO_MA7_zqLLWFg/exec?type=sodo";
+    "https://script.google.com/macros/s/AKfycbxb4j2eTzd11TJz_OYNE_wmTY9ppCrjC0v7b3-FaD2nacIWOAtGhrEXzO_MA7_zqLLWFg/exec?type=all";
   const btnKhaiMac = document.getElementById("btnKhaiMac");
   const btnBeMac = document.getElementById("btnBeMac");
-  // ... (và các biến khác)
   const mainTitle = document.querySelector("h1");
   const tooltip = document.getElementById("tooltip");
   const tooltipImage = document.getElementById("tooltip-image");
@@ -33,8 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const legendContainer = document.querySelector(".legend-grid-container");
 
-  // >>> DÁN TOÀN BỘ PHẦN CẤU HÌNH SƠ ĐỒ GHẾ (SEAT LAYOUT CONFIGS) CỦA BẠN VÀO ĐÂY <<<
-  // (Bao gồm các biến: seatLayoutConfigsT1, seatLayoutConfigsT2, seatLayoutConfigsT3, legendConfigs, donViToStatusMap)
+  // >>> PHẦN CẤU HÌNH SƠ ĐỒ GHẾ (SEAT LAYOUT CONFIGS) <<<<
   const seatLayoutConfigsT1 = {
     V1: {
       rowLabel: "V1",
@@ -544,7 +542,62 @@ document.addEventListener("DOMContentLoaded", () => {
   // 2. CÁC HÀM TIỆN ÍCH, TÍNH TOÁN VÀ XỬ LÝ DỮ LIỆU
   // =======================================================================
 
-  // (Hàm calculateFloor1Seats và calculateSeatsContinental được đặt ở đây)
+  function getStatusFromDonVi(groupName) {
+    if (!groupName) return "daibieumoi";
+    for (const key in donViToStatusMap) {
+      if (groupName.includes(key)) {
+        return donViToStatusMap[key];
+      }
+    }
+    return "daibieumoi";
+  }
+  function normalizeSeatCode(code) {
+    if (!code || typeof code !== "string") return null;
+    let normalized = code.trim().toUpperCase();
+    if (normalized.includes("-")) {
+      return normalized;
+    }
+    if (normalized.startsWith("V1") || normalized.startsWith("V2")) {
+      const prefix = normalized.substring(0, 2);
+      const number = normalized.substring(2);
+      return `${prefix}-${number}`;
+    }
+    if (normalized.length > 1) {
+      const firstChar = normalized.charAt(0);
+      if (firstChar >= "A" && firstChar <= "Z") {
+        const seatNumber = normalized.substring(1);
+        return `${firstChar}-${seatNumber}`;
+      }
+    }
+    return normalized;
+  }
+  function transformData(allDelegates) {
+    const allSeatData = { khaiMac: [], beMac: [] };
+    allDelegates.forEach((delegate) => {
+      const status = getStatusFromDonVi(delegate.nhomDonVi || delegate.donVi);
+      const khaiMacSeat = normalizeSeatCode(delegate.viTriKhaiMac);
+      if (khaiMacSeat) {
+        allSeatData.khaiMac.push({
+          id: khaiMacSeat,
+          name: delegate.hoTen,
+          title: delegate.chucVu,
+          status: status,
+          image: "",
+        });
+      }
+      const beMacSeat = normalizeSeatCode(delegate.viTriPhienKhac);
+      if (beMacSeat) {
+        allSeatData.beMac.push({
+          id: beMacSeat,
+          name: delegate.hoTen,
+          title: delegate.chucVu,
+          status: status,
+          image: "",
+        });
+      }
+    });
+    return allSeatData;
+  }
   function calculateFloor1Seats(config) {
     let total = 0;
     for (const rowKey in config) {
@@ -588,70 +641,10 @@ document.addEventListener("DOMContentLoaded", () => {
     return total;
   }
 
-  function getStatusFromDonVi(groupName) {
-    if (!groupName) return "daibieumoi";
-    for (const key in donViToStatusMap) {
-      if (groupName.includes(key)) {
-        return donViToStatusMap[key];
-      }
-    }
-    return "daibieumoi";
-  }
-
-  function normalizeSeatCode(code) {
-    if (!code || typeof code !== "string") return null;
-    let normalized = code.trim().toUpperCase();
-    if (normalized.includes("-")) {
-      return normalized;
-    }
-    if (normalized.startsWith("V1") || normalized.startsWith("V2")) {
-      const prefix = normalized.substring(0, 2);
-      const number = normalized.substring(2);
-      return `${prefix}-${number}`;
-    }
-    if (normalized.length > 1) {
-      const firstChar = normalized.charAt(0);
-      if (firstChar >= "A" && firstChar <= "Z") {
-        const seatNumber = normalized.substring(1);
-        return `${firstChar}-${seatNumber}`;
-      }
-    }
-    return normalized;
-  }
-
-  function transformData(delegates) {
-    const allSeatData = { khaiMac: [], beMac: [] };
-    delegates.forEach((delegate) => {
-      const status = getStatusFromDonVi(delegate.nhomDonVi || delegate.donVi);
-      const khaiMacSeat = normalizeSeatCode(delegate.viTriKhaiMac);
-      if (khaiMacSeat) {
-        allSeatData.khaiMac.push({
-          id: khaiMacSeat,
-          name: delegate.hoTen,
-          title: delegate.chucVu,
-          status: status,
-          image: "",
-        });
-      }
-      const beMacSeat = normalizeSeatCode(delegate.viTriPhienKhac);
-      if (beMacSeat) {
-        allSeatData.beMac.push({
-          id: beMacSeat,
-          name: delegate.hoTen,
-          title: delegate.chucVu,
-          status: status,
-          image: "",
-        });
-      }
-    });
-    return allSeatData;
-  }
-
   // =======================================================================
   // 3. CÁC HÀM VẼ SƠ ĐỒ VÀ GIAO DIỆN
   // =======================================================================
 
-  // (Các hàm createSpacerDiv, calculateContinentalLabels, countCombinedSeatTypes, createSeatDiv, renderSeatsForFloor, renderContinentalFloor, setupTooltips, updateLegendWithCounts được đặt ở đây)
   function createSpacerDiv(seatEquivalent = 1) {
     const spacer = document.createElement("div");
     spacer.classList.add("seat-spacer");
@@ -1220,19 +1213,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   }
 
-  // TÌM VÀ THAY THẾ TOÀN BỘ HÀM NÀY
   function initializeApp() {
     mainTitle.textContent = "ĐANG TẢI DỮ LIỆU SƠ ĐỒ...";
     fetch(apiUrl)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Lỗi HTTP! Trạng thái: ${response.status}`);
-        }
-        return response.json();
-      })
+      .then((response) => response.json())
       .then((apiData) => {
-        if (!apiData || !apiData.delegates) {
-          throw new Error('Dữ liệu API không có "delegates"');
+        if (
+          !apiData ||
+          (!apiData.officialDelegates && !apiData.guestDelegates)
+        ) {
+          throw new Error(
+            "Dữ liệu API không chứa officialDelegates hoặc guestDelegates"
+          );
         }
 
         const t1Seats = calculateFloor1Seats(seatLayoutConfigsT1);
@@ -1246,7 +1238,12 @@ document.addEventListener("DOMContentLoaded", () => {
           "total-seat-count-display"
         ).innerText = `Tổng số ghế: ${totalSeatsAllFloors}`;
 
-        const allSeatData = transformData(apiData.delegates);
+        const allDelegates = [
+          ...(apiData.officialDelegates || []),
+          ...(apiData.guestDelegates || []),
+        ];
+
+        const allSeatData = transformData(allDelegates);
         const allSeatMaps = {
           khaiMac: new Map(allSeatData.khaiMac.map((d) => [d.id, d])),
           beMac: new Map(allSeatData.beMac.map((d) => [d.id, d])),
@@ -1255,7 +1252,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const urlParams = new URLSearchParams(window.location.search);
         const seatsQuery = urlParams.get("seats");
         const navType = urlParams.get("type") || "daibieu";
-        const initialView = urlParams.get("view") || "khaiMac"; // Lấy phiên được chọn từ URL
+        const initialView = urlParams.get("view") || "khaiMac";
 
         if (seatsQuery) {
           const normalizedSeatsFromURL = new Set(
@@ -1263,18 +1260,13 @@ document.addEventListener("DOMContentLoaded", () => {
           );
 
           if (navType === "daibieu") {
-            selectedDelegatesSeats = apiData.delegates
+            selectedDelegatesSeats = allDelegates
               .filter((delegate) => {
                 const kmSeat = normalizeSeatCode(delegate.viTriKhaiMac);
                 const bmSeat = normalizeSeatCode(delegate.viTriPhienKhac);
-
-                // ✅ LOGIC LỌC ĐÃ SỬA LỖI:
-                // Nếu yêu cầu là xem phiên khai mạc, chỉ tìm trong cột khai mạc.
                 if (initialView === "khaiMac") {
                   return normalizedSeatsFromURL.has(kmSeat);
-                }
-                // Nếu yêu cầu là xem phiên khác, chỉ tìm trong cột phiên khác.
-                else {
+                } else {
                   return normalizedSeatsFromURL.has(bmSeat);
                 }
               })
