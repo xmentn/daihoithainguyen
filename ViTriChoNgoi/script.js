@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedDelegatesSeats = []; // Sẽ lưu ghế của đại biểu/khách mời được chọn
   const allSeatElementsMap = new Map();
   const apiUrl =
-    "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=sodo";
+    "https://script.google.com/macros/s/AKfycbxb4j2eTzd11TJz_OYNE_wmTY9ppCrjC0v7b3-FaD2nacIWOAtGhrEXzO_MA7_zqLLWFg/exec?type=sodo";
   const btnKhaiMac = document.getElementById("btnKhaiMac");
   const btnBeMac = document.getElementById("btnBeMac");
   // ... (và các biến khác)
@@ -489,11 +489,12 @@ document.addEventListener("DOMContentLoaded", () => {
       ntv_thanhuy: "Nguyên BTV - Thành ủy",
       ntv_hdnd: "Nguyên BTV - HĐND",
       ntv_ubnd: "Nguyên BTV - UBND",
-      nguyenlanhdaokhac: "Nguyên Lãnh đạo (không là UV BTV)",
+      nguyenlanhdaokhac: "Nguyên Lãnh đạo (Ủy viên BCH Đảng bộ tỉnh)",
       meVN: "Anh hùng, Mẹ VNAH",
       thuky: "Thư ký",
       uyvienubkt: "Ủy viên UBKT",
       quochoi: "Đại biểu Quốc hội",
+      nguyenbch20_25: "Nguyên Ủy viên BCH nhiệm kỳ 2020-2025",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -536,6 +537,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Nguyên Ủy viên BTV - HĐND": "ntv_hdnd",
     "Nguyên Ủy viên BTV - UBND": "ntv_ubnd",
     "Đại biểu Quốc hội": "quochoi",
+    "Nguyên Ủy viên BCH nhiệm kỳ 2020-2025": "nguyenbch20_25",
   };
 
   // =======================================================================

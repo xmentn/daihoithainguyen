@@ -32,21 +32,17 @@
       <table id="delegateTable">
         <thead>
           <tr>
-            <th rowspan="2">STT</th>
-            <th rowspan="2">Họ và Tên</th>
-            <th rowspan="2">Chức vụ, đơn vị công tác</th>
-            <th colspan="2">Vị trí chỗ ngồi</th>
-            <th rowspan="2">Tên khách sạn</th>
-            <th rowspan="2">Số phòng</th>
-          </tr>
-          <tr>
-            <th>Phiên khai mạc</th>
-            <th>Phiên khác</th>
+            <th>STT</th>
+            <th>Họ và Tên</th>
+            <th>Chức vụ, đơn vị công tác</th>
+            <th>Vị trí ngồi (P. Khai mạc)</th>
+            <th>Tên khách sạn</th>
+            <th>Số phòng</th>
           </tr>
         </thead>
         <tbody id="tableBody">
           <tr>
-            <td colspan="7" style="text-align: center">Đang tải dữ liệu...</td>
+            <td colspan="6" style="text-align: center">Đang tải dữ liệu...</td>
           </tr>
         </tbody>
       </table>
@@ -93,8 +89,8 @@
        */
       function fetchData() {
         const apiUrl =
-          "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=khachmoi";
-        const initialColspan = 7; // Dùng cho thông báo lỗi
+          "https://script.google.com/macros/s/AKfycbxb4j2eTzd11TJz_OYNE_wmTY9ppCrjC0v7b3-FaD2nacIWOAtGhrEXzO_MA7_zqLLWFg/exec?type=khachmoi";
+        const initialColspan = 6; // Dùng cho thông báo lỗi
 
         fetch(apiUrl)
           .then((response) => {
@@ -201,14 +197,14 @@
           const sttDisplay = unitFilter === "Tất cả" ? delegate.stt : index + 1;
           const newRow = document.createElement("tr");
           newRow.innerHTML = `
-                <td class="text-center">${sttDisplay}</td>
-                <td>${delegate.hoTen}</td>
-                <td>${delegate.chucVu || ""}</td>
-                <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
-                <td class="text-center">${delegate.viTriPhienKhac || ""}</td>
-                <td>${delegate.khachSan || ""}</td>
-                <td class="text-center">${delegate.soPhong || ""}</td>
-            `;
+          <td class="text-center">${sttDisplay}</td>
+          <td>${delegate.hoTen}</td>
+          <td>${delegate.chucVu || ""}</td>
+          <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
+          <td>${delegate.khachSan || ""}</td>
+          <td class="text-center">${delegate.soPhong || ""}</td>
+        `;
+
           tableBody.appendChild(newRow);
         });
         document.getElementById("searchBox").value = "";
