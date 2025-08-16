@@ -512,7 +512,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Ủy viên BTV Tỉnh ủy": "banthuongvu",
     "Nguyên Thường trực TU": "nguyenthuongtruc",
     "Đại biểu Trung ương, tỉnh bạn": "daibieumoi",
-    "Nguyên Lãnh đạo (không là UV BTV)": "nguyenlanhdaokhac",
+    "Nguyên Lãnh đạo (Ủy viên BCH Đảng bộ tỉnh)": "nguyenlanhdaokhac",
     "Anh hùng, Mẹ VNAH": "meVN",
     "Đảng bộ các cơ quan Đảng tỉnh": "coquandang",
     "Đảng bộ UBND tỉnh": "ubndtinh",
