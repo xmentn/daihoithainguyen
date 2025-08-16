@@ -198,9 +198,9 @@ h2 {
   background-color: #4b0082; /* Màu Chàm (Indigo) */
   color: white;
 }
-.seat.nguyenbch20_25 {
-  background-color: #6699ff; /* Màu Chàm (Indigo) */
-  color: white;
+.nguyenbch20_25 {
+  background-color: #ff9800; /* Cam */
+  color: #212121; /* Đen đậm */
 }
 .seat.daibieumoi {
   background-color: #f08080;
@@ -238,24 +238,7 @@ h2 {
   background-color: #8b4513; /* Màu Xanh Lục đậm (DarkCyan) */
   color: white;
 }
-/*
-.seat.xaphuong1 {
-  background-color: #20B2AA; /* Màu Xanh biển nhạt (LightSeaGreen) 
-  color: black;
-}
-.seat.xaphuong2 {
-  background-color: #9370DB;
-  color: white;
-}
-.seat.xaphuong3 {
-  background-color: #ff00ff;
-  color: white;
-}
-.seat.xaphuong4 {
-  background-color: #cc9900;
-  color: black;
-}
-*/
+
 /* === MÀU SẮC CÁC NHÓM XÃ, PHƯỜNG XEN KẼ === */
 
 /* Cặp màu cho Xã, phường 1 */
