@@ -194,23 +194,19 @@
   </head>
   <body>
     <div class="container">
-      <!-- === SƠ ĐỒ 1 === -->
       <h1>SƠ ĐỒ CHỤP ẢNH LƯU NIỆM</h1>
       <h2 class="subtitle">Đại biểu Trung ương với BCH Đảng bộ tỉnh</h2>
-      <p id="total-count-1">Tổng số: 0 người</p>
+      <p id="total-count-1">Đang tải dữ liệu...</p>
       <div id="photo-stand-1" class="photo-stand-area"></div>
 
-      <!-- === ĐƯỜNG KẺ PHÂN CÁCH === -->
       <hr class="section-divider" />
 
-      <!-- === SƠ ĐỒ 2 === -->
       <h1>SƠ ĐỒ CHỤP ẢNH LƯU NIỆM</h1>
       <h2 class="subtitle">Đại biểu dự Đại hội</h2>
-      <p id="total-count-2">Tổng số: 0 người</p>
+      <p id="total-count-2">Đang tải dữ liệu...</p>
       <div id="photo-stand-2" class="photo-stand-area"></div>
     </div>
 
-    <!-- THẺ TOOLTIP VÀ NÚT HOME -->
     <div id="tooltip" class="tooltip"></div>
     <a href="../index.html" class="home-button" title="Về trang chủ">
       <svg
@@ -229,264 +225,135 @@
       document.addEventListener("DOMContentLoaded", function () {
         const tooltip = document.getElementById("tooltip");
 
-        /**
-         * Hàm chung để tạo một sơ đồ chụp ảnh
-         * @param {string} standId - ID của div chứa sơ đồ
-         * @param {string} totalCountId - ID của thẻ <p> hiển thị tổng số
-         * @param {Array} layoutConfig - Cấu hình các hàng
-         * @param {Array} names - Danh sách tên (tùy chọn)
-         */
-        function generatePhotoDiagram(
-          standId,
-          totalCountId,
-          layoutConfig,
-          names = []
-        ) {
+        // ✅ DÁN URL ỨNG DỤNG WEB BẠN ĐÃ SAO CHÉP TỪ GOOGLE APPS SCRIPT VÀO ĐÂY
+        const GOOGLE_SCRIPT_URL =
+          "https://script.google.com/macros/s/AKfycbwo2WPD6m4Ur2KfZvq-h3kEuLgAR4zRLiwK5FAcWKC85MIpMZbXE3FqJgDLg_BTaT9Q/exec";
+
+        // Hàm lấy dữ liệu từ Google Sheet
+        async function fetchDelegates(sheetName) {
+          try {
+            const response = await fetch(
+              `${GOOGLE_SCRIPT_URL}?sheet=${sheetName}`
+            );
+            if (!response.ok)
+              throw new Error(`Lỗi mạng: ${response.statusText}`);
+            const data = await response.json();
+            if (data.error)
+              throw new Error(`Lỗi từ Google Script: ${data.error}`);
+            return data;
+          } catch (error) {
+            console.error(`Không thể tải dữ liệu cho ${sheetName}:`, error);
+            const errorContainer = document.getElementById(
+              sheetName === "SoDo1" ? "photo-stand-1" : "photo-stand-2"
+            );
+            if (errorContainer) {
+              errorContainer.innerHTML = `<p style="color: red;">Không thể tải danh sách. Vui lòng kiểm tra lại URL hoặc cài đặt Google Sheet.</p>`;
+            }
+            return [];
+          }
+        }
+
+        // Hàm chính để vẽ sơ đồ, đã được viết lại hoàn toàn theo logic mới
+        function generatePhotoDiagram(standId, totalCountId, delegatesData) {
           const stand = document.getElementById(standId);
-          if (!stand) return;
+          const totalCountEl = document.getElementById(totalCountId);
+          if (!stand || !totalCountEl) return;
 
-          let totalCount = 0;
-          let nameIndex = 0;
+          stand.innerHTML = "";
+          totalCountEl.textContent = `Tổng số: ${delegatesData.length} người`;
 
-          layoutConfig.forEach((rowData) => {
-            totalCount += rowData.count;
+          // Gom nhóm đại biểu theo số hàng
+          const delegatesByRow = delegatesData.reduce((acc, delegate) => {
+            const rowNum = delegate.row;
+            if (!acc[rowNum]) acc[rowNum] = [];
+            acc[rowNum].push(delegate);
+            return acc;
+          }, {});
+
+          const sortedRows = Object.keys(delegatesByRow).sort((a, b) => a - b);
+
+          sortedRows.forEach((rowNum) => {
+            const peopleInThisRow = delegatesByRow[rowNum];
+            if (peopleInThisRow.length === 0) return;
+
             const rowDiv = document.createElement("div");
             rowDiv.className = "photo-row";
-
             const labelDiv = document.createElement("div");
             labelDiv.className = "row-label";
-            labelDiv.textContent = rowData.label;
+            labelDiv.textContent = `Hàng ${rowNum}`;
 
-            const isOddCount = rowData.count % 2 !== 0;
-            const halfCount = Math.floor(rowData.count / 2);
+            // ✅ LOGIC MỚI: TÁCH VÀ SẮP XẾP THEO VỊ TRÍ CHẴN/LẺ
+            const leftSidePeople = [];
+            const rightSidePeople = [];
 
-            const leftNumbers = [];
-            const leftSideCount = isOddCount ? halfCount + 1 : halfCount;
-            for (let i = 0; i < leftSideCount; i++) {
-              leftNumbers.push((leftSideCount - i) * 2 - 1);
-            }
-
-            const rightNumbers = [];
-            for (let i = 0; i < halfCount; i++) {
-              rightNumbers.push((i + 1) * 2);
-            }
-
-            const createPersonDiv = (num, type) => {
-              const personDiv = document.createElement("div");
-              // Chỉ gán tên nếu hàng đó được phép và còn tên trong danh sách
-              const personName =
-                rowData.hasNames && names[nameIndex]
-                  ? names[nameIndex]
-                  : `Vị trí số ${num}`;
-
-              personDiv.className = `person ${type}`;
-              personDiv.textContent = num;
-              personDiv.dataset.name = personName;
-
-              rowDiv.appendChild(personDiv);
-
-              if (rowData.hasNames) {
-                nameIndex++;
+            peopleInThisRow.forEach((person) => {
+              const position = parseInt(person.position, 10);
+              if (position % 2 !== 0) {
+                leftSidePeople.push(person); // Người có vị trí LẺ
+              } else {
+                rightSidePeople.push(person); // Người có vị trí CHẴN
               }
-            };
+            });
 
-            leftNumbers.forEach((num) => createPersonDiv(num, "odd"));
-            rightNumbers.forEach((num) => createPersonDiv(num, "even"));
+            // Sắp xếp bên trái theo thứ tự GIẢM DẦN (..., 5, 3, 1)
+            leftSidePeople.sort((a, b) => b.position - a.position);
+
+            // Sắp xếp bên phải theo thứ tự TĂNG DẦN (2, 4, 6, ...)
+            rightSidePeople.sort((a, b) => a.position - b.position);
+
+            // Gộp lại để có thứ tự hiển thị cuối cùng
+            const finalOrderedPeople = [...leftSidePeople, ...rightSidePeople];
+
+            // Vẽ các hình tròn dựa trên thứ tự đã sắp xếp
+            finalOrderedPeople.forEach((personData) => {
+              const personDiv = document.createElement("div");
+              const position = parseInt(personData.position, 10);
+
+              personDiv.className =
+                position % 2 !== 0 ? "person odd" : "person even";
+              personDiv.textContent = position; // Hiển thị đúng số Vị trí
+              personDiv.dataset.name = personData.name;
+              rowDiv.appendChild(personDiv);
+            });
 
             rowDiv.appendChild(labelDiv);
             stand.appendChild(rowDiv);
           });
-
-          const totalCountEl = document.getElementById(totalCountId);
-          if (totalCountEl) {
-            totalCountEl.textContent = `Tổng số: ${totalCount} người`;
-          }
         }
 
-        // --- DỮ LIỆU VÀ LỜI GỌI CHO SƠ ĐỒ 1 ---
-        const delegateNames1 = [
-          "Ủy viên BTV",
-          "Đỗ Thị Minh Hoa",
-          "Lường Đức Thắng",
-          "Hoàng Thu Trang",
-          "Đại biểu TW 6",
-          "Dương Văn Tiến",
-          "Đinh Quang Tuyên",
-          "Đại biểu TW 4",
-          "Nguyễn Đăng Bình",
-          "Đại biểu TW 2",
-          "Trịnh Việt Hùng",
-          "Đại biểu TW 1",
-          "Phạm Hoàng Sơn",
-          "Đại biểu TW 3",
-          "Đỗ Đức Công",
-          "Đại biểu TW 5",
-          "Nguyễn Thanh Bình",
-          "Trần Thị Lộc",
-          "Bùi Văn Lương",
-          "Bùi Đức Hải",
-          "Vũ Duy Hoàng",
-          "Phạm Văn Thọ",
-
-          "Dương Hữu Bường",
-          "Đặng Ngọc Huy",
-          "Nguyễn Ngọc Tuân",
-          "Đặng Văn Huy",
-          "Nguyễn Thị Vũ Anh",
-          "Nguyễn Thị Thu Huyền",
-          "Nguyễn Quốc Hữu",
-          "Lê Kim Phúc",
-          "Dương Xuân Hùng",
-          "Nguyễn Thị Loan",
-          "Nguyễn Linh",
-          "Mai Thị Thúy Nga",
-          "Đồng Văn Lưu",
-          "Nông Quang Nhất",
-          "Phạm Viêt Đức",
-          "Nguyễn Minh Quang",
-          "Bùi Thanh Hải",
-          "Vi Văn Nghĩa",
-          "Ngô Thế Hoàn",
-          "Phạm Thị Thu Thủy",
-          "Hà Thị Đào",
-          "Đỗ Thị Hiền",
-          "Phan Thanh Hà",
-          "Trần Văn Hậu",
-          "Bùi Đức Thuận",
-
-          "Ủy viên BCH",
-          "Ủy viên BCH",
-          "Tạc Văn Nam",
-          "Triệu Đức Văn",
-          "Nguyễn Bá Chính",
-          "Trần Công Hòa",
-          "Hoàng Anh Trung",
-          "Vũ Thị Lệ Hằng",
-          "Hoàng Thanh Oai",
-          "Vũ Đức Chính",
-          "Trần Trọng Chung",
-          "Dương Văn Lượng",
-          "Phạm Duy Hùng",
-          "Nguyễn Đức Lực",
-          "Hà Sỹ Thắng",
-          "Hoàng Văn Thiên",
-          "Hà Văn Dương",
-          "Hà Thị Bích Hồng",
-          "Hoàng Hà Bắc",
-          "Nông Văn Nguyên",
-          "Nông Bình Cương",
-          "Dương Ngọc Thuyết",
-          "Hồ Thị Kim Ngân",
-          "Triệu Thị Thu Phương",
-          "Ủy viên BCH",
-        ];
-        const photoLayout1 = [
-          { label: "Hàng 1", count: 22, hasNames: true },
-          { label: "Hàng 2", count: 25, hasNames: true },
-          { label: "Hàng 3", count: 28, hasNames: true },
-        ];
-        generatePhotoDiagram(
-          "photo-stand-1",
-          "total-count-1",
-          photoLayout1,
-          delegateNames1
-        );
-
-        // --- DỮ LIỆU VÀ LỜI GỌI CHO SƠ ĐỒ 2 ---
-        const delegateNames2 = [
-          "Trần Trọng Chung",
-          "Dương Văn Lượng",
-          "Phạm Duy Hùng",
-          "Dương Hữu Bường",
-          "Đặng Ngọc Huy",
-          "Nguyễn Ngọc Tuân",
-          "Đặng Văn Huy",
-          "Nguyễn Thị Vũ Anh",
-          "Nguyễn Thị Thu Huyền",
-          "Nguyễn Quốc Hữu",
-          "Lê Kim Phúc",
-          "Dương Xuân Hùng",
-          "Nguyễn Thị Loan",
-          "Nguyễn Linh",
-          "Mai Thị Thúy Nga",
-          "Ủy viên BTV",
-          "Đỗ Thị Minh Hoa",
-          "Lường Đức Thắng",
-          "Hoàng Thu Trang",
-          "Dương Văn Tiến",
-          "Đinh Quang Tuyên",
-          "Nguyễn Đăng Bình",
-          "Trịnh Việt Hùng",
-          "Phạm Hoàng Sơn",
-          "Đỗ Đức Công",
-          "Nguyễn Thanh Bình",
-          "Trần Thị Lộc",
-          "Bùi Văn Lương",
-          "Bùi Đức Hải",
-          "Vũ Duy Hoàng",
-          "Phạm Văn Thọ",
-          "Đồng Văn Lưu",
-          "Nông Quang Nhất",
-          "Phạm Viêt Đức",
-          "Nguyễn Minh Quang",
-          "Bùi Thanh Hải",
-          "Vi Văn Nghĩa",
-          "Ngô Thế Hoàn",
-          "Phạm Thị Thu Thủy",
-          "Hà Thị Đào",
-          "Đỗ Thị Hiền",
-          "Phan Thanh Hà",
-          "Trần Văn Hậu",
-          "Bùi Đức Thuận",
-          "Hà Thị Bích Hồng",
-        ];
-        const photoLayout2 = [
-          { label: "Hàng 1", count: 45, hasNames: true }, // Chỉ hàng này có tên
-          { label: "Hàng 2", count: 50 },
-          { label: "Hàng 3", count: 50 },
-          { label: "Hàng 4", count: 50 },
-          { label: "Hàng 5", count: 51 },
-          { label: "Hàng 6", count: 51 },
-          { label: "Hàng 7", count: 51 },
-          { label: "Hàng 8", count: 51 },
-          { label: "Hàng 9", count: 51 },
-        ];
-        generatePhotoDiagram(
-          "photo-stand-2",
-          "total-count-2",
-          photoLayout2,
-          delegateNames2
-        );
-
-        // --- THÊM SỰ KIỆN CHO TOOLTIP (CHO TẤT CẢ CÁC SƠ ĐỒ) ---
-        const allPersons = document.querySelectorAll(".person");
-        allPersons.forEach((person) => {
-          person.addEventListener("mouseenter", function (e) {
-            tooltip.textContent = this.dataset.name;
-            tooltip.style.display = "block";
+        // Hàm thêm sự kiện cho tooltip
+        function addTooltipEvents() {
+          const allPersons = document.querySelectorAll(".person");
+          allPersons.forEach((person) => {
+            person.addEventListener("mouseenter", function (e) {
+              tooltip.textContent = this.dataset.name;
+              tooltip.style.display = "block";
+            });
+            person.addEventListener("mousemove", function (e) {
+              tooltip.style.left = e.pageX + 10 + "px";
+              tooltip.style.top = e.pageY + 10 + "px";
+            });
+            person.addEventListener("mouseleave", function (e) {
+              tooltip.style.display = "none";
+            });
           });
-          person.addEventListener("mousemove", function (e) {
-            tooltip.style.left = e.pageX + 10 + "px";
-            tooltip.style.top = e.pageY + 10 + "px";
-          });
-          person.addEventListener("mouseleave", function (e) {
-            tooltip.style.display = "none";
-          });
-        });
+        }
+
+        // Hàm chính để khởi tạo trang
+        async function initializePage() {
+          const [delegates1, delegates2] = await Promise.all([
+            fetchDelegates("SoDo1"),
+            fetchDelegates("SoDo2"),
+          ]);
+
+          generatePhotoDiagram("photo-stand-1", "total-count-1", delegates1);
+          generatePhotoDiagram("photo-stand-2", "total-count-2", delegates2);
+
+          addTooltipEvents();
+        }
+
+        initializePage();
       });
     </script>
-
-    <a href="../index.html" class="home-button" title="Về trang chủ">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        width="24"
-        height="24"
-      >
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z" />
-      </svg>
-      <span>Về Trang chủ</span>
-    </a>
   </body>
 </html>
