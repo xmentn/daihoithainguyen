@@ -217,11 +217,19 @@ h1 {
   z-index: 1000;
 
   /* --- Hình dáng & Kích thước --- */
+<<<<<<< HEAD
   height: 40px; /* Chiều cao của nút */
   width: auto; /* Chiều rộng tự động theo nội dung */
   border-radius: 20px; /* Bo tròn thành hình con nhộng */
   padding: 0 25px; /* Thêm padding ngang cho đẹp */
   gap: 8px; /* Khoảng cách giữa biểu tượng và chữ */
+=======
+  height: 55px; /* Chiều cao của nút */
+  width: auto; /* Chiều rộng tự động theo nội dung */
+  border-radius: 27.5px; /* Bo tròn thành hình con nhộng */
+  padding: 0 25px; /* Thêm padding ngang cho đẹp */
+  gap: 10px; /* Khoảng cách giữa biểu tượng và chữ */
+>>>>>>> e331316ece7f01d0f89188fb051dabb2726d1080
 
   /* --- Màu sắc & Nền --- */
   background-color: #dc3545;
@@ -233,7 +241,11 @@ h1 {
   justify-content: center;
 
   /* --- Hiệu ứng & Chữ --- */
+<<<<<<< HEAD
   font-size: 14 px; /* Tăng cỡ chữ một chút */
+=======
+  font-size: 16px; /* Tăng cỡ chữ một chút */
+>>>>>>> e331316ece7f01d0f89188fb051dabb2726d1080
   font-weight: bold;
   text-decoration: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
