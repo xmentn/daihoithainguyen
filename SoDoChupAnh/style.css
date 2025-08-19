@@ -208,3 +208,40 @@ h1 {
     transform: rotate(360deg);
   }
 }
+
+.back-to-home {
+  /* --- Vị trí --- */
+  position: fixed; /* Cố định vị trí khi cuộn trang */
+  bottom: 30px; /* Cách lề dưới 30px */
+  right: 30px; /* Cách lề phải 30px */
+  z-index: 1000; /* Đảm bảo nút luôn nổi lên trên */
+
+  /* --- Hình dáng & Kích thước --- */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* Tạo hình tròn */
+
+  /* --- Màu sắc & Nền --- */
+  background-color: #dc3545; /* Màu đỏ */
+  color: white; /* Chữ màu trắng */
+
+  /* --- Căn chỉnh nội dung bên trong --- */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* --- Hiệu ứng & Chữ --- */
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none; /* Bỏ gạch chân của liên kết */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hiệu ứng khi di chuột vào */
+.back-to-home:hover {
+  background-color: #c82333; /* Đổi màu đỏ đậm hơn */
+  transform: scale(1.1); /* Phóng to nhẹ */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
