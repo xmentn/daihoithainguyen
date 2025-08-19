@@ -5,8 +5,11 @@ const webAppUrl =
 // Trong file script.js
 function loadDiagram(sheetName) {
   const container = document.getElementById("diagram-container");
+  const countElement = document.getElementById("delegate-count");
+  const loader = document.getElementById("loader");
 
-  // === PHẦN THÊM MỚI ===
+  // ================================================================
+  // PHẦN QUAN TRỌNG: Thêm class để điều khiển CSS
   // Xóa các class của lần xem trước để tránh bị chồng chéo style
   container.classList.remove("view-bch", "view-toan-the");
 
@@ -16,13 +19,16 @@ function loadDiagram(sheetName) {
   } else if (sheetName === "ToanThe") {
     container.classList.add("view-toan-the");
   }
-  // ======================
+  // ================================================================
+
+  // Xóa nội dung cũ và hiển thị spinner
+  container.innerHTML = "";
+  countElement.textContent = "";
+  loader.style.display = "block";
 
   // Xóa class 'active' khỏi tất cả các nút
   const buttons = document.querySelectorAll(".controls button");
   buttons.forEach((btn) => btn.classList.remove("active"));
-
-  // Thêm class 'active' vào nút được nhấn
   const activeButton = document.querySelector(
     `.controls button[onclick*="'${sheetName}'"]`
   );
@@ -30,35 +36,38 @@ function loadDiagram(sheetName) {
     activeButton.classList.add("active");
   }
 
-  container.innerHTML = "<h2>Đang tải dữ liệu...</h2>";
-
   fetch(`${webAppUrl}?sheetName=${sheetName}`)
     .then((response) => response.json())
     .then((data) => {
+      loader.style.display = "none"; // Ẩn spinner khi có dữ liệu
       if (data.error) {
         throw new Error(data.error);
       }
       displayDiagram(data);
     })
     .catch((error) => {
+      loader.style.display = "none"; // Ẩn spinner khi có lỗi
       console.error("Lỗi:", error);
       container.innerHTML = `<h2>Có lỗi xảy ra: ${error.message}</h2>`;
     });
 }
-
 function displayDiagram(delegates) {
   const container = document.getElementById("diagram-container");
   container.innerHTML = "";
 
   const rows = {};
-  delegates.forEach((delegate) => {
+  // Lọc ra các đại biểu có đủ thông tin Sohang và Vitri
+  const validDelegates = delegates.filter(
+    (delegate) => delegate.Sohang && delegate.Vitri
+  );
+
+  validDelegates.forEach((delegate) => {
     const rowNum = delegate.Sohang;
-    if (!rowNum || !delegate.Vitri || !delegate.Hoten) return;
     if (!rows[rowNum]) {
       rows[rowNum] = [];
     }
     rows[rowNum].push({
-      name: delegate.Hoten.trim(),
+      name: delegate.Hoten ? delegate.Hoten.trim() : "",
       position: parseInt(delegate.Vitri),
       doituong: delegate.Doituong,
     });
@@ -108,14 +117,17 @@ function displayDiagram(delegates) {
       container.appendChild(rowElement);
     });
 
-  // =========================================================================
-  // SỬA LỖI TIMING: Bọc toàn bộ logic đo lường và cuộn vào setTimeout
-  // Việc này sẽ trì hoãn việc thực thi mã cho đến khi trình duyệt đã vẽ xong layout.
-  // =========================================================================
+  // ================================================================
+  // PHẦN THÊM MỚI: HIỂN THỊ TỔNG SỐ ĐẠI BIỂU
+  // ================================================================
+  const countElement = document.getElementById("delegate-count");
+  if (countElement) {
+    countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
+  }
+
   setTimeout(() => {
     const diagramContainer = document.getElementById("diagram-container");
     if (diagramContainer) {
-      // Đồng bộ chiều rộng của tất cả các hàng để căn chỉnh chính xác
       const allRowWrappers = diagramContainer.querySelectorAll(
         ".row-content-wrapper"
       );
@@ -133,12 +145,11 @@ function displayDiagram(delegates) {
         });
       }
 
-      // Đặt thanh trượt vào giữa sau khi đã có layout ổn định
       const scrollableWidth =
         diagramContainer.scrollWidth - diagramContainer.clientWidth;
       diagramContainer.scrollLeft = scrollableWidth / 2;
     }
-  }, 0); // Độ trễ 0ms là đủ để đẩy tác vụ này xuống cuối hàng đợi thực thi.
+  }, 50);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -119,16 +119,19 @@ h1 {
   visibility: hidden;
   opacity: 0;
   width: 160px;
-  background-color: #333;
-  color: #fff;
+  background-color: #0056b3; /* Nền màu xanh dương đậm (giống màu nút) */
+  color: #fff; /* Chữ màu trắng */
   text-align: center;
   border-radius: 6px;
-  padding: 8px;
+  padding: 8px 12px; /* Tăng padding một chút cho thoáng */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Thêm bóng đổ cho đẹp hơn */
+
   position: absolute;
   z-index: 1;
-  bottom: 115%;
+  bottom: 120%; /* Điều chỉnh lại khoảng cách một chút */
   left: 50%;
   margin-left: -80px;
+
   transition: opacity 0.3s;
 }
 
@@ -140,7 +143,8 @@ h1 {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #333 transparent transparent transparent;
+  /* Đổi màu viền trên cùng cho khớp với màu nền mới */
+  border-color: #0056b3 transparent transparent transparent;
 }
 
 .delegate:hover .name,
@@ -183,4 +187,24 @@ h1 {
 /* Tùy chỉnh khoảng cách giữa các vị trí nếu cần */
 .view-toan-the .row-content-wrapper {
   gap: 5px;
+}
+/* CSS cho biểu tượng loading */
+.loader {
+  border: 5px solid #f3f3f3; /* Light grey */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  display: none; /* Mặc định ẩn đi */
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

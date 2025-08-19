@@ -7,13 +7,16 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <h1>Sơ đồ Chụp ảnh</h1>
+    <h1>SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM</h1>
 
     <div class="controls">
       <button onclick="loadDiagram('BanChanhHanh')">Ban Chấp hành</button>
       <button onclick="loadDiagram('ToanThe')">Toàn thể</button>
     </div>
-
+    <div id="summary-section" style="text-align: center">
+      <p id="delegate-count"></p>
+      <div id="loader" class="loader"></div>
+    </div>
     <div id="diagram-container" class="photo-diagram"></div>
 
     <script src="script.js"></script>
