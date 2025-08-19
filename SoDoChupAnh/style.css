@@ -211,19 +211,21 @@ h1 {
 
 .back-to-home {
   /* --- Vị trí --- */
-  position: fixed; /* Cố định vị trí khi cuộn trang */
-  bottom: 30px; /* Cách lề dưới 30px */
-  right: 30px; /* Cách lề phải 30px */
-  z-index: 1000; /* Đảm bảo nút luôn nổi lên trên */
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
 
   /* --- Hình dáng & Kích thước --- */
-  width: 60px;
-  height: 60px;
-  border-radius: 50%; /* Tạo hình tròn */
+  height: 55px; /* Chiều cao của nút */
+  width: auto; /* Chiều rộng tự động theo nội dung */
+  border-radius: 27.5px; /* Bo tròn thành hình con nhộng */
+  padding: 0 25px; /* Thêm padding ngang cho đẹp */
+  gap: 10px; /* Khoảng cách giữa biểu tượng và chữ */
 
   /* --- Màu sắc & Nền --- */
-  background-color: #dc3545; /* Màu đỏ */
-  color: white; /* Chữ màu trắng */
+  background-color: #dc3545;
+  color: white;
 
   /* --- Căn chỉnh nội dung bên trong --- */
   display: flex;
@@ -231,10 +233,9 @@ h1 {
   justify-content: center;
 
   /* --- Hiệu ứng & Chữ --- */
-  font-size: 12px;
+  font-size: 16px; /* Tăng cỡ chữ một chút */
   font-weight: bold;
-  text-align: center;
-  text-decoration: none; /* Bỏ gạch chân của liên kết */
+  text-decoration: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease-in-out;
 }
