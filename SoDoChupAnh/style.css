@@ -1,0 +1,248 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 20px;
+}
+
+h1 {
+  color: #333;
+}
+
+/* Vùng chứa các nút bấm */
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  background-color: #e9ecef; /* Thêm màu nền cho cả khối */
+  padding: 6px;
+  border-radius: 12px; /* Bo tròn cả khối */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) inset; /* Đổ bóng vào trong */
+}
+
+/* Kiểu chung cho các nút bấm */
+.controls button {
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500; /* Làm chữ đậm vừa phải */
+  cursor: pointer;
+  border: none; /* Bỏ viền mặc định */
+  border-radius: 8px; /* Bo tròn góc nút */
+  background-color: transparent; /* Nền trong suốt theo mặc định */
+  color: #495057;
+  transition: all 0.2s ease-in-out; /* Hiệu ứng chuyển động mượt mà */
+}
+
+/* Hiệu ứng khi di chuột vào nút chưa được chọn */
+.controls button:not(.active):hover {
+  background-color: #dee2e6;
+  color: #212529;
+}
+
+/* Trạng thái của nút đang được chọn */
+.controls button.active {
+  background-color: #fff;
+  color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ ra ngoài */
+  transform: scale(1.02); /* Phóng to nhẹ */
+}
+
+/* Vùng chứa chính, chịu trách nhiệm cuộn ngang và xếp các hàng theo chiều dọc */
+.photo-diagram {
+  display: flex;
+  flex-direction: column-reverse; /* Đảo ngược thứ tự hàng (hàng 1 ở dưới) */
+  align-items: flex-start;
+  gap: 10px; /* Khoảng cách giữa các hàng */
+  padding: 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto; /* Thanh cuộn ngang duy nhất */
+  width: 90vw; /* Giới hạn chiều rộng bằng 90% chiều rộng của màn hình */
+}
+
+/* Mỗi hàng, chịu trách nhiệm xếp các hình tròn và nhãn theo chiều dọc */
+.row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px; /* Khoảng cách giữa hàng hình tròn và nhãn */
+}
+
+/* Vùng chứa các hình tròn, chịu trách nhiệm xếp các hình tròn theo chiều ngang */
+.row-content-wrapper {
+  display: flex;
+  justify-content: center; /* Căn giữa các hình tròn trong hàng */
+  gap: 8px; /* Khoảng cách giữa các hình tròn */
+  min-width: fit-content; /* Đảm bảo nội dung không bị vỡ */
+}
+
+/* Nhãn hàng (Hàng 1, Hàng 2...) */
+.row-label {
+  font-weight: bold;
+  color: #555;
+  background-color: #e9e9e9;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+/* Định dạng cho mỗi vị trí (hình tròn) */
+.delegate {
+  position: relative;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.delegate:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.delegate .position {
+  font-weight: bold;
+  font-size: 1.3em;
+  color: #007bff;
+}
+
+/* Tooltip cho tên */
+.delegate .name {
+  visibility: hidden;
+  opacity: 0;
+  width: 160px;
+  background-color: #0056b3; /* Nền màu xanh dương đậm (giống màu nút) */
+  color: #fff; /* Chữ màu trắng */
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 12px; /* Tăng padding một chút cho thoáng */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Thêm bóng đổ cho đẹp hơn */
+
+  position: absolute;
+  z-index: 1;
+  bottom: 120%; /* Điều chỉnh lại khoảng cách một chút */
+  left: 50%;
+  margin-left: -80px;
+
+  transition: opacity 0.3s;
+}
+
+.delegate .name::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  /* Đổi màu viền trên cùng cho khớp với màu nền mới */
+  border-color: #0056b3 transparent transparent transparent;
+}
+
+.delegate:hover .name,
+.delegate:focus .name,
+.delegate:active .name {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Màu sắc cho đối tượng đặc biệt */
+.delegate.doituong-1 {
+  background-color: #ffdddd; /* Màu hồng/đỏ nhạt */
+  border-color: #f44336; /* Viền đỏ đậm */
+}
+
+.delegate.doituong-2 {
+  background-color: #d1e7ff; /* Màu xanh dương nhạt */
+  border-color: #0d6efd; /* Viền xanh dương đậm */
+}
+.view-bch .delegate {
+  width: 40px;
+  height: 40px;
+}
+.view-bch .delegate .position {
+  font-size: 1.1em;
+}
+/* Tùy chỉnh khoảng cách giữa các vị trí nếu cần */
+.view-bch .row-content-wrapper {
+  gap: 10px;
+}
+
+/* --- Kích thước cho sơ đồ TOÀN THỂ (ĐẠI BIỂU) --- */
+.view-toan-the .delegate {
+  width: 32px;
+  height: 32px;
+}
+.view-toan-the .delegate .position {
+  font-size: 0.9em;
+}
+/* Tùy chỉnh khoảng cách giữa các vị trí nếu cần */
+.view-toan-the .row-content-wrapper {
+  gap: 5px;
+}
+/* CSS cho biểu tượng loading */
+.loader {
+  border: 5px solid #f3f3f3; /* Light grey */
+  border-top: 5px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  display: none; /* Mặc định ẩn đi */
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.back-to-home {
+  /* --- Vị trí --- */
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+
+  /* --- Hình dáng & Kích thước --- */
+  height: 40px; /* Chiều cao của nút */
+  width: auto; /* Chiều rộng tự động theo nội dung */
+  border-radius: 20px; /* Bo tròn thành hình con nhộng */
+  padding: 0 25px; /* Thêm padding ngang cho đẹp */
+  gap: 8px; /* Khoảng cách giữa biểu tượng và chữ */
+
+  /* --- Màu sắc & Nền --- */
+  background-color: #dc3545;
+  color: white;
+
+  /* --- Căn chỉnh nội dung bên trong --- */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* --- Hiệu ứng & Chữ --- */
+  font-size: 14 px; /* Tăng cỡ chữ một chút */
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hiệu ứng khi di chuột vào */
+.back-to-home:hover {
+  background-color: #c82333; /* Đổi màu đỏ đậm hơn */
+  transform: scale(1.1); /* Phóng to nhẹ */
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
