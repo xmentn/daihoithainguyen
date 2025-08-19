@@ -275,7 +275,27 @@ body {
 }
 
 #visitor-count {
-  font-weight: bold;
+  font-weight: normal;
   color: #0d47a1;
   font-size: 1.1em;
+}
+/* Spinner nhỏ cho bộ đếm */
+.counter-spinner {
+  display: inline-block; /* Để spinner nằm cùng hàng với chữ */
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #0d47a1; /* Màu xanh chủ đạo */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  vertical-align: middle; /* Căn giữa spinner với dòng chữ */
+  margin-left: 5px;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
