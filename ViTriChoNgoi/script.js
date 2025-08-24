@@ -505,6 +505,7 @@ document.addEventListener("DOMContentLoaded", () => {
       xaphuong2: "Đảng bộ xã, phường 2",
       xaphuong3: "Đảng bộ xã, phường 3",
       xaphuong4: "Đảng bộ xã, phường 4",
+      thuky: "Thư ký",
     },
   };
   const donViToStatusMap = {
