@@ -1,16 +1,11 @@
-// THAY THẾ URL NÀY bằng URL Web App của bạn
-const webAppUrl =
-  "https://script.google.com/macros/s/AKfycbwabxc2-QugM3__9KIO1SNUV2i_-DIzKl48V7Ecab3LfZTiX8q77TIxN8y7g7dJZVC1/exec";
-
-// Trong file script.js
 function loadDiagram(sheetName) {
   const container = document.getElementById("diagram-container");
   const countElement = document.getElementById("delegate-count");
   const loader = document.getElementById("loader");
+  const buttons = document.querySelectorAll(".controls button");
 
-  // ================================================================
-  // PHẦN QUAN TRỌNG: Thêm class để điều khiển CSS
-  // Xóa các class của lần xem trước để tránh bị chồng chéo style
+  // === PHẦN QUAN TRỌNG: THÊM CLASS ĐỂ ĐIỀU KHIỂN KÍCH THƯỚC ===
+  // Xóa các class của lần xem trước
   container.classList.remove("view-bch", "view-toan-the");
 
   // Thêm class tương ứng với sơ đồ đang được chọn
@@ -19,15 +14,9 @@ function loadDiagram(sheetName) {
   } else if (sheetName === "ToanThe") {
     container.classList.add("view-toan-the");
   }
-  // ================================================================
+  // ==========================================================
 
-  // Xóa nội dung cũ và hiển thị spinner
-  container.innerHTML = "";
-  countElement.textContent = "";
-  loader.style.display = "block";
-
-  // Xóa class 'active' khỏi tất cả các nút
-  const buttons = document.querySelectorAll(".controls button");
+  // Xử lý nút active
   buttons.forEach((btn) => btn.classList.remove("active"));
   const activeButton = document.querySelector(
     `.controls button[onclick*="'${sheetName}'"]`
@@ -36,21 +25,31 @@ function loadDiagram(sheetName) {
     activeButton.classList.add("active");
   }
 
-  fetch(`${webAppUrl}?sheetName=${sheetName}`)
-    .then((response) => response.json())
-    .then((data) => {
-      loader.style.display = "none"; // Ẩn spinner khi có dữ liệu
-      if (data.error) {
-        throw new Error(data.error);
-      }
-      displayDiagram(data);
-    })
-    .catch((error) => {
-      loader.style.display = "none"; // Ẩn spinner khi có lỗi
-      console.error("Lỗi:", error);
-      container.innerHTML = `<h2>Có lỗi xảy ra: ${error.message}</h2>`;
-    });
+  // Ẩn spinner và xóa nội dung cũ
+  loader.style.display = "none";
+  container.innerHTML = "";
+  countElement.textContent = "";
+
+  // Đọc dữ liệu từ cache trình duyệt
+  const cachedDataString = sessionStorage.getItem("soDoChupAnhData");
+
+  if (cachedDataString) {
+    const allChupAnhData = JSON.parse(cachedDataString);
+    const delegatesForSheet = allChupAnhData[sheetName];
+
+    if (delegatesForSheet) {
+      displayDiagram(delegatesForSheet);
+    } else {
+      container.innerHTML = `<h2>Không tìm thấy dữ liệu cho sơ đồ '${sheetName}'.</h2>`;
+    }
+  } else {
+    container.innerHTML =
+      "<h2>Không có dữ liệu. Vui lòng quay lại trang chủ để tải lại.</h2>";
+  }
 }
+
+// Hàm displayDiagram của bạn đã đúng, giữ nguyên không thay đổi
+// Hàm displayDiagram đã được cập nhật để đọc đúng tên cột từ cache
 function displayDiagram(delegates) {
   const container = document.getElementById("diagram-container");
   container.innerHTML = "";
@@ -62,24 +61,24 @@ function displayDiagram(delegates) {
   );
 
   validDelegates.forEach((delegate) => {
-    const rowNum = delegate.Sohang;
+    const rowNum = delegate.Sohang; // Đọc đúng tên cột "Sohang"
     if (!rows[rowNum]) {
       rows[rowNum] = [];
     }
     rows[rowNum].push({
       name: delegate.Hoten ? delegate.Hoten.trim() : "",
-      position: parseInt(delegate.Vitri),
+      position: parseInt(delegate.Vitri), // Đọc đúng tên cột "Vitri"
       doituong: delegate.Doituong,
     });
   });
 
+  // Phần code còn lại của hàm giữ nguyên không thay đổi...
   Object.keys(rows)
     .sort((a, b) => a - b)
     .forEach((rowNum) => {
       const rowData = rows[rowNum];
       const rowElement = document.createElement("div");
       rowElement.className = "row";
-
       const contentWrapper = document.createElement("div");
       contentWrapper.className = "row-content-wrapper";
 
@@ -101,25 +100,20 @@ function displayDiagram(delegates) {
           delegateDiv.classList.add("doituong-2");
         }
         delegateDiv.innerHTML = `
-                <div class="position">${delegate.position}</div>
-                <div class="name">${delegate.name}</div>
-            `;
+                    <div class="position">${delegate.position}</div>
+                    <div class="name">${delegate.name}</div>
+                `;
         contentWrapper.appendChild(delegateDiv);
       });
 
       rowElement.appendChild(contentWrapper);
-
       const rowLabel = document.createElement("div");
       rowLabel.className = "row-label";
       rowLabel.textContent = `Hàng ${rowNum}`;
       rowElement.appendChild(rowLabel);
-
       container.appendChild(rowElement);
     });
 
-  // ================================================================
-  // PHẦN THÊM MỚI: HIỂN THỊ TỔNG SỐ ĐẠI BIỂU
-  // ================================================================
   const countElement = document.getElementById("delegate-count");
   if (countElement) {
     countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
@@ -132,19 +126,16 @@ function displayDiagram(delegates) {
         ".row-content-wrapper"
       );
       let maxWidth = 0;
-
       allRowWrappers.forEach((wrapper) => {
         if (wrapper.scrollWidth > maxWidth) {
           maxWidth = wrapper.scrollWidth;
         }
       });
-
       if (maxWidth > 0) {
         allRowWrappers.forEach((wrapper) => {
           wrapper.style.width = `${maxWidth}px`;
         });
       }
-
       const scrollableWidth =
         diagramContainer.scrollWidth - diagramContainer.clientWidth;
       diagramContainer.scrollLeft = scrollableWidth / 2;
@@ -152,6 +143,7 @@ function displayDiagram(delegates) {
   }, 50);
 }
 
+// Bắt đầu chạy khi trang được tải
 document.addEventListener("DOMContentLoaded", () => {
   loadDiagram("BanChanhHanh");
 });

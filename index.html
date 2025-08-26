@@ -85,48 +85,67 @@
     </div>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // ✅ CHIẾN LƯỢC MỚI: Gọi 3 API riêng biệt cho từng loại dữ liệu
+        // URL API cho dữ liệu chính của Đại hội
         const baseUrl =
-          "https://script.google.com/macros/s/AKfycbxb4j2eTzd11TJz_OYNE_wmTY9ppCrjC0v7b3-FaD2nacIWOAtGhrEXzO_MA7_zqLLWFg/exec"; // Thay bằng URL MỚI NHẤT của bạn
+          "https://script.google.com/macros/s/AKfycbxb4j2eTzd11TJz_OYNE_wmTY9ppCrjC0v7b3-FaD2nacIWOAtGhrEXzO_MA7_zqLLWFg/exec";
 
+        // === THÊM MỚI: URL API cho dữ liệu Sơ đồ chụp ảnh ===
+        const chupAnhUrl =
+          "https://script.google.com/macros/s/AKfycbzlLNrg7bHqGtP5Uz6cLbIEC1E2IPykA8pcPCbqGz2bT-7ZqT7PHxBhUjlq7fOmSN-O/exec"; // <-- THAY THẾ BẰNG URL ĐÚNG
+
+        // Định nghĩa các URL con cho dữ liệu chính
         const announcementUrl = `${baseUrl}?type=thongbao`;
         const officialUrl = `${baseUrl}?type=daibieu`;
         const guestUrl = `${baseUrl}?type=khachmoi`;
 
+        // Lấy các phần tử DOM cần thiết
         const generalContainer = document.getElementById(
           "general-announcements-container"
         );
         const scheduleContainer = document.getElementById("schedule-list");
         const dateElement = document.getElementById("announcement-date");
 
-        // Sử dụng Promise.all để thực hiện các cuộc gọi API song song
+        // === NÂNG CẤP: Thêm lệnh tải dữ liệu chụp ảnh vào Promise.all ===
         Promise.all([
           fetch(announcementUrl).then((res) => res.json()),
           fetch(officialUrl).then((res) => res.json()),
           fetch(guestUrl).then((res) => res.json()),
+          fetch(chupAnhUrl).then((res) => res.json()), // Thêm lệnh fetch mới
         ])
-          .then(([announcementData, officialData, guestData]) => {
-            console.log("Tất cả dữ liệu đã được tải thành công.");
+          .then(([announcementData, officialData, guestData, chupAnhData]) => {
+            // Thêm chupAnhData
+            console.log(
+              "Tất cả dữ liệu (Đại hội và Chụp ảnh) đã được tải thành công."
+            );
 
-            // ✅ Ghép dữ liệu lại thành một đối tượng lớn
+            // --- Xử lý và cache dữ liệu Đại hội ---
             const fullData = {
               announcements: announcementData.announcements,
               announcementDate: announcementData.announcementDate,
               officialDelegates: officialData.delegates,
               guestDelegates: guestData.delegates,
             };
-
-            // Lưu vào cache trình duyệt
             try {
               sessionStorage.setItem("daiHoiData", JSON.stringify(fullData));
-              console.log(
-                "Dữ liệu Đại hội đã được ghép và lưu vào cache trình duyệt."
-              );
+              console.log("Dữ liệu Đại hội đã được lưu vào cache trình duyệt.");
             } catch (e) {
-              console.error("Lỗi khi lưu vào sessionStorage:", e);
+              console.error("Lỗi khi lưu dữ liệu Đại hội:", e);
             }
 
-            // Hiển thị thông báo (dùng announcementData)
+            // === THÊM MỚI: Xử lý và cache dữ liệu Chụp ảnh ===
+            try {
+              sessionStorage.setItem(
+                "soDoChupAnhData",
+                JSON.stringify(chupAnhData)
+              );
+              console.log(
+                "Dữ liệu Sơ đồ chụp ảnh đã được lưu vào cache trình duyệt."
+              );
+            } catch (e) {
+              console.error("Lỗi khi lưu dữ liệu Chụp ảnh:", e);
+            }
+
+            // Hiển thị thông báo (chỉ dùng dữ liệu Đại hội)
             renderAnnouncements(announcementData);
           })
           .catch((error) => {
@@ -136,7 +155,6 @@
                 '<p style="color: red;">Không thể tải được dữ liệu. Vui lòng thử lại sau.</p>';
             }
           });
-
         // Tách logic hiển thị thông báo ra hàm riêng cho sạch sẽ
         function renderAnnouncements(data) {
           if (dateElement && data && data.announcementDate) {
