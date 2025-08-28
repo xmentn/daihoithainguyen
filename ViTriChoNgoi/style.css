@@ -140,9 +140,8 @@ h2 {
   font-size: 0.7em;
   font-weight: 500;
   cursor: pointer;
-  /* <<< THAY ĐỔI: Thêm box-shadow vào transition để hiệu ứng mượt hơn */
-  transition: transform 0.15s ease, background-color 0.15s ease,
-    box-shadow 0.2s ease;
+  /* <<< THAY ĐỔI: Bỏ transition cho box-shadow */
+  transition: transform 0.15s ease, background-color 0.15s ease;
   user-select: none;
   flex-shrink: 0;
 }
@@ -155,13 +154,14 @@ h2 {
 
 /* === THÊM MỚI: CSS để làm sáng các ghế cùng đơn vị === */
 .seat.highlight-unit {
-  box-shadow: 0 0 12px 3px rgba(29, 161, 242, 0.9); /* Hiệu ứng tỏa sáng màu xanh dương */
-  border: 2px solid #1da1f2;
-  transform: scale(1.05); /* Phóng to nhẹ */
-  position: relative; /* Bắt buộc để z-index hoạt động */
-  z-index: 9; /* Nằm dưới ghế đang hover trực tiếp, nhưng trên các ghế khác */
-}
+  transform: scale(1.15);
+  position: relative;
+  z-index: 9;
 
+  /* === THÊM MỚI: Thêm màu nền và màu chữ khi highlight === */
+  background-color: #ff4757 !important; /* Màu đỏ tươi nổi bật */
+  color: white !important; /* Đảm bảo chữ luôn màu trắng để dễ đọc */
+}
 /* --- MÀU SẮC CÁC LOẠI GHẾ --- */
 .seat.available {
   background-color: white;
