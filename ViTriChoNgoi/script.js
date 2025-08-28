@@ -256,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     I: {
       rowLabel: "I",
-      physicalSeatsInDiagram: { left: 12, middle: 21, right: 13 },
+      physicalSeatsInDiagram: { left: 12, middle: 22, right: 12 },
       middleOverall1AtPos: 11,
       maxOddOverallLeft: 45,
       maxEvenOverallRight: 46,
