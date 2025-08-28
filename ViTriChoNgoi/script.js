@@ -596,6 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
           title: delegate.chucVu,
           status: status,
           image: "",
+          maDonVi: delegate.maDonVi, // <<< THÊM MỚI
         });
       }
       const beMacSeat = normalizeSeatCode(delegate.viTriPhienKhac);
@@ -606,6 +607,7 @@ document.addEventListener("DOMContentLoaded", () => {
           title: delegate.chucVu,
           status: status,
           image: "",
+          maDonVi: delegate.maDonVi, // <<< THÊM MỚI
         });
       }
     });
@@ -1043,6 +1045,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupTooltips(activeSeatMap) {
     const allSeats = document.querySelectorAll(".seating-section .seat");
     let activeTooltipSeat = null;
+
     const showTooltip = (seatElement) => {
       if (activeTooltipSeat && activeTooltipSeat !== seatElement) {
         tooltip.style.display = "none";
@@ -1084,20 +1087,55 @@ document.addEventListener("DOMContentLoaded", () => {
       tooltip.style.left = `${newLeft}px`;
       tooltip.style.top = `${newTop}px`;
     };
+
     const hideTooltip = () => {
       tooltip.style.display = "none";
       activeTooltipSeat = null;
     };
+
+    // === Logic mới để highlight ===
+    const highlightUnit = (seatElement) => {
+      const seatId = seatElement.dataset.id;
+      if (!seatId) return;
+
+      const seatInfo = activeSeatMap.get(seatId);
+      // Kiểm tra seatInfo và maDonVi có tồn tại và không phải là giá trị rỗng
+      if (seatInfo && seatInfo.maDonVi) {
+        const targetMaDonVi = seatInfo.maDonVi;
+
+        // Lặp qua tất cả ghế trong Map dữ liệu đang xem
+        for (const [otherSeatId, otherSeatInfo] of activeSeatMap.entries()) {
+          if (otherSeatInfo.maDonVi === targetMaDonVi) {
+            const seatElementToHighlight = allSeatElementsMap.get(otherSeatId);
+            if (seatElementToHighlight) {
+              seatElementToHighlight.classList.add("highlight-unit");
+            }
+          }
+        }
+      }
+    };
+
+    const clearHighlightUnit = () => {
+      document.querySelectorAll(".seat.highlight-unit").forEach((el) => {
+        el.classList.remove("highlight-unit");
+      });
+    };
+
     allSeats.forEach((seat) => {
       seat.addEventListener("mouseenter", (event) => {
         showTooltip(event.currentTarget);
+        highlightUnit(event.currentTarget); // <<< THÊM MỚI
       });
-      seat.addEventListener("mouseleave", hideTooltip);
+      seat.addEventListener("mouseleave", () => {
+        hideTooltip();
+        clearHighlightUnit(); // <<< THÊM MỚI
+      });
       seat.addEventListener("click", (event) => {
         event.stopPropagation();
         showTooltip(event.currentTarget);
       });
     });
+
     document.addEventListener("click", (event) => {
       if (
         tooltip.style.display === "block" &&
