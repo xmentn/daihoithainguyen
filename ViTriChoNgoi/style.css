@@ -242,44 +242,90 @@ h2 {
 /* === MÀU SẮC CÁC NHÓM XÃ, PHƯỜNG XEN KẼ === */
 
 /* Cặp màu cho Xã, phường 1 */
-.seat.xaphuong1a {
-  background-color: #20b2aa; /* LightSeaGreen */
-  color: white;
-}
-.seat.xaphuong1b {
-  background-color: #7fffd4; /* ĐỔI SANG MÀU NGỌC BÍCH (Aquamarine) */
-  color: black;
-}
-
-/* Cặp màu cho Xã, phường 2 */
-.seat.xaphuong2a {
+.seat.doanso5 {
   background-color: #67a5f5; /* SteelBlue */
   color: white;
 }
-.seat.xaphuong2b {
+
+.seat.doanso6 {
   background-color: #aacdfa; /* LightSteelBlue */
   color: black;
 }
 
-/* Cặp màu cho Xã, phường 3 */
-.seat.xaphuong3a {
-  background-color: #da70d6; /* Orchid */
-  color: white;
-}
-.seat.xaphuong3b {
-  background-color: #dda0dd; /* Plum */
-  color: black;
-}
-
-/* Cặp màu cho Xã, phường 4 */
-.seat.xaphuong4a {
+.seat.doanso7 {
   background-color: #6a5acd; /* SlateBlue */
   color: white;
 }
-.seat.xaphuong4b {
+.seat.doanso8 {
   background-color: #e883f7; /* MediumPurple */
   color: white;
 }
+
+.seat.doanso9 {
+  background-color: #20b2aa; /* LightSeaGreen */
+  color: white;
+}
+.seat.doanso10 {
+  background-color: #7fffd4; /* Aquamarine */
+  color: black;
+}
+
+/* Cặp màu 4: Nâu sô-cô-la / Nâu cát */
+.seat.doanso11 {
+  background-color: #d2691e; /* Chocolate */
+  color: white;
+}
+.seat.doanso12 {
+  background-color: #f4a460; /* SandyBrown */
+  color: black;
+}
+
+/* Cặp màu 5: Tím / Hồng tím */
+.seat.doanso13 {
+  background-color: #c71585; /* MediumVioletRed */
+  color: white;
+}
+.seat.doanso14 {
+  background-color: #db7093; /* PaleVioletRed */
+  color: white;
+}
+
+/* Cặp màu 6: Xanh dương hoàng gia / Xanh da trời */
+.seat.doanso15 {
+  background-color: #4169e1; /* RoyalBlue */
+  color: white;
+}
+.seat.doanso16 {
+  background-color: #87cefa; /* LightSkyBlue */
+  color: black;
+}
+
+/* Cặp màu 7: Xám / Xám xanh nhạt */
+.seat.doanso17 {
+  background-color: #708090; /* SlateGray */
+  color: white;
+}
+.seat.doanso18 {
+  background-color: #b0c4de; /* LightSteelBlue */
+  color: black;
+}
+
+/* Cặp màu 8: Cam san hô / Hồng cam */
+.seat.doanso19 {
+  background-color: #ff7f50; /* Coral */
+  color: white;
+}
+.seat.doanso20 {
+  background-color: #fa8072; /* Salmon */
+  color: black;
+}
+
+/* Màu đơn 9: Vàng ô-liu */
+.seat.doanso21 {
+  background-color: #808000; /* Olive */
+  color: white;
+}
+
 /* --- TOOLTIP & CHÚ THÍCH & NÚT HOME --- */
 .tooltip-container {
   display: none;
