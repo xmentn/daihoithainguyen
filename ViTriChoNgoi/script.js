@@ -510,6 +510,8 @@ document.addEventListener("DOMContentLoaded", () => {
       uyvienubkt: "Ủy viên UBKT",
       quochoi: "Đại biểu Quốc hội",
       nguyenbch20_25: "Nguyên Ủy viên BCH nhiệm kỳ 2020-2025",
+      truongcqtw: "Trưởng cơ quan TW trên địa bàn",
+      coquanbaochi: "Lãnh đạo cơ quan báo chí",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -576,6 +578,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "Nguyên Ủy viên BTV - UBND": "ntv_ubnd",
     "Đại biểu Quốc hội": "quochoi",
     "Nguyên Ủy viên BCH nhiệm kỳ 2020-2025": "nguyenbch20_25",
+    "Trưởng cơ quan TW trên địa bàn": "truongcqtw",
+    "Lãnh đạo cơ quan báo chí": "coquanbaochi",
   };
 
   // =======================================================================
