@@ -82,13 +82,14 @@ function displayDiagram(delegates) {
       const contentWrapper = document.createElement("div");
       contentWrapper.className = "row-content-wrapper";
 
+      // Code mới đã đảo ngược logic sắp xếp
       const evens = rowData
         .filter((d) => d.position % 2 === 0)
-        .sort((a, b) => a.position - b.position);
+        .sort((a, b) => b.position - a.position);
       const odds = rowData
         .filter((d) => d.position % 2 !== 0)
-        .sort((a, b) => b.position - a.position);
-      const sortedDelegates = [...odds, ...evens];
+        .sort((a, b) => a.position - b.position);
+      const sortedDelegates = [...evens, ...odds];
 
       sortedDelegates.forEach((delegate) => {
         const delegateDiv = document.createElement("div");
