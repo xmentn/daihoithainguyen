@@ -50,7 +50,8 @@ h2 {
   text-align: center;
   margin-bottom: 25px;
 }
-.view-switcher button {
+.view-switcher button,
+.view-switcher a {
   padding: 10px 20px;
   font-size: 1em;
   font-weight: 500;
@@ -60,8 +61,11 @@ h2 {
   margin: 0 5px;
   border-radius: 8px;
   transition: all 0.2s ease-in-out;
+  text-decoration: none; /* Bỏ gạch chân của liên kết */
+  color: #333;
 }
-.view-switcher button:hover {
+.view-switcher button:hover,
+.view-switcher a:hover {
   border-color: #0d47a1;
 }
 .view-switcher button.active {
