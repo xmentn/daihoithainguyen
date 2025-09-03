@@ -1,31 +1,23 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // URL WEB APP CỦA SƠ ĐỒ CHỤP ẢNH
-  const webAppUrl =
-    "https://script.google.com/macros/s/AKfycbzlLNrg7bHqGtP5Uz6cLbIEC1E2IPykA8pcPCbqGz2bT-7ZqT7PHxBhUjlq7fOmSN-O/exec"; // <-- Đảm bảo URL này đúng
+  // Không cần gọi API nữa, sẽ đọc từ cache
+  console.log("Đang đọc dữ liệu Đoàn chủ tịch từ cache trình duyệt...");
 
-  fetch(webAppUrl)
-    .then((response) => response.json())
-    .then((allData) => {
-      if (allData.error) {
-        throw new Error(allData.error);
-      }
+  const cachedDataString = sessionStorage.getItem("soDoChupAnhData");
+  const container = document.querySelector(".seating-chart");
 
-      const doanChuTichData = allData.Doanchutich;
+  if (cachedDataString) {
+    const allChupAnhData = JSON.parse(cachedDataString);
+    const doanChuTichData = allChupAnhData.Doanchutich;
 
-      if (doanChuTichData) {
-        renderChart(doanChuTichData);
-      } else {
-        throw new Error("Không tìm thấy dữ liệu cho sheet 'Doanchutich'.");
-      }
-    })
-    .catch((error) => {
-      console.error("Lỗi khi tải dữ liệu:", error);
-      document.querySelector(
-        ".seating-chart"
-      ).innerHTML = `<p style="color:red;">Không thể tải dữ liệu. Vui lòng kiểm tra lại tên sheet và URL.</p>`;
-    });
+    if (doanChuTichData) {
+      renderChart(doanChuTichData);
+    } else {
+      container.innerHTML = `<p style="color:red;">Không tìm thấy dữ liệu 'Doanchutich' trong cache.</p>`;
+    }
+  } else {
+    container.innerHTML = `<p style="color:red;">Không có dữ liệu. Vui lòng quay lại trang chủ để tải lại.</p>`;
+  }
 });
-
 /**
  * Hàm mới để sắp xếp các ghế theo kiểu chẵn trái, lẻ phải, số nhỏ ở giữa
  * @param {Array} delegates - Mảng đại biểu của một hàng
