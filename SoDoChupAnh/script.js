@@ -160,23 +160,29 @@ function displayDiagram(delegates) {
   setTimeout(() => {
     const diagramContainer = document.getElementById("diagram-container");
     if (diagramContainer) {
-      const allRowWrappers = diagramContainer.querySelectorAll(
-        ".row-content-wrapper, .row-single-line" // Chọn cả hai loại container
-      );
-      let maxWidth = 0;
-      allRowWrappers.forEach((wrapper) => {
-        if (wrapper.scrollWidth > maxWidth) {
-          maxWidth = wrapper.scrollWidth;
-        }
-      });
-      if (maxWidth > 0) {
+      // CHỈ thực hiện đồng bộ chiều rộng và cuộn
+      // nếu container KHÔNG CÓ class 'view-tang-hoa'
+      if (!diagramContainer.classList.contains("view-tang-hoa")) {
+        const allRowWrappers = diagramContainer.querySelectorAll(
+          ".row-content-wrapper"
+        );
+        let maxWidth = 0;
         allRowWrappers.forEach((wrapper) => {
-          wrapper.style.width = `${maxWidth}px`;
+          if (wrapper.scrollWidth > maxWidth) {
+            maxWidth = wrapper.scrollWidth;
+          }
         });
+
+        if (maxWidth > 0) {
+          allRowWrappers.forEach((wrapper) => {
+            wrapper.style.width = `${maxWidth}px`;
+          });
+        }
+
+        const scrollableWidth =
+          diagramContainer.scrollWidth - diagramContainer.clientWidth;
+        diagramContainer.scrollLeft = scrollableWidth / 2;
       }
-      const scrollableWidth =
-        diagramContainer.scrollWidth - diagramContainer.clientWidth;
-      diagramContainer.scrollLeft = scrollableWidth / 2;
     }
   }, 50);
 }

@@ -53,15 +53,18 @@ h1 {
 /* Vùng chứa chính, chịu trách nhiệm cuộn ngang và xếp các hàng theo chiều dọc */
 .photo-diagram {
   display: flex;
-  flex-direction: column-reverse; /* Đảo ngược thứ tự hàng (hàng 1 ở dưới) */
-  align-items: flex-start;
-  gap: 10px; /* Khoảng cách giữa các hàng */
+  flex-direction: column-reverse;
+
+  /* THAY ĐỔI Ở ĐÂY: Dùng align-items để căn giữa theo chiều ngang */
+  align-items: center;
+
+  gap: 10px;
   padding: 20px;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow-x: auto; /* Thanh cuộn ngang duy nhất */
-  width: 90vw; /* Giới hạn chiều rộng bằng 90% chiều rộng của màn hình */
+  overflow-x: auto;
+  width: 90vw;
 }
 
 /* Mỗi hàng, chịu trách nhiệm xếp các hình tròn và nhãn theo chiều dọc */
