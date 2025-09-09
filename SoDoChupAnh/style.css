@@ -246,3 +246,22 @@ h1 {
   transform: scale(1.1); /* Phóng to nhẹ */
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
+.row-single-line {
+  display: flex;
+  justify-content: center; /* Căn giữa các đại biểu trong hàng đơn */
+  gap: 8px; /* Khoảng cách giữa các đại biểu */
+  min-width: fit-content; /* Đảm bảo nội dung không bị vỡ */
+  padding: 10px 0; /* Khoảng đệm trên dưới */
+  margin-top: 20px; /* Khoảng cách với tổng số */
+}
+/* --- Kích thước cho sơ đồ TẶNG HOA --- */
+.view-tang-hoa .delegate {
+  width: 45px;
+  height: 45px;
+}
+.view-tang-hoa .delegate .position {
+  font-size: 1.2em;
+}
+.view-tang-hoa .row-single-line {
+  gap: 12px;
+}
