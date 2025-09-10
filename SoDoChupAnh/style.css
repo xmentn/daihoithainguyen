@@ -1,3 +1,5 @@
+/* style.css - PHIÊN BẢN CUỐI CÙNG */
+
 body {
   font-family: Arial, sans-serif;
   display: flex;
@@ -12,78 +14,67 @@ h1 {
   color: #333;
 }
 
-/* Vùng chứa các nút bấm */
+/* --- Giao diện các nút bấm --- */
 .controls {
   margin-bottom: 20px;
   display: flex;
   gap: 10px;
-  background-color: #e9ecef; /* Thêm màu nền cho cả khối */
+  background-color: #e9ecef;
   padding: 6px;
-  border-radius: 12px; /* Bo tròn cả khối */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) inset; /* Đổ bóng vào trong */
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05) inset;
 }
-
-/* Kiểu chung cho các nút bấm */
 .controls button {
   padding: 10px 24px;
   font-size: 16px;
-  font-weight: 500; /* Làm chữ đậm vừa phải */
+  font-weight: 500;
   cursor: pointer;
-  border: none; /* Bỏ viền mặc định */
-  border-radius: 8px; /* Bo tròn góc nút */
-  background-color: transparent; /* Nền trong suốt theo mặc định */
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
   color: #495057;
-  transition: all 0.2s ease-in-out; /* Hiệu ứng chuyển động mượt mà */
+  transition: all 0.2s ease-in-out;
 }
-
-/* Hiệu ứng khi di chuột vào nút chưa được chọn */
 .controls button:not(.active):hover {
   background-color: #dee2e6;
   color: #212529;
 }
-
-/* Trạng thái của nút đang được chọn */
 .controls button.active {
   background-color: #fff;
   color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Đổ bóng nhẹ ra ngoài */
-  transform: scale(1.02); /* Phóng to nhẹ */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
 }
 
-/* Vùng chứa chính, chịu trách nhiệm cuộn ngang và xếp các hàng theo chiều dọc */
+/* --- Khung chứa sơ đồ chính --- */
+/* --- Khung chứa sơ đồ chính --- */
 .photo-diagram {
-  display: flex;
+  display: flex; /* Quay lại flex để quản lý cuộn dễ hơn */
   flex-direction: column-reverse;
-
-  /* THAY ĐỔI Ở ĐÂY: Dùng align-items để căn giữa theo chiều ngang */
-  align-items: center;
 
   gap: 10px;
   padding: 20px;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow-x: auto;
+  overflow-x: auto; /* Giữ lại thanh cuộn ngang */
   width: 90vw;
 }
 
-/* Mỗi hàng, chịu trách nhiệm xếp các hình tròn và nhãn theo chiều dọc */
+/* --- Cấu trúc mỗi hàng --- */
 .row {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 15px; /* Khoảng cách giữa hàng hình tròn và nhãn */
+  gap: 15px;
+  text-align: center; /* Thêm dòng này */
 }
-
-/* Vùng chứa các hình tròn, chịu trách nhiệm xếp các hình tròn theo chiều ngang */
-.row-content-wrapper {
+.row-content-wrapper,
+.row-single-line {
   display: flex;
-  justify-content: center; /* Căn giữa các hình tròn trong hàng */
-  gap: 8px; /* Khoảng cách giữa các hình tròn */
-  min-width: fit-content; /* Đảm bảo nội dung không bị vỡ */
+  justify-content: center;
+  gap: 8px;
+  min-width: fit-content;
 }
-
-/* Nhãn hàng (Hàng 1, Hàng 2...) */
 .row-label {
   font-weight: bold;
   color: #555;
@@ -93,9 +84,9 @@ h1 {
   font-size: 12px;
 }
 
-/* Định dạng cho mỗi vị trí (hình tròn) */
+/* --- Giao diện vị trí (hình tròn) --- */
 .delegate {
-  position: relative;
+  position: relative; /* Giữ nguyên */
   border-radius: 50%;
   border: 2px solid #ccc;
   background-color: #fff;
@@ -104,17 +95,17 @@ h1 {
   align-items: center;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
+  flex-shrink: 0;
+  /* Đảm bảo delegate luôn nằm trên các nội dung khác nếu có */
+  z-index: 10;
 }
-
+.delegate .position {
+  font-weight: bold;
+  color: #007bff;
+}
 .delegate:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-
-.delegate .position {
-  font-weight: bold;
-  font-size: 1.3em;
-  color: #007bff;
 }
 
 /* Tooltip cho tên */
@@ -122,20 +113,23 @@ h1 {
   visibility: hidden;
   opacity: 0;
   width: 160px;
-  background-color: #0056b3; /* Nền màu xanh dương đậm (giống màu nút) */
-  color: #fff; /* Chữ màu trắng */
+  background-color: #0056b3;
+  color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 8px 12px; /* Tăng padding một chút cho thoáng */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* Thêm bóng đổ cho đẹp hơn */
+  padding: 8px 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
   position: absolute;
-  z-index: 1;
-  bottom: 120%; /* Điều chỉnh lại khoảng cách một chút */
+  /* Tăng z-index của tooltip lên cao hơn nhiều */
+  z-index: 1000;
+  bottom: 120%;
   left: 50%;
   margin-left: -80px;
 
   transition: opacity 0.3s;
+  /* Đảm bảo tooltip không bị cắt */
+  white-space: nowrap;
 }
 
 .delegate .name::after {
@@ -146,7 +140,6 @@ h1 {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  /* Đổi màu viền trên cùng cho khớp với màu nền mới */
   border-color: #0056b3 transparent transparent transparent;
 }
 
