@@ -1,4 +1,4 @@
-// SoDoChupAnh/script.js - PHIÊN BẢN TỐI GIẢN VÀ ỔN ĐỊNH
+// SoDoChupAnh/script.js - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDiagram("BanChanhHanh");
@@ -23,13 +23,16 @@ function loadDiagram(sheetName) {
   if (cachedDataString) {
     const allChupAnhData = JSON.parse(cachedDataString);
     const delegatesForSheet = allChupAnhData[sheetName];
+
     if (delegatesForSheet) {
       displayDiagram(delegatesForSheet);
-      // Tự động cuộn vào giữa sau khi vẽ xong
-      setTimeout(() => {
-        container.scrollLeft =
-          (container.scrollWidth - container.clientWidth) / 2;
-      }, 100); // Thêm một chút delay để trình duyệt kịp tính toán
+
+      requestAnimationFrame(() => {
+        if (container.scrollWidth > container.clientWidth) {
+          container.scrollLeft =
+            (container.scrollWidth - container.clientWidth) / 2;
+        }
+      });
     } else {
       container.innerHTML = `<h2>Không tìm thấy dữ liệu cho sơ đồ '${sheetName}'.</h2>`;
     }
@@ -43,14 +46,11 @@ function displayDiagram(delegates) {
   const container = document.getElementById("diagram-container");
   const countElement = document.getElementById("delegate-count");
 
-  // Lọc ra các đại biểu hợp lệ
   const validDelegates = delegates.filter((d) => d.Sohang && d.Vitri);
   countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
-  container.innerHTML = ""; // Xóa nội dung cũ
+  container.innerHTML = "";
 
-  // Sử dụng DocumentFragment để tối ưu hiệu năng render
   const fragment = document.createDocumentFragment();
-
   const rows = {};
   validDelegates.forEach((delegate) => {
     const rowNum = delegate.Sohang;
@@ -59,7 +59,7 @@ function displayDiagram(delegates) {
   });
 
   Object.keys(rows)
-    .sort((a, b) => a - b)
+    .sort((a, b) => b - a)
     .forEach((rowNum) => {
       const rowData = rows[rowNum];
       const rowElement = document.createElement("div");
@@ -68,7 +68,6 @@ function displayDiagram(delegates) {
       const contentWrapper = document.createElement("div");
       contentWrapper.className = "row-content-wrapper";
 
-      // Sắp xếp đại biểu từ giữa ra hai bên
       const evens = rowData
         .filter((d) => d.Vitri % 2 === 0)
         .sort((a, b) => b.Vitri - a.Vitri);
@@ -96,10 +95,8 @@ function displayDiagram(delegates) {
       rowLabel.textContent = `Hàng ${rowNum}`;
       rowElement.appendChild(rowLabel);
 
-      // Thêm hàng vào fragment thay vì trực tiếp vào container
       fragment.appendChild(rowElement);
     });
 
-  // Thêm toàn bộ các hàng vào DOM chỉ trong 1 lần để trình duyệt tính toán nhanh hơn
   container.appendChild(fragment);
 }
