@@ -86,13 +86,26 @@ body {
 }
 
 .nav-button {
-  background-color: #ffffff;
-  color: #333;
+  background-color: #ffffff; /* Sửa từ 7 chữ f -> 6 chữ f */
   text-decoration: none;
   border-top: 5px solid #0d47a1;
-  justify-content: center;
+  /* Dòng có chữ M đã được xóa */
+  flex-direction: row;
+  align-items: center;
+  gap: 20px;
+}
+/* --- BỔ SUNG CSS CHO ICON VÀ TEXT TRONG NÚT CHỨC NĂNG --- */
+.nav-button img {
+  width: 48px; /* Chiều rộng của icon */
+  height: 48px; /* Chiều cao của icon */
+  flex-shrink: 0; /* Ngăn không cho icon bị co lại */
 }
 
+.nav-button-text {
+  /* Class này chỉ để bọc chữ, không cần thêm style đặc biệt */
+  /* Nếu muốn, bạn có thể thêm các thuộc tính khác ở đây */
+  flex-grow: 1; /* Giúp khối chữ chiếm hết không gian còn lại */
+}
 .nav-button:hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
