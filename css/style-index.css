@@ -51,19 +51,19 @@ body {
   font-family: "UTM HelvetIns", sans-serif;
 }
 
-/* --- BỐ CỤC 2 CỘT --- */
 .navigation-menu {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  /* Cột thông báo lớn hơn 2 cột còn lại */
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 25px; /* Giảm khoảng cách một chút cho vừa vặn */
   align-items: start;
-  text-align: left; /* Căn lề trái cho nội dung trong các cột */
+  text-align: left;
 }
 
-.right-column {
+.nav-column {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 25px; /* Đồng bộ với gap của grid */
 }
 
 /* --- ĐỊNH DẠNG CÁC Ô NỘI DUNG --- */

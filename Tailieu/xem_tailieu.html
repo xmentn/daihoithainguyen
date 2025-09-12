@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xem Tài liệu - Đại hội Đảng bộ Tỉnh</title>
+    <link rel="stylesheet" href="../css/style-index.css" />
+    <link rel="stylesheet" href="../css/tailieu.css" />
+    <link rel="icon" type="image/png" href="../images/Codang.png" />
+  </head>
+  <body>
+    <div class="portal-container">
+      <header class="media-header">
+        <h1 id="pdf-title">Đang tải tài liệu...</h1>
+      </header>
+
+      <main class="pdf-viewer-container">
+        <iframe id="pdf-embed" src="" frameborder="0"></iframe>
+      </main>
+
+      <div class="back-button-container">
+        <a href="tailieu.html" class="back-button"> Quay lại danh sách</a>
+      </div>
+    </div>
+
+    <script>
+      // Đoạn mã tự động đọc tên file từ URL và nhúng vào trang
+      document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileName = urlParams.get("file");
+        const pdfTitleElement = document.getElementById("pdf-title");
+        const pdfEmbedElement = document.getElementById("pdf-embed");
+
+        if (fileName) {
+          // Đặt tên file làm tiêu đề (bỏ đuôi .pdf và thay gạch nối bằng dấu cách)
+          const formattedTitle = fileName
+            .replace(".pdf", "")
+            .replace(/-/g, " ")
+            .replace(/\b\w/g, (l) => l.toUpperCase());
+          pdfTitleElement.textContent = formattedTitle;
+
+          // Nhúng file PDF vào iframe
+          pdfEmbedElement.src = fileName;
+        } else {
+          pdfTitleElement.textContent = "Không tìm thấy tài liệu";
+        }
+      });
+    </script>
+  </body>
+</html>
