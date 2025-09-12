@@ -1,0 +1,170 @@
+/* style.css - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 20px 0; /* Xóa padding trái phải */
+}
+
+.portal-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+h1 {
+  color: #333;
+}
+
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  background-color: #e9ecef;
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.controls button {
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: #495057;
+}
+
+.controls button.active {
+  background-color: #fff;
+  color: #007bff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.photo-diagram {
+  padding: 40px 20px 20px 20px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  width: 90vw;
+  margin: 0 auto; /* Đưa khung sơ đồ ra giữa trang */
+}
+
+.row {
+  margin-bottom: 15px;
+}
+.row:last-child {
+  margin-bottom: 0;
+}
+
+.row-content-wrapper {
+  display: flex;
+  justify-content: center;
+  min-width: fit-content;
+}
+
+.row-label {
+  font-weight: bold;
+  color: #555;
+  background-color: #e9e9e9;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  width: fit-content;
+  margin: 8px auto 0 auto;
+}
+
+.delegate {
+  position: relative;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.delegate:hover {
+  z-index: 20;
+}
+
+.delegate .name {
+  visibility: hidden;
+  opacity: 0;
+  width: 160px;
+  background-color: #0056b3;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 12px;
+  position: absolute;
+  z-index: 1000;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s;
+}
+
+.delegate:hover .name {
+  visibility: visible;
+  opacity: 1;
+}
+
+.delegate.doituong-1 {
+  background-color: #ffdddd;
+  border-color: #f44336;
+}
+.delegate.doituong-2 {
+  background-color: #d1e7ff;
+  border-color: #0d6efd;
+}
+
+.view-bch .delegate {
+  width: 40px;
+  height: 40px;
+}
+.view-bch .row-content-wrapper {
+  gap: 10px;
+}
+
+.view-toan-the .delegate {
+  width: 32px;
+  height: 32px;
+}
+.view-toan-the .row-content-wrapper {
+  gap: 5px;
+}
+
+.view-tang-hoa .delegate {
+  width: 45px;
+  height: 45px;
+}
+.view-tang-hoa .row-content-wrapper {
+  gap: 12px;
+}
+
+.back-to-home {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  z-index: 1000;
+  height: 40px;
+  padding: 0 25px;
+  gap: 8px;
+  border-radius: 20px;
+  background-color: #dc3545;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}

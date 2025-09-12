@@ -50,7 +50,8 @@ h2 {
   text-align: center;
   margin-bottom: 25px;
 }
-.view-switcher button {
+.view-switcher button,
+.view-switcher a {
   padding: 10px 20px;
   font-size: 1em;
   font-weight: 500;
@@ -60,8 +61,11 @@ h2 {
   margin: 0 5px;
   border-radius: 8px;
   transition: all 0.2s ease-in-out;
+  text-decoration: none; /* Bỏ gạch chân của liên kết */
+  color: #333;
 }
-.view-switcher button:hover {
+.view-switcher button:hover,
+.view-switcher a:hover {
   border-color: #0d47a1;
 }
 .view-switcher button.active {
@@ -140,19 +144,31 @@ h2 {
   font-size: 0.7em;
   font-weight: 500;
   cursor: pointer;
+  /* <<< THAY ĐỔI: Bỏ transition cho box-shadow */
   transition: transform 0.15s ease, background-color 0.15s ease;
   user-select: none;
   flex-shrink: 0;
 }
 .seat:hover {
   transform: scale(1.2);
-  z-index: 5;
+  /* <<< THAY ĐỔI: Tăng z-index để luôn nổi lên trên cùng */
+  z-index: 10;
   position: relative;
 }
 
+/* === THÊM MỚI: CSS để làm sáng các ghế cùng đơn vị === */
+.seat.highlight-unit {
+  transform: scale(1.15);
+  position: relative;
+  z-index: 9;
+
+  /* === THÊM MỚI: Thêm màu nền và màu chữ khi highlight === */
+  background-color: #ff4757 !important; /* Màu đỏ tươi nổi bật */
+  color: white !important; /* Đảm bảo chữ luôn màu trắng để dễ đọc */
+}
 /* --- MÀU SẮC CÁC LOẠI GHẾ --- */
 .seat.available {
-  background-color: #e2e8f0;
+  background-color: white;
   color: #2d3748;
 }
 .seat.thuongtruc {
@@ -198,8 +214,20 @@ h2 {
   background-color: #4b0082; /* Màu Chàm (Indigo) */
   color: white;
 }
+.nguyenbch20_25 {
+  background-color: #ff9800; /* Cam */
+  color: #212121; /* Đen đậm */
+}
 .seat.daibieumoi {
   background-color: #f08080;
+  color: white;
+}
+.seat.truongcqtw {
+  background-color: #4b0082;
+  color: white;
+}
+.seat.coquanbaochi {
+  background-color: #cc5500;
   color: white;
 }
 .seat.thuky {
@@ -207,7 +235,7 @@ h2 {
   color: white;
 }
 .seat.coquandang {
-  background-color: #f87431;
+  background-color: #ff0000;
   color: white;
 }
 .seat.ubndtinh {
@@ -234,65 +262,94 @@ h2 {
   background-color: #8b4513; /* Màu Xanh Lục đậm (DarkCyan) */
   color: white;
 }
-/*
-.seat.xaphuong1 {
-  background-color: #20B2AA; /* Màu Xanh biển nhạt (LightSeaGreen) 
-  color: black;
-}
-.seat.xaphuong2 {
-  background-color: #9370DB;
-  color: white;
-}
-.seat.xaphuong3 {
-  background-color: #ff00ff;
-  color: white;
-}
-.seat.xaphuong4 {
-  background-color: #cc9900;
-  color: black;
-}
-*/
+
 /* === MÀU SẮC CÁC NHÓM XÃ, PHƯỜNG XEN KẼ === */
 
 /* Cặp màu cho Xã, phường 1 */
-.seat.xaphuong1a {
-  background-color: #24e372; /* SeaGreen */
-  color: black;
-}
-.seat.xaphuong1b {
-  background-color: #8fbc8f; /* DarkSeaGreen */
-  color: black;
-}
-
-/* Cặp màu cho Xã, phường 2 */
-.seat.xaphuong2a {
+.seat.doanso5 {
   background-color: #67a5f5; /* SteelBlue */
   color: white;
 }
-.seat.xaphuong2b {
+
+.seat.doanso6 {
   background-color: #aacdfa; /* LightSteelBlue */
   color: black;
 }
 
-/* Cặp màu cho Xã, phường 3 */
-.seat.xaphuong3b {
-  background-color: #f7ef83; /* Chocolate */
+.seat.doanso7 {
+  background-color: #6a5acd; /* SlateBlue */
+  color: white;
+}
+.seat.doanso8 {
+  background-color: #e883f7; /* MediumPurple */
+  color: white;
+}
+
+.seat.doanso9 {
+  background-color: #20b2aa; /* LightSeaGreen */
+  color: white;
+}
+.seat.doanso10 {
+  background-color: #7fffd4; /* Aquamarine */
   color: black;
 }
-.seat.xaphuong3a {
+
+/* Cặp màu 4: Nâu sô-cô-la / Nâu cát */
+.seat.doanso11 {
+  background-color: #d2691e; /* Chocolate */
+  color: white;
+}
+.seat.doanso12 {
   background-color: #f4a460; /* SandyBrown */
   color: black;
 }
 
-/* Cặp màu cho Xã, phường 4 */
-.seat.xaphuong4a {
-  background-color: #6a5acd; /* SlateBlue */
+/* Cặp màu 5: Tím / Hồng tím */
+.seat.doanso13 {
+  background-color: #c71585; /* MediumVioletRed */
   color: white;
 }
-.seat.xaphuong4b {
-  background-color: #e883f7; /* MediumPurple */
+.seat.doanso14 {
+  background-color: #db7093; /* PaleVioletRed */
   color: white;
 }
+
+/* Cặp màu 6: Xanh dương hoàng gia / Xanh da trời */
+.seat.doanso15 {
+  background-color: #4169e1; /* RoyalBlue */
+  color: white;
+}
+.seat.doanso16 {
+  background-color: #87cefa; /* LightSkyBlue */
+  color: black;
+}
+
+/* Cặp màu 7: Xám / Xám xanh nhạt */
+.seat.doanso17 {
+  background-color: #708090; /* SlateGray */
+  color: white;
+}
+.seat.doanso18 {
+  background-color: #b0c4de; /* LightSteelBlue */
+  color: black;
+}
+
+/* Cặp màu 8: Cam san hô / Hồng cam */
+.seat.doanso19 {
+  background-color: #ff7f50; /* Coral */
+  color: white;
+}
+.seat.doanso20 {
+  background-color: #fa8072; /* Salmon */
+  color: black;
+}
+
+/* Màu đơn 9: Vàng ô-liu */
+.seat.doanso21 {
+  background-color: #808000; /* Olive */
+  color: white;
+}
+
 /* --- TOOLTIP & CHÚ THÍCH & NÚT HOME --- */
 .tooltip-container {
   display: none;
@@ -412,4 +469,13 @@ h2 {
 .seat-row.continental-row {
   justify-content: center; /* Căn giữa các ghế trong hàng */
   width: 100%;
+}
+/* CSS cho ghế được làm nổi bật từ trang tra cứu */
+.seat.highlighted {
+  background-color: #ff4757 !important; /* Màu đỏ tươi để dễ thấy */
+  color: white !important;
+  border: 2px solid #c0392b !important;
+  transform: scale(1.1); /* Phóng to nhẹ để thu hút sự chú ý */
+  box-shadow: 0 0 15px rgba(255, 71, 87, 0.8);
+  z-index: 10;
 }

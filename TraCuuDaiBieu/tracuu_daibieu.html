@@ -17,17 +17,33 @@
   <body>
     <div class="container">
       <h1>DANH SÁCH ĐẠI BIỂU CHÍNH THỨC</h1>
-      <h2>ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ TỈNH THÁI NGUYÊN</h2>
+      <h2>ĐẠI HỘI ĐẠI BIỂU ĐẢNG BỘ TỈNH THÁI NGUYÊN LẦN THỨ I</h2>
       <h2>NHIỆM KỲ 2025 - 2030</h2>
 
       <div id="filter-tabs"></div>
 
-      <input
-        type="text"
-        id="searchBox"
-        onkeyup="filterTable()"
-        placeholder="Nhập tên đại biểu hoặc đơn vị để tìm kiếm..."
-      />
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchBox"
+          onkeyup="filterTable()"
+          placeholder="Nhập tên đại biểu hoặc đơn vị để tìm kiếm..."
+        />
+        <button
+          id="viewKhaiMacBtn"
+          class="view-btn"
+          title="Xem vị trí các đại biểu trong danh sách ở phiên khai mạc"
+        >
+          Vị trí P. Khai mạc
+        </button>
+        <button
+          id="viewPhienKhacBtn"
+          class="view-btn"
+          title="Xem vị trí các đại biểu trong danh sách ở các phiên khác"
+        >
+          Vị trí P. Khác
+        </button>
+      </div>
 
       <table id="delegateTable">
         <thead>
@@ -36,7 +52,6 @@
             <th rowspan="2">Họ và Tên</th>
             <th rowspan="2">Đơn vị</th>
             <th colspan="2">Vị trí chỗ ngồi</th>
-            <!-- ✅ ĐÃ XÓA CỘT "TỔ THẢO LUẬN" -->
             <th rowspan="2" class="cot-phu">Tên khách sạn</th>
             <th rowspan="2" class="cot-phu">Số phòng</th>
           </tr>
@@ -47,7 +62,6 @@
         </thead>
         <tbody id="tableBody">
           <tr>
-            <!-- ✅ CẬP NHẬT COLSPAN TỪ 8 XUỐNG 7 -->
             <td colspan="7" style="text-align: center">Đang tải dữ liệu...</td>
           </tr>
         </tbody>
@@ -65,26 +79,19 @@
        * Hàm chính để bắt đầu chạy logic của trang
        */
       function initializeApp() {
-        // 1. KIỂM TRA CACHE TRÌNH DUYỆT TRƯỚC TIÊN
         const cachedDataString = sessionStorage.getItem("daiHoiData");
-
         if (cachedDataString) {
-          // 2. NẾU CÓ DỮ LIỆU: Lấy dữ liệu từ cache, không cần gọi API
           console.log("Tìm thấy dữ liệu trong sessionStorage. Đang xử lý...");
           const fullData = JSON.parse(cachedDataString);
-
-          // Trang này chỉ cần danh sách đại biểu chính thức
           if (fullData && fullData.officialDelegates) {
             renderPage(fullData.officialDelegates);
           } else {
-            // Nếu cache có nhưng không có dữ liệu đại biểu, thì mới gọi API
             console.warn(
               "Cache có nhưng thiếu dữ liệu đại biểu. Đang gọi API dự phòng..."
             );
             fetchData();
           }
         } else {
-          // 3. NẾU KHÔNG CÓ DỮ LIỆU: Gọi API như bình thường (phương án dự phòng)
           console.log(
             "Không tìm thấy dữ liệu trong sessionStorage. Đang gọi API..."
           );
@@ -97,10 +104,8 @@
        */
       function fetchData() {
         const apiUrl =
-          "https://script.google.com/macros/s/AKfycbyRmKLSovYomChGDJB_OcNGOM8kDEfJ5Xs79Eplki0YAVMlRc5vOxKdHs5Pd5wgjiIe0w/exec?type=daibieu";
-        // ✅ CẬP NHẬT COLSPAN TỪ 8 XUỐNG 7
+          "https://script.google.com/macros/s/AKfycbwYgGWvjtHVc72K3Hv-6gcB0BduU6JB_7m8UCcI7vfEqcdVRqPNPs7pscvSidwvTx6Wyg/exec?type=daibieu";
         const initialColspan = 7;
-
         fetch(apiUrl)
           .then((response) => {
             if (!response.ok)
@@ -122,7 +127,6 @@
 
       /**
        * Hàm chịu trách nhiệm hiển thị toàn bộ nội dung trang sau khi có dữ liệu
-       * @param {Array} delegatesData - Mảng chứa danh sách đại biểu
        */
       function renderPage(delegatesData) {
         allDelegates = delegatesData;
@@ -141,10 +145,23 @@
           "Đảng bộ UBND tỉnh",
           "Đảng bộ Công an",
           "Đảng bộ Quân sự",
-          "Xã, phường 1",
-          "Xã, phường 2",
-          "Xã, phường 3",
-          "Xã, phường 4",
+          "Đoàn số 5",
+          "Đoàn số 6",
+          "Đoàn số 7",
+          "Đoàn số 8",
+          "Đoàn số 9",
+          "Đoàn số 10",
+          "Đoàn số 11",
+          "Đoàn số 12",
+          "Đoàn số 13",
+          "Đoàn số 14",
+          "Đoàn số 15",
+          "Đoàn số 16",
+          "Đoàn số 17",
+          "Đoàn số 18",
+          "Đoàn số 19",
+          "Đoàn số 20",
+          "Đoàn số 21",
         ];
         const uniqueMainGroups = [
           ...new Set(
@@ -191,18 +208,14 @@
         const groupsToHideFor = ["Thường trực Tỉnh ủy", "Ủy viên BTV Tỉnh ủy"];
         const shouldHideColumns = groupsToHideFor.includes(unitFilter);
         table.classList.toggle("an-cot-phu", shouldHideColumns);
-
-        // ✅ CẬP NHẬT COLSPAN TỪ 6, 8 THÀNH 5, 7
         const colspanValue = shouldHideColumns ? 5 : 7;
         tableBody.innerHTML = "";
-
         const delegatesToDisplay =
           unitFilter === "Tất cả"
             ? allDelegates
             : allDelegates.filter(
                 (d) => d.nhomDonVi && d.nhomDonVi.startsWith(unitFilter)
               );
-
         document
           .querySelectorAll(".filter-btn")
           .forEach((btn) =>
@@ -217,16 +230,15 @@
         delegatesToDisplay.forEach((delegate, index) => {
           const sttDisplay = unitFilter === "Tất cả" ? delegate.stt : index + 1;
           const newRow = document.createElement("tr");
-          // ✅ ĐÃ XÓA DÒNG HIỂN THỊ "TỔ THẢO LUẬN"
           newRow.innerHTML = `
-                <td class="text-center">${sttDisplay}</td>
-                <td>${delegate.hoTen}</td>
-                <td>${delegate.donVi}</td>
-                <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
-                <td class="text-center">${delegate.viTriPhienKhac || ""}</td>
-                <td class="cot-phu">${delegate.khachSan || ""}</td>
-                <td class="cot-phu text-center">${delegate.soPhong || ""}</td>
-              `;
+            <td class="text-center">${sttDisplay}</td>
+            <td>${delegate.hoTen}</td>
+            <td>${delegate.donVi}</td>
+            <td class="text-center">${delegate.viTriKhaiMac || ""}</td>
+            <td class="text-center">${delegate.viTriPhienKhac || ""}</td>
+            <td class="cot-phu">${delegate.khachSan || ""}</td>
+            <td class="cot-phu text-center">${delegate.soPhong || ""}</td>
+          `;
           tableBody.appendChild(newRow);
         });
         document.getElementById("searchBox").value = "";
@@ -255,8 +267,75 @@
         }
       }
 
+      /**
+       * Chuẩn hóa mã ghế từ dạng 'B15', 'V112' sang 'B-15', 'V1-12'
+       */
+      function normalizeSeatCode(code) {
+        if (!code || typeof code !== "string") return null;
+        let normalized = code.trim().toUpperCase();
+        if (normalized.includes("-")) {
+          return normalized;
+        }
+        if (normalized.startsWith("V1") || normalized.startsWith("V2")) {
+          const prefix = normalized.substring(0, 2);
+          const number = normalized.substring(2);
+          return `${prefix}-${number}`;
+        }
+        const firstChar = normalized.charAt(0);
+        if (firstChar >= "A" && firstChar <= "Z") {
+          const number = normalized.substring(1);
+          return `${firstChar}-${number}`;
+        }
+        return normalized;
+      }
+
+      /**
+       * Hàm xử lý việc xem vị trí dựa vào loại phiên được chọn.
+       */
+      /**
+       * Hàm xử lý việc xem vị trí dựa vào loại phiên được chọn.
+       * @param {'khaiMac' | 'beMac'} sessionType - Loại phiên để lấy vị trí.
+       */
+      function handleViewSeatsClick(sessionType) {
+        const trs = tableBody.getElementsByTagName("tr");
+        const visibleSeats = new Set();
+        const columnIndex = sessionType === "khaiMac" ? 3 : 4;
+
+        for (let i = 0; i < trs.length; i++) {
+          if (trs[i].style.display !== "none") {
+            const seatCodeRaw =
+              trs[i].getElementsByTagName("td")[columnIndex]?.innerText;
+            const seatCodeNormalized = normalizeSeatCode(seatCodeRaw);
+            if (seatCodeNormalized) {
+              visibleSeats.add(seatCodeNormalized);
+            }
+          }
+        }
+
+        if (visibleSeats.size === 0) {
+          alert("Không có vị trí nào trong danh sách cho phiên đã chọn.");
+          return;
+        }
+
+        const seatsQueryParam = Array.from(visibleSeats).join(",");
+
+        // ✅ THAY ĐỔI: Thêm &type=daibieu vào cuối URL
+        const destinationUrl = `../ViTriChoNgoi/vitridaibieu.html?seats=${encodeURIComponent(
+          seatsQueryParam
+        )}&view=${sessionType}&type=daibieu`;
+
+        window.location.href = destinationUrl;
+      }
       // --- BẮT ĐẦU CHẠY ỨNG DỤNG ---
       initializeApp();
+
+      // Gán sự kiện click cho các nút
+      document
+        .getElementById("viewKhaiMacBtn")
+        .addEventListener("click", () => handleViewSeatsClick("khaiMac"));
+      document
+        .getElementById("viewPhienKhacBtn")
+        .addEventListener("click", () => handleViewSeatsClick("beMac"));
     </script>
 
     <a href="../index.html" class="home-button" title="Về Trang chủ">

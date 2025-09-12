@@ -1,0 +1,89 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 30px;
+}
+
+h1 {
+  color: #b71c1c;
+  text-transform: uppercase;
+  margin-bottom: 30px;
+}
+
+.seating-chart {
+  display: flex;
+  flex-direction: column; /* Xếp các hàng theo chiều dọc */
+  gap: 20px; /* Khoảng cách giữa 2 hàng */
+  align-items: center;
+}
+
+.seat-row {
+  display: flex;
+  justify-content: center;
+  gap: 15px; /* Khoảng cách giữa các ghế */
+}
+
+/* --- ĐỊNH DẠNG HÌNH CHỮ NHẬT CHO VỊ TRÍ --- */
+.seat {
+  flex: 1 1 120px; /* Cho phép co giãn, co lại, và kích thước cơ bản là 120px */
+  min-width: 100px; /* Đặt chiều rộng tối thiểu để không bị quá nhỏ */
+  height: 70px;
+  border: 2px solid #ccc;
+  border-radius: 8px; /* Bo góc nhẹ */
+  background-color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  transition: all 0.2s ease-in-out; /* <-- THÊM DÒNG NÀY VÀO */
+}
+.seat:hover {
+  transform: translateY(-5px); /* Nâng nhẹ vị trí lên trên */
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15); /* Tăng bóng đổ cho nổi bật */
+  border-color: #0d6efd; /* Đổi màu viền sang xanh dương */
+}
+.seat-position {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #0d47a1;
+}
+
+.seat-name {
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: #333;
+  text-align: center;
+}
+
+/* --- MÀU SẮC CHO ĐỐI TƯỢNG NỔI BẬT --- */
+.seat.highlight {
+  background-color: #ffdddd; /* Màu hồng/đỏ nhạt */
+  border-color: #f44336; /* Viền đỏ đậm */
+}
+
+/* --- NÚT VỀ TRANG CHỦ --- */
+.home-button {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #fff;
+  background-color: #0d6efd;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.home-button:hover {
+  background-color: #0b5ed7;
+}

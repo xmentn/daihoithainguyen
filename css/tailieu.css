@@ -1,0 +1,137 @@
+/* css/tailieu.css */
+
+/* --- HEADER CHUNG (Dùng lại từ media.css) --- */
+.media-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #0d47a1;
+}
+.media-header h1 {
+  color: #0d47a1;
+  text-transform: uppercase;
+}
+.media-header p {
+  font-size: 1.1em;
+  color: #555;
+}
+
+/* --- DANH SÁCH TÀI LIỆU --- */
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.document-item {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border-left: 5px solid #0d47a1;
+  gap: 20px;
+}
+
+.doc-icon {
+  width: 50px;
+  height: auto;
+}
+
+.doc-info {
+  flex-grow: 1; /* Chiếm hết không gian thừa */
+}
+
+.doc-title {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 1.2em;
+}
+
+.doc-description {
+  margin: 0;
+  color: #666;
+  font-size: 0.95em;
+}
+
+.doc-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0; /* Không bị co lại */
+}
+
+.action-button {
+  display: inline-block;
+  padding: 8px 16px;
+  text-decoration: none;
+  color: #fff;
+  border-radius: 5px;
+  font-size: 0.9em;
+  font-weight: 500;
+  transition: transform 0.2s ease;
+}
+
+.action-button.view {
+  background-color: #1976d2; /* Màu xanh dương */
+}
+.action-button.download {
+  background-color: #2e7d32; /* Màu xanh lá */
+}
+
+.action-button:hover {
+  transform: scale(1.05);
+}
+
+/* --- TRANG XEM PDF --- */
+.pdf-viewer-container {
+  width: 100%;
+  /* Chiều cao khung xem PDF bằng 1.4 lần chiều rộng để có tỉ lệ giống trang giấy A4 */
+  height: 141.4vw;
+  max-height: 80vh; /* Giới hạn chiều cao tối đa */
+  margin-bottom: 30px;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-viewer-container iframe {
+  width: 100%;
+  height: 100%;
+}
+
+/* --- NÚT QUAY LẠI (Dùng lại từ media.css) --- */
+.back-button-container {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.back-button {
+  display: inline-block;
+  padding: 12px 30px;
+  background-color: #0d47a1;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 1em;
+  border-radius: 5px;
+}
+.back-button:hover {
+  background-color: #0a3882;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 768px) {
+  .document-item {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .doc-actions {
+    margin-top: 15px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .action-button {
+    text-align: center;
+  }
+}
