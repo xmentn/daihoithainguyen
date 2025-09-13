@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="../images/Codang.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tra cứu thông tin Tổ thảo luận</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #0d6efd;
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+        gap: 20px;
+        margin-bottom: 30px;
+        background-color: #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-grow: 1; /* Giúp các nhóm co giãn đều nhau */
+        min-width: 300px; /* Chiều rộng tối thiểu */
+      }
+      .filter-group label {
+        font-weight: bold;
+        color: #333;
+        white-space: nowrap; /* Không xuống dòng chữ */
+      }
+      .filter-group select {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .controls label {
+        font-weight: bold;
+        color: #333;
+      }
+      #group-select {
+        flex-grow: 1;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .results-container {
+        margin-top: 20px;
+      }
+      #location-display {
+        padding: 15px;
+        background-color: #d1e7ff;
+        border: 1px solid #0d6efd;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        color: #0d6efd;
+        font-weight: bold;
+        text-align: center;
+      }
+      #delegate-list-container {
+        margin-top: 10px;
+      }
+      #delegate-list-container h3 {
+        color: #333;
+      }
+      .delegate-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 15px;
+      }
+      .delegate-table th,
+      .delegate-table td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+      }
+      .delegate-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+        text-align: center;
+      }
+      .delegate-table td:first-child {
+        width: 50px;
+        text-align: center;
+      }
+      .delegate-table th:nth-child(2),
+      .delegate-table td:nth-child(2) {
+        width: 20%; /* Gán 40% chiều rộng cho cột Họ và tên */
+      }
+      .loader {
+        text-align: center;
+        padding: 20px;
+        font-size: 18px;
+        color: #555;
+      }
+      .back-to-home {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        height: 40px;
+        padding: 0 25px;
+        gap: 8px;
+        border-radius: 20px;
+        background-color: #dc3545;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+      .discussion-summary {
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-left: 5px solid #0d6efd;
+        border-radius: 6px;
+        padding: 10px 20px;
+        margin-bottom: 25px;
+      }
+      .discussion-summary p {
+        margin: 8px 0;
+        font-size: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>TRA CỨU THÔNG TIN TỔ THẢO LUẬN</h1>
+      <div class="controls">
+        <div class="filter-group">
+          <label for="discussion-group-select">Chọn tổ thảo luận:</label>
+          <select id="discussion-group-select">
+            <option value="">-- Vui lòng chọn --</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="delegate-group-select">Chọn đoàn đại biểu:</label>
+          <select id="delegate-group-select">
+            <option value="">-- Vui lòng chọn --</option>
+          </select>
+        </div>
+      </div>
+      <div id="results-container" class="results-container"></div>
+    </div>
+
+    <a href="../index.html" class="back-to-home" title="Về trang chủ">
+      <i class="fa-solid fa-house"></i>
+      <span>Về trang chủ</span>
+    </a>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // !!! NHỚ THAY THẾ URL_API_CUA_BAN BẰNG ĐƯỜNG LINK WEB APP CỦA BẠN !!!
+        const apiUrl =
+          "https://script.google.com/macros/s/AKfycbzSbwhb0_xS6yibmREcGU8mJZ1ESWrnD33pecc4_DAiw-hflYjFXZiYM99ZqCtdYnAkKg/exec";
+
+        // Lấy các phần tử select
+        const discussionGroupSelect = document.getElementById(
+          "discussion-group-select"
+        );
+        const delegateGroupSelect = document.getElementById(
+          "delegate-group-select"
+        );
+        const resultsContainer = document.getElementById("results-container");
+
+        // Hàm lấy và cache dữ liệu (không đổi)
+        async function fetchData() {
+          resultsContainer.innerHTML = `<div class="loader">Đang tải dữ liệu...</div>`;
+          const cachedData = sessionStorage.getItem("toThaoLuanData");
+          if (cachedData) {
+            console.log("Sử dụng dữ liệu từ cache.");
+            return JSON.parse(cachedData);
+          }
+          try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error("Lỗi mạng hoặc API");
+            const data = await response.json();
+            sessionStorage.setItem("toThaoLuanData", JSON.stringify(data));
+            return data;
+          } catch (error) {
+            console.error("Lỗi khi tải dữ liệu:", error);
+            resultsContainer.innerHTML = `<div class="loader" style="color: red;">Không thể tải dữ liệu. Vui lòng kiểm tra lại đường link API và đã Deploy lại script.</div>`;
+            return null;
+          }
+        }
+
+        // --- CÁC HÀM MỚI VÀ NÂNG CẤP ---
+
+        // Hàm điền dữ liệu cho ô chọn Tổ thảo luận
+        function populateDiscussionGroups(groups) {
+          if (!groups) return;
+          groups.sort((a, b) => a["Tổ thảo luận"] - b["Tổ thảo luận"]);
+          groups.forEach((group) => {
+            const option = document.createElement("option");
+            option.value = group["Tổ thảo luận"];
+            option.textContent = `Tổ ${group["Tổ thảo luận"]}`;
+            discussionGroupSelect.appendChild(option);
+          });
+        }
+
+        // (MỚI) Hàm điền dữ liệu cho ô chọn Đoàn đại biểu
+        function populateDelegateGroups(delegates) {
+          if (!delegates) return;
+          // Lấy danh sách các đoàn duy nhất và sắp xếp
+          const delegateGroupIds = [
+            ...new Set(delegates.map((d) => d["Đoàn đại biểu"])),
+          ]
+            .filter(Boolean) // Lọc bỏ các giá trị rỗng
+            .sort((a, b) => a - b);
+
+          delegateGroupIds.forEach((id) => {
+            const option = document.createElement("option");
+            option.value = id;
+            option.textContent = `Đoàn số ${id}`;
+            delegateGroupSelect.appendChild(option);
+          });
+        }
+
+        // (MỚI) Hàm tạo bảng HTML danh sách đại biểu (để tái sử dụng)
+        function generateDelegateTable(delegates, title) {
+          let html = `<div id="delegate-list-container">`;
+          html += `<h3>${title} (Tổng số: ${delegates.length})</h3>`;
+          if (delegates.length > 0) {
+            html += `<table class="delegate-table">
+                            <thead>
+                                <tr>
+                                    <th>STT</th>
+                                    <th>Họ và tên</th>
+                                    <th>Chức vụ</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+            delegates.forEach((delegate, index) => {
+              html += `<tr>
+                                <td>${index + 1}</td>
+                                <td>${delegate["Họ tên"] || ""}</td>
+                                <td>${delegate["Chức vụ"] || ""}</td>
+                             </tr>`;
+            });
+            html += `</tbody></table>`;
+          } else {
+            html += `<p>Không có dữ liệu.</p>`;
+          }
+          html += `</div>`;
+          return html;
+        }
+
+        // Chạy chương trình
+        fetchData().then((data) => {
+          if (data) {
+            resultsContainer.innerHTML = ""; // Xóa thông báo "Đang tải..."
+
+            // Điền dữ liệu vào cả 2 ô chọn
+            populateDiscussionGroups(data.groups);
+            populateDelegateGroups(data.delegates);
+
+            // Lắng nghe sự kiện thay đổi của ô "Tổ thảo luận"
+            discussionGroupSelect.addEventListener("change", (event) => {
+              delegateGroupSelect.value = ""; // Reset ô chọn còn lại
+              const selectedId = event.target.value;
+              if (!selectedId) {
+                resultsContainer.innerHTML = "";
+                return;
+              }
+
+              const locationInfo = data.groups.find(
+                (g) => g["Tổ thảo luận"] == selectedId
+              );
+              const locationHtml = locationInfo
+                ? `<div id="location-display">Địa điểm: ${locationInfo["Địa điểm"]}</div>`
+                : "";
+
+              const filteredDelegates = data.delegates.filter(
+                (d) => d["Tổ thảo luận"] == selectedId
+              );
+              const tableTitle = `DANH SÁCH ĐẠI BIỂU TỔ ${selectedId}`;
+
+              resultsContainer.innerHTML =
+                locationHtml +
+                generateDelegateTable(filteredDelegates, tableTitle);
+            });
+            // (MỚI) Lắng nghe sự kiện thay đổi của ô "Đoàn đại biểu"
+            delegateGroupSelect.addEventListener("change", (event) => {
+              discussionGroupSelect.value = ""; // Reset ô chọn còn lại
+              const selectedId = event.target.value;
+              if (!selectedId) {
+                resultsContainer.innerHTML = "";
+                return;
+              }
+
+              const filteredDelegates = data.delegates.filter(
+                (d) => d["Đoàn đại biểu"] == selectedId
+              );
+              const tableTitle = `DANH SÁCH ĐOÀN ĐẠI BIỂU SỐ ${selectedId}`;
+
+              // --- BẮT ĐẦU LOGIC MỚI ---
+
+              // 1. Tìm tất cả các tổ thảo luận duy nhất trong đoàn này
+              const discussionGroupIds = [
+                ...new Set(filteredDelegates.map((d) => d["Tổ thảo luận"])),
+              ]
+                .filter(Boolean)
+                .sort((a, b) => a - b);
+
+              // 2. Tạo đoạn HTML hiển thị thông tin Tổ và Địa điểm
+              let summaryHtml = '<div class="discussion-summary">';
+              if (discussionGroupIds.length > 0) {
+                discussionGroupIds.forEach((id) => {
+                  const groupInfo = data.groups.find(
+                    (g) => g["Tổ thảo luận"] == id
+                  );
+                  if (groupInfo && groupInfo["Địa điểm"]) {
+                    summaryHtml += `<p><b>Tổ thảo luận số ${id}</b> - Địa điểm: ${groupInfo["Địa điểm"]}</p>`;
+                  }
+                });
+              } else {
+                summaryHtml += "<p>Đoàn này chưa được phân tổ thảo luận.</p>";
+              }
+              summaryHtml += "</div>";
+
+              // --- KẾT THÚC LOGIC MỚI ---
+
+              // 3. Tạo bảng danh sách đại biểu
+              const tableHtml = generateDelegateTable(
+                filteredDelegates,
+                tableTitle
+              );
+
+              // 4. Kết hợp thông tin tóm tắt và bảng để hiển thị
+              resultsContainer.innerHTML = summaryHtml + tableHtml;
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
