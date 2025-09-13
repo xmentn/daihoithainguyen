@@ -168,3 +168,25 @@ h1 {
   text-decoration: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
+/* style.css - Thêm vào cuối file */
+
+.flower-basket {
+  /* Căn chỉnh chung */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+
+  /* Định dạng hình chữ nhật (cao > rộng) */
+  width: 50px;
+  height: 70px;
+  background-color: #f0f8ff; /* Màu xanh alice blue */
+  border: 2px solid #4682b4; /* Màu xanh steel blue */
+  border-radius: 4px; /* Bo góc nhẹ */
+
+  /* Định dạng chữ "Lẵng hoa" bên trong */
+  color: #4682b4;
+  font-weight: bold;
+  font-size: 13px;
+  text-align: center;
+}

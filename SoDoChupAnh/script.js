@@ -42,14 +42,19 @@ function loadDiagram(sheetName) {
   }
 }
 
+// script.js
+
 function displayDiagram(delegates) {
+  // 1. Lấy các phần tử cần thiết và xóa nội dung cũ của sơ đồ
   const container = document.getElementById("diagram-container");
   const countElement = document.getElementById("delegate-count");
+  container.innerHTML = ""; // Xóa sơ đồ cũ để vẽ lại
 
+  // 2. Lọc và đếm số đại biểu hợp lệ
   const validDelegates = delegates.filter((d) => d.Sohang && d.Vitri);
   countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
-  container.innerHTML = "";
 
+  // 3. Nhóm các đại biểu theo từng hàng
   const fragment = document.createDocumentFragment();
   const rows = {};
   validDelegates.forEach((delegate) => {
@@ -58,6 +63,7 @@ function displayDiagram(delegates) {
     rows[rowNum].push(delegate);
   });
 
+  // 4. Lặp qua từng hàng để vẽ sơ đồ
   Object.keys(rows)
     .sort((a, b) => b - a)
     .forEach((rowNum) => {
@@ -68,15 +74,16 @@ function displayDiagram(delegates) {
       const contentWrapper = document.createElement("div");
       contentWrapper.className = "row-content-wrapper";
 
+      // Sắp xếp đại biểu chẵn giảm dần, lẻ tăng dần
       const evens = rowData
         .filter((d) => d.Vitri % 2 === 0)
         .sort((a, b) => b.Vitri - a.Vitri);
       const odds = rowData
         .filter((d) => d.Vitri % 2 !== 0)
         .sort((a, b) => a.Vitri - b.Vitri);
-      const sortedDelegates = [...evens, ...odds];
 
-      sortedDelegates.forEach((delegate) => {
+      // Hàm trợ giúp tạo phần tử đại biểu
+      const createDelegateElement = (delegate) => {
         const delegateDiv = document.createElement("div");
         delegateDiv.className = "delegate";
         if (delegate.Doituong == "1") delegateDiv.classList.add("doituong-1");
@@ -85,7 +92,26 @@ function displayDiagram(delegates) {
                 <div class="position">${delegate.Vitri}</div>
                 <div class="name">${delegate.Hoten || ""}</div>
             `;
-        contentWrapper.appendChild(delegateDiv);
+        return delegateDiv;
+      };
+
+      // Thêm các đại biểu số chẵn
+      evens.forEach((delegate) => {
+        contentWrapper.appendChild(createDelegateElement(delegate));
+      });
+
+      // === ĐÂY LÀ VỊ TRÍ ĐÚNG ĐỂ CHÈN LẴNG HOA ===
+      // Nếu là Hàng 1 và đang ở chế độ xem "Tặng hoa", thì chèn lẵng hoa
+      if (rowNum == "1" && container.classList.contains("view-tang-hoa")) {
+        const flowerDiv = document.createElement("div");
+        flowerDiv.className = "flower-basket";
+        flowerDiv.textContent = "Lẵng hoa";
+        contentWrapper.appendChild(flowerDiv);
+      }
+
+      // Thêm các đại biểu số lẻ
+      odds.forEach((delegate) => {
+        contentWrapper.appendChild(createDelegateElement(delegate));
       });
 
       rowElement.appendChild(contentWrapper);
@@ -98,5 +124,6 @@ function displayDiagram(delegates) {
       fragment.appendChild(rowElement);
     });
 
+  // 5. Thêm sơ đồ đã hoàn chỉnh vào trang web
   container.appendChild(fragment);
 }
