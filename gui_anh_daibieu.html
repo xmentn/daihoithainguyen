@@ -28,6 +28,13 @@
         color: #0d6efd;
         text-align: center;
       }
+      #photo-summary {
+        text-align: center;
+        font-size: 16px;
+        color: #6c757d;
+        margin-top: -15px;
+        margin-bottom: 30px;
+      }
       .form-group {
         margin-bottom: 20px;
       }
@@ -46,7 +53,6 @@
         border-radius: 4px;
         box-sizing: border-box;
       }
-      /* Style cho Select2 */
       .select2-container .select2-selection--single {
         height: 40px !important;
       }
@@ -60,7 +66,6 @@
         .select2-selection__arrow {
         height: 38px !important;
       }
-
       button {
         width: 100%;
         padding: 12px;
@@ -115,20 +120,13 @@
         }
       }
       #image-preview {
-        display: none; /* Mặc định sẽ ẩn */
+        display: none;
         max-width: 200px;
         max-height: 200px;
-        margin: 15px auto 0; /* Đưa ảnh ra giữa */
+        margin: 15px auto 0;
         border: 1px solid #ddd;
         border-radius: 4px;
         padding: 5px;
-      }
-      #photo-summary {
-        text-align: center;
-        font-size: 16px;
-        color: #6c757d; /* Màu xám */
-        margin-top: -15px; /* Kéo lên gần tiêu đề hơn */
-        margin-bottom: 30px;
       }
     </style>
   </head>
@@ -159,16 +157,17 @@
       </form>
       <div id="status"></div>
     </div>
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // --- KHAI BÁO BIẾN ---
         const baseUrl =
-          "https://script.google.com/macros/s/AKfycbzSbwhb0_xS6yibmREcGU8mJZ1ESWrnD33pecc4_DAiw-hflYjFXZiYM99ZqCtdYnAkKg/exec"; // Thay URL API của bạn vào đây
+          "https://script.google.com/macros/s/AKfycbzSbwhb0_xS6yibmREcGU8mJZ1ESWrnD33pecc4_DAiw-hflYjFXZiYM99ZqCtdYnAkKg/exec"; // !!! THAY THẾ URL API CỦA BẠN VÀO ĐÂY !!!
         const dataUrl = `${baseUrl}?type=photoupload`;
 
         const delegateSelect = document.getElementById("delegate-select");
@@ -180,7 +179,6 @@
 
         let delegatesData = [];
 
-        // --- CHỨC NĂNG 1: XEM TRƯỚC ẢNH KHI CHỌN FILE ---
         photoFile.addEventListener("change", function () {
           const file = this.files[0];
           if (file) {
@@ -191,24 +189,19 @@
           }
         });
 
-        // --- CHỨC NĂNG 2: TẢI DANH SÁCH ĐẠI BIỂU VÀ KÍCH HOẠT XEM TRƯỚC KHI DI CHUỘT ---
         fetch(dataUrl)
           .then((response) => response.json())
           .then((data) => {
             delegatesData = data.officialDelegates;
-            // --- BẮT ĐẦU CODE MỚI ---
-            // 1. Tính toán số liệu thống kê
             const totalDelegates = delegatesData.length;
             const delegatesWithPhotos = delegatesData.filter(
               (delegate) => delegate.LinkAnh
             ).length;
-
-            // 2. Tìm phần tử p và cập nhật nội dung
             const summaryElement = document.getElementById("photo-summary");
             if (summaryElement) {
               summaryElement.textContent = `Đã có ${delegatesWithPhotos}/${totalDelegates} đại biểu có ảnh chân dung`;
             }
-            // --- KẾT THÚC CODE MỚI ---
+
             delegateSelect.innerHTML =
               '<option value="">-- Chọn đại biểu --</option>';
             delegatesData.forEach((delegate) => {
@@ -225,24 +218,24 @@
 
             $("#delegate-select").select2();
 
-            $("#delegate-select").on("select2:open", () => {
-              setTimeout(() => {
-                tippy(".select2-results__option[data-img-id]", {
-                  content(reference) {
-                    const imgId = reference.getAttribute("data-img-id");
-                    const img = document.createElement("img");
-                    img.src = `${baseUrl}?type=image&id=${imgId}`;
-                    img.style.width = "150px";
-                    img.style.height = "auto";
-                    img.style.display = "block";
-                    img.style.borderRadius = "4px";
-                    return img;
-                  },
-                  allowHTML: true,
-                  placement: "right",
-                  arrow: true,
-                });
-              }, 100);
+            // --- GIẢI PHÁP MỚI, ĐÁNG TIN CẬY HƠN ---
+            // Khởi tạo Tippy một lần duy nhất, nó sẽ tự tìm các mục tiêu phù hợp
+            tippy(document.body, {
+              target: ".select2-results__option[data-img-id]", // Chỉ kích hoạt cho các lựa chọn có ảnh
+              content(reference) {
+                const imgId = reference.getAttribute("data-img-id");
+                if (!imgId) return "Không có ID ảnh";
+                const img = document.createElement("img");
+                img.src = `${baseUrl}?type=image&id=${imgId}`;
+                img.style.width = "150px";
+                img.style.height = "auto";
+                img.style.display = "block";
+                img.style.borderRadius = "4px";
+                return img;
+              },
+              allowHTML: true,
+              placement: "right",
+              arrow: true,
             });
           })
           .catch((error) => {
@@ -251,7 +244,6 @@
               '<option value="">Không thể tải danh sách</option>';
           });
 
-        // --- CHỨC NĂNG 3: XỬ LÝ KHI NHẤN NÚT GỬI ẢNH ---
         uploadForm.addEventListener("submit", function (event) {
           event.preventDefault();
           const selectedName = delegateSelect.value;
@@ -305,10 +297,7 @@
                         icon: "success",
                         title: "Thành công!",
                         text: result.message,
-                      });
-                      uploadForm.reset();
-                      $("#delegate-select").val(null).trigger("change");
-                      imagePreview.style.display = "none";
+                      }).then(() => location.reload()); // Tải lại trang để cập nhật
                     } else {
                       throw new Error(result.message);
                     }
