@@ -5,6 +5,24 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadDiagram(sheetName) {
+  // --- BẮT ĐẦU CODE MỚI ---
+  const titleElement = document.getElementById("main-title");
+  let newTitle = "SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA"; // Tiêu đề mặc định
+
+  if (sheetName === "Tanghoa") {
+    newTitle = "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ TẶNG HOA ĐẠI HỘI";
+  } else if (sheetName === "BanChanhHanh") {
+    newTitle =
+      "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI BCH ĐẢNG BỘ TỈNH";
+  } else if (sheetName === "ToanThe") {
+    newTitle =
+      "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI ĐẠI BIỂU DỰ ĐẠI HỘI";
+  }
+
+  if (titleElement) {
+    titleElement.textContent = newTitle;
+  }
+  // --- KẾT THÚC CODE MỚI ---
   const container = document.getElementById("diagram-container");
   const buttons = document.querySelectorAll(".controls button");
 
@@ -87,6 +105,7 @@ function displayDiagram(delegates) {
         const delegateDiv = document.createElement("div");
         delegateDiv.className = "delegate";
         delegateDiv.innerHTML = `
+        <div class="position">${delegate.Vitri}</div>
         <div class="name">${delegate.Hoten || ""}</div>
     `;
         return delegateDiv;

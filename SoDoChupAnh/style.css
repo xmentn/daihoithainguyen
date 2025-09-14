@@ -15,7 +15,7 @@ body {
 }
 
 h1 {
-  color: #333;
+  color: #c82333; /* Một màu đỏ sẫm, trang trọng */
 }
 
 .controls {
@@ -104,11 +104,28 @@ h1 {
   z-index: 20; /* Đảm bảo nó nổi lên trên các ô khác */
 }
 .delegate .name {
+  font-weight: bold;
   font-size: 13px;
   color: #333;
-  margin-bottom: 4px; /* Khoảng cách giữa tên và vị trí */
+  margin-bottom: 0; /* Bỏ margin cũ nếu có */
+  padding-top: 25px; /* Thêm một chút đệm ở trên */
 }
-
+.delegate .position {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 10px;
+  font-weight: bold;
+  color: white;
+  background-color: #0d6efd;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
 /* Kích thước cho sơ đồ Ban Chấp hành */
 .view-bch .delegate {
   width: 50px; /* Chiều rộng hẹp hơn */
@@ -166,7 +183,7 @@ h1 {
 
   /* Định dạng hình chữ nhật (cao > rộng) */
   width: 50px;
-  height: 70px;
+  height: 90px;
   background-color: #f0f8ff; /* Màu xanh alice blue */
   border: 2px solid #4682b4; /* Màu xanh steel blue */
   border-radius: 4px; /* Bo góc nhẹ */
@@ -176,4 +193,35 @@ h1 {
   font-weight: bold;
   font-size: 13px;
   text-align: center;
+}
+@media print {
+  /* Ẩn các nút điều khiển và nút "Về trang chủ" khi in */
+  .controls,
+  .back-to-home,
+  .row-label {
+    display: none;
+  }
+
+  /* Cho phép sơ đồ hiển thị đầy đủ chiều rộng */
+  .photo-diagram {
+    overflow-x: visible !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: 1px solid #ddd;
+    padding: 10px;
+  }
+
+  /* Đảm bảo các thành phần cha không giới hạn chiều rộng */
+  body,
+  .portal-container {
+    width: 100% !important;
+    padding: 0;
+    margin: 0;
+  }
+
+  h1,
+  #delegate-count {
+    padding: 0 10px;
+  }
 }
