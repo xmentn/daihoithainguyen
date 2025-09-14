@@ -80,72 +80,59 @@ h1 {
 
 .delegate {
   position: relative;
-  border-radius: 50%;
+  border-radius: 8px;
   border: 2px solid #ccc;
   background-color: #fff;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  cursor: pointer;
   flex-shrink: 0;
-  z-index: 10;
-}
-
-.delegate:hover {
-  z-index: 20;
-}
-
-.delegate .name {
-  visibility: hidden;
-  opacity: 0;
-  width: 160px;
-  background-color: #0056b3;
-  color: #fff;
+  padding: 8px 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   text-align: center;
-  border-radius: 6px;
-  padding: 8px 12px;
-  position: absolute;
-  z-index: 1000;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  transition: opacity 0.3s;
+  width: 120px;
+  min-height: 60px;
+  /* Dán dòng này vào đây */
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out,
+    border-color 0.2s ease-in-out;
+}
+.delegate:hover {
+  border-color: #0d6efd; /* Đổi màu viền thành xanh */
+  transform: translateY(-4px); /* Di chuyển nhẹ lên trên */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Đổ bóng rõ hơn */
+  z-index: 20; /* Đảm bảo nó nổi lên trên các ô khác */
+}
+.delegate .name {
+  font-size: 13px;
+  color: #333;
+  margin-bottom: 4px; /* Khoảng cách giữa tên và vị trí */
 }
 
-.delegate:hover .name {
-  visibility: visible;
-  opacity: 1;
-}
-
-.delegate.doituong-1 {
-  background-color: #ffdddd;
-  border-color: #f44336;
-}
-.delegate.doituong-2 {
-  background-color: #d1e7ff;
-  border-color: #0d6efd;
-}
-
+/* Kích thước cho sơ đồ Ban Chấp hành */
 .view-bch .delegate {
-  width: 40px;
-  height: 40px;
-}
-.view-bch .row-content-wrapper {
-  gap: 10px;
+  width: 50px; /* Chiều rộng hẹp hơn */
+  min-height: 70px; /* Chiều cao lớn hơn */
 }
 
+.view-bch .delegate .name {
+  font-size: 12px; /* Cỡ chữ nhỏ hơn để dễ xuống dòng */
+}
+/* Kích thước cho sơ đồ Toàn thể */
 .view-toan-the .delegate {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  min-height: 55px;
 }
-.view-toan-the .row-content-wrapper {
-  gap: 5px;
+.view-toan-the .delegate .name {
+  font-size: 10px;
 }
 
+/* Kích thước cho sơ đồ Tặng hoa */
 .view-tang-hoa .delegate {
-  width: 45px;
-  height: 45px;
+  width: 50px;
+  min-height: 35px;
 }
+
 .view-tang-hoa .row-content-wrapper {
   gap: 12px;
 }

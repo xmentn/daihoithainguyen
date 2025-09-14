@@ -86,12 +86,9 @@ function displayDiagram(delegates) {
       const createDelegateElement = (delegate) => {
         const delegateDiv = document.createElement("div");
         delegateDiv.className = "delegate";
-        if (delegate.Doituong == "1") delegateDiv.classList.add("doituong-1");
-        if (delegate.Doituong == "2") delegateDiv.classList.add("doituong-2");
         delegateDiv.innerHTML = `
-                <div class="position">${delegate.Vitri}</div>
-                <div class="name">${delegate.Hoten || ""}</div>
-            `;
+        <div class="name">${delegate.Hoten || ""}</div>
+    `;
         return delegateDiv;
       };
 
