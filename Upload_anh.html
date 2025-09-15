@@ -149,11 +149,66 @@
         border-radius: 4px;
         background-color: #f8f9fa;
       }
+      /* --- CSS CHO PHẦN HƯỚNG DẪN --- */
+      .instructions-container {
+        margin-bottom: 25px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+      .instructions-button {
+        width: 100%;
+        background-color: #f8f9fa;
+        border: none;
+        padding: 12px 15px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        cursor: pointer;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: background-color 0.2s;
+      }
+      .instructions-button:hover {
+        background-color: #e9ecef;
+      }
+      .instructions-button .arrow {
+        transition: transform 0.3s ease;
+      }
+      .instructions-button.active .arrow {
+        transform: rotate(180deg);
+      }
+      .instructions-content {
+        padding: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        background: #fff;
+      }
+      .instructions-content img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <h1>GỬI ẢNH CHÂN DUNG ĐẠI BIỂU</h1>
+      <div class="instructions-container">
+        <button id="toggle-instructions-btn" class="instructions-button">
+          <span>Nhấn vào đây để xem hướng dẫn chụp ảnh</span>
+          <span class="arrow">▼</span>
+        </button>
+        <div id="instructions-content" class="instructions-content">
+          <img
+            src="../images/Huong dan.jpg"
+            alt="Hướng dẫn chụp ảnh chân dung"
+          />
+        </div>
+      </div>
       <p id="photo-summary">Đang tải thống kê...</p>
       <form id="upload-form">
         <div class="form-group">
@@ -219,6 +274,22 @@
         const previewThang = document.getElementById("preview-thang");
         const previewTrai = document.getElementById("preview-trai");
         const previewPhai = document.getElementById("preview-phai");
+        const toggleBtn = document.getElementById("toggle-instructions-btn");
+        const instructionsContent = document.getElementById(
+          "instructions-content"
+        );
+
+        if (toggleBtn && instructionsContent) {
+          toggleBtn.addEventListener("click", function () {
+            this.classList.toggle("active");
+            if (instructionsContent.style.maxHeight) {
+              instructionsContent.style.maxHeight = null;
+            } else {
+              instructionsContent.style.maxHeight =
+                instructionsContent.scrollHeight + "px";
+            }
+          });
+        }
         let delegatesData = [];
 
         function setupPreview(input, preview) {
