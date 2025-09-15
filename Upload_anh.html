@@ -10,188 +10,216 @@
       rel="stylesheet"
     />
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f4f4;
-        margin: 0;
-        padding: 20px;
-      }
-      .container {
-        max-width: 600px;
-        margin: 20px auto;
-        background: #fff;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      }
-      h1 {
-        color: #0d6efd;
-        text-align: center;
-      }
-      #photo-summary {
-        text-align: center;
-        font-size: 16px;
-        color: #6c757d;
-        margin-top: -15px;
-        margin-bottom: 30px;
-      }
-      .form-group {
-        margin-bottom: 20px;
-      }
-      .form-group label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #333;
-      }
-      select,
-      input[type="file"],
-      input[type="tel"] {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-      }
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f4f4f4;
+              margin: 0;
+              padding: 20px;
+            }
+            .container {
+              max-width: 600px;
+              margin: 20px auto;
+              background: #fff;
+              padding: 30px;
+              border-radius: 8px;
+              box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            }
+            h1 {
+              color: #0d6efd;
+              text-align: center;
+            }
+            #photo-summary {
+              text-align: center;
+              font-size: 16px;
+              color: #6c757d;
+              margin-top: -15px;
+              margin-bottom: 30px;
+            }
+            .form-group {
+              margin-bottom: 20px;
+            }
+            .form-group label {
+              display: block;
+              font-weight: bold;
+              margin-bottom: 8px;
+              color: #333;
+            }
+            select,
+            input[type="file"],
+            input[type="tel"] {
+              width: 100%;
+              padding: 10px;
+              font-size: 16px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              box-sizing: border-box;
+            }
 
-      /* CHỈ áp dụng chiều cao cố định cho ô chọn và ô SĐT */
-      select,
-      input[type="tel"] {
-        height: 40px;
+            /* CHỈ áp dụng chiều cao cố định cho ô chọn và ô SĐT */
+            select,
+            input[type="tel"] {
+              height: 40px;
+            }
+            .select2-container .select2-selection--single {
+              height: 40px !important;
+            }
+            .select2-container--default
+              .select2-selection--single
+              .select2-selection__rendered {
+              line-height: 40px !important;
+            }
+            .select2-container--default
+              .select2-selection--single
+              .select2-selection__arrow {
+              height: 38px !important;
+            }
+            button {
+              width: 100%;
+              padding: 12px;
+              font-size: 18px;
+              font-weight: bold;
+              background-color: #0d6efd;
+              color: white;
+              border: none;
+              border-radius: 5px;
+              cursor: pointer;
+              transition: background-color 0.3s;
+            }
+            button:hover {
+              background-color: #0056b3;
+            }
+            button:disabled {
+              background-color: #ccc;
+              cursor: not-allowed;
+            }
+            #status {
+              text-align: center;
+              margin-top: 20px;
+              font-weight: bold;
+              padding: 10px;
+              border-radius: 5px;
+            }
+            .status-success {
+              color: #155724;
+              background-color: #d4edda;
+            }
+            .status-error {
+              color: #721c24;
+              background-color: #f8d7da;
+            }
+            .loader {
+              width: 20px;
+              height: 20px;
+              border: 3px solid #f3f3f3;
+              border-top: 3px solid #3498db;
+              border-radius: 50%;
+              animation: spin 1s linear infinite;
+              display: inline-block;
+              vertical-align: middle;
+              margin-right: 10px;
+            }
+            @keyframes spin {
+              0% {
+                transform: rotate(0deg);
+              }
+              100% {
+                transform: rotate(360deg);
+              }
+            }
+            .photo-inputs-container {
+              display: flex;
+              gap: 15px;
+              justify-content: space-between;
+            }
+            .photo-input-group {
+              flex: 1;
+              text-align: center;
+            }
+            .photo-input-group label {
+              font-size: 14px;
+              color: #555;
+            }
+            .image-preview {
+              display: none;
+              width: 100%;
+              height: 180px;
+              object-fit: contain;
+              margin-top: 10px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              background-color: #f8f9fa;
+            }
+            /* --- CSS CHO PHẦN HƯỚNG DẪN --- */
+            .instructions-container {
+              margin-bottom: 25px;
+              border: 1px solid #ddd;
+              border-radius: 8px;
+              overflow: hidden;
+            }
+            .instructions-button {
+              width: 100%;
+              background-color: #f8f9fa;
+              border: none;
+              padding: 12px 15px;
+              font-size: 16px;
+              font-weight: bold;
+              color: #333;
+              cursor: pointer;
+              text-align: left;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              transition: background-color 0.2s;
+            }
+            .instructions-button:hover {
+              background-color: #e9ecef;
+            }
+            .instructions-button .arrow {
+              transition: transform 0.3s ease;
+            }
+            .instructions-button.active .arrow {
+              transform: rotate(180deg);
+            }
+            .instructions-content {
+              padding: 0;
+              max-height: 0;
+              overflow: hidden;
+              transition: max-height 0.4s ease-out;
+              background: #fff;
+            }
+            .instructions-content img {
+              width: 100%;
+              height: auto;
+              display: block;
+            }
+            #delegate-photo-preview-container {
+        text-align: center;
+        margin-bottom: 20px;
       }
-      .select2-container .select2-selection--single {
-        height: 40px !important;
-      }
-      .select2-container--default
-        .select2-selection--single
-        .select2-selection__rendered {
-        line-height: 40px !important;
-      }
-      .select2-container--default
-        .select2-selection--single
-        .select2-selection__arrow {
-        height: 38px !important;
-      }
-      button {
-        width: 100%;
-        padding: 12px;
-        font-size: 18px;
-        font-weight: bold;
-        background-color: #0d6efd;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      button:hover {
-        background-color: #0056b3;
-      }
-      button:disabled {
-        background-color: #ccc;
-        cursor: not-allowed;
-      }
-      #status {
-        text-align: center;
-        margin-top: 20px;
-        font-weight: bold;
-        padding: 10px;
-        border-radius: 5px;
-      }
-      .status-success {
-        color: #155724;
-        background-color: #d4edda;
-      }
-      .status-error {
-        color: #721c24;
-        background-color: #f8d7da;
-      }
-      .loader {
-        width: 20px;
-        height: 20px;
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #3498db;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        display: inline-block;
-        vertical-align: middle;
-        margin-right: 10px;
-      }
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
-      }
-      .photo-inputs-container {
-        display: flex;
-        gap: 15px;
-        justify-content: space-between;
-      }
-      .photo-input-group {
-        flex: 1;
-        text-align: center;
-      }
-      .photo-input-group label {
-        font-size: 14px;
-        color: #555;
-      }
-      .image-preview {
-        display: none;
-        width: 100%;
-        height: 180px;
-        object-fit: contain;
-        margin-top: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background-color: #f8f9fa;
-      }
-      /* --- CSS CHO PHẦN HƯỚNG DẪN --- */
-      .instructions-container {
-        margin-bottom: 25px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .instructions-button {
-        width: 100%;
-        background-color: #f8f9fa;
-        border: none;
-        padding: 12px 15px;
-        font-size: 16px;
-        font-weight: bold;
-        color: #333;
-        cursor: pointer;
-        text-align: left;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.2s;
-      }
-      .instructions-button:hover {
-        background-color: #e9ecef;
-      }
-      .instructions-button .arrow {
-        transition: transform 0.3s ease;
-      }
-      .instructions-button.active .arrow {
-        transform: rotate(180deg);
-      }
-      .instructions-content {
-        padding: 0;
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease-out;
-        background: #fff;
-      }
-      .instructions-content img {
-        width: 100%;
-        height: auto;
-        display: block;
-      }
+            #delegate-photo-preview-container img {
+              max-width: 150px;
+              max-height: 150px;
+              border-radius: 8px;
+              border: 2px solid #ddd;
+              padding: 5px;
+              background-color: #fff;
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            }
+            .preview-button {
+              display: inline-block;
+              padding: 8px 16px;
+              border: 1px solid #ddd;
+              background-color: #f8f9fa;
+              border-radius: 6px;
+              color: #333;
+              font-weight: bold;
+              text-decoration: none;
+              transition: all 0.2s ease;
+            }
+            .preview-button:hover {
+              background-color: #e9ecef;
+              border-color: #ccc;
+            }
     </style>
   </head>
   <body>
@@ -219,6 +247,7 @@
             <option value="">Đang tải danh sách...</option>
           </select>
         </div>
+        <div id="delegate-photo-preview-container"></div>
         <div class="form-group">
           <label for="delegate-phone">Số điện thoại:</label>
           <input
@@ -261,7 +290,7 @@
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         const baseUrl =
-          "https://script.google.com/macros/s/AKfycbzSbwhb0_xS6yibmREcGU8mJZ1ESWrnD33pecc4_DAiw-hflYjFXZiYM99ZqCtdYnAkKg/exec"; // !!! THAY THẾ URL API CỦA BẠN VÀO ĐÂY !!!
+          "https://script.google.com/macros/s/AKfycbzSbwhb0_xS6yibmREcGU8mJZ1ESWrnD33pecc4_DAiw-hflYjFXZiYM99ZqCtdYnAkKg/exec";
         const dataUrl = `${baseUrl}?type=photoupload`;
 
         const delegateSelect = document.getElementById("delegate-select");
@@ -278,6 +307,11 @@
         const instructionsContent = document.getElementById(
           "instructions-content"
         );
+        const previewContainer = document.getElementById(
+          "delegate-photo-preview-container"
+        );
+
+        let delegatesData = [];
 
         if (toggleBtn && instructionsContent) {
           toggleBtn.addEventListener("click", function () {
@@ -290,7 +324,6 @@
             }
           });
         }
-        let delegatesData = [];
 
         function setupPreview(input, preview) {
           input.addEventListener("change", function () {
@@ -319,41 +352,39 @@
               ).length;
               summaryElement.textContent = `Đã có ${complete}/${total} đại biểu đủ 3 ảnh chân dung`;
             }
+
             delegateSelect.innerHTML =
               '<option value="">-- Chọn đại biểu --</option>';
             delegatesData.forEach((delegate) => {
               const option = document.createElement("option");
               option.value = delegate.Hoten;
-              if (
-                delegate.LinkAnhThang ||
-                delegate.LinkAnhTrai ||
-                delegate.LinkAnhPhai
-              ) {
+              if (delegate.LinkAnhThang) {
+                option.setAttribute("data-img-id", delegate.LinkAnhThang);
                 option.textContent = `${delegate.Hoten} ✅ (Đã có ảnh)`;
-                if (delegate.LinkAnhThang)
-                  option.setAttribute("data-img-id", delegate.LinkAnhThang);
               } else {
                 option.textContent = delegate.Hoten;
               }
               delegateSelect.appendChild(option);
             });
+
             $("#delegate-select").select2();
-            tippy(document.body, {
-              target: ".select2-results__option[data-img-id]",
-              content(reference) {
-                const imgId = reference.getAttribute("data-img-id");
-                if (!imgId) return "Không có ID ảnh";
-                const img = document.createElement("img");
-                img.src = `${baseUrl}?type=image&id=${imgId}`;
-                img.style.width = "150px";
-                img.style.height = "auto";
-                img.style.display = "block";
-                img.style.borderRadius = "4px";
-                return img;
-              },
-              allowHTML: true,
-              placement: "right",
-              arrow: true,
+
+            // --- LOGIC MỚI: HIỂN THỊ NÚT BẤM KHI CHỌN ---
+            $("#delegate-select").on("change", function () {
+              const selectedOption = $(this).find("option:selected");
+              const imgId = selectedOption.data("img-id");
+              const previewContainer = document.getElementById(
+                "delegate-photo-preview-container"
+              );
+
+              if (imgId) {
+                // Tạo một đường link xem ảnh trực tiếp
+                const viewUrl = `https://drive.google.com/file/d/${imgId}/view`;
+                // Hiển thị nút bấm
+                previewContainer.innerHTML = `<a href="${viewUrl}" target="_blank" class="preview-button">🖼️ Xem ảnh chân dung</a>`;
+              } else {
+                previewContainer.innerHTML = ""; // Xóa nút nếu không có ảnh
+              }
             });
           })
           .catch((error) => {
@@ -364,8 +395,6 @@
 
         uploadForm.addEventListener("submit", function (event) {
           event.preventDefault();
-
-          // 1. Lấy tất cả giá trị từ form
           const selectedName = delegateSelect.value;
           const phoneInput = document.getElementById("delegate-phone");
           const phoneValue = phoneInput.value.trim();
@@ -373,7 +402,6 @@
           const fileTrai = inputTrai.files[0];
           const filePhai = inputPhai.files[0];
 
-          // 2. Kiểm tra thông tin đầu vào
           if (!selectedName) {
             Swal.fire({
               icon: "warning",
@@ -399,26 +427,46 @@
             return;
           }
 
-          // 3. Hàm thực hiện việc tải lên (sau khi đã qua các bước kiểm tra)
-          const performUpload = () => {
+          const performUpload = (url) => {
             submitBtn.disabled = true;
-            statusDiv.innerHTML = `<div class="loader"></div><span>Đang gửi ảnh, vui lòng chờ...</span>`;
+            statusDiv.innerHTML = `<div class="loader"></div><span>Đang xử lý và gửi ảnh, vui lòng chờ...</span>`;
 
-            // Hàm đọc file gốc thành base64, không nén
-            const readFileAsBase64 = (file) => {
+            const processImage = (file) => {
               return new Promise((resolve, reject) => {
                 if (!file) return resolve(null);
+                const MAX_WIDTH = 800;
                 const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.onerror = (error) => reject(error);
+                reader.onload = (e) => {
+                  const img = new Image();
+                  img.onload = () => {
+                    let width = img.width,
+                      height = img.height;
+                    if (width > MAX_WIDTH) {
+                      height *= MAX_WIDTH / width;
+                      width = MAX_WIDTH;
+                    }
+                    const canvas = document.createElement("canvas");
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext("2d");
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL("image/jpeg", 0.9));
+                  };
+                  img.onerror = () => {
+                    resolve(e.target.result);
+                  };
+                  img.src = e.target.result;
+                };
+                reader.onerror = () =>
+                  reject(new Error(`Không thể đọc được file: ${file.name}`));
                 reader.readAsDataURL(file);
               });
             };
 
             Promise.all([
-              readFileAsBase64(fileThang),
-              readFileAsBase64(fileTrai),
-              readFileAsBase64(filePhai),
+              processImage(fileThang),
+              processImage(fileTrai),
+              processImage(filePhai),
             ])
               .then(([base64Thang, base64Trai, base64Phai]) => {
                 const delegateToSubmit = delegatesData.find(
@@ -432,11 +480,7 @@
                   fileTrai: base64Trai,
                   filePhai: base64Phai,
                 };
-
-                fetch(baseUrl, {
-                  method: "POST",
-                  body: JSON.stringify(payload),
-                })
+                fetch(url, { method: "POST", body: JSON.stringify(payload) })
                   .then((response) => response.json())
                   .then((result) => {
                     if (result.status === "success") {
@@ -465,14 +509,13 @@
                 Swal.fire({
                   icon: "error",
                   title: "Lỗi đọc file",
-                  text: "Không thể đọc được một trong các file ảnh.",
+                  text: error.message,
                 });
                 submitBtn.disabled = false;
                 statusDiv.innerHTML = "";
               });
           };
 
-          // 4. Kiểm tra và xác nhận ghi đè
           const selectedDelegate = delegatesData.find(
             (d) => d.Hoten === selectedName
           );
@@ -493,11 +536,11 @@
               cancelButtonText: "Hủy",
             }).then((result) => {
               if (result.isConfirmed) {
-                performUpload();
+                performUpload(baseUrl);
               }
             });
           } else {
-            performUpload();
+            performUpload(baseUrl);
           }
         });
       });
