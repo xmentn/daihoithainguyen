@@ -26,21 +26,19 @@
     </div>
 
     <script>
-      // Đoạn mã tự động đọc tên file từ URL và nhúng vào trang
       document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);
         const fileName = urlParams.get("file");
+        const docTitle = urlParams.get("title"); // Lấy tiêu đề từ URL
         const pdfTitleElement = document.getElementById("pdf-title");
         const pdfEmbedElement = document.getElementById("pdf-embed");
 
         if (fileName) {
-          const formattedTitle = fileName
-            .replace(".pdf", "")
-            .replace(/-/g, " ")
-            .replace(/\b\w/g, (l) => l.toUpperCase());
-          pdfTitleElement.textContent = formattedTitle;
+          // Ưu tiên hiển thị tiêu đề lấy từ URL, nếu không có thì mới dùng tên file
+          pdfTitleElement.textContent =
+            docTitle || fileName.replace(".pdf", "");
 
-          // Nhúng file PDF vào iframe, không cần thêm tiền tố ở đây vì nó là file tương đối
+          // Nhúng file PDF vào iframe
           pdfEmbedElement.src = fileName + "#view=FitH";
         } else {
           pdfTitleElement.textContent = "Không tìm thấy tài liệu";
