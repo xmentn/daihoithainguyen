@@ -450,11 +450,8 @@
                   filePhai: base64Phai,
                 };
 
-                fetch(url, {
+                fetch(baseUrl, {
                   method: "POST",
-                  headers: {
-                    "Content-Type": "text/plain;charset=utf-8",
-                  },
                   body: JSON.stringify(payload),
                 })
                   .then((response) => response.json())
