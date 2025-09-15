@@ -7,11 +7,67 @@
     <link rel="stylesheet" href="/css/style-index.css" />
     <link rel="stylesheet" href="/css/tailieu.css" />
     <link rel="icon" type="image/png" href="/images/Codang.png" />
+    <style>
+      /* Reset và làm cho trang chiếm toàn bộ chiều cao */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        overflow: hidden; /* Ngăn cuộn trang không cần thiết */
+      }
+      /* Biến container chính thành một cột linh hoạt chiếm toàn bộ chiều cao */
+      .portal-container {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+      }
+      /* Thu gọn phần header */
+      .media-header {
+        flex-shrink: 0;
+        padding: 12px 20px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        text-align: center;
+      }
+      /* THAY ĐỔI 1: Định dạng lại tiêu đề h2 */
+      h2#pdf-title {
+        margin: 0;
+        font-size: 1.2rem;
+        color: #0d6efd; /* Chuyển thành màu xanh dương */
+        text-transform: uppercase; /* Chuyển thành chữ IN HOA */
+      }
+      /* Yêu cầu khung xem tài liệu chiếm hết không gian còn lại */
+      .pdf-viewer-container {
+        flex-grow: 1;
+      }
+      /* Đảm bảo iframe lấp đầy khung chứa của nó */
+      #pdf-embed {
+        width: 100%;
+        height: 100%;
+      }
+      /* THAY ĐỔI 2: Ẩn khung chứa nút bấm cũ */
+      /* THAY ĐỔI 2: Tạo kiểu mới cho nút bấm, đặt ở góc dưới bên phải */
+      .back-button {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 1000;
+        padding: 10px 25px;
+        background-color: #dc3545; /* Màu đỏ cho nổi bật */
+        color: white;
+        border-radius: 20px;
+        font-weight: bold;
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+    </style>
   </head>
   <body>
     <div class="portal-container">
       <header class="media-header">
-        <h1 id="pdf-title">Đang tải tài liệu...</h1>
+        <h2 id="pdf-title">Đang tải tài liệu...</h2>
       </header>
 
       <main class="pdf-viewer-container">
