@@ -9,6 +9,8 @@ const filterButtons = document.querySelectorAll(".filter-btn");
 let allDelegates = []; // Mảng để lưu trữ toàn bộ dữ liệu gốc
 
 // Hàm để hiển thị dữ liệu lên bảng
+// Hàm để hiển thị dữ liệu lên bảng
+// Hàm để hiển thị dữ liệu lên bảng
 function renderTable(data) {
   tableBody.innerHTML = ""; // Xóa dữ liệu cũ
   if (data.length === 0) {
@@ -16,10 +18,12 @@ function renderTable(data) {
       '<tr><td colspan="7" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>';
     return;
   }
-  data.forEach((delegate) => {
+  // Thêm 'index' vào hàm forEach để lấy số thứ tự
+  data.forEach((delegate, index) => {
     const row = document.createElement("tr");
+    // Thay thế delegate.stt bằng index + 1
     row.innerHTML = `
-            <td>${delegate.stt}</td>
+            <td>${index + 1}</td>
             <td>${delegate.daiBieu}</td>
             <td>${delegate.xacNhan}</td>
             <td>${delegate.canBo}</td>
@@ -30,7 +34,6 @@ function renderTable(data) {
     tableBody.appendChild(row);
   });
 }
-
 // Hàm để tính toán và cập nhật các chỉ số tổng hợp
 function updateSummary(data) {
   document.getElementById("total-invited").textContent = data.length;
