@@ -5,12 +5,13 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function loadDiagram(sheetName) {
-  // --- BẮT ĐẦU CODE MỚI ---
   const titleElement = document.getElementById("main-title");
-  let newTitle = "SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA"; // Tiêu đề mặc định
+  let newTitle = "SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA";
 
-  if (sheetName === "Tanghoa") {
-    newTitle = "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ TẶNG HOA ĐẠI HỘI";
+  if (sheetName === "Tanghoa1") {
+    newTitle = "SƠ ĐỒ TẶNG HOA LẦN THỨ NHẤT";
+  } else if (sheetName === "Tanghoa2") {
+    newTitle = "SƠ ĐỒ TẶNG HOA LẦN THỨ HAI";
   } else if (sheetName === "BanChanhHanh") {
     newTitle =
       "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI BCH ĐẢNG BỘ TỈNH";
@@ -22,14 +23,28 @@ function loadDiagram(sheetName) {
   if (titleElement) {
     titleElement.textContent = newTitle;
   }
-  // --- KẾT THÚC CODE MỚI ---
+
   const container = document.getElementById("diagram-container");
   const buttons = document.querySelectorAll(".controls button");
 
-  container.classList.remove("view-bch", "view-toan-the", "view-tang-hoa");
-  if (sheetName === "BanChanhHanh") container.classList.add("view-bch");
-  else if (sheetName === "ToanThe") container.classList.add("view-toan-the");
-  else if (sheetName === "Tanghoa") container.classList.add("view-tang-hoa");
+  // --- PHẦN QUAN TRỌNG ĐẢM BẢO ĐÚNG TÊN CLASS ---
+  container.classList.remove(
+    "view-bch",
+    "view-toan-the",
+    "view-tang-hoa",
+    "view-tang-hoa2"
+  );
+
+  if (sheetName === "BanChanhHanh") {
+    container.classList.add("view-bch"); // Phải là 'view-bch' để khớp với CSS
+  } else if (sheetName === "ToanThe") {
+    container.classList.add("view-toan-the");
+  } else if (sheetName === "Tanghoa1") {
+    container.classList.add("view-tang-hoa");
+  } else if (sheetName === "Tanghoa2") {
+    container.classList.add("view-tang-hoa2");
+  }
+  // --- KẾT THÚC PHẦN QUAN TRỌNG ---
 
   buttons.forEach((btn) => btn.classList.remove("active"));
   const activeButton = document.querySelector(
@@ -44,7 +59,6 @@ function loadDiagram(sheetName) {
 
     if (delegatesForSheet) {
       displayDiagram(delegatesForSheet);
-
       requestAnimationFrame(() => {
         if (container.scrollWidth > container.clientWidth) {
           container.scrollLeft =
@@ -59,7 +73,6 @@ function loadDiagram(sheetName) {
       "<h2>Không có dữ liệu. Vui lòng quay lại trang chủ.</h2>";
   }
 }
-
 // script.js
 
 function displayDiagram(delegates) {
@@ -118,7 +131,11 @@ function displayDiagram(delegates) {
 
       // === ĐÂY LÀ VỊ TRÍ ĐÚNG ĐỂ CHÈN LẴNG HOA ===
       // Nếu là Hàng 1 và đang ở chế độ xem "Tặng hoa", thì chèn lẵng hoa
-      if (rowNum == "1" && container.classList.contains("view-tang-hoa")) {
+      if (
+        rowNum == "1" &&
+        (container.classList.contains("view-tang-hoa") ||
+          container.classList.contains("view-tang-hoa2"))
+      ) {
         const flowerDiv = document.createElement("div");
         flowerDiv.className = "flower-basket";
         flowerDiv.textContent = "Lẵng hoa";

@@ -128,7 +128,7 @@ h1 {
 }
 /* Kích thước cho sơ đồ Ban Chấp hành */
 .view-bch .delegate {
-  width: 50px; /* Chiều rộng hẹp hơn */
+  width: 50px !important; /* Chiều rộng hẹp hơn */
   min-height: 70px; /* Chiều cao lớn hơn */
 }
 
@@ -224,4 +224,26 @@ h1 {
   #delegate-count {
     padding: 0 10px;
   }
+}
+/* --- Styles for Tanghoa2: Larger items --- */
+.view-tang-hoa2 .delegate {
+  width: 150px; /* Chiều rộng lớn */
+  min-height: 90px; /* Chiều cao lớn */
+}
+
+.view-tang-hoa2 .delegate .name {
+  font-size: 14px; /* Cỡ chữ lớn hơn */
+  padding-top: 28px; /* Đẩy tên xuống để không bị số đè */
+}
+
+.view-tang-hoa2 .delegate .position {
+  width: 24px; /* Huy hiệu số lớn hơn */
+  height: 24px;
+  font-size: 12px;
+}
+
+.view-tang-hoa2 .flower-basket {
+  width: 90px;
+  height: 120px;
+  font-size: 14px;
 }
