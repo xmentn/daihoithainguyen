@@ -9,9 +9,9 @@ function loadDiagram(sheetName) {
   let newTitle = "SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA";
 
   if (sheetName === "Tanghoa1") {
-    newTitle = "SƠ ĐỒ TẶNG HOA LẦN THỨ NHẤT";
+    newTitle = "ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ TẶNG HOA ĐẠI HỘI";
   } else if (sheetName === "Tanghoa2") {
-    newTitle = "SƠ ĐỒ TẶNG HOA LẦN THỨ HAI";
+    newTitle = "ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ TẶNG HOA ĐẠI HỘI";
   } else if (sheetName === "BanChanhHanh") {
     newTitle =
       "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI BCH ĐẢNG BỘ TỈNH";
