@@ -1,40 +1,85 @@
-// ✅ QUAN TRỌNG: Dán URL ứng dụng web bạn đã sao chép ở Bước 1 vào đây
 const WEB_APP_URL =
   "https://script.google.com/macros/s/AKfycbzQyMARvTRvIYOcwfmQqVBHXGGaEiu7MImVtnHhl6LqjgO-kRJ0--DcmrXPZMHJp9hJ/exec";
 
 // Các biến để lưu trữ DOM element và dữ liệu
+const tableElement = document.getElementById("delegate-table");
+const tableHead = document.querySelector("#delegate-table thead");
 const tableBody = document.querySelector("#delegate-table tbody");
 const loadingMessage = document.getElementById("loading-message");
 const filterButtons = document.querySelectorAll(".filter-btn");
-let allDelegates = []; // Mảng để lưu trữ toàn bộ dữ liệu gốc
+let allDelegates = [];
 
-// Hàm để hiển thị dữ liệu lên bảng
-// Hàm để hiển thị dữ liệu lên bảng
-// Hàm để hiển thị dữ liệu lên bảng
-function renderTable(data) {
-  tableBody.innerHTML = ""; // Xóa dữ liệu cũ
+// --- ĐỊNH NGHĨA SẴN 2 LOẠI TIÊU ĐỀ BẢNG ---
+
+const fullHeader = `
+    <tr>
+        <th rowspan="2">STT</th>
+        <th rowspan="2">Họ và Tên</th>
+        <th rowspan="2">Xác nhận</th>
+        <th colspan="2">Người đi cùng (số lượng)</th>
+        <th colspan="2">Thời gian lưu trú</th>
+    </tr>
+    <tr>
+        <th>Cán bộ</th>
+        <th>Lái xe</th>
+        <th>Từ ngày</th>
+        <th>Đến ngày</th>
+    </tr>
+`;
+
+const simpleHeader = `
+    <tr>
+        <th>STT</th>
+        <th>Họ và Tên</th>
+        <th>Xác nhận</th>
+    </tr>
+`;
+
+// --- CÁC HÀM XỬ LÝ ---
+
+function renderTable(data, viewType) {
+  tableBody.innerHTML = "";
+  const colspan = viewType === "simple" ? 3 : 7;
   if (data.length === 0) {
-    tableBody.innerHTML =
-      '<tr><td colspan="7" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>';
+    tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>`;
     return;
   }
-  // Thêm 'index' vào hàm forEach để lấy số thứ tự
+
   data.forEach((delegate, index) => {
     const row = document.createElement("tr");
-    // Thay thế delegate.stt bằng index + 1
-    row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${delegate.daiBieu}</td>
-            <td>${delegate.xacNhan}</td>
-            <td>${delegate.canBo}</td>
-            <td>${delegate.laiXe}</td>
-            <td>${delegate.tuNgay}</td>
-            <td>${delegate.denNgay}</td>
-        `;
+    let rowContent = "";
+
+    if (viewType === "simple") {
+      rowContent = `
+                <td>${index + 1}</td>
+                <td>${delegate.daiBieu}</td>
+                <td>${delegate.xacNhan || "Chưa xác nhận"}</td>
+            `;
+    } else {
+      // viewType === 'full'
+      if (delegate.xacNhan === "Có dự") {
+        rowContent = `
+                    <td>${index + 1}</td>
+                    <td>${delegate.daiBieu}</td>
+                    <td>${delegate.xacNhan}</td>
+                    <td>${delegate.canBo}</td>
+                    <td>${delegate.laiXe}</td>
+                    <td>${delegate.tuNgay}</td>
+                    <td>${delegate.denNgay}</td>
+                `;
+      } else {
+        rowContent = `
+                    <td>${index + 1}</td>
+                    <td>${delegate.daiBieu}</td>
+                    <td colspan="5">${delegate.xacNhan || "Chưa xác nhận"}</td>
+                `;
+      }
+    }
+    row.innerHTML = rowContent;
     tableBody.appendChild(row);
   });
 }
-// Hàm để tính toán và cập nhật các chỉ số tổng hợp
+
 function updateSummary(data) {
   document.getElementById("total-invited").textContent = data.length;
   document.getElementById("total-confirmed").textContent = data.filter(
@@ -48,49 +93,74 @@ function updateSummary(data) {
   ).length;
 }
 
-// Lắng nghe sự kiện click trên các nút lọc
+// --- LẮNG NGHE SỰ KIỆN ---
+
 filterButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    // Bỏ active tất cả các nút
     filterButtons.forEach((btn) => btn.classList.remove("active"));
-    // Thêm active cho nút được click
     button.classList.add("active");
 
     const filter = button.dataset.filter;
     let filteredData;
+    let viewType;
 
-    if (filter === "all") {
-      filteredData = allDelegates;
-    } else if (filter === "pending") {
-      filteredData = allDelegates.filter(
-        (d) => d.xacNhan === "" || d.xacNhan === null
-      );
-    } else {
-      filteredData = allDelegates.filter((d) => d.xacNhan === filter);
+    switch (filter) {
+      case "all":
+        tableHead.innerHTML = fullHeader;
+        tableElement.className = "full-view";
+        viewType = "full";
+        filteredData = allDelegates;
+        break;
+
+      case "Có dự":
+        tableHead.innerHTML = fullHeader;
+        tableElement.className = "full-view";
+        viewType = "full";
+        filteredData = allDelegates.filter((d) => d.xacNhan === "Có dự");
+        break;
+
+      case "Không dự":
+        tableHead.innerHTML = simpleHeader;
+        tableElement.className = "simple-view";
+        viewType = "simple";
+        filteredData = allDelegates.filter((d) => d.xacNhan === "Không dự");
+        break;
+
+      case "pending":
+        tableHead.innerHTML = simpleHeader;
+        tableElement.className = "simple-view";
+        viewType = "simple";
+        filteredData = allDelegates.filter(
+          (d) => d.xacNhan === "" || d.xacNhan === null
+        );
+        break;
     }
-    renderTable(filteredData);
+
+    renderTable(filteredData, viewType);
   });
 });
 
-// Lấy dữ liệu từ Google Sheet API khi trang được tải
 document.addEventListener("DOMContentLoaded", () => {
+  tableHead.innerHTML = fullHeader;
+  tableElement.className = "full-view";
+
   fetch(WEB_APP_URL)
     .then((response) => {
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error(`Lỗi mạng: ${response.statusText}`);
       }
       return response.json();
     })
     .then((data) => {
-      allDelegates = data; // Lưu dữ liệu gốc
-      loadingMessage.style.display = "none"; // Ẩn thông báo tải
-      renderTable(allDelegates); // Hiển thị toàn bộ danh sách ban đầu
-      updateSummary(allDelegates); // Cập nhật các chỉ số
+      allDelegates = data;
+      loadingMessage.style.display = "none";
+      renderTable(allDelegates, "full");
+      updateSummary(allDelegates);
     })
     .catch((error) => {
       console.error("Lỗi khi lấy dữ liệu:", error);
       loadingMessage.textContent =
-        "Đã xảy ra lỗi khi tải dữ liệu. Vui lòng kiểm tra lại URL hoặc thử lại sau.";
+        "Đã xảy ra lỗi khi tải dữ liệu. Vui lòng kiểm tra lại URL, quyền truy cập của API hoặc nhấn F12 xem lỗi ở Console.";
       loadingMessage.style.color = "red";
     });
 });

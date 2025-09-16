@@ -103,16 +103,26 @@ table {
   border-collapse: collapse;
 }
 
-th,
+/* Áp dụng riêng cho tiêu đề bảng */
+th {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center; /* <- Đổi thành 'center' */
+  vertical-align: middle;
+}
+
+/* Áp dụng cho các ô dữ liệu trong bảng */
 td {
   border: 1px solid #ddd;
   padding: 12px;
-  text-align: left;
+  text-align: left; /* <- Giữ nguyên 'left' */
 }
 
 thead {
-  background-color: #004a99;
+  background-color: #5256c7;
   color: white;
+  text-align: center;
+  vertical-align: middle;
 }
 
 tbody tr:nth-child(even) {
@@ -123,4 +133,9 @@ tbody tr:nth-child(even) {
   text-align: center;
   font-size: 1.2em;
   padding: 20px;
+}
+/* --- Định dạng chiều rộng cột --- */
+/* Đặt chiều rộng tối thiểu cho cột Xác nhận ở chế độ xem rút gọn */
+table.simple-view td:nth-child(3) {
+  min-width: 180px; /* Chiều rộng tối thiểu là 180px, bạn có thể điều chỉnh số này */
 }
