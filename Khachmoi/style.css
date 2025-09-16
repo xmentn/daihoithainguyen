@@ -1,0 +1,126 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f7f6;
+  color: #333;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+header {
+  text-align: center;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+header h1 {
+  margin: 0;
+  color: #d32f2f;
+}
+
+header h2 {
+  margin: 5px 0 0;
+  color: #555;
+  font-weight: normal;
+}
+
+.stats-container {
+  display: flex;
+  justify-content: space-around;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-left: 5px solid #6c757d;
+  border-radius: 5px;
+  padding: 15px;
+  text-align: center;
+  flex: 1;
+  min-width: 150px;
+}
+
+.stat-card.confirmed {
+  border-left-color: #28a745;
+}
+.stat-card.not-attending {
+  border-left-color: #dc3545;
+}
+.stat-card.pending {
+  border-left-color: #ffc107;
+}
+
+.stat-card h3 {
+  margin: 0 0 10px;
+  font-size: 1em;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 2em;
+  font-weight: bold;
+}
+
+.filter-container {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.filter-btn {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.filter-btn:hover {
+  background-color: #ddd;
+}
+
+.filter-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+}
+
+thead {
+  background-color: #004a99;
+  color: white;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+#loading-message {
+  text-align: center;
+  font-size: 1.2em;
+  padding: 20px;
+}
