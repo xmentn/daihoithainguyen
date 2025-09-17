@@ -5,7 +5,6 @@ body {
   margin: 0;
   padding: 20px;
 }
-
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -14,25 +13,21 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
-
 header {
   text-align: center;
   border-bottom: 2px solid #e0e0e0;
   padding-bottom: 20px;
   margin-bottom: 20px;
 }
-
 header h1 {
   margin: 0;
   color: #d32f2f;
 }
-
 header h2 {
   margin: 5px 0 0;
   color: #555;
   font-weight: normal;
 }
-
 .stats-container {
   display: flex;
   justify-content: space-around;
@@ -40,7 +35,6 @@ header h2 {
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
-
 .stat-card {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
@@ -51,7 +45,6 @@ header h2 {
   flex: 1;
   min-width: 150px;
 }
-
 .stat-card.confirmed {
   border-left-color: #28a745;
 }
@@ -61,25 +54,23 @@ header h2 {
 .stat-card.pending {
   border-left-color: #ffc107;
 }
-
 .stat-card h3 {
   margin: 0 0 10px;
   font-size: 1em;
 }
-
 .stat-card p {
   margin: 0;
   font-size: 2em;
   font-weight: bold;
 }
-
 .filter-container {
   margin-bottom: 20px;
   display: flex;
   gap: 10px;
+  align-items: center;
 }
-
-.filter-btn {
+.filter-btn,
+#org-filter {
   padding: 10px 15px;
   border: 1px solid #ccc;
   background-color: #f0f0f0;
@@ -87,55 +78,56 @@ header h2 {
   border-radius: 5px;
   transition: background-color 0.3s, color 0.3s;
 }
-
 .filter-btn:hover {
   background-color: #ddd;
 }
-
 .filter-btn.active {
   background-color: #007bff;
   color: white;
   border-color: #007bff;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
 }
-
-/* Áp dụng riêng cho tiêu đề bảng */
-th {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: center; /* <- Đổi thành 'center' */
-  vertical-align: middle;
-}
-
-/* Áp dụng cho các ô dữ liệu trong bảng */
-td {
-  border: 1px solid #ddd;
-  padding: 12px;
-  text-align: left; /* <- Giữ nguyên 'left' */
-}
-
-thead {
-  background-color: #5256c7;
-  color: white;
-  text-align: center;
-  vertical-align: middle;
-}
-
 tbody tr:nth-child(even) {
   background-color: #f2f2f2;
 }
-
+th {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+}
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  word-break: break-word;
+}
+thead {
+  background-color: #004a99;
+  color: white;
+}
+td:nth-child(1),
+td:nth-child(4),
+td:nth-child(5) {
+  text-align: center;
+}
+table.simple-view td:nth-child(3) {
+  min-width: 180px;
+}
 #loading-message {
   text-align: center;
   font-size: 1.2em;
   padding: 20px;
 }
-/* --- Định dạng chiều rộng cột --- */
-/* Đặt chiều rộng tối thiểu cho cột Xác nhận ở chế độ xem rút gọn */
-table.simple-view td:nth-child(3) {
-  min-width: 180px; /* Chiều rộng tối thiểu là 180px, bạn có thể điều chỉnh số này */
+/* --- PHÂN CHIA LẠI CHIỀU RỘNG CÁC CỘT --- */
+
+/* Đặt chiều rộng tối thiểu để các cột ngày tháng không bị xuống dòng */
+#delegate-table th:nth-child(6),
+#delegate-table td:nth-child(6), /* Cột Từ ngày */
+#delegate-table th:nth-child(7),
+#delegate-table td:nth-child(7)  /* Cột Đến ngày */ {
+  min-width: 100px;
 }

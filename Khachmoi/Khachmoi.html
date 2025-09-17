@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
-    <link rel="icon" type="image/png" href="/images/Codang.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Danh sách Đại biểu</title>
@@ -17,7 +16,7 @@
 
       <section id="summary-stats" class="stats-container">
         <div class="stat-card">
-          <h3>Tổng số mời</h3>
+          <h3>Tổng số đại biểu mời</h3>
           <p id="total-invited">...</p>
         </div>
         <div class="stat-card confirmed">
@@ -34,6 +33,11 @@
         </div>
       </section>
 
+      <section class="filter-container">
+        <label for="org-filter"><strong>Xem theo đơn vị mời:</strong></label>
+        <select id="org-filter"></select>
+      </section>
+
       <section id="filter-buttons" class="filter-container">
         <button class="filter-btn active" data-filter="all">Tất cả</button>
         <button class="filter-btn" data-filter="Có dự">Xác nhận dự</button>
@@ -44,21 +48,7 @@
       <main>
         <p id="loading-message">Đang tải dữ liệu, vui lòng chờ...</p>
         <table id="delegate-table">
-          <thead>
-            <tr>
-              <th rowspan="2">STT</th>
-              <th rowspan="2">Họ và Tên</th>
-              <th rowspan="2">Xác nhận</th>
-              <th colspan="2">Người đi cùng (số lượng)</th>
-              <th colspan="2">Thời gian lưu trú</th>
-            </tr>
-            <tr>
-              <th>Cán bộ</th>
-              <th>Lái xe</th>
-              <th>Từ ngày</th>
-              <th>Đến ngày</th>
-            </tr>
-          </thead>
+          <thead></thead>
           <tbody></tbody>
         </table>
       </main>

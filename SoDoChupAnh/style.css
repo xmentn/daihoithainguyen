@@ -1,249 +1,124 @@
-/* style.css - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG */
-
 body {
   font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
+  background-color: #f4f7f6;
+  color: #333;
   margin: 0;
-  padding: 20px 0; /* Xóa padding trái phải */
+  padding: 20px;
 }
-
-.portal-container {
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+header {
+  text-align: center;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+header h1 {
+  margin: 0;
+  color: #d32f2f;
+}
+header h2 {
+  margin: 5px 0 0;
+  color: #555;
+  font-weight: normal;
+}
+.stats-container {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+  justify-content: space-around;
+  gap: 15px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
 }
-
-h1 {
-  color: #c82333; /* Một màu đỏ sẫm, trang trọng */
+.stat-card {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-left: 5px solid #6c757d;
+  border-radius: 5px;
+  padding: 15px;
+  text-align: center;
+  flex: 1;
+  min-width: 150px;
 }
-
-.controls {
+.stat-card.confirmed {
+  border-left-color: #28a745;
+}
+.stat-card.not-attending {
+  border-left-color: #dc3545;
+}
+.stat-card.pending {
+  border-left-color: #ffc107;
+}
+.stat-card h3 {
+  margin: 0 0 10px;
+  font-size: 1em;
+}
+.stat-card p {
+  margin: 0;
+  font-size: 2em;
+  font-weight: bold;
+}
+.filter-container {
   margin-bottom: 20px;
   display: flex;
   gap: 10px;
-  background-color: #e9ecef;
-  padding: 6px;
-  border-radius: 12px;
+  align-items: center;
 }
-
-.controls button {
-  padding: 10px 24px;
-  font-size: 16px;
-  font-weight: 500;
+.filter-btn,
+#org-filter {
+  padding: 10px 15px;
+  border: 1px solid #ccc;
+  background-color: #f0f0f0;
   cursor: pointer;
-  border: none;
-  border-radius: 8px;
-  background-color: transparent;
-  color: #495057;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
 }
-
-.controls button.active {
-  background-color: #fff;
-  color: #007bff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.filter-btn:hover {
+  background-color: #ddd;
 }
-
-.photo-diagram {
-  padding: 40px 20px 20px 20px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow-x: auto;
-  width: 90vw;
-  margin: 0 auto; /* Đưa khung sơ đồ ra giữa trang */
+.filter-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
 }
-
-.row {
-  margin-bottom: 15px;
+table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.row:last-child {
-  margin-bottom: 0;
+tbody tr:nth-child(even) {
+  background-color: #f2f2f2;
 }
-
-.row-content-wrapper {
-  display: flex;
-  justify-content: center;
-  min-width: fit-content;
-}
-
-.row-label {
-  font-weight: bold;
-  color: #555;
-  background-color: #e9e9e9;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  width: fit-content;
-  margin: 8px auto 0 auto;
-}
-
-.delegate {
-  position: relative;
-  border-radius: 8px;
-  border: 2px solid #ccc;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-  padding: 8px 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+th {
+  border: 1px solid #ddd;
+  padding: 12px;
   text-align: center;
-  width: 120px;
-  min-height: 60px;
-  /* Dán dòng này vào đây */
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out,
-    border-color 0.2s ease-in-out;
+  vertical-align: middle;
 }
-.delegate:hover {
-  border-color: #0d6efd; /* Đổi màu viền thành xanh */
-  transform: translateY(-4px); /* Di chuyển nhẹ lên trên */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); /* Đổ bóng rõ hơn */
-  z-index: 20; /* Đảm bảo nó nổi lên trên các ô khác */
+td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  word-break: break-word;
 }
-.delegate .name {
-  font-weight: bold;
-  font-size: 13px;
-  color: #333;
-  margin-bottom: 0; /* Bỏ margin cũ nếu có */
-  padding-top: 25px; /* Thêm một chút đệm ở trên */
-}
-.delegate .position {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  font-size: 10px;
-  font-weight: bold;
+thead {
+  background-color: #004a99;
   color: white;
-  background-color: #0d6efd;
-  border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
 }
-/* Kích thước cho sơ đồ Ban Chấp hành */
-.view-bch .delegate {
-  width: 50px !important; /* Chiều rộng hẹp hơn */
-  min-height: 70px; /* Chiều cao lớn hơn */
-}
-
-.view-bch .delegate .name {
-  font-size: 12px; /* Cỡ chữ nhỏ hơn để dễ xuống dòng */
-}
-/* Kích thước cho sơ đồ Toàn thể */
-.view-toan-the .delegate {
-  width: 40px;
-  min-height: 55px;
-}
-.view-toan-the .delegate .name {
-  font-size: 10px;
-}
-
-/* Kích thước cho sơ đồ Tặng hoa */
-.view-tang-hoa .delegate {
-  width: 50px;
-  min-height: 35px;
-}
-
-.view-tang-hoa .row-content-wrapper {
-  gap: 12px;
-}
-
-.back-to-home {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  z-index: 1000;
-  height: 40px;
-  padding: 0 25px;
-  gap: 8px;
-  border-radius: 20px;
-  background-color: #dc3545;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  text-decoration: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-/* style.css - Thêm vào cuối file */
-
-.flower-basket {
-  /* Căn chỉnh chung */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
-
-  /* Định dạng hình chữ nhật (cao > rộng) */
-  width: 50px;
-  height: 90px;
-  background-color: #f0f8ff; /* Màu xanh alice blue */
-  border: 2px solid #4682b4; /* Màu xanh steel blue */
-  border-radius: 4px; /* Bo góc nhẹ */
-
-  /* Định dạng chữ "Lẵng hoa" bên trong */
-  color: #4682b4;
-  font-weight: bold;
-  font-size: 13px;
+td:nth-child(1),
+td:nth-child(4),
+td:nth-child(5) {
   text-align: center;
 }
-@media print {
-  /* Ẩn các nút điều khiển và nút "Về trang chủ" khi in */
-  .controls,
-  .back-to-home,
-  .row-label {
-    display: none;
-  }
-
-  /* Cho phép sơ đồ hiển thị đầy đủ chiều rộng */
-  .photo-diagram {
-    overflow-x: visible !important;
-    width: 100% !important;
-    height: auto !important;
-    box-shadow: none !important;
-    border: 1px solid #ddd;
-    padding: 10px;
-  }
-
-  /* Đảm bảo các thành phần cha không giới hạn chiều rộng */
-  body,
-  .portal-container {
-    width: 100% !important;
-    padding: 0;
-    margin: 0;
-  }
-
-  h1,
-  #delegate-count {
-    padding: 0 10px;
-  }
+table.simple-view td:nth-child(3) {
+  min-width: 180px;
 }
-/* --- Styles for Tanghoa2: Larger items --- */
-.view-tang-hoa2 .delegate {
-  width: 150px; /* Chiều rộng lớn */
-  min-height: 90px; /* Chiều cao lớn */
-}
-
-.view-tang-hoa2 .delegate .name {
-  font-size: 14px; /* Cỡ chữ lớn hơn */
-  padding-top: 28px; /* Đẩy tên xuống để không bị số đè */
-}
-
-.view-tang-hoa2 .delegate .position {
-  width: 24px; /* Huy hiệu số lớn hơn */
-  height: 24px;
-  font-size: 12px;
-}
-
-.view-tang-hoa2 .flower-basket {
-  width: 90px;
-  height: 120px;
-  font-size: 14px;
+#loading-message {
+  text-align: center;
+  font-size: 1.2em;
+  padding: 20px;
 }
