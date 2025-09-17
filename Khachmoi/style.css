@@ -6,7 +6,7 @@ body {
   padding: 20px;
 }
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   background-color: #fff;
   padding: 20px;
@@ -109,25 +109,58 @@ thead {
   background-color: #004a99;
   color: white;
 }
-td:nth-child(1),
-td:nth-child(4),
-td:nth-child(5) {
-  text-align: center;
-}
-table.simple-view td:nth-child(3) {
-  min-width: 180px;
-}
 #loading-message {
   text-align: center;
   font-size: 1.2em;
   padding: 20px;
 }
-/* --- PHÂN CHIA LẠI CHIỀU RỘNG CÁC CỘT --- */
 
-/* Đặt chiều rộng tối thiểu để các cột ngày tháng không bị xuống dòng */
-#delegate-table th:nth-child(6),
-#delegate-table td:nth-child(6), /* Cột Từ ngày */
-#delegate-table th:nth-child(7),
-#delegate-table td:nth-child(7)  /* Cột Đến ngày */ {
-  min-width: 100px;
+/* -- Định dạng chiều rộng cột -- */
+table.full-view {
+  table-layout: fixed;
+}
+.full-view th:nth-child(1),
+.full-view td:nth-child(1) {
+  width: 4%;
+} /* STT */
+.full-view th:nth-child(2),
+.full-view td:nth-child(2) {
+  width: 30%;
+} /* Họ và Tên */
+.full-view th:nth-child(3),
+.full-view td:nth-child(3) {
+  width: 10%;
+} /* Xác nhận */
+.full-view th:nth-child(4),
+.full-view td:nth-child(4) {
+  width: 18%;
+} /* Đầu mối */
+.full-view th:nth-child(5),
+.full-view td:nth-child(5) {
+  width: 6%;
+} /* Cán bộ */
+.full-view th:nth-child(6),
+.full-view td:nth-child(6) {
+  width: 6%;
+} /* Lái xe */
+.full-view th:nth-child(7),
+.full-view td:nth-child(7) {
+  width: 13%;
+} /* Từ ngày */
+.full-view th:nth-child(8),
+.full-view td:nth-child(8) {
+  width: 13%;
+} /* Đến ngày */
+
+table.simple-view td:nth-child(4) {
+  min-width: 180px;
+} /* Đầu mối liên hệ */
+
+/* Căn giữa các cột cần thiết */
+td:nth-child(1),
+td:nth-child(5),
+td:nth-child(6),
+td:nth-child(7),
+td:nth-child(8) {
+  text-align: center;
 }
