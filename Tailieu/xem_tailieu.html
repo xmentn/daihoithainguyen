@@ -14,7 +14,6 @@
         margin: 0;
         padding: 0;
         height: 100%;
-        overflow: hidden; /* Ngăn cuộn trang không cần thiết */
       }
       /* Biến container chính thành một cột linh hoạt chiếm toàn bộ chiều cao */
       .portal-container {
@@ -85,17 +84,32 @@
       document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);
         const fileName = urlParams.get("file");
-        const docTitle = urlParams.get("title"); // Lấy tiêu đề từ URL
+        const docTitle = urlParams.get("title");
         const pdfTitleElement = document.getElementById("pdf-title");
         const pdfEmbedElement = document.getElementById("pdf-embed");
 
         if (fileName) {
-          // Ưu tiên hiển thị tiêu đề lấy từ URL, nếu không có thì mới dùng tên file
+          // Hiển thị tiêu đề tài liệu
           pdfTitleElement.textContent =
             docTitle || fileName.replace(".pdf", "");
 
-          // Nhúng file PDF vào iframe
-          pdfEmbedElement.src = fileName + "#view=FitH";
+          // ---- PHẦN SỬA ĐỔI QUAN TRỌNG ----
+
+          // 1. Lấy địa chỉ gốc của website (ví dụ: https://www.yourwebsite.com)
+          const baseUrl = window.location.origin;
+
+          // 2. Tạo đường dẫn URL đầy đủ và công khai tới file PDF
+          // Dựa trên file tailieu.html, các file PDF nằm trong thư mục /Tailieu/
+          const fullFileUrl = `${baseUrl}/Tailieu/${fileName}`;
+
+          // 3. Tạo URL của Google Docs Viewer để nhúng vào iframe
+          // encodeURIComponent dùng để mã hóa URL, đảm bảo hoạt động kể cả khi tên file có dấu hoặc ký tự đặc biệt
+          const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+            fullFileUrl
+          )}&embedded=true`;
+
+          // 4. Gán URL của Google Viewer vào iframe
+          pdfEmbedElement.src = googleViewerUrl;
         } else {
           pdfTitleElement.textContent = "Không tìm thấy tài liệu";
         }
