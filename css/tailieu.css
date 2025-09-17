@@ -93,6 +93,8 @@
   margin-bottom: 30px;
   border: 1px solid #ccc;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .pdf-viewer-container iframe {
