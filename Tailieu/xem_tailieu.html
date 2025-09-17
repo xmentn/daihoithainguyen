@@ -89,27 +89,35 @@
         const pdfEmbedElement = document.getElementById("pdf-embed");
 
         if (fileName) {
-          // Hiển thị tiêu đề tài liệu
+          // Luôn hiển thị tiêu đề tài liệu
           pdfTitleElement.textContent =
             docTitle || fileName.replace(".pdf", "");
 
-          // ---- PHẦN SỬA ĐỔI QUAN TRỌNG ----
+          // ---- MÃ THÔNG MINH BẮT ĐẦU TỪ ĐÂY ----
 
-          // 1. Lấy địa chỉ gốc của website (ví dụ: https://www.yourwebsite.com)
-          const baseUrl = window.location.origin;
+          // Kiểm tra xem trang web có đang chạy trên máy tính cá nhân (localhost) không
+          const isLocal =
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1";
 
-          // 2. Tạo đường dẫn URL đầy đủ và công khai tới file PDF
-          // Dựa trên file tailieu.html, các file PDF nằm trong thư mục /Tailieu/
-          const fullFileUrl = `${baseUrl}/Tailieu/${fileName}`;
+          if (isLocal) {
+            // --- CHẠY TRÊN MÁY TÍNH ---
+            // Dùng cách nhúng trực tiếp, vì trình duyệt trên máy tính xem tốt
+            console.log("Đang chạy trên localhost, nhúng PDF trực tiếp.");
+            pdfEmbedElement.src = `/Tailieu/${fileName}`;
+          } else {
+            // --- CHẠY TRÊN MẠNG INTERNET ---
+            // Dùng Google Docs Viewer để tương thích với mọi thiết bị, đặc biệt là iPad
+            console.log("Đang chạy trên server, dùng Google Docs Viewer.");
 
-          // 3. Tạo URL của Google Docs Viewer để nhúng vào iframe
-          // encodeURIComponent dùng để mã hóa URL, đảm bảo hoạt động kể cả khi tên file có dấu hoặc ký tự đặc biệt
-          const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
-            fullFileUrl
-          )}&embedded=true`;
+            const baseUrl = window.location.origin;
+            const fullFileUrl = `${baseUrl}/Tailieu/${fileName}`;
+            const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
+              fullFileUrl
+            )}&embedded=true`;
 
-          // 4. Gán URL của Google Viewer vào iframe
-          pdfEmbedElement.src = googleViewerUrl;
+            pdfEmbedElement.src = googleViewerUrl;
+          }
         } else {
           pdfTitleElement.textContent = "Không tìm thấy tài liệu";
         }
