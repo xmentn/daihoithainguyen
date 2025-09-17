@@ -115,46 +115,36 @@ thead {
   padding: 20px;
 }
 
-/* -- Định dạng chiều rộng cột -- */
-table.full-view {
-  table-layout: fixed;
-}
-.full-view th:nth-child(1),
-.full-view td:nth-child(1) {
-  width: 4%;
-} /* STT */
-.full-view th:nth-child(2),
-.full-view td:nth-child(2) {
-  width: 30%;
-} /* Họ và Tên */
-.full-view th:nth-child(3),
-.full-view td:nth-child(3) {
-  width: 10%;
-} /* Xác nhận */
-.full-view th:nth-child(4),
-.full-view td:nth-child(4) {
-  width: 18%;
-} /* Đầu mối */
-.full-view th:nth-child(5),
-.full-view td:nth-child(5) {
-  width: 6%;
-} /* Cán bộ */
-.full-view th:nth-child(6),
-.full-view td:nth-child(6) {
-  width: 6%;
-} /* Lái xe */
-.full-view th:nth-child(7),
-.full-view td:nth-child(7) {
-  width: 13%;
-} /* Từ ngày */
-.full-view th:nth-child(8),
-.full-view td:nth-child(8) {
-  width: 13%;
-} /* Đến ngày */
+/* -- Định dạng chiều rộng cột (đã cân chỉnh lại) -- */
+/* -- Gợi ý chiều rộng cho các cột -- */
 
-table.simple-view td:nth-child(4) {
-  min-width: 180px;
-} /* Đầu mối liên hệ */
+/* Các cột cần hẹp: STT, Xác nhận, Cán bộ, Lái xe */
+/* width: 1% sẽ báo cho trình duyệt hãy làm cột này hẹp nhất có thể */
+/* -- Gợi ý chiều rộng cho các cột -- */
+
+/* Các cột cần hẹp: STT, Cán bộ, Lái xe */
+#delegate-table th:nth-child(1),
+#delegate-table td:nth-child(1),
+#delegate-table th:nth-child(5),
+#delegate-table td:nth-child(5),
+#delegate-table th:nth-child(6),
+#delegate-table td:nth-child(6) {
+  width: 1%; /* Gợi ý cho trình duyệt co cột lại hẹp nhất có thể */
+}
+
+/* Mở rộng cột "Xác nhận" bằng cách đặt chiều rộng tối thiểu */
+#delegate-table th:nth-child(3),
+#delegate-table td:nth-child(3) {
+  min-width: 120px;
+}
+
+/* Giữ các cột ngày tháng không bị xuống dòng */
+#delegate-table th:nth-child(7),
+#delegate-table td:nth-child(7),
+#delegate-table th:nth-child(8),
+#delegate-table td:nth-child(8) {
+  min-width: 100px;
+}
 
 /* Căn giữa các cột cần thiết */
 td:nth-child(1),
