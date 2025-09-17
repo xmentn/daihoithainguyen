@@ -292,7 +292,6 @@
         const baseUrl =
           "https://script.google.com/macros/s/AKfycbz1Ov02j_x9V0jOY0gdXuESlIrmuFkr3wozGsXuQJo3XaLktWP52rGI_n4svkI6swqWbA/exec";
         const dataUrl = `${baseUrl}?type=photoupload`;
-
         const delegateSelect = document.getElementById("delegate-select");
         const uploadForm = document.getElementById("upload-form");
         const submitBtn = document.getElementById("submit-btn");
@@ -357,12 +356,14 @@
               '<option value="">-- Chọn đại biểu --</option>';
             delegatesData.forEach((delegate) => {
               const option = document.createElement("option");
-              option.value = delegate.Hoten;
+              // THAY ĐỔI: Dùng RowIndex làm giá trị, và hiển thị thêm chức vụ để phân biệt
+              option.value = delegate.RowIndex;
+              option.textContent = `${delegate.Hoten} (${delegate.Chucvu})`; // Hiển thị Tên (Chức vụ)
+
               if (delegate.LinkAnhThang) {
                 option.setAttribute("data-img-id", delegate.LinkAnhThang);
-                option.textContent = `${delegate.Hoten} ✅ (Đã có ảnh)`;
-              } else {
-                option.textContent = delegate.Hoten;
+                // Hiển thị thêm dấu check
+                option.textContent = `${delegate.Hoten} (${delegate.Chucvu}) ✅`;
               }
               delegateSelect.appendChild(option);
             });
@@ -395,6 +396,7 @@
 
         uploadForm.addEventListener("submit", function (event) {
           event.preventDefault();
+          const selectedRowIndex = delegateSelect.value;
           const selectedName = delegateSelect.value;
           const phoneInput = document.getElementById("delegate-phone");
           const phoneValue = phoneInput.value.trim();
@@ -402,11 +404,11 @@
           const fileTrai = inputTrai.files[0];
           const filePhai = inputPhai.files[0];
 
-          if (!selectedName) {
+          if (!selectedRowIndex) {
             Swal.fire({
               icon: "warning",
               title: "Chưa chọn đại biểu",
-              text: "Vui lòng chọn tên đại biểu từ danh sách.",
+              text: "Vui lòng chọn một đại biểu từ danh sách.",
             });
             return;
           }
@@ -469,12 +471,14 @@
               processImage(filePhai),
             ])
               .then(([base64Thang, base64Trai, base64Phai]) => {
-                const delegateToSubmit = delegatesData.find(
-                  (d) => d.Hoten === selectedName
+                // THAY ĐỔI: Tìm đúng đại biểu bằng RowIndex để lấy Tên, Chức vụ
+                const selectedDelegate = delegatesData.find(
+                  (d) => d.RowIndex == selectedRowIndex
                 );
                 const payload = {
-                  delegateName: delegateToSubmit.Hoten,
-                  delegateTitle: delegateToSubmit.Chucvu,
+                  rowIndex: selectedRowIndex, // Gửi đi RowIndex
+                  delegateName: selectedDelegate.Hoten,
+                  delegateTitle: selectedDelegate.Chucvu,
                   delegatePhone: phoneValue,
                   fileThang: base64Thang,
                   fileTrai: base64Trai,
@@ -517,7 +521,7 @@
           };
 
           const selectedDelegate = delegatesData.find(
-            (d) => d.Hoten === selectedName
+            (d) => d.RowIndex == selectedRowIndex
           );
           if (
             selectedDelegate &&
