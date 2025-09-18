@@ -91,7 +91,7 @@ function applyFiltersAndRender() {
       (d) => d.xacNhan === "" || d.xacNhan === null
     );
   } else if (currentStatusFilter === "recent") {
-    const fifteenMinutesAgo = new Date().getTime() - 5 * 60 * 1000;
+    const fifteenMinutesAgo = new Date().getTime() - 15 * 60 * 1000;
     filteredData = filteredData.filter(
       (d) =>
         d.lastUpdated && new Date(d.lastUpdated).getTime() >= fifteenMinutesAgo
