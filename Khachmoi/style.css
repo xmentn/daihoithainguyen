@@ -154,3 +154,30 @@ td:nth-child(7),
 td:nth-child(8) {
   text-align: center;
 }
+/* --- Kiểu dáng cho nút Về trang chủ --- */
+
+.btn-home {
+  display: inline-flex; /* Dùng flexbox để căn giữa icon và text */
+  align-items: center; /* Căn giữa theo chiều dọc */
+  gap: 8px; /* Khoảng cách giữa icon và text */
+  padding: 12px 25px; /* Tăng padding để tạo hình con nhộng */
+  background-color: #007bff; /* Màu xanh nổi bật */
+  color: white;
+  text-decoration: none;
+  border-radius: 50px; /* Bo tròn mạnh để tạo hình con nhộng */
+  font-weight: bold;
+  font-size: 1.1em;
+  transition: background-color 0.3s, transform 0.2s;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng đổ nhẹ */
+
+  /* Đặt nút cố định ở góc dưới bên phải màn hình */
+  position: fixed; /* Cố định vị trí trên màn hình */
+  bottom: 25px; /* Cách đáy 25px */
+  right: 25px; /* Cách phải 25px */
+  z-index: 1000; /* Đảm bảo nút nằm trên các phần tử khác */
+}
+
+.btn-home:hover {
+  background-color: #0056b3; /* Màu tối hơn khi di chuột qua */
+  transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ lên */
+}
