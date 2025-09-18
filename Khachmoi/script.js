@@ -11,25 +11,24 @@ let allDelegates = [];
 let currentStatusFilter = "all";
 let currentOrgFilter = "all";
 
-// --- TIÊU ĐỀ BẢNG MỚI ---
 const fullHeader = `<tr><th rowspan="2">STT</th><th rowspan="2">Họ và Tên</th><th rowspan="2">Xác nhận</th><th rowspan="2">Đầu mối liên hệ</th><th colspan="2">Người đi cùng (số lượng)</th><th colspan="2">Thời gian lưu trú</th></tr><tr><th>Cán bộ</th><th>Lái xe</th><th>Từ ngày</th><th>Đến ngày</th></tr>`;
 const simpleHeader = `<tr><th>STT</th><th>Họ và Tên</th><th>Xác nhận</th><th>Đầu mối liên hệ</th></tr>`;
 
 function renderTable(data) {
   const viewType =
-    currentStatusFilter === "all" || currentStatusFilter === "Có dự"
+    currentStatusFilter === "all" ||
+    currentStatusFilter === "Có dự" ||
+    currentStatusFilter === "recent"
       ? "full"
       : "simple";
   tableHead.innerHTML = viewType === "full" ? fullHeader : simpleHeader;
   tableElement.className = viewType === "full" ? "full-view" : "simple-view";
-
   tableBody.innerHTML = "";
   const colspan = viewType === "simple" ? 4 : 8;
   if (data.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>`;
     return;
   }
-
   data.forEach((delegate, index) => {
     const row = document.createElement("tr");
     let rowContent = "";
@@ -81,19 +80,28 @@ function populateOrgFilter(data) {
 
 function applyFiltersAndRender() {
   let filteredData = allDelegates;
+
   if (currentOrgFilter !== "all") {
     filteredData = filteredData.filter((d) => d.donViMoi === currentOrgFilter);
   }
   updateSummary(filteredData);
+
   if (currentStatusFilter === "pending") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === "" || d.xacNhan === null
+    );
+  } else if (currentStatusFilter === "recent") {
+    const fifteenMinutesAgo = new Date().getTime() - 5 * 60 * 1000;
+    filteredData = filteredData.filter(
+      (d) =>
+        d.lastUpdated && new Date(d.lastUpdated).getTime() >= fifteenMinutesAgo
     );
   } else if (currentStatusFilter !== "all") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === currentStatusFilter
     );
   }
+
   renderTable(filteredData);
 }
 
