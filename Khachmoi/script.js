@@ -1,6 +1,5 @@
 const WEB_APP_URL =
   "https://script.google.com/macros/s/AKfycbzQyMARvTRvIYOcwfmQqVBHXGGaEiu7MImVtnHhl6LqjgO-kRJ0--DcmrXPZMHJp9hJ/exec";
-
 const tableElement = document.getElementById("delegate-table");
 const tableHead = document.querySelector("#delegate-table thead");
 const tableBody = document.querySelector("#delegate-table tbody");
@@ -16,19 +15,19 @@ const simpleHeader = `<tr><th>STT</th><th>Họ và Tên</th><th>Xác nhận</th>
 
 function renderTable(data) {
   const viewType =
-    currentStatusFilter === "all" ||
-    currentStatusFilter === "Có dự" ||
-    currentStatusFilter === "recent"
+    currentStatusFilter === "all" || currentStatusFilter === "Có dự"
       ? "full"
       : "simple";
   tableHead.innerHTML = viewType === "full" ? fullHeader : simpleHeader;
   tableElement.className = viewType === "full" ? "full-view" : "simple-view";
+
   tableBody.innerHTML = "";
   const colspan = viewType === "simple" ? 4 : 8;
   if (data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu.</td></tr>`;
     return;
   }
+
   data.forEach((delegate, index) => {
     const row = document.createElement("tr");
     let rowContent = "";
@@ -80,28 +79,19 @@ function populateOrgFilter(data) {
 
 function applyFiltersAndRender() {
   let filteredData = allDelegates;
-
   if (currentOrgFilter !== "all") {
     filteredData = filteredData.filter((d) => d.donViMoi === currentOrgFilter);
   }
   updateSummary(filteredData);
-
   if (currentStatusFilter === "pending") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === "" || d.xacNhan === null
-    );
-  } else if (currentStatusFilter === "recent") {
-    const fifteenMinutesAgo = new Date().getTime() - 15 * 60 * 1000;
-    filteredData = filteredData.filter(
-      (d) =>
-        d.lastUpdated && new Date(d.lastUpdated).getTime() >= fifteenMinutesAgo
     );
   } else if (currentStatusFilter !== "all") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === currentStatusFilter
     );
   }
-
   renderTable(filteredData);
 }
 
