@@ -314,3 +314,38 @@ body {
     transform: rotate(360deg);
   }
 }
+/* --- CSS CHO NÚT CHƯƠNG TRÌNH LÀM VIỆC --- */
+.schedule-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background-color: #ffffff;
+  padding: 12px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.3s ease;
+  margin-top: 25px; /* Tạo khoảng cách với khung thông báo */
+  border-top: 5px solid #4caf50; /* Màu xanh lá cây cho khác biệt */
+}
+
+.schedule-button img {
+  width: 40px;
+  height: 40px;
+}
+
+.schedule-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  color: #0d47a1;
+}
+
+/* Điều chỉnh lại cột bên trái để chứa nút mới */
+.left-column {
+  display: flex;
+  flex-direction: column;
+}
