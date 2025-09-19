@@ -91,9 +91,13 @@ function applyFiltersAndRender() {
   } else if (currentStatusFilter === "uyvien") {
     filteredData = filteredData.filter(
       (d) =>
+        // Điều kiện 1: Phải xác nhận "Có dự"
         d.xacNhan === "Có dự" &&
-        d.daiBieu.includes("Ủy viên Ban Chấp hành Trung ương Đảng") &&
-        !d.daiBieu.includes("nguyên") // ✅ THÊM ĐIỀU KIỆN NÀY
+        // Điều kiện 2A: Là Ủy viên TW, không phải "nguyên"
+        ((d.daiBieu.includes("Ủy viên Ban Chấp hành Trung ương Đảng") &&
+          !d.daiBieu.includes("nguyên")) ||
+          // HOẶC Điều kiện 2B: Có từ "dự khuyết"
+          d.daiBieu.includes("dự khuyết"))
     );
   } else if (currentStatusFilter !== "all") {
     filteredData = filteredData.filter(
