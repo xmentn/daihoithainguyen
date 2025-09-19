@@ -93,9 +93,11 @@ function applyFiltersAndRender() {
       (d) =>
         // Điều kiện 1: Phải xác nhận "Có dự"
         d.xacNhan === "Có dự" &&
-        // Điều kiện 2A: Là Ủy viên TW, không phải "nguyên"
+        // Điều kiện 2A: Chức danh chứa "Ủy viên..." VÀ không chứa cụm từ "nguyên Ủy viên..."
         ((d.daiBieu.includes("Ủy viên Ban Chấp hành Trung ương Đảng") &&
-          !d.daiBieu.includes("nguyên")) ||
+          !d.daiBieu.includes(
+            "nguyên Ủy viên Ban Chấp hành Trung ương Đảng"
+          )) ||
           // HOẶC Điều kiện 2B: Có từ "dự khuyết"
           d.daiBieu.includes("dự khuyết"))
     );
