@@ -13,7 +13,7 @@ body {
 
 .container {
   width: 100%;
-  max-width: 900px;
+  max-width: 1100px;
   background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -38,14 +38,12 @@ body {
   font-weight: 700;
   margin: 0;
 }
-
 .header h2 {
   color: #0d47a1;
   font-size: 1.5em;
   font-weight: 500;
   margin: 5px 0 15px 0;
 }
-
 .event-info {
   font-size: 1em;
   color: #333;
@@ -55,7 +53,7 @@ body {
 .tabs {
   display: flex;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   border-bottom: 1px solid #ddd;
 }
 
@@ -68,12 +66,12 @@ body {
   font-weight: 500;
   transition: all 0.3s ease;
   border-bottom: 3px solid transparent;
+  color: #555;
 }
 
 .tab-link:hover {
   color: #c00;
 }
-
 .tab-link.active {
   color: #0d47a1;
   border-bottom: 3px solid #0d47a1;
@@ -83,7 +81,6 @@ body {
   display: none;
   animation: fadeIn 0.5s;
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -93,66 +90,92 @@ body {
   }
 }
 
-.tab-content h3 {
-  text-align: center;
-  color: #333;
-  font-size: 1.4em;
-  text-transform: uppercase;
-  margin-bottom: 25px;
-}
-
-.timeline {
-  position: relative;
-  padding-left: 30px;
-  border-left: 3px solid #0d47a1;
-}
-
-.timeline-item {
-  position: relative;
-  margin-bottom: 30px;
-}
-
-.timeline-item::before {
-  content: "";
-  position: absolute;
-  left: -38px;
-  top: 5px;
-  width: 15px;
-  height: 15px;
-  background-color: #fff;
-  border: 3px solid #0d47a1;
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.timeline-time {
+.session-title {
+  font-size: 1.3em;
   font-weight: bold;
   color: #c00;
-  font-size: 1.1em;
-  margin-bottom: 5px;
+  margin-top: 20px;
+  margin-bottom: 15px;
+  padding-left: 10px;
+  border-left: 4px solid #c00;
 }
 
-.timeline-content {
-  background-color: #f9f9f9;
-  padding: 20px;
+/* --- CSS MỚI CHO LỊCH TRÌNH --- */
+.schedule-container {
+  max-width: 1000px; /* Giới hạn chiều rộng của bảng */
+  margin: 20px auto 0 auto; /* Căn giữa bảng */
+  border: 1px solid #d0d7de; /* Thêm đường viền bao quanh */
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  overflow: hidden; /* Bo tròn góc cho đẹp */
 }
 
-.timeline-content h4 {
-  margin: 0 0 10px 0;
+.schedule-header {
+  display: flex;
+  font-weight: bold;
   color: #0d47a1;
+  background-color: #eaf2fa; /* Nền màu xanh nhạt cho tiêu đề */
+  border-bottom: 2px solid #b4cde6;
+  text-align: center; /* Căn giữa chữ trong tiêu đề */
 }
 
-.timeline-content p,
-.timeline-content ul {
-  margin: 0;
-  line-height: 1.7;
+.schedule-row {
+  display: flex;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.schedule-row:last-child {
+  border-bottom: none;
+}
+
+.schedule-row:hover {
+  background-color: #f8f9fa;
+}
+
+.header-time,
+.schedule-time,
+.header-content,
+.schedule-content,
+.header-performer,
+.schedule-performer {
+  padding: 12px 15px;
+  display: flex;
+  align-items: center;
+}
+
+.header-time,
+.schedule-time {
+  width: 18%;
+  font-weight: 500;
+  justify-content: center; /* Căn giữa thời gian */
+  color: #0d47a1;
+  border-right: 1px solid #d0d7de; /* Đường kẻ dọc */
+}
+/* Căn giữa tiêu đề cột thời gian */
+.header-time {
+  justify-content: center;
+}
+.schedule-time {
+  justify-content: flex-start; /* Dữ liệu thời gian căn trái */
+}
+
+.header-content,
+.schedule-content {
+  width: 52%;
+  border-right: 1px solid #d0d7de; /* Đường kẻ dọc */
+  line-height: 1.6;
+  color: #333;
+}
+
+.header-performer,
+.schedule-performer {
+  width: 30%;
   color: #555;
 }
 
-.timeline-content ul {
-  padding-left: 20px;
+/* Căn giữa các tiêu đề cột Nội dung và Thực hiện */
+.header-content,
+.header-performer {
+  justify-content: center;
 }
 
 .back-button {
