@@ -1,5 +1,6 @@
 const WEB_APP_URL =
   "https://script.google.com/macros/s/AKfycbzQyMARvTRvIYOcwfmQqVBHXGGaEiu7MImVtnHhl6LqjgO-kRJ0--DcmrXPZMHJp9hJ/exec";
+
 const tableElement = document.getElementById("delegate-table");
 const tableHead = document.querySelector("#delegate-table thead");
 const tableBody = document.querySelector("#delegate-table tbody");
@@ -14,8 +15,11 @@ const fullHeader = `<tr><th rowspan="2">STT</th><th rowspan="2">Họ và Tên</t
 const simpleHeader = `<tr><th>STT</th><th>Họ và Tên</th><th>Xác nhận</th><th>Đầu mối liên hệ</th></tr>`;
 
 function renderTable(data) {
+  // ✅ THAY ĐỔI 1: Thêm 'uyvien' vào danh sách các bộ lọc dùng giao diện đầy đủ
   const viewType =
-    currentStatusFilter === "all" || currentStatusFilter === "Có dự"
+    currentStatusFilter === "all" ||
+    currentStatusFilter === "Có dự" ||
+    currentStatusFilter === "uyvien"
       ? "full"
       : "simple";
   tableHead.innerHTML = viewType === "full" ? fullHeader : simpleHeader;
@@ -24,7 +28,7 @@ function renderTable(data) {
   tableBody.innerHTML = "";
   const colspan = viewType === "simple" ? 4 : 8;
   if (data.length === 0) {
-    tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu.</td></tr>`;
+    tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>`;
     return;
   }
 
@@ -36,17 +40,12 @@ function renderTable(data) {
         delegate.xacNhan || "Chưa xác nhận"
       }</td><td>${delegate.dauMoi}</td>`;
     } else {
-      if (delegate.xacNhan === "Có dự") {
-        rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
-          delegate.xacNhan
-        }</td><td>${delegate.dauMoi}</td><td>${delegate.canBo}</td><td>${
-          delegate.laiXe
-        }</td><td>${delegate.tuNgay}</td><td>${delegate.denNgay}</td>`;
-      } else {
-        rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
-          delegate.xacNhan || "Chưa xác nhận"
-        }</td><td colspan="5">${delegate.dauMoi}</td>`;
-      }
+      // Hiển thị đầy đủ thông tin cho các đại biểu (bao gồm cả Ủy viên TW)
+      rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
+        delegate.xacNhan
+      }</td><td>${delegate.dauMoi}</td><td>${delegate.canBo}</td><td>${
+        delegate.laiXe
+      }</td><td>${delegate.tuNgay}</td><td>${delegate.denNgay}</td>`;
     }
     row.innerHTML = rowContent;
     tableBody.appendChild(row);
@@ -83,15 +82,25 @@ function applyFiltersAndRender() {
     filteredData = filteredData.filter((d) => d.donViMoi === currentOrgFilter);
   }
   updateSummary(filteredData);
+
+  // ✅ THAY ĐỔI 2: Thêm logic lọc cho 'uyvien'
   if (currentStatusFilter === "pending") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === "" || d.xacNhan === null
+    );
+  } else if (currentStatusFilter === "uyvien") {
+    filteredData = filteredData.filter(
+      (d) =>
+        d.xacNhan === "Có dự" &&
+        d.daiBieu.includes("Ủy viên Ban Chấp hành Trung ương Đảng") &&
+        !d.daiBieu.includes("nguyên") // ✅ THÊM ĐIỀU KIỆN NÀY
     );
   } else if (currentStatusFilter !== "all") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === currentStatusFilter
     );
   }
+
   renderTable(filteredData);
 }
 
