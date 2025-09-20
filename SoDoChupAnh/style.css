@@ -247,3 +247,29 @@ h1 {
   height: 120px;
   font-size: 14px;
 }
+/* --- CSS cho chú thích hướng (Đoàn Chủ tịch / Hội trường) --- */
+.direction-label {
+  display: flex;
+  flex-direction: column; /* Xếp mũi tên và chữ theo chiều dọc */
+  align-items: center; /* Căn giữa theo chiều ngang */
+  gap: 5px; /* Khoảng cách giữa mũi tên và chữ */
+  font-weight: bold;
+  font-size: 14px;
+  color: #555;
+  text-transform: uppercase;
+  margin-top: 20px; /* Thêm khoảng cách ở trên */
+  margin-bottom: 20px; /* Thêm khoảng cách ở dưới */
+}
+
+.direction-label i {
+  font-size: 22px;
+  color: #0d6efd; /* Màu xanh dương */
+}
+
+/* Tạo khoảng cách với hàng đại biểu */
+.direction-label.top-label {
+  margin-bottom: 15px;
+}
+.direction-label.bottom-label {
+  margin-top: 15px;
+}

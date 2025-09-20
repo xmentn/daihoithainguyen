@@ -8,18 +8,15 @@ function loadDiagram(sheetName) {
   const titleElement = document.getElementById("main-title");
   let newTitle = "SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA";
 
-  if (sheetName === "Tanghoa1") {
-    newTitle = "ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ TẶNG HOA ĐẠI HỘI";
-  } else if (sheetName === "Tanghoa2") {
-    newTitle = "ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ TẶNG HOA ĐẠI HỘI";
-  } else if (sheetName === "BanChanhHanh") {
+  if (sheetName === "BanChanhHanh") {
     newTitle =
       "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI BCH ĐẢNG BỘ TỈNH";
   } else if (sheetName === "ToanThe") {
     newTitle =
       "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI ĐẠI BIỂU DỰ ĐẠI HỘI";
+  } else if (sheetName === "Tanghoa") {
+    newTitle = "SƠ ĐỒ TẶNG HOA"; // Tiêu đề mới cho sơ đồ tặng hoa
   }
-
   if (titleElement) {
     titleElement.textContent = newTitle;
   }
@@ -39,10 +36,10 @@ function loadDiagram(sheetName) {
     container.classList.add("view-bch"); // Phải là 'view-bch' để khớp với CSS
   } else if (sheetName === "ToanThe") {
     container.classList.add("view-toan-the");
-  } else if (sheetName === "Tanghoa1") {
-    container.classList.add("view-tang-hoa");
-  } else if (sheetName === "Tanghoa2") {
-    container.classList.add("view-tang-hoa2");
+  } else if (sheetName === "BanChanhHanh") {
+    container.classList.add("view-bch");
+  } else if (sheetName === "Tanghoa") {
+    container.classList.add("view-tang-hoa2"); // Giữ lại style của Tặng hoa 2
   }
   // --- KẾT THÚC PHẦN QUAN TRỌNG ---
 
@@ -76,16 +73,13 @@ function loadDiagram(sheetName) {
 // script.js
 
 function displayDiagram(delegates) {
-  // 1. Lấy các phần tử cần thiết và xóa nội dung cũ của sơ đồ
   const container = document.getElementById("diagram-container");
   const countElement = document.getElementById("delegate-count");
-  container.innerHTML = ""; // Xóa sơ đồ cũ để vẽ lại
 
-  // 2. Lọc và đếm số đại biểu hợp lệ
   const validDelegates = delegates.filter((d) => d.Sohang && d.Vitri);
   countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
+  container.innerHTML = "";
 
-  // 3. Nhóm các đại biểu theo từng hàng
   const fragment = document.createDocumentFragment();
   const rows = {};
   validDelegates.forEach((delegate) => {
@@ -94,18 +88,28 @@ function displayDiagram(delegates) {
     rows[rowNum].push(delegate);
   });
 
-  // 4. Lặp qua từng hàng để vẽ sơ đồ
+  // --- THÊM CHÚ THÍCH PHÍA TRÊN ---
+  // Áp dụng cho cả sơ đồ Ban Chấp hành và Tặng hoa
+  if (
+    container.classList.contains("view-bch") ||
+    container.classList.contains("view-tang-hoa2")
+  ) {
+    const topLabel = document.createElement("div");
+    topLabel.className = "direction-label";
+    topLabel.innerHTML = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+    fragment.appendChild(topLabel);
+  }
+
+  // Lặp qua từng hàng để vẽ sơ đồ
   Object.keys(rows)
     .sort((a, b) => b - a)
     .forEach((rowNum) => {
       const rowData = rows[rowNum];
       const rowElement = document.createElement("div");
       rowElement.className = "row";
-
       const contentWrapper = document.createElement("div");
       contentWrapper.className = "row-content-wrapper";
 
-      // Sắp xếp đại biểu chẵn giảm dần, lẻ tăng dần
       const evens = rowData
         .filter((d) => d.Vitri % 2 === 0)
         .sort((a, b) => b.Vitri - a.Vitri);
@@ -113,24 +117,21 @@ function displayDiagram(delegates) {
         .filter((d) => d.Vitri % 2 !== 0)
         .sort((a, b) => a.Vitri - b.Vitri);
 
-      // Hàm trợ giúp tạo phần tử đại biểu
       const createDelegateElement = (delegate) => {
         const delegateDiv = document.createElement("div");
         delegateDiv.className = "delegate";
         delegateDiv.innerHTML = `
-        <div class="position">${delegate.Vitri}</div>
-        <div class="name">${delegate.Hoten || ""}</div>
-    `;
+              <div class="position">${delegate.Vitri}</div>
+              <div class="name">${delegate.Hoten || ""}</div>
+          `;
         return delegateDiv;
       };
 
-      // Thêm các đại biểu số chẵn
-      evens.forEach((delegate) => {
-        contentWrapper.appendChild(createDelegateElement(delegate));
-      });
+      evens.forEach((delegate) =>
+        contentWrapper.appendChild(createDelegateElement(delegate))
+      );
 
-      // === ĐÂY LÀ VỊ TRÍ ĐÚNG ĐỂ CHÈN LẴNG HOA ===
-      // Nếu là Hàng 1 và đang ở chế độ xem "Tặng hoa", thì chèn lẵng hoa
+      // Logic chèn Lẵng hoa (chỉ cho sơ đồ tặng hoa)
       if (
         rowNum == "1" &&
         (container.classList.contains("view-tang-hoa") ||
@@ -142,21 +143,34 @@ function displayDiagram(delegates) {
         contentWrapper.appendChild(flowerDiv);
       }
 
-      // Thêm các đại biểu số lẻ
-      odds.forEach((delegate) => {
-        contentWrapper.appendChild(createDelegateElement(delegate));
-      });
+      odds.forEach((delegate) =>
+        contentWrapper.appendChild(createDelegateElement(delegate))
+      );
 
       rowElement.appendChild(contentWrapper);
 
-      const rowLabel = document.createElement("div");
-      rowLabel.className = "row-label";
-      rowLabel.textContent = `Hàng ${rowNum}`;
-      rowElement.appendChild(rowLabel);
+      // Chỉ hiển thị nhãn "Hàng X" cho các sơ đồ có nhiều hàng
+      if (!container.classList.contains("view-tang-hoa2")) {
+        const rowLabel = document.createElement("div");
+        rowLabel.className = "row-label";
+        rowLabel.textContent = `Hàng ${rowNum}`;
+        rowElement.appendChild(rowLabel);
+      }
 
       fragment.appendChild(rowElement);
     });
 
-  // 5. Thêm sơ đồ đã hoàn chỉnh vào trang web
+  // --- THÊM CHÚ THÍCH PHÍA DƯỚI ---
+  // Áp dụng cho cả sơ đồ Ban Chấp hành và Tặng hoa
+  if (
+    container.classList.contains("view-bch") ||
+    container.classList.contains("view-tang-hoa2")
+  ) {
+    const bottomLabel = document.createElement("div");
+    bottomLabel.className = "direction-label";
+    bottomLabel.innerHTML = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
+    fragment.appendChild(bottomLabel);
+  }
+
   container.appendChild(fragment);
 }
