@@ -115,69 +115,89 @@ thead {
   padding: 20px;
 }
 
-/* -- Định dạng chiều rộng cột (đã cân chỉnh lại) -- */
-/* -- Gợi ý chiều rộng cho các cột -- */
-
-/* Các cột cần hẹp: STT, Xác nhận, Cán bộ, Lái xe */
-/* width: 1% sẽ báo cho trình duyệt hãy làm cột này hẹp nhất có thể */
-/* -- Gợi ý chiều rộng cho các cột -- */
+/* -- Gợi ý chiều rộng cho các cột (phiên bản cập nhật) -- */
 
 /* Các cột cần hẹp: STT, Cán bộ, Lái xe */
 #delegate-table th:nth-child(1),
 #delegate-table td:nth-child(1),
-#delegate-table th:nth-child(5),
-#delegate-table td:nth-child(5),
 #delegate-table th:nth-child(6),
-#delegate-table td:nth-child(6) {
+#delegate-table td:nth-child(6),
+#delegate-table th:nth-child(7),
+#delegate-table td:nth-child(7) {
   width: 1%; /* Gợi ý cho trình duyệt co cột lại hẹp nhất có thể */
 }
 
-/* Mở rộng cột "Xác nhận" bằng cách đặt chiều rộng tối thiểu */
+/* Đặt chiều rộng tối thiểu cho các cột cụ thể */
 #delegate-table th:nth-child(3),
 #delegate-table td:nth-child(3) {
-  min-width: 120px;
+  min-width: 120px; /* Cột Xác nhận */
 }
 
-/* Giữ các cột ngày tháng không bị xuống dòng */
-#delegate-table th:nth-child(7),
-#delegate-table td:nth-child(7),
+#delegate-table th:nth-child(4),
+#delegate-table td:nth-child(4) {
+  min-width: 80px; /* Cột Vị trí ghế */
+}
+
 #delegate-table th:nth-child(8),
-#delegate-table td:nth-child(8) {
-  min-width: 100px;
+#delegate-table td:nth-child(8),
+#delegate-table th:nth-child(9),
+#delegate-table td:nth-child(9) {
+  min-width: 90px; /* Thu hẹp cột ngày tháng một chút */
 }
 
-/* Căn giữa các cột cần thiết */
-td:nth-child(1),
-td:nth-child(5),
-td:nth-child(6),
-td:nth-child(7),
-td:nth-child(8) {
+/* --- ✅ THÊM VÀO: ĐỊNH DẠNG CHIỀU RỘNG CHO BẢNG RÚT GỌN (simple-view) --- */
+table.simple-view {
+  table-layout: fixed;
+  width: 100%;
+}
+.simple-view th:nth-child(1),
+.simple-view td:nth-child(1) {
+  width: 5%;
+}
+.simple-view th:nth-child(2),
+.simple-view td:nth-child(2) {
+  width: 55%;
+}
+.simple-view th:nth-child(3),
+.simple-view td:nth-child(3) {
+  width: 15%;
+}
+.simple-view th:nth-child(4),
+.simple-view td:nth-child(4) {
+  width: 25%;
+}
+
+/* --- Căn giữa các cột cần thiết --- */
+td:nth-child(1),  /* STT */
+td:nth-child(4),  /* Vị trí ghế */
+td:nth-child(6),  /* Cán bộ */
+td:nth-child(7),  /* Lái xe */
+td:nth-child(8),  /* Từ ngày */
+td:nth-child(9) {
+  /* Đến ngày */
   text-align: center;
 }
-/* --- Kiểu dáng cho nút Về trang chủ --- */
 
+/* --- Kiểu dáng cho nút Về trang chủ --- */
 .btn-home {
-  display: inline-flex; /* Dùng flexbox để căn giữa icon và text */
-  align-items: center; /* Căn giữa theo chiều dọc */
-  gap: 8px; /* Khoảng cách giữa icon và text */
-  padding: 12px 25px; /* Tăng padding để tạo hình con nhộng */
-  background-color: #007bff; /* Màu xanh nổi bật */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 25px;
+  background-color: #007bff;
   color: white;
   text-decoration: none;
-  border-radius: 50px; /* Bo tròn mạnh để tạo hình con nhộng */
+  border-radius: 50px;
   font-weight: bold;
   font-size: 1.1em;
   transition: background-color 0.3s, transform 0.2s;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Thêm bóng đổ nhẹ */
-
-  /* Đặt nút cố định ở góc dưới bên phải màn hình */
-  position: fixed; /* Cố định vị trí trên màn hình */
-  bottom: 25px; /* Cách đáy 25px */
-  right: 25px; /* Cách phải 25px */
-  z-index: 1000; /* Đảm bảo nút nằm trên các phần tử khác */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1000;
 }
-
 .btn-home:hover {
-  background-color: #0056b3; /* Màu tối hơn khi di chuột qua */
-  transform: translateY(-2px); /* Hiệu ứng nhấc nhẹ lên */
+  background-color: #0056b3;
+  transform: translateY(-2px);
 }

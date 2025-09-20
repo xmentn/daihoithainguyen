@@ -11,11 +11,12 @@ let allDelegates = [];
 let currentStatusFilter = "all";
 let currentOrgFilter = "all";
 
-const fullHeader = `<tr><th rowspan="2">STT</th><th rowspan="2">Họ và Tên</th><th rowspan="2">Xác nhận</th><th rowspan="2">Đầu mối liên hệ</th><th colspan="2">Người đi cùng (số lượng)</th><th colspan="2">Thời gian lưu trú</th></tr><tr><th>Cán bộ</th><th>Lái xe</th><th>Từ ngày</th><th>Đến ngày</th></tr>`;
+// --- CẬP NHẬT TIÊU ĐỀ BẢNG (THÊM "VỊ TRÍ GHẾ") ---
+const fullHeader = `<tr><th rowspan="2">STT</th><th rowspan="2">Họ và Tên</th><th rowspan="2">Xác nhận</th><th rowspan="2">Vị trí ghế</th><th rowspan="2">Đầu mối liên hệ</th><th colspan="2">Người đi cùng (số lượng)</th><th colspan="2">Thời gian lưu trú</th></tr><tr><th>Cán bộ</th><th>Lái xe</th><th>Từ ngày</th><th>Đến ngày</th></tr>`;
 const simpleHeader = `<tr><th>STT</th><th>Họ và Tên</th><th>Xác nhận</th><th>Đầu mối liên hệ</th></tr>`;
 
 function renderTable(data) {
-  // ✅ THAY ĐỔI 1: Thêm 'uyvien' vào danh sách các bộ lọc dùng giao diện đầy đủ
+  // Thêm 'uyvien' vào danh sách các bộ lọc dùng giao diện đầy đủ
   const viewType =
     currentStatusFilter === "all" ||
     currentStatusFilter === "Có dự" ||
@@ -26,7 +27,7 @@ function renderTable(data) {
   tableElement.className = viewType === "full" ? "full-view" : "simple-view";
 
   tableBody.innerHTML = "";
-  const colspan = viewType === "simple" ? 4 : 8;
+  const colspan = viewType === "simple" ? 4 : 9; // Cập nhật colspan
   if (data.length === 0) {
     tableBody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center;">Không có dữ liệu phù hợp.</td></tr>`;
     return;
@@ -35,17 +36,29 @@ function renderTable(data) {
   data.forEach((delegate, index) => {
     const row = document.createElement("tr");
     let rowContent = "";
+
     if (viewType === "simple") {
+      // Chế độ xem rút gọn không có cột Vị trí ghế
       rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
         delegate.xacNhan || "Chưa xác nhận"
       }</td><td>${delegate.dauMoi}</td>`;
     } else {
-      // Hiển thị đầy đủ thông tin cho các đại biểu (bao gồm cả Ủy viên TW)
-      rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
-        delegate.xacNhan
-      }</td><td>${delegate.dauMoi}</td><td>${delegate.canBo}</td><td>${
-        delegate.laiXe
-      }</td><td>${delegate.tuNgay}</td><td>${delegate.denNgay}</td>`;
+      // Chế độ xem đầy đủ
+      if (delegate.xacNhan === "Có dự") {
+        // Thêm ô dữ liệu "Vị trí ghế" để khớp với tiêu đề
+        rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
+          delegate.xacNhan
+        }</td><td>${delegate.viTriGhe}</td><td>${delegate.dauMoi}</td><td>${
+          delegate.canBo
+        }</td><td>${delegate.laiXe}</td><td>${delegate.tuNgay}</td><td>${
+          delegate.denNgay
+        }</td>`;
+      } else {
+        // Gộp các cột còn lại
+        rowContent = `<td>${index + 1}</td><td>${delegate.daiBieu}</td><td>${
+          delegate.xacNhan || "Chưa xác nhận"
+        }</td><td colspan="6">${delegate.dauMoi}</td>`;
+      }
     }
     row.innerHTML = rowContent;
     tableBody.appendChild(row);
@@ -83,7 +96,6 @@ function applyFiltersAndRender() {
   }
   updateSummary(filteredData);
 
-  // ✅ THAY ĐỔI 2: Thêm logic lọc cho 'uyvien'
   if (currentStatusFilter === "pending") {
     filteredData = filteredData.filter(
       (d) => d.xacNhan === "" || d.xacNhan === null
@@ -91,14 +103,11 @@ function applyFiltersAndRender() {
   } else if (currentStatusFilter === "uyvien") {
     filteredData = filteredData.filter(
       (d) =>
-        // Điều kiện 1: Phải xác nhận "Có dự"
         d.xacNhan === "Có dự" &&
-        // Điều kiện 2A: Chức danh chứa "Ủy viên..." VÀ không chứa cụm từ "nguyên Ủy viên..."
         ((d.daiBieu.includes("Ủy viên Ban Chấp hành Trung ương Đảng") &&
           !d.daiBieu.includes(
             "nguyên Ủy viên Ban Chấp hành Trung ương Đảng"
           )) ||
-          // HOẶC Điều kiện 2B: Có từ "dự khuyết"
           d.daiBieu.includes("dự khuyết"))
     );
   } else if (currentStatusFilter !== "all") {
