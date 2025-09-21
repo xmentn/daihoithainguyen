@@ -1,4 +1,4 @@
-// SoDoChupAnh/script.js - PHIÊN BẢN HOÀN CHỈNH CUỐI CÙNG
+// SoDoChupAnh/script.js - PHIÊN BẢN SỬA LỖI CUỐI CÙNG
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDiagram("BanChanhHanh");
@@ -15,7 +15,7 @@ function loadDiagram(sheetName) {
     newTitle =
       "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI ĐẠI BIỂU DỰ ĐẠI HỘI";
   } else if (sheetName === "Tanghoa") {
-    newTitle = "SƠ ĐỒ TẶNG HOA"; // Tiêu đề mới cho sơ đồ tặng hoa
+    newTitle = "SƠ ĐỒ TẶNG HOA";
   }
   if (titleElement) {
     titleElement.textContent = newTitle;
@@ -24,7 +24,6 @@ function loadDiagram(sheetName) {
   const container = document.getElementById("diagram-container");
   const buttons = document.querySelectorAll(".controls button");
 
-  // --- PHẦN QUAN TRỌNG ĐẢM BẢO ĐÚNG TÊN CLASS ---
   container.classList.remove(
     "view-bch",
     "view-toan-the",
@@ -33,15 +32,12 @@ function loadDiagram(sheetName) {
   );
 
   if (sheetName === "BanChanhHanh") {
-    container.classList.add("view-bch"); // Phải là 'view-bch' để khớp với CSS
+    container.classList.add("view-bch");
   } else if (sheetName === "ToanThe") {
     container.classList.add("view-toan-the");
-  } else if (sheetName === "BanChanhHanh") {
-    container.classList.add("view-bch");
   } else if (sheetName === "Tanghoa") {
-    container.classList.add("view-tang-hoa2"); // Giữ lại style của Tặng hoa 2
+    container.classList.add("view-tang-hoa2");
   }
-  // --- KẾT THÚC PHẦN QUAN TRỌNG ---
 
   buttons.forEach((btn) => btn.classList.remove("active"));
   const activeButton = document.querySelector(
@@ -70,7 +66,6 @@ function loadDiagram(sheetName) {
       "<h2>Không có dữ liệu. Vui lòng quay lại trang chủ.</h2>";
   }
 }
-// script.js
 
 function displayDiagram(delegates) {
   const container = document.getElementById("diagram-container");
@@ -88,8 +83,6 @@ function displayDiagram(delegates) {
     rows[rowNum].push(delegate);
   });
 
-  // --- THÊM CHÚ THÍCH PHÍA TRÊN ---
-  // Áp dụng cho cả sơ đồ Ban Chấp hành và Tặng hoa
   if (
     container.classList.contains("view-bch") ||
     container.classList.contains("view-tang-hoa2")
@@ -100,7 +93,6 @@ function displayDiagram(delegates) {
     fragment.appendChild(topLabel);
   }
 
-  // Lặp qua từng hàng để vẽ sơ đồ
   Object.keys(rows)
     .sort((a, b) => b - a)
     .forEach((rowNum) => {
@@ -109,13 +101,6 @@ function displayDiagram(delegates) {
       rowElement.className = "row";
       const contentWrapper = document.createElement("div");
       contentWrapper.className = "row-content-wrapper";
-
-      const evens = rowData
-        .filter((d) => d.Vitri % 2 === 0)
-        .sort((a, b) => b.Vitri - a.Vitri);
-      const odds = rowData
-        .filter((d) => d.Vitri % 2 !== 0)
-        .sort((a, b) => a.Vitri - b.Vitri);
 
       const createDelegateElement = (delegate) => {
         const delegateDiv = document.createElement("div");
@@ -127,11 +112,13 @@ function displayDiagram(delegates) {
         return delegateDiv;
       };
 
-      evens.forEach((delegate) =>
-        contentWrapper.appendChild(createDelegateElement(delegate))
-      );
+      const sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
 
-      // Logic chèn Lẵng hoa (chỉ cho sơ đồ tặng hoa)
+      sortedDelegates.forEach((delegate) => {
+        contentWrapper.appendChild(createDelegateElement(delegate));
+      });
+
+      // --- LOGIC CHÈN LẴNG HOA ĐÃ SỬA LỖI ---
       if (
         rowNum == "1" &&
         (container.classList.contains("view-tang-hoa") ||
@@ -140,16 +127,37 @@ function displayDiagram(delegates) {
         const flowerDiv = document.createElement("div");
         flowerDiv.className = "flower-basket";
         flowerDiv.textContent = "Lẵng hoa";
-        contentWrapper.appendChild(flowerDiv);
-      }
 
-      odds.forEach((delegate) =>
-        contentWrapper.appendChild(createDelegateElement(delegate))
-      );
+        // 1. Tìm phần tử của đại biểu có vị trí số 2 (ĐÂY LÀ CHỖ SỬA)
+        let delegate2_element = null;
+        for (const child of contentWrapper.children) {
+          const positionDiv = child.querySelector(".position");
+          // Sửa tìm số '3' thành tìm số '2'
+          if (positionDiv && positionDiv.textContent.trim() === "2") {
+            delegate2_element = child;
+            break;
+          }
+        }
+
+        // 2. Nếu tìm thấy, chèn lẵng hoa vào TRƯỚC đại biểu số 2.
+        //    Kết quả: ... [4] [3] [Lẵng hoa] [2] [1]
+        if (delegate2_element) {
+          contentWrapper.insertBefore(flowerDiv, delegate2_element);
+        } else {
+          // Nếu không có đại biểu số 2 thì chèn vào giữa
+          const middleChildIndex = Math.floor(
+            contentWrapper.children.length / 2
+          );
+          contentWrapper.insertBefore(
+            flowerDiv,
+            contentWrapper.children[middleChildIndex]
+          );
+        }
+      }
+      // --- KẾT THÚC PHẦN LOGIC SỬA LỖI ---
 
       rowElement.appendChild(contentWrapper);
 
-      // Chỉ hiển thị nhãn "Hàng X" cho các sơ đồ có nhiều hàng
       if (!container.classList.contains("view-tang-hoa2")) {
         const rowLabel = document.createElement("div");
         rowLabel.className = "row-label";
@@ -160,8 +168,6 @@ function displayDiagram(delegates) {
       fragment.appendChild(rowElement);
     });
 
-  // --- THÊM CHÚ THÍCH PHÍA DƯỚI ---
-  // Áp dụng cho cả sơ đồ Ban Chấp hành và Tặng hoa
   if (
     container.classList.contains("view-bch") ||
     container.classList.contains("view-tang-hoa2")
