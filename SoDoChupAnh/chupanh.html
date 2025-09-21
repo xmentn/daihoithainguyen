@@ -2,15 +2,13 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/images/Codang.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sơ đồ Chụp ảnh Lưu niệm</title>
+    <title>Sơ đồ (Nhìn từ Hội trường)</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
     />
     <style>
-      /* Toàn bộ CSS được nhúng vào đây */
       body {
         font-family: Arial, sans-serif;
         background-color: #f4f4f4;
@@ -94,14 +92,6 @@
         text-align: center;
         width: 120px;
         min-height: 60px;
-        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out,
-          border-color 0.2s ease-in-out;
-      }
-      .delegate:hover {
-        border-color: #0d6efd;
-        transform: translateY(-4px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
-        z-index: 20;
       }
       .delegate .name {
         font-weight: bold;
@@ -133,19 +123,56 @@
       .view-bch .delegate .name {
         font-size: 12px;
       }
-      .view-toan-the .delegate {
-        width: 40px;
-        min-height: 55px;
+      .view-tang-hoa2 .delegate {
+        width: 150px;
+        min-height: 90px;
       }
-      .view-toan-the .delegate .name {
-        font-size: 10px;
+      .view-tang-hoa2 .delegate .name {
+        font-size: 14px;
+        padding-top: 28px;
       }
-      .view-tang-hoa .delegate {
-        width: 50px;
-        min-height: 35px;
+      .view-tang-hoa2 .delegate .position {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
       }
-      .view-tang-hoa .row-content-wrapper {
-        gap: 12px;
+      .view-tang-hoa2 .flower-basket {
+        width: 90px;
+        height: 120px;
+        font-size: 14px;
+      }
+      .flower-basket {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-shrink: 0;
+        width: 150px;
+        min-height: 90px;
+        background-color: #f0f8ff;
+        border: 2px solid #4682b4;
+        border-radius: 8px;
+        color: #4682b4;
+        font-weight: bold;
+        font-size: 14px;
+        text-align: center;
+        padding: 8px 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .direction-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+        font-weight: bold;
+        font-size: 14px;
+        color: #555;
+        text-transform: uppercase;
+        margin-top: 20px;
+        margin-bottom: 20px;
+      }
+      .direction-label i {
+        font-size: 22px;
+        color: #0d6efd;
       }
       .back-to-home {
         position: fixed;
@@ -165,79 +192,6 @@
         text-decoration: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
-      .flower-basket {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-shrink: 0;
-        width: 50px;
-        height: 90px;
-        background-color: #f0f8ff;
-        border: 2px solid #4682b4;
-        border-radius: 4px;
-        color: #4682b4;
-        font-weight: bold;
-        font-size: 13px;
-        text-align: center;
-      }
-      .view-tang-hoa2 .delegate {
-        width: 150px;
-        min-height: 90px;
-      }
-      .view-tang-hoa2 .delegate .name {
-        font-size: 14px;
-        padding-top: 28px;
-      }
-      .view-tang-hoa2 .delegate .position {
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
-      }
-      .view-tang-hoa2 .flower-basket {
-        width: 90px;
-        height: 120px;
-        font-size: 14px;
-      }
-      .direction-label {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-        font-weight: bold;
-        font-size: 14px;
-        color: #555;
-        text-transform: uppercase;
-        margin-top: 20px;
-        margin-bottom: 20px;
-      }
-      .direction-label i {
-        font-size: 22px;
-        color: #0d6efd;
-      }
-      .view-toggle-fab {
-        position: fixed;
-        bottom: 30px;
-        left: 30px;
-        z-index: 1000;
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        transition: background-color 0.2s ease, transform 0.2s ease;
-      }
-      .view-toggle-fab:hover {
-        background-color: #0056b3;
-        transform: scale(1.1);
-      }
-      /* ĐÃ XÓA CÁC CLASS .presidium-view VÌ KHÔNG CẦN THIẾT NỮA */
     </style>
   </head>
   <body>
@@ -245,71 +199,31 @@
       <h1 id="main-title">SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA</h1>
       <div class="controls">
         <button onclick="loadDiagram('BanChanhHanh')">Ban Chấp hành</button>
-        <button onclick="loadDiagram('ToanThe')">Toàn thể</button>
+        <button onclick="loadDiagram('ToanThe')" disabled>Toàn thể</button>
         <button onclick="loadDiagram('Tanghoa')">Sơ đồ tặng hoa</button>
       </div>
       <div id="summary-section" style="text-align: center">
         <p id="delegate-count"></p>
       </div>
     </div>
-
     <div id="diagram-container" class="photo-diagram"></div>
-
-    <button id="toggle-view-btn" class="view-toggle-fab" title="Đổi góc nhìn">
-      <i class="fa-solid fa-rotate"></i>
-    </button>
-    <a href="../index.html" class="back-to-home" title="Về trang chủ">
-      <i class="fa-solid fa-house"></i>
-      <span>Về trang chủ</span>
-    </a>
-
+    <a href="../index.html" class="back-to-home" title="Về trang chủ"
+      ><i class="fa-solid fa-house"></i><span>Về trang chủ</span></a
+    >
     <script>
-      // Toàn bộ JavaScript được nhúng vào đây
-      let isPresidiumView = false;
-      let currentDelegatesData = [];
-
       document.addEventListener("DOMContentLoaded", () => {
         loadDiagram("BanChanhHanh");
-        const toggleBtn = document.getElementById("toggle-view-btn");
-        if (toggleBtn) {
-          toggleBtn.addEventListener("click", () => {
-            isPresidiumView = !isPresidiumView;
-            displayDiagram(currentDelegatesData);
-          });
-        }
       });
-
       function loadDiagram(sheetName) {
-        const titleElement = document.getElementById("main-title");
+        const titleElement = document.getElementById("main-title"),
+          container = document.getElementById("diagram-container"),
+          buttons = document.querySelectorAll(".controls button");
         let newTitle = "SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA";
-
-        if (sheetName === "BanChanhHanh") {
+        if (sheetName === "BanChanhHanh")
           newTitle =
             "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI BCH ĐẢNG BỘ TỈNH";
-        } else if (sheetName === "ToanThe") {
-          newTitle =
-            "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI ĐẠI BIỂU DỰ ĐẠI HỘI";
-        } else if (sheetName === "Tanghoa") {
-          newTitle = "SƠ ĐỒ TẶNG HOA";
-        }
-        if (titleElement) {
-          titleElement.textContent = newTitle;
-        }
-
-        const container = document.getElementById("diagram-container");
-        const buttons = document.querySelectorAll(".controls button");
-        const toggleBtn = document.getElementById("toggle-view-btn");
-
-        isPresidiumView = false;
-
-        if (toggleBtn) {
-          if (sheetName === "BanChanhHanh" || sheetName === "Tanghoa") {
-            toggleBtn.style.display = "flex";
-          } else {
-            toggleBtn.style.display = "none";
-          }
-        }
-
+        else if (sheetName === "Tanghoa") newTitle = "SƠ ĐỒ TẶNG HOA";
+        if (titleElement) titleElement.textContent = newTitle;
         container.classList.remove(
           "view-bch",
           "view-toan-the",
@@ -317,78 +231,48 @@
           "view-tang-hoa2"
         );
         if (sheetName === "BanChanhHanh") container.classList.add("view-bch");
-        else if (sheetName === "ToanThe")
-          container.classList.add("view-toan-the");
         else if (sheetName === "Tanghoa")
           container.classList.add("view-tang-hoa2");
-
         buttons.forEach((btn) => btn.classList.remove("active"));
         const activeButton = document.querySelector(
           `.controls button[onclick*="'${sheetName}'"]`
         );
         if (activeButton) activeButton.classList.add("active");
-
         const cachedDataString = sessionStorage.getItem("soDoChupAnhData");
         if (cachedDataString) {
-          const allChupAnhData = JSON.parse(cachedDataString);
-          const delegatesForSheet = allChupAnhData[sheetName];
-
+          const allChupAnhData = JSON.parse(cachedDataString),
+            delegatesForSheet = allChupAnhData[sheetName];
           if (delegatesForSheet) {
-            currentDelegatesData = delegatesForSheet;
-            displayDiagram(currentDelegatesData);
+            displayDiagram(delegatesForSheet);
             requestAnimationFrame(() => {
-              if (container.scrollWidth > container.clientWidth) {
+              if (container.scrollWidth > container.clientWidth)
                 container.scrollLeft =
                   (container.scrollWidth - container.clientWidth) / 2;
-              }
             });
-          } else {
+          } else
             container.innerHTML = `<h2>Không tìm thấy dữ liệu cho sơ đồ '${sheetName}'.</h2>`;
-          }
-        } else {
+        } else
           container.innerHTML =
             "<h2>Không có dữ liệu. Vui lòng quay lại trang chủ.</h2>";
-        }
       }
-
       function displayDiagram(delegates) {
-        if (!delegates) return;
-
-        const container = document.getElementById("diagram-container");
-        const countElement = document.getElementById("delegate-count");
-
-        // XÓA BỎ PHẦN THÊM CLASS .presidium-view
-
-        const validDelegates = delegates.filter((d) => d.Sohang && d.Vitri);
-        countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
+        const container = document.getElementById("diagram-container"),
+          countElement = document.getElementById("delegate-count");
         container.innerHTML = "";
-
-        const fragment = document.createDocumentFragment();
-        const rows = {};
-        validDelegates.forEach((delegate) => {
-          const rowNum = delegate.Sohang;
-          if (!rows[rowNum]) rows[rowNum] = [];
-          rows[rowNum].push(delegate);
-        });
-
-        // --- TOÀN BỘ LOGIC XOAY SƠ ĐỒ ĐƯỢC XỬ LÝ TẠI ĐÂY ---
-        let topLabelContent, bottomLabelContent;
-        let rowSortFn, delegateSortFn;
-
-        if (isPresidiumView) {
-          // Khi nhìn từ Đoàn Chủ tịch (xoay)
-          topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>HỘI TRƯỜNG</span>`;
-          bottomLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
-          rowSortFn = (a, b) => a - b; // Hàng 1 ở trên
-          delegateSortFn = (a, b) => a.Vitri - b.Vitri; // Số 1 ở bên trái
-        } else {
-          // Khi nhìn từ Hội trường (mặc định)
-          topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+        const fragment = document.createDocumentFragment(),
+          rows = {};
+        delegates
+          .filter((d) => d.Sohang && d.Vitri)
+          .forEach((delegate) => {
+            const rowNum = delegate.Sohang;
+            if (!rows[rowNum]) rows[rowNum] = [];
+            rows[rowNum].push(delegate);
+          });
+        countElement.textContent = `Tổng số: ${
+          Object.values(rows).flat().length
+        } đại biểu`;
+        const topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`,
           bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
-          rowSortFn = (a, b) => b - a; // Hàng 1 ở dưới
-          delegateSortFn = (a, b) => b.Vitri - b.Vitri; // Số 1 ở bên phải
-        }
-
         if (
           container.classList.contains("view-bch") ||
           container.classList.contains("view-tang-hoa2")
@@ -398,16 +282,14 @@
           topLabel.innerHTML = topLabelContent;
           fragment.appendChild(topLabel);
         }
-
         Object.keys(rows)
-          .sort(rowSortFn)
+          .sort((a, b) => b - a)
           .forEach((rowNum) => {
-            const rowData = rows[rowNum];
-            const rowElement = document.createElement("div");
+            const rowData = rows[rowNum],
+              rowElement = document.createElement("div"),
+              contentWrapper = document.createElement("div");
             rowElement.className = "row";
-            const contentWrapper = document.createElement("div");
             contentWrapper.className = "row-content-wrapper";
-
             const createDelegateElement = (delegate) => {
               const delegateDiv = document.createElement("div");
               delegateDiv.className = "delegate";
@@ -416,25 +298,25 @@
               }</div><div class="name">${delegate.Hoten || ""}</div>`;
               return delegateDiv;
             };
-
-            const sortedDelegates = rowData.sort(delegateSortFn);
-            const delegateElements = sortedDelegates.map(createDelegateElement);
-
+            const sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
+            let elementsToRender = sortedDelegates.map(createDelegateElement);
             if (
               rowNum == "1" &&
-              (container.classList.contains("view-tang-hoa") ||
-                container.classList.contains("view-tang-hoa2"))
+              container.classList.contains("view-tang-hoa2")
             ) {
               const flowerDiv = document.createElement("div");
               flowerDiv.className = "flower-basket";
               flowerDiv.textContent = "Lẵng hoa";
-              const middleIndex = Math.floor(delegateElements.length / 2);
-              delegateElements.splice(middleIndex, 0, flowerDiv);
+              const index3 = sortedDelegates.findIndex((d) => d.Vitri == 3);
+              if (index3 !== -1)
+                elementsToRender.splice(index3 + 1, 0, flowerDiv);
+              else {
+                const middleIndex = Math.floor(elementsToRender.length / 2);
+                elementsToRender.splice(middleIndex, 0, flowerDiv);
+              }
             }
-
-            delegateElements.forEach((el) => contentWrapper.appendChild(el));
+            elementsToRender.forEach((el) => contentWrapper.appendChild(el));
             rowElement.appendChild(contentWrapper);
-
             if (!container.classList.contains("view-tang-hoa2")) {
               const rowLabel = document.createElement("div");
               rowLabel.className = "row-label";
@@ -443,7 +325,6 @@
             }
             fragment.appendChild(rowElement);
           });
-
         if (
           container.classList.contains("view-bch") ||
           container.classList.contains("view-tang-hoa2")
@@ -453,7 +334,6 @@
           bottomLabel.innerHTML = bottomLabelContent;
           fragment.appendChild(bottomLabel);
         }
-
         container.appendChild(fragment);
       }
     </script>
