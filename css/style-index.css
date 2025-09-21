@@ -349,3 +349,48 @@ body {
   display: flex;
   flex-direction: column;
 }
+/* --- CSS CHO NÚT CHỤP ẢNH LƯU NIỆM --- */
+.photo-button {
+  position: relative; /* Quan trọng để định vị huy hiệu MỚI */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff;
+  padding: 12px 12px 12px 20px; /* Thêm padding trái để không bị đè */
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #333;
+  transition: all 0.3s ease;
+  margin-top: 25px;
+  border-top: 5px solid #ff7043; /* Màu cam cho khác biệt */
+  overflow: hidden; /* Ẩn phần thừa của huy hiệu */
+}
+
+.photo-button img {
+  width: 40px;
+  height: 40px;
+}
+
+.photo-button:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  color: #d32f2f;
+}
+
+.new-badge {
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  background-color: #d32f2f; /* Màu đỏ */
+  color: white;
+  padding: 4px 30px;
+  font-size: 0.8em;
+  font-weight: bold;
+  transform: rotate(-45deg) translate(-22px, -8px); /* Xoay và dịch chuyển */
+  transform-origin: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 10; /* Thêm dòng này để đưa huy hiệu lên lớp trên cùng */
+}
