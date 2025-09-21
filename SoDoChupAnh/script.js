@@ -1,7 +1,18 @@
-// SoDoChupAnh/script.js - PHIÊN BẢN SỬA LỖI CUỐI CÙNG
+// SoDoChupAnh/script.js - PHIÊN BẢN KẾT HỢP HOÀN CHỈNH (ĐÃ SỬA LỖI RESET)
+
+let isPresidiumView = false;
+let currentDelegatesData = [];
 
 document.addEventListener("DOMContentLoaded", () => {
   loadDiagram("BanChanhHanh");
+
+  const toggleBtn = document.getElementById("toggle-view-btn");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", () => {
+      isPresidiumView = !isPresidiumView;
+      displayDiagram(currentDelegatesData);
+    });
+  }
 });
 
 function loadDiagram(sheetName) {
@@ -23,6 +34,17 @@ function loadDiagram(sheetName) {
 
   const container = document.getElementById("diagram-container");
   const buttons = document.querySelectorAll(".controls button");
+  const toggleBtn = document.getElementById("toggle-view-btn");
+
+  // DÒNG MÃ GÂY LỖI `isPresidiumView = false;` ĐÃ ĐƯỢC XÓA BỎ HOÀN TOÀN
+
+  if (toggleBtn) {
+    if (sheetName === "BanChanhHanh" || sheetName === "Tanghoa") {
+      toggleBtn.style.display = "flex";
+    } else {
+      toggleBtn.style.display = "none";
+    }
+  }
 
   container.classList.remove(
     "view-bch",
@@ -31,13 +53,9 @@ function loadDiagram(sheetName) {
     "view-tang-hoa2"
   );
 
-  if (sheetName === "BanChanhHanh") {
-    container.classList.add("view-bch");
-  } else if (sheetName === "ToanThe") {
-    container.classList.add("view-toan-the");
-  } else if (sheetName === "Tanghoa") {
-    container.classList.add("view-tang-hoa2");
-  }
+  if (sheetName === "BanChanhHanh") container.classList.add("view-bch");
+  else if (sheetName === "ToanThe") container.classList.add("view-toan-the");
+  else if (sheetName === "Tanghoa") container.classList.add("view-tang-hoa2");
 
   buttons.forEach((btn) => btn.classList.remove("active"));
   const activeButton = document.querySelector(
@@ -51,7 +69,10 @@ function loadDiagram(sheetName) {
     const delegatesForSheet = allChupAnhData[sheetName];
 
     if (delegatesForSheet) {
-      displayDiagram(delegatesForSheet);
+      currentDelegatesData = delegatesForSheet;
+      // Vẽ lại sơ đồ với trạng thái xoay hiện tại
+      displayDiagram(currentDelegatesData);
+
       requestAnimationFrame(() => {
         if (container.scrollWidth > container.clientWidth) {
           container.scrollLeft =
@@ -68,8 +89,17 @@ function loadDiagram(sheetName) {
 }
 
 function displayDiagram(delegates) {
+  if (!delegates) return;
+
   const container = document.getElementById("diagram-container");
   const countElement = document.getElementById("delegate-count");
+
+  // Áp dụng lớp CSS để xoay layout
+  if (isPresidiumView) {
+    container.classList.add("presidium-view");
+  } else {
+    container.classList.remove("presidium-view");
+  }
 
   const validDelegates = delegates.filter((d) => d.Sohang && d.Vitri);
   countElement.textContent = `Tổng số: ${validDelegates.length} đại biểu`;
@@ -83,16 +113,31 @@ function displayDiagram(delegates) {
     rows[rowNum].push(delegate);
   });
 
+  // LOGIC KẾT HỢP CHO NHÃN VÀ MŨI TÊN
+  let topLabelContent, bottomLabelContent;
+
+  if (isPresidiumView) {
+    // Khi nhìn từ Đoàn Chủ tịch (xoay)
+    topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>HỘI TRƯỜNG</span>`;
+    bottomLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+  } else {
+    // Khi nhìn từ Hội trường (mặc định)
+    topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+    bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
+  }
+
   if (
     container.classList.contains("view-bch") ||
     container.classList.contains("view-tang-hoa2")
   ) {
     const topLabel = document.createElement("div");
     topLabel.className = "direction-label";
-    topLabel.innerHTML = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+    topLabel.innerHTML = topLabelContent;
     fragment.appendChild(topLabel);
   }
 
+  // Luôn vẽ sơ đồ theo logic mặc định (từ Hội trường)
+  // CSS sẽ tự động lật lại nếu cần
   Object.keys(rows)
     .sort((a, b) => b - a)
     .forEach((rowNum) => {
@@ -105,20 +150,15 @@ function displayDiagram(delegates) {
       const createDelegateElement = (delegate) => {
         const delegateDiv = document.createElement("div");
         delegateDiv.className = "delegate";
-        delegateDiv.innerHTML = `
-              <div class="position">${delegate.Vitri}</div>
-              <div class="name">${delegate.Hoten || ""}</div>
-          `;
+        delegateDiv.innerHTML = `<div class="position">${
+          delegate.Vitri
+        }</div><div class="name">${delegate.Hoten || ""}</div>`;
         return delegateDiv;
       };
 
       const sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
+      const delegateElements = sortedDelegates.map(createDelegateElement);
 
-      sortedDelegates.forEach((delegate) => {
-        contentWrapper.appendChild(createDelegateElement(delegate));
-      });
-
-      // --- LOGIC CHÈN LẴNG HOA ĐÃ SỬA LỖI ---
       if (
         rowNum == "1" &&
         (container.classList.contains("view-tang-hoa") ||
@@ -127,35 +167,11 @@ function displayDiagram(delegates) {
         const flowerDiv = document.createElement("div");
         flowerDiv.className = "flower-basket";
         flowerDiv.textContent = "Lẵng hoa";
-
-        // 1. Tìm phần tử của đại biểu có vị trí số 2 (ĐÂY LÀ CHỖ SỬA)
-        let delegate2_element = null;
-        for (const child of contentWrapper.children) {
-          const positionDiv = child.querySelector(".position");
-          // Sửa tìm số '3' thành tìm số '2'
-          if (positionDiv && positionDiv.textContent.trim() === "2") {
-            delegate2_element = child;
-            break;
-          }
-        }
-
-        // 2. Nếu tìm thấy, chèn lẵng hoa vào TRƯỚC đại biểu số 2.
-        //    Kết quả: ... [4] [3] [Lẵng hoa] [2] [1]
-        if (delegate2_element) {
-          contentWrapper.insertBefore(flowerDiv, delegate2_element);
-        } else {
-          // Nếu không có đại biểu số 2 thì chèn vào giữa
-          const middleChildIndex = Math.floor(
-            contentWrapper.children.length / 2
-          );
-          contentWrapper.insertBefore(
-            flowerDiv,
-            contentWrapper.children[middleChildIndex]
-          );
-        }
+        const middleIndex = Math.floor(delegateElements.length / 2);
+        delegateElements.splice(middleIndex, 0, flowerDiv);
       }
-      // --- KẾT THÚC PHẦN LOGIC SỬA LỖI ---
 
+      delegateElements.forEach((el) => contentWrapper.appendChild(el));
       rowElement.appendChild(contentWrapper);
 
       if (!container.classList.contains("view-tang-hoa2")) {
@@ -164,7 +180,6 @@ function displayDiagram(delegates) {
         rowLabel.textContent = `Hàng ${rowNum}`;
         rowElement.appendChild(rowLabel);
       }
-
       fragment.appendChild(rowElement);
     });
 
@@ -174,7 +189,7 @@ function displayDiagram(delegates) {
   ) {
     const bottomLabel = document.createElement("div");
     bottomLabel.className = "direction-label";
-    bottomLabel.innerHTML = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
+    bottomLabel.innerHTML = bottomLabelContent;
     fragment.appendChild(bottomLabel);
   }
 
