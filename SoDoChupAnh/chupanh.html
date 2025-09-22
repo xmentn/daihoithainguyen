@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sơ đồ (Nhìn từ Hội trường)</title>
+    <title>Sơ đồ Chụp ảnh & Tặng hoa</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -120,11 +120,13 @@
         font-size: 9px;
         background-color: #dc3545;
       }
-      .view-bch .delegate {
+      .view-bch .delegate,
+      .view-toan-the .delegate {
         width: 50px !important;
         min-height: 70px;
       }
-      .view-bch .delegate .name {
+      .view-bch .delegate .name,
+      .view-toan-the .delegate .name {
         font-size: 12px;
       }
       .view-tang-hoa2 .delegate {
@@ -196,6 +198,39 @@
         text-decoration: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
+      /* ===== BẮT ĐẦU CSS MỚI CHO NÚT LẬT VÀ HIỆU ỨNG LẬT ===== */
+      .view-toggle-fab {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 1000;
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: background-color 0.2s ease, transform 0.2s ease;
+      }
+      .view-toggle-fab:hover {
+        background-color: #0056b3;
+        transform: scale(1.1);
+      }
+      /* Khi sơ đồ có class 'presidium-view' */
+      .photo-diagram.presidium-view {
+        display: flex;
+        flex-direction: column-reverse;
+      }
+      .photo-diagram.presidium-view .row-content-wrapper {
+        flex-direction: row-reverse;
+      }
+      /* ===== KẾT THÚC CSS MỚI ===== */
     </style>
   </head>
   <body>
@@ -214,10 +249,34 @@
     <a href="../index.html" class="back-to-home" title="Về trang chủ"
       ><i class="fa-solid fa-house"></i><span>Về trang chủ</span></a
     >
+
+    <button
+      id="toggle-view-btn"
+      class="view-toggle-fab"
+      title="Thay đổi góc nhìn"
+    >
+      <i class="fa-solid fa-camera-rotate"></i>
+    </button>
+
     <script>
+      // ===== BẮT ĐẦU JS MỚI: BIẾN ĐỂ LƯU TRẠNG THÁI =====
+      let isPresidiumView = false;
+      let currentDelegatesData = [];
+      // ===== KẾT THÚC JS MỚI =====
+
       document.addEventListener("DOMContentLoaded", () => {
         loadDiagram("BanChanhHanh");
+
+        // ===== JS MỚI: GÁN SỰ KIỆN CHO NÚT LẬT =====
+        const toggleBtn = document.getElementById("toggle-view-btn");
+        if (toggleBtn) {
+          toggleBtn.addEventListener("click", () => {
+            isPresidiumView = !isPresidiumView;
+            displayDiagram(currentDelegatesData); // Vẽ lại sơ đồ với góc nhìn mới
+          });
+        }
       });
+
       function loadDiagram(sheetName) {
         const titleElement = document.getElementById("main-title"),
           container = document.getElementById("diagram-container"),
@@ -227,6 +286,9 @@
           newTitle =
             "SƠ ĐỒ ĐỒNG CHÍ ỦY VIÊN BỘ CHÍNH TRỊ CHỤP ẢNH VỚI BCH ĐẢNG BỘ TỈNH";
         else if (sheetName === "Tanghoa") newTitle = "SƠ ĐỒ TẶNG HOA";
+        else if (sheetName === "ToanThe")
+          newTitle = "SƠ ĐỒ CHỤP ẢNH TOÀN THỂ ĐẠI HỘI";
+
         if (titleElement) titleElement.textContent = newTitle;
         container.classList.remove(
           "view-bch",
@@ -235,6 +297,8 @@
           "view-tang-hoa2"
         );
         if (sheetName === "BanChanhHanh") container.classList.add("view-bch");
+        else if (sheetName === "ToanThe")
+          container.classList.add("view-toan-the");
         else if (sheetName === "Tanghoa")
           container.classList.add("view-tang-hoa2");
         buttons.forEach((btn) => btn.classList.remove("active"));
@@ -247,6 +311,8 @@
           const allChupAnhData = JSON.parse(cachedDataString),
             delegatesForSheet = allChupAnhData[sheetName];
           if (delegatesForSheet) {
+            // JS MỚI: Lưu dữ liệu hiện tại để vẽ lại khi cần
+            currentDelegatesData = delegatesForSheet;
             displayDiagram(delegatesForSheet);
             requestAnimationFrame(() => {
               if (container.scrollWidth > container.clientWidth)
@@ -263,6 +329,14 @@
         const container = document.getElementById("diagram-container"),
           countElement = document.getElementById("delegate-count");
         container.innerHTML = "";
+
+        // ===== JS MỚI: ÁP DỤNG CLASS ĐỂ LẬT SƠ ĐỒ =====
+        if (isPresidiumView) {
+          container.classList.add("presidium-view");
+        } else {
+          container.classList.remove("presidium-view");
+        }
+
         const fragment = document.createDocumentFragment(),
           rows = {};
 
@@ -277,11 +351,21 @@
         countElement.textContent = `Tổng số: ${
           Object.values(rows).flat().length
         } đại biểu`;
-        const topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`,
+
+        // ===== JS MỚI: THAY ĐỔI NHÃN HƯỚNG DỰA TRÊN GÓC NHÌN =====
+        let topLabelContent, bottomLabelContent;
+        if (isPresidiumView) {
+          topLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
+          bottomLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+        } else {
+          topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
           bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
+        }
+
         if (
           container.classList.contains("view-bch") ||
-          container.classList.contains("view-tang-hoa2")
+          container.classList.contains("view-tang-hoa2") ||
+          container.classList.contains("view-toan-the")
         ) {
           const topLabel = document.createElement("div");
           topLabel.className = "direction-label";
@@ -300,12 +384,10 @@
             const createDelegateElement = (delegate) => {
               const delegateDiv = document.createElement("div");
               delegateDiv.className = "delegate";
-
               const positionDisplay =
                 delegate.Vitri == 0 ? "VIP" : delegate.Vitri;
               const positionClass =
                 delegate.Vitri == 0 ? "position vip" : "position";
-
               delegateDiv.innerHTML = `<div class="${positionClass}">${positionDisplay}</div><div class="name">${
                 delegate.Hoten || ""
               }</div>`;
@@ -333,9 +415,6 @@
 
             let elementsToRender = sortedDelegates.map(createDelegateElement);
 
-            // =======================================================================
-            // ===== BẮT ĐẦU VÙNG MÃ ĐÃ THAY ĐỔI CHO SƠ ĐỒ TẶNG HOA ==================
-            // =======================================================================
             if (
               rowNum == "1" &&
               container.classList.contains("view-tang-hoa2")
@@ -343,25 +422,16 @@
               const flowerDiv = document.createElement("div");
               flowerDiv.className = "flower-basket";
               flowerDiv.textContent = "Lẵng hoa";
-
-              // Tách các đại biểu ra 2 nhóm: Lẻ (bên trái) và Chẵn+VIP (bên phải)
               const leftDelegates = sortedDelegates.filter(
                 (d) => d.Vitri % 2 !== 0
-              ); // Đã được sắp xếp giảm dần, đúng cho bên trái
+              );
               const rightDelegates = sortedDelegates
                 .filter((d) => d.Vitri % 2 === 0)
-                .sort((a, b) => a.Vitri - b.Vitri); // Sắp xếp tăng dần cho bên phải: 0, 2, 4...
-
-              // Tạo các phần tử HTML từ 2 nhóm trên
+                .sort((a, b) => a.Vitri - b.Vitri);
               const leftElements = leftDelegates.map(createDelegateElement);
               const rightElements = rightDelegates.map(createDelegateElement);
-
-              // Ghi đè lại mảng elementsToRender với thứ tự mới: Trái -> Lẵng hoa -> Phải
               elementsToRender = [...leftElements, flowerDiv, ...rightElements];
             }
-            // =======================================================================
-            // ===== KẾT THÚC VÙNG MÃ ĐÃ THAY ĐỔI ====================================
-            // =======================================================================
 
             elementsToRender.forEach((el) => contentWrapper.appendChild(el));
             rowElement.appendChild(contentWrapper);
@@ -375,7 +445,8 @@
           });
         if (
           container.classList.contains("view-bch") ||
-          container.classList.contains("view-tang-hoa2")
+          container.classList.contains("view-tang-hoa2") ||
+          container.classList.contains("view-toan-the")
         ) {
           const bottomLabel = document.createElement("div");
           bottomLabel.className = "direction-label";
