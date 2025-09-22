@@ -116,6 +116,10 @@
         justify-content: center;
         line-height: 1;
       }
+      .delegate .position.vip {
+        font-size: 9px;
+        background-color: #dc3545;
+      }
       .view-bch .delegate {
         width: 50px !important;
         min-height: 70px;
@@ -199,7 +203,7 @@
       <h1 id="main-title">SƠ ĐỒ VỊ TRÍ CHỤP ẢNH LƯU NIỆM, TẶNG HOA</h1>
       <div class="controls">
         <button onclick="loadDiagram('BanChanhHanh')">Ban Chấp hành</button>
-        <button onclick="loadDiagram('ToanThe')" disabled>Toàn thể</button>
+        <button onclick="loadDiagram('ToanThe')">Toàn thể</button>
         <button onclick="loadDiagram('Tanghoa')">Sơ đồ tặng hoa</button>
       </div>
       <div id="summary-section" style="text-align: center">
@@ -261,13 +265,15 @@
         container.innerHTML = "";
         const fragment = document.createDocumentFragment(),
           rows = {};
+
         delegates
-          .filter((d) => d.Sohang && d.Vitri)
+          .filter((d) => d.Sohang && d.Vitri != null)
           .forEach((delegate) => {
             const rowNum = delegate.Sohang;
             if (!rows[rowNum]) rows[rowNum] = [];
             rows[rowNum].push(delegate);
           });
+
         countElement.textContent = `Tổng số: ${
           Object.values(rows).flat().length
         } đại biểu`;
@@ -290,16 +296,46 @@
               contentWrapper = document.createElement("div");
             rowElement.className = "row";
             contentWrapper.className = "row-content-wrapper";
+
             const createDelegateElement = (delegate) => {
               const delegateDiv = document.createElement("div");
               delegateDiv.className = "delegate";
-              delegateDiv.innerHTML = `<div class="position">${
-                delegate.Vitri
-              }</div><div class="name">${delegate.Hoten || ""}</div>`;
+
+              const positionDisplay =
+                delegate.Vitri == 0 ? "VIP" : delegate.Vitri;
+              const positionClass =
+                delegate.Vitri == 0 ? "position vip" : "position";
+
+              delegateDiv.innerHTML = `<div class="${positionClass}">${positionDisplay}</div><div class="name">${
+                delegate.Hoten || ""
+              }</div>`;
               return delegateDiv;
             };
-            const sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
+
+            let sortedDelegates;
+            if (rowNum == "1" && container.classList.contains("view-bch")) {
+              const vip = rowData.find((d) => d.Vitri == 0);
+              const others = rowData.filter((d) => d.Vitri != 0);
+              const odds = others
+                .filter((d) => d.Vitri % 2 !== 0)
+                .sort((a, b) => a.Vitri - b.Vitri);
+              const evens = others
+                .filter((d) => d.Vitri % 2 === 0)
+                .sort((a, b) => a.Vitri - b.Vitri);
+              if (vip) {
+                sortedDelegates = [...odds.reverse(), vip, ...evens];
+              } else {
+                sortedDelegates = [...odds.reverse(), ...evens];
+              }
+            } else {
+              sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
+            }
+
             let elementsToRender = sortedDelegates.map(createDelegateElement);
+
+            // =======================================================================
+            // ===== BẮT ĐẦU VÙNG MÃ ĐÃ THAY ĐỔI CHO SƠ ĐỒ TẶNG HOA ==================
+            // =======================================================================
             if (
               rowNum == "1" &&
               container.classList.contains("view-tang-hoa2")
@@ -307,14 +343,26 @@
               const flowerDiv = document.createElement("div");
               flowerDiv.className = "flower-basket";
               flowerDiv.textContent = "Lẵng hoa";
-              const index3 = sortedDelegates.findIndex((d) => d.Vitri == 3);
-              if (index3 !== -1)
-                elementsToRender.splice(index3 + 1, 0, flowerDiv);
-              else {
-                const middleIndex = Math.floor(elementsToRender.length / 2);
-                elementsToRender.splice(middleIndex, 0, flowerDiv);
-              }
+
+              // Tách các đại biểu ra 2 nhóm: Lẻ (bên trái) và Chẵn+VIP (bên phải)
+              const leftDelegates = sortedDelegates.filter(
+                (d) => d.Vitri % 2 !== 0
+              ); // Đã được sắp xếp giảm dần, đúng cho bên trái
+              const rightDelegates = sortedDelegates
+                .filter((d) => d.Vitri % 2 === 0)
+                .sort((a, b) => a.Vitri - b.Vitri); // Sắp xếp tăng dần cho bên phải: 0, 2, 4...
+
+              // Tạo các phần tử HTML từ 2 nhóm trên
+              const leftElements = leftDelegates.map(createDelegateElement);
+              const rightElements = rightDelegates.map(createDelegateElement);
+
+              // Ghi đè lại mảng elementsToRender với thứ tự mới: Trái -> Lẵng hoa -> Phải
+              elementsToRender = [...leftElements, flowerDiv, ...rightElements];
             }
+            // =======================================================================
+            // ===== KẾT THÚC VÙNG MÃ ĐÃ THAY ĐỔI ====================================
+            // =======================================================================
+
             elementsToRender.forEach((el) => contentWrapper.appendChild(el));
             rowElement.appendChild(contentWrapper);
             if (!container.classList.contains("view-tang-hoa2")) {

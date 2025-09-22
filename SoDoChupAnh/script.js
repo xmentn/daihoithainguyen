@@ -117,11 +117,9 @@ function displayDiagram(delegates) {
   let topLabelContent, bottomLabelContent;
 
   if (isPresidiumView) {
-    // Khi nhìn từ Đoàn Chủ tịch (xoay)
-    topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>HỘI TRƯỜNG</span>`;
+    topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>HỘI TRƯỜỜNG</span>`;
     bottomLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
   } else {
-    // Khi nhìn từ Hội trường (mặc định)
     topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
     bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
   }
@@ -136,8 +134,6 @@ function displayDiagram(delegates) {
     fragment.appendChild(topLabel);
   }
 
-  // Luôn vẽ sơ đồ theo logic mặc định (từ Hội trường)
-  // CSS sẽ tự động lật lại nếu cần
   Object.keys(rows)
     .sort((a, b) => b - a)
     .forEach((rowNum) => {
@@ -156,20 +152,44 @@ function displayDiagram(delegates) {
         return delegateDiv;
       };
 
-      const sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
+      // --- BẮT ĐẦU VÙNG SỬA ĐỔI SẮP XẾP VÀ LẴNG HOA ---
+      let sortedDelegates;
+
+      // KIỂM TRA: Nếu là sơ đồ BCH và là Hàng 1 thì áp dụng logic sắp xếp mới
+      if (rowNum == "1" && container.classList.contains("view-bch")) {
+        const odds = rowData
+          .filter((d) => d.Vitri % 2 !== 0)
+          .sort((a, b) => a.Vitri - b.Vitri);
+        const evens = rowData
+          .filter((d) => d.Vitri % 2 === 0)
+          .sort((a, b) => a.Vitri - b.Vitri);
+        sortedDelegates = [...odds.reverse(), ...evens];
+      } else {
+        // Logic cũ: Giữ nguyên cho các hàng và sơ đồ khác
+        sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
+      }
+
       const delegateElements = sortedDelegates.map(createDelegateElement);
 
-      if (
-        rowNum == "1" &&
-        (container.classList.contains("view-tang-hoa") ||
-          container.classList.contains("view-tang-hoa2"))
-      ) {
+      // SỬA LỖI VỊ TRÍ LẴNG HOA
+      if (rowNum == "1" && container.classList.contains("view-tang-hoa2")) {
         const flowerDiv = document.createElement("div");
         flowerDiv.className = "flower-basket";
         flowerDiv.textContent = "Lẵng hoa";
-        const middleIndex = Math.floor(delegateElements.length / 2);
-        delegateElements.splice(middleIndex, 0, flowerDiv);
+
+        // Tìm vị trí của đại biểu số 2 để chèn lẵng hoa vào trước
+        const insertionIndex = sortedDelegates.findIndex((d) => d.Vitri == 2);
+
+        if (insertionIndex !== -1) {
+          // Chèn vào giữa vị trí 3 và 2
+          delegateElements.splice(insertionIndex, 0, flowerDiv);
+        } else {
+          // Nếu không tìm thấy vị trí số 2, chèn vào giữa
+          const middleIndex = Math.floor(delegateElements.length / 2);
+          delegateElements.splice(middleIndex, 0, flowerDiv);
+        }
       }
+      // --- KẾT THÚC VÙNG SỬA ĐỔI ---
 
       delegateElements.forEach((el) => contentWrapper.appendChild(el));
       rowElement.appendChild(contentWrapper);
