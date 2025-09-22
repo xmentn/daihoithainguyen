@@ -343,24 +343,14 @@
           Object.values(rows).flat().length
         } đại biểu`;
 
-        // =======================================================================
-        // ===== BẮT ĐẦU VÙNG JS ĐÃ SỬA LOGIC NHÃN CHÚ THÍCH =====================
-        // =======================================================================
         let topLabelContent, bottomLabelContent;
         if (isPresidiumView) {
-          // Do CSS lật ngược cả sơ đồ, ta phải gán nội dung ngược lại
-          // Nhãn topLabel sẽ bị đẩy xuống dưới -> gán nội dung "Đoàn Chủ tịch" vào đây
           topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
-          // Nhãn bottomLabel sẽ bị đẩy lên trên -> gán nội dung "Hội trường" vào đây
           bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-up"></i>`;
         } else {
-          // Góc nhìn mặc định
           topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
           bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
         }
-        // =======================================================================
-        // ===== KẾT THÚC VÙNG JS ĐÃ SỬA ========================================
-        // =======================================================================
 
         if (
           container.classList.contains("view-bch") ||
@@ -385,9 +375,9 @@
               const delegateDiv = document.createElement("div");
               delegateDiv.className = "delegate";
               const positionDisplay =
-                delegate.Vitri == 0 ? "VIP" : delegate.Vitri;
+                delegate.Vitri <= 0 ? "VIP" : delegate.Vitri;
               const positionClass =
-                delegate.Vitri == 0 ? "position vip" : "position";
+                delegate.Vitri <= 0 ? "position vip" : "position";
               delegateDiv.innerHTML = `<div class="${positionClass}">${positionDisplay}</div><div class="name">${
                 delegate.Hoten || ""
               }</div>`;
@@ -396,25 +386,26 @@
 
             let sortedDelegates;
             if (rowNum == "1" && container.classList.contains("view-bch")) {
-              const vip = rowData.find((d) => d.Vitri == 0);
-              const others = rowData.filter((d) => d.Vitri != 0);
+              const vips = rowData
+                .filter((d) => d.Vitri <= 0)
+                .sort((a, b) => b.Vitri - a.Vitri);
+              const others = rowData.filter((d) => d.Vitri > 0);
               const odds = others
                 .filter((d) => d.Vitri % 2 !== 0)
                 .sort((a, b) => a.Vitri - b.Vitri);
               const evens = others
                 .filter((d) => d.Vitri % 2 === 0)
                 .sort((a, b) => a.Vitri - b.Vitri);
-              if (vip) {
-                sortedDelegates = [...odds.reverse(), vip, ...evens];
-              } else {
-                sortedDelegates = [...odds.reverse(), ...evens];
-              }
+              sortedDelegates = [...odds.reverse(), ...vips, ...evens];
             } else {
               sortedDelegates = rowData.sort((a, b) => b.Vitri - a.Vitri);
             }
 
-            let elementsToRender = sortedDelegates.map(createDelegateElement);
+            let elementsToRender;
 
+            // =======================================================================
+            // ===== BẮT ĐẦU VÙNG JS ĐÃ SỬA: LOGIC MỚI CHO SƠ ĐỒ TẶNG HOA ==========
+            // =======================================================================
             if (
               rowNum == "1" &&
               container.classList.contains("view-tang-hoa2")
@@ -422,16 +413,40 @@
               const flowerDiv = document.createElement("div");
               flowerDiv.className = "flower-basket";
               flowerDiv.textContent = "Lẵng hoa";
-              const leftDelegates = sortedDelegates.filter(
-                (d) => d.Vitri % 2 !== 0
-              );
-              const rightDelegates = sortedDelegates
-                .filter((d) => d.Vitri % 2 === 0)
-                .sort((a, b) => a.Vitri - b.Vitri);
-              const leftElements = leftDelegates.map(createDelegateElement);
-              const rightElements = rightDelegates.map(createDelegateElement);
-              elementsToRender = [...leftElements, flowerDiv, ...rightElements];
+
+              // Tách các đại biểu ra 3 nhóm riêng biệt
+              const oddDelegates = sortedDelegates
+                .filter((d) => d.Vitri % 2 !== 0)
+                .sort((a, b) => b.Vitri - a.Vitri); // Sắp xếp giảm dần: 5, 3, 1
+
+              const vipDelegate = sortedDelegates.find((d) => d.Vitri <= 0);
+
+              const evenDelegates = sortedDelegates
+                .filter((d) => d.Vitri % 2 === 0 && d.Vitri > 0)
+                .sort((a, b) => a.Vitri - b.Vitri); // Sắp xếp tăng dần: 2, 4
+
+              // Tạo các phần tử HTML từ các nhóm
+              const oddElements = oddDelegates.map(createDelegateElement);
+              const evenElements = evenDelegates.map(createDelegateElement);
+
+              // Xây dựng lại mảng hiển thị theo đúng thứ tự yêu cầu
+              let finalElements = [];
+              finalElements.push(...oddElements); // Nhóm Lẻ
+              finalElements.push(flowerDiv); // Lẵng hoa
+              if (vipDelegate) {
+                // VIP
+                finalElements.push(createDelegateElement(vipDelegate));
+              }
+              finalElements.push(...evenElements); // Nhóm Chẵn
+
+              elementsToRender = finalElements;
+            } else {
+              // Logic mặc định cho các sơ đồ khác
+              elementsToRender = sortedDelegates.map(createDelegateElement);
             }
+            // =======================================================================
+            // ===== KẾT THÚC VÙNG JS ĐÃ SỬA ========================================
+            // =======================================================================
 
             elementsToRender.forEach((el) => contentWrapper.appendChild(el));
             rowElement.appendChild(contentWrapper);
