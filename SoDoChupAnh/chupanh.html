@@ -198,7 +198,6 @@
         text-decoration: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
       }
-      /* ===== BẮT ĐẦU CSS MỚI CHO NÚT LẬT VÀ HIỆU ỨNG LẬT ===== */
       .view-toggle-fab {
         position: fixed;
         bottom: 30px;
@@ -222,7 +221,6 @@
         background-color: #0056b3;
         transform: scale(1.1);
       }
-      /* Khi sơ đồ có class 'presidium-view' */
       .photo-diagram.presidium-view {
         display: flex;
         flex-direction: column-reverse;
@@ -230,7 +228,6 @@
       .photo-diagram.presidium-view .row-content-wrapper {
         flex-direction: row-reverse;
       }
-      /* ===== KẾT THÚC CSS MỚI ===== */
     </style>
   </head>
   <body>
@@ -249,7 +246,6 @@
     <a href="../index.html" class="back-to-home" title="Về trang chủ"
       ><i class="fa-solid fa-house"></i><span>Về trang chủ</span></a
     >
-
     <button
       id="toggle-view-btn"
       class="view-toggle-fab"
@@ -259,20 +255,17 @@
     </button>
 
     <script>
-      // ===== BẮT ĐẦU JS MỚI: BIẾN ĐỂ LƯU TRẠNG THÁI =====
       let isPresidiumView = false;
       let currentDelegatesData = [];
-      // ===== KẾT THÚC JS MỚI =====
 
       document.addEventListener("DOMContentLoaded", () => {
         loadDiagram("BanChanhHanh");
 
-        // ===== JS MỚI: GÁN SỰ KIỆN CHO NÚT LẬT =====
         const toggleBtn = document.getElementById("toggle-view-btn");
         if (toggleBtn) {
           toggleBtn.addEventListener("click", () => {
             isPresidiumView = !isPresidiumView;
-            displayDiagram(currentDelegatesData); // Vẽ lại sơ đồ với góc nhìn mới
+            displayDiagram(currentDelegatesData);
           });
         }
       });
@@ -311,7 +304,6 @@
           const allChupAnhData = JSON.parse(cachedDataString),
             delegatesForSheet = allChupAnhData[sheetName];
           if (delegatesForSheet) {
-            // JS MỚI: Lưu dữ liệu hiện tại để vẽ lại khi cần
             currentDelegatesData = delegatesForSheet;
             displayDiagram(delegatesForSheet);
             requestAnimationFrame(() => {
@@ -330,7 +322,6 @@
           countElement = document.getElementById("delegate-count");
         container.innerHTML = "";
 
-        // ===== JS MỚI: ÁP DỤNG CLASS ĐỂ LẬT SƠ ĐỒ =====
         if (isPresidiumView) {
           container.classList.add("presidium-view");
         } else {
@@ -352,15 +343,24 @@
           Object.values(rows).flat().length
         } đại biểu`;
 
-        // ===== JS MỚI: THAY ĐỔI NHÃN HƯỚNG DỰA TRÊN GÓC NHÌN =====
+        // =======================================================================
+        // ===== BẮT ĐẦU VÙNG JS ĐÃ SỬA LOGIC NHÃN CHÚ THÍCH =====================
+        // =======================================================================
         let topLabelContent, bottomLabelContent;
         if (isPresidiumView) {
-          topLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
-          bottomLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+          // Do CSS lật ngược cả sơ đồ, ta phải gán nội dung ngược lại
+          // Nhãn topLabel sẽ bị đẩy xuống dưới -> gán nội dung "Đoàn Chủ tịch" vào đây
+          topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
+          // Nhãn bottomLabel sẽ bị đẩy lên trên -> gán nội dung "Hội trường" vào đây
+          bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-up"></i>`;
         } else {
+          // Góc nhìn mặc định
           topLabelContent = `<i class="fa-solid fa-angles-up"></i><span>ĐOÀN CHỦ TỊCH</span>`;
           bottomLabelContent = `<span>HỘI TRƯỜNG</span><i class="fa-solid fa-angles-down"></i>`;
         }
+        // =======================================================================
+        // ===== KẾT THÚC VÙNG JS ĐÃ SỬA ========================================
+        // =======================================================================
 
         if (
           container.classList.contains("view-bch") ||
