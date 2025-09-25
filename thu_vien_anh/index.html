@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thư viện ảnh Đại hội</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        text-align: center;
+        color: #333;
+      }
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+        max-width: 1200px;
+        margin: 20px auto;
+      }
+      .gallery a {
+        display: block;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease;
+        background-color: #e0e0e0; /* Màu nền chờ ảnh tải */
+        aspect-ratio: 1 / 1; /* Giữ khung ảnh vuông vắn khi tải */
+      }
+      .gallery a:hover {
+        transform: scale(1.05);
+      }
+      .gallery img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      #loading-message {
+        text-align: center;
+        font-size: 1.2em;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Thư viện ảnh Đại hội</h1>
+
+    <div id="gallery-container" class="gallery">
+      <p id="loading-message">Đang tải thư viện ảnh, vui lòng chờ...</p>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox.min.js"></script>
+
+    <script>
+      // ================================================================
+      // THAY THẾ THÔNG TIN CỦA BẠN VÀO ĐÂY
+      // ================================================================
+      const API_KEY = "AIzaSyCOE_M9VqPrhW-WXLOGSvHT65aI1JRf76Q"; // Dán API Key của bạn vào đây
+      const FOLDER_ID = "1tofOhdOYVVUPt66J7XtQpSlNmhXo7wQk"; // Dán Folder ID của bạn vào đây
+      // ================================================================
+
+      const galleryContainer = document.getElementById("gallery-container");
+      const loadingMessage = document.getElementById("loading-message");
+
+      // URL để gọi đến Google Drive API và lấy danh sách file
+      const apiUrl = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}' in parents and (mimeType='image/jpeg' or mimeType='image/png')&key=${API_KEY}&fields=files(id,name,thumbnailLink)`;
+
+      fetch(apiUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(
+              "Network response was not ok. Check API Key or Folder ID."
+            );
+          }
+          return response.json();
+        })
+        .then((data) => {
+          // Xóa thông báo "Đang tải..."
+          if (loadingMessage) {
+            loadingMessage.remove();
+          }
+
+          if (data.files && data.files.length > 0) {
+            data.files.forEach((file) => {
+              // Tạo link xem ảnh lớn
+              const link = document.createElement("a");
+              // Dùng link của Google để xem ảnh trực tiếp từ ID
+              link.href = `https://drive.google.com/thumbnail?id=${file.id}&sz=w2048`;
+              link.setAttribute("data-lightbox", "gallery"); // Nhóm các ảnh vào 1 album
+              link.setAttribute("data-title", file.name); // Hiển thị tên file làm chú thích
+
+              // Tạo ảnh thu nhỏ
+              const img = document.createElement("img");
+              // Lấy link ảnh thumbnail và tăng kích thước để nét hơn (thay s220 bằng s400)
+              img.src = file.thumbnailLink.replace("s220", "s400");
+              img.alt = file.name;
+
+              // Gắn ảnh vào link, rồi gắn link vào gallery
+              link.appendChild(img);
+              galleryContainer.appendChild(link);
+            });
+          } else {
+            galleryContainer.innerHTML =
+              "<p>Thư mục này không có ảnh hoặc không thể truy cập.</p>";
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching images:", error);
+          if (loadingMessage) {
+            loadingMessage.remove();
+          }
+          galleryContainer.innerHTML = `<p style="color: red;">Đã xảy ra lỗi khi tải ảnh. Vui lòng kiểm tra lại API Key, Folder ID và chắc chắn rằng thư mục đã được chia sẻ công khai.</p>`;
+        });
+    </script>
+  </body>
+</html>
