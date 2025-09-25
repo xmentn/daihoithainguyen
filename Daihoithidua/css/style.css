@@ -48,7 +48,7 @@ body {
 }
 
 .portal-header h2 {
-  color: #212529; /* Màu đen chữ */
+  color: blue; /* THAY ĐỔI: Chuyển màu chữ sang xanh dương */
   font-size: 1.6em;
   font-weight: 700;
   margin: 5px 0 0 0;
