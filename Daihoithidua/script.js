@@ -473,7 +473,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const legendConfigs = {
     khaiMac: {
       thuongtruc: "Thường trực Tỉnh ủy",
-      banthuongvu: "Ủy viên BTV Tỉnh ủy",
+      daibieu_vip: "Đại biểu V1",
       coquandang: "Đảng bộ CQ Đảng",
       ubndtinh: "Đảng bộ UBND tỉnh",
       bithuchutichxa: "Bí thư, Chủ tịch xã, phường",
@@ -482,10 +482,6 @@ document.addEventListener("DOMContentLoaded", () => {
       nguyenthuongtruc: "Nguyên Thường trực TU",
       nguyenlanhdaokhac: "Nguyên Lãnh đạo (Tỉnh ủy viên)",
       meVN: "Anh hùng, Mẹ VNAH",
-
-      uyvienubkt: "Ủy viên UBKT",
-      quochoi: "Đại biểu Quốc hội",
-      nguyenbch20_25: "Nguyên Ủy viên BCH nhiệm kỳ 2020-2025",
       truongcqtw: "Trưởng cơ quan TW trên địa bàn",
       coquanbaochi: "Lãnh đạo cơ quan báo chí",
     },
@@ -500,17 +496,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const donViToStatusMap = {
     "Thường trực Tỉnh ủy": "thuongtruc",
-    "Ủy viên BTV Tỉnh ủy": "banthuongvu",
+    "Đại biểu V1": "daibieu_vip",
     "Nguyên Thường trực TU": "nguyenthuongtruc",
     "Đại biểu Trung ương, tỉnh bạn": "daibieumoi",
     "Nguyên Lãnh đạo (Tỉnh ủy viên)": "nguyenlanhdaokhac",
     "Anh hùng, Mẹ VNAH": "meVN",
     "Đảng bộ các cơ quan Đảng tỉnh": "coquandang",
     "Đảng bộ UBND tỉnh": "ubndtinh",
-    "Ủy viên UBKT": "uyvienubkt",
     "Bí thư, Chủ tịch xã, phường": "bithuchutichxa",
-    "Đại biểu Quốc hội": "quochoi",
-    "Nguyên Ủy viên BCH nhiệm kỳ 2020-2025": "nguyenbch20_25",
     "Trưởng cơ quan TW trên địa bàn": "truongcqtw",
     "Lãnh đạo cơ quan báo chí": "coquanbaochi",
   };
