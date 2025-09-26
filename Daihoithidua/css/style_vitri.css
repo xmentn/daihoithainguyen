@@ -210,8 +210,8 @@ h2 {
   background-color: #008080; /* Màu Xanh mòng két (Teal) */
   color: white;
 }
-.seat.nguyenlanhdaokhac {
-  background-color: #4b0082; /* Màu Chàm (Indigo) */
+.seat.huanchuonglaodong1 {
+  background-color: #bf8f00; /* Màu Chàm (Indigo) */
   color: white;
 }
 .nguyenbch20_25 {
@@ -234,8 +234,8 @@ h2 {
   background-color: #5d52f3;
   color: white;
 }
-.seat.coquandang {
-  background-color: #ff0000;
+.seat.cothiduachinhphu {
+  background-color: #ff0066;
   color: white;
 }
 .seat.daibieu_vip2 {
