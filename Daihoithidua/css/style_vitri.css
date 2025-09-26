@@ -186,7 +186,7 @@ h2 {
 /* --- Thêm vào phần MÀU SẮC CÁC LOẠI GHẾ --- */
 
 /* Màu cho các nhóm Nguyên BTV */
-.seat.ntv_congan {
+.seat.thuongvu {
   background-color: #90ee90; /* Xanh lá cây nhạt (LightGreen) */
   color: black;
 }
@@ -194,8 +194,8 @@ h2 {
   background-color: #9acd32; /* Vàng-Xanh lá (YellowGreen) */
   color: black;
 }
-.seat.ntv_bandang {
-  background-color: #ffb6c1; /* Hồng nhạt (LightPink) */
+.seat.huanchuonglaodong2 {
+  background-color: #00ffff;
   color: black;
 }
 .seat.ntv_thanhuy {

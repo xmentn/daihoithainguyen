@@ -473,6 +473,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const legendConfigs = {
     khaiMac: {
       thuongtruc: "Thường trực Tỉnh ủy",
+      thuongvu: "Ủy viên BTV Tỉnh ủy",
       daibieu_vip: "Đại biểu V1",
       cothiduachinhphu: "Cờ thi đua Chính phủ",
       daibieu_vip2: "Đại biểu V2",
@@ -481,6 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
       daibieumoi: "Đại biểu TW, tỉnh bạn",
       nguyenthuongtruc: "Nguyên Thường trực TU",
       huanchuonglaodong1: "Huân chương Lao động (đợt 1)",
+      huanchuonglaodong2: "Huân chương Lao động (đợt 2)",
       meVN: "Anh hùng, Mẹ VNAH",
       truongcqtw: "Trưởng cơ quan TW trên địa bàn",
     },
@@ -494,10 +496,12 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const donViToStatusMap = {
     "Thường trực Tỉnh ủy": "thuongtruc",
+    "Ủy viên BTV Tỉnh ủy": "thuongvu",
     "Đại biểu V1": "daibieu_vip",
     "Nguyên Thường trực TU": "nguyenthuongtruc",
     "Đại biểu V2": "daibieu_vip2",
     "Huân chương Lao động (đợt 1)": "huanchuonglaodong1",
+    "Huân chương Lao động (đợt 2)": "huanchuonglaodong2",
     "Anh hùng, Mẹ VNAH": "meVN",
     "Cờ thi đua Chính phủ": "cothiduachinhphu",
     "Đảng bộ UBND tỉnh": "ubndtinh",
