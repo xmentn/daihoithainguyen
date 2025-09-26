@@ -478,13 +478,10 @@ document.addEventListener("DOMContentLoaded", () => {
       cothiduachinhphu: "Cờ thi đua Chính phủ",
       daibieu_vip2: "Đại biểu V2",
       bithuchutichxa: "Bí thư, Chủ tịch xã, phường",
-      quandoi: "Đảng bộ Bộ CHQS",
-      daibieumoi: "Đại biểu TW, tỉnh bạn",
       nguyenthuongtruc: "Nguyên Thường trực TU",
       huanchuonglaodong1: "Huân chương Lao động (đợt 1)",
       huanchuonglaodong2: "Huân chương Lao động (đợt 2)",
       meVN: "Anh hùng, Mẹ VNAH",
-      truongcqtw: "Trưởng cơ quan TW trên địa bàn",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -504,9 +501,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Huân chương Lao động (đợt 2)": "huanchuonglaodong2",
     "Anh hùng, Mẹ VNAH": "meVN",
     "Cờ thi đua Chính phủ": "cothiduachinhphu",
-    "Đảng bộ UBND tỉnh": "ubndtinh",
     "Bí thư, Chủ tịch xã, phường": "bithuchutichxa",
-    "Trưởng cơ quan TW trên địa bàn": "truongcqtw",
   };
 
   // =======================================================================
