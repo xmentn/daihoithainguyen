@@ -483,7 +483,6 @@ document.addEventListener("DOMContentLoaded", () => {
       huanchuonglaodong1: "Huân chương Lao động (đợt 1)",
       meVN: "Anh hùng, Mẹ VNAH",
       truongcqtw: "Trưởng cơ quan TW trên địa bàn",
-      coquanbaochi: "Lãnh đạo cơ quan báo chí",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -504,7 +503,6 @@ document.addEventListener("DOMContentLoaded", () => {
     "Đảng bộ UBND tỉnh": "ubndtinh",
     "Bí thư, Chủ tịch xã, phường": "bithuchutichxa",
     "Trưởng cơ quan TW trên địa bàn": "truongcqtw",
-    "Lãnh đạo cơ quan báo chí": "coquanbaochi",
   };
 
   // =======================================================================
