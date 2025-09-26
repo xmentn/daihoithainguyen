@@ -142,8 +142,9 @@
 
         delegatesToDisplay.forEach((delegate, index) => {
           const newRow = document.createElement("tr");
+          // THAY ĐỔI: Sử dụng 'index + 1' để tạo STT động
           newRow.innerHTML = `
-            <td class="text-center">${delegate.stt}</td>
+            <td class="text-center">${index + 1}</td>
             <td>${delegate.hoTen}</td>
             <td>${delegate.donVi}</td>
             <td class="text-center">${delegate.viTri || ""}</td>
