@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <link rel="icon" type="image/png" href="../images/Logotd.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tra cứu Đại biểu</title>
+    <link rel="stylesheet" href="css/style_tracuu.css" />
+  </head>
+
+  <body>
+    <div class="container">
+      <h1>TRA CỨU THÔNG TIN ĐẠI BIỂU, KHÁCH MỜI</h1>
+      <h2>ĐẠI HỘI THI ĐUA YÊU NƯỚC TỈNH THÁI NGUYÊN</h2>
+
+      <div id="filter-tabs"></div>
+
+      <div class="search-container">
+        <input
+          type="text"
+          id="searchBox"
+          onkeyup="filterTable()"
+          placeholder="Nhập tên hoặc đơn vị để tìm kiếm..."
+        />
+        <button
+          id="viewSeatsBtn"
+          class="view-btn"
+          title="Xem vị trí các đại biểu trong danh sách trên sơ đồ"
+        >
+          Xem vị trí trên sơ đồ
+        </button>
+      </div>
+
+      <table id="delegateTable">
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Họ và Tên</th>
+            <th>Chức vụ, Đơn vị</th>
+            <th>Vị trí ghế</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr>
+            <td colspan="4" style="text-align: center">Đang tải dữ liệu...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <script>
+      let allDelegates = [];
+      const tableBody = document.getElementById("tableBody");
+      const tabsContainer = document.getElementById("filter-tabs");
+
+      // QUAN TRỌNG: Hãy thay thế URL này bằng URL Web App của bạn sau khi triển khai Apps Script
+      const apiUrl =
+        "https://script.google.com/macros/s/AKfycbx_l8tywltp23EowgIhP_OrIOFeeT34WMjrQpDCvOsY4W3orl3Q42SlaeOFj4GtUIzddQ/exec";
+
+      /**
+       * Hàm khởi tạo ứng dụng
+       */
+      function initializeApp() {
+        fetch(apiUrl)
+          .then((response) => {
+            if (!response.ok)
+              throw new Error("Lỗi mạng hoặc không gọi được API");
+            return response.json();
+          })
+          .then((data) => {
+            if (data && data.danhsach) {
+              renderPage(data.danhsach);
+            } else {
+              tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Dữ liệu nhận được không đúng định dạng.</td></tr>`;
+            }
+          })
+          .catch((error) => {
+            console.error("Lỗi khi tải dữ liệu:", error);
+            tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:red;">Không thể tải dữ liệu. Vui lòng kiểm tra lại đường truyền hoặc URL.</td></tr>`;
+          });
+      }
+
+      /**
+       * Hàm hiển thị toàn bộ nội dung trang sau khi có dữ liệu
+       */
+      function renderPage(delegatesData) {
+        allDelegates = delegatesData;
+        createFilterTabs();
+        displayDelegates("Tất cả");
+      }
+
+      /**
+       * Tạo các tab lọc dựa trên nhóm đơn vị
+       */
+      function createFilterTabs() {
+        // Lấy danh sách các nhóm đơn vị duy nhất
+        const uniqueMainGroups = [
+          ...new Set(allDelegates.map((d) => d.nhomDonVi).filter(Boolean)),
+        ];
+        uniqueMainGroups.sort((a, b) => a.localeCompare(b, "vi"));
+
+        tabsContainer.innerHTML = "";
+
+        // Thêm nút "Tất cả"
+        const allButton = document.createElement("button");
+        allButton.className = "filter-btn active";
+        allButton.innerText = "Tất cả";
+        allButton.onclick = () => displayDelegates("Tất cả");
+        tabsContainer.appendChild(allButton);
+
+        // Thêm các nút cho từng nhóm đơn vị
+        uniqueMainGroups.forEach((unit) => {
+          const unitButton = document.createElement("button");
+          unitButton.className = "filter-btn";
+          unitButton.innerText = unit;
+          unitButton.onclick = () => displayDelegates(unit);
+          tabsContainer.appendChild(unitButton);
+        });
+      }
+
+      /**
+       * Hiển thị danh sách đại biểu dựa trên bộ lọc
+       */
+      function displayDelegates(unitFilter) {
+        tableBody.innerHTML = "";
+
+        const delegatesToDisplay =
+          unitFilter === "Tất cả"
+            ? allDelegates
+            : allDelegates.filter((d) => d.nhomDonVi === unitFilter);
+
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((btn) =>
+            btn.classList.toggle("active", btn.innerText === unitFilter)
+          );
+
+        if (delegatesToDisplay.length === 0) {
+          tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Không có dữ liệu.</td></tr>`;
+          return;
+        }
+
+        delegatesToDisplay.forEach((delegate, index) => {
+          const newRow = document.createElement("tr");
+          newRow.innerHTML = `
+            <td class="text-center">${delegate.stt}</td>
+            <td>${delegate.hoTen}</td>
+            <td>${delegate.donVi}</td>
+            <td class="text-center">${delegate.viTri || ""}</td>
+          `;
+          tableBody.appendChild(newRow);
+        });
+
+        document.getElementById("searchBox").value = "";
+        filterTable();
+      }
+
+      /**
+       * Lọc bảng dựa trên nội dung ô tìm kiếm
+       */
+      function filterTable() {
+        const input = document.getElementById("searchBox");
+        const filter = input.value.toUpperCase();
+        const trs = tableBody.getElementsByTagName("tr");
+
+        for (let i = 0; i < trs.length; i++) {
+          const tdName = trs[i].getElementsByTagName("td")[1];
+          const tdUnit = trs[i].getElementsByTagName("td")[2];
+          if (tdName || tdUnit) {
+            const nameText = tdName.textContent || tdName.innerText;
+            const unitText = tdUnit.textContent || tdUnit.innerText;
+            if (
+              nameText.toUpperCase().indexOf(filter) > -1 ||
+              unitText.toUpperCase().indexOf(filter) > -1
+            ) {
+              trs[i].style.display = "";
+            } else {
+              trs[i].style.display = "none";
+            }
+          }
+        }
+      }
+
+      /**
+       * Chuẩn hóa mã ghế (ví dụ: 'B15' -> 'B-15')
+       */
+      function normalizeSeatCode(code) {
+        if (!code || typeof code !== "string") return null;
+        let normalized = code.trim().toUpperCase();
+        if (normalized.includes("-")) return normalized;
+        if (normalized.startsWith("V1") || normalized.startsWith("V2")) {
+          return `${normalized.substring(0, 2)}-${normalized.substring(2)}`;
+        }
+        const firstChar = normalized.charAt(0);
+        if (firstChar >= "A" && firstChar <= "Z") {
+          return `${firstChar}-${normalized.substring(1)}`;
+        }
+        return normalized;
+      }
+
+      /**
+       * Xử lý sự kiện khi nhấn nút "Xem vị trí trên sơ đồ"
+       */
+      function handleViewSeatsClick() {
+        const trs = tableBody.getElementsByTagName("tr");
+        const visibleSeats = new Set();
+
+        for (let i = 0; i < trs.length; i++) {
+          if (trs[i].style.display !== "none") {
+            const seatCodeRaw = trs[i].getElementsByTagName("td")[3]?.innerText;
+            const seatCodeNormalized = normalizeSeatCode(seatCodeRaw);
+            if (seatCodeNormalized) {
+              visibleSeats.add(seatCodeNormalized);
+            }
+          }
+        }
+
+        if (visibleSeats.size === 0) {
+          alert("Không có vị trí nào trong danh sách để hiển thị.");
+          return;
+        }
+
+        const seatsQueryParam = Array.from(visibleSeats).join(",");
+        const destinationUrl = `vitridaibieutd.html?seats=${encodeURIComponent(
+          seatsQueryParam
+        )}`;
+        window.location.href = destinationUrl;
+      }
+
+      // Gán sự kiện cho nút xem vị trí
+      document
+        .getElementById("viewSeatsBtn")
+        .addEventListener("click", handleViewSeatsClick);
+
+      // Bắt đầu chạy ứng dụng
+      initializeApp();
+    </script>
+
+    <a href="index.html" class="home-button" title="Về Trang chủ">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        width="24"
+        height="24"
+      >
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z" />
+      </svg>
+      <span>Về Trang chủ</span>
+    </a>
+  </body>
+</html>
