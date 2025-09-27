@@ -218,20 +218,20 @@ h2 {
   background-color: #4b0082;
   color: white;
 }
-.seat.daibieumoi {
-  background-color: #f08080;
-  color: white;
-}
-.seat.truongcqtw {
-  background-color: #4b0082;
-  color: white;
-}
 .seat.coquanbaochi {
+  background-color: #00b0f0;
+  color: white;
+}
+.seat.bangkhenchutich2 {
+  background-color: #ffcc99;
+  color: white;
+}
+.seat.coquanbaochi1 {
   background-color: #cc5500;
   color: white;
 }
-.seat.thuky {
-  background-color: #5d52f3;
+.seat.bangkhenchutich1 {
+  background-color: #a295d7;
   color: white;
 }
 .seat.cothiduachinhphu {
@@ -239,7 +239,7 @@ h2 {
   color: white;
 }
 .seat.daibieu_vip2 {
-  background-color: #25aff3;
+  background-color: #33ccff;
   color: white;
 }
 .seat.congan {
@@ -254,8 +254,8 @@ h2 {
   background-color: #ff66ff;
   color: #2d3748;
 }
-.seat.quochoi {
-  background-color: #ff8c00; /* Màu Cam đậm (DarkOrange) */
+.seat.dienhinhtientien {
+  background-color: #cc66ff;
   color: white;
 }
 .seat.uyvienubkt {
