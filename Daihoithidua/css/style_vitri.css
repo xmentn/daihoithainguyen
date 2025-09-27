@@ -214,9 +214,9 @@ h2 {
   background-color: #bf8f00; /* Màu Chàm (Indigo) */
   color: white;
 }
-.nguyenbch20_25 {
-  background-color: #ff9800; /* Cam */
-  color: #212121; /* Đen đậm */
+.seat.lanhdaosonganh {
+  background-color: #4b0082;
+  color: white;
 }
 .seat.daibieumoi {
   background-color: #f08080;
