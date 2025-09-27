@@ -102,14 +102,14 @@
             // --- CHẠY TRÊN MÁY TÍNH ---
             // Dùng cách nhúng trực tiếp, vì trình duyệt trên máy tính xem tốt
             console.log("Đang chạy trên localhost, nhúng PDF trực tiếp.");
-            pdfEmbedElement.src = `/Tailieu/${fileName}`;
+            pdfEmbedElement.src = `/Tailieudhtd/${fileName}`;
           } else {
             // --- CHẠY TRÊN MẠNG INTERNET ---
             // Dùng Google Docs Viewer để tương thích với mọi thiết bị, đặc biệt là iPad
             console.log("Đang chạy trên server, dùng Google Docs Viewer.");
 
             const baseUrl = window.location.origin;
-            const fullFileUrl = `${baseUrl}/Tailieu/${fileName}`;
+            const fullFileUrl = `${baseUrl}/Tailieudhtd/${fileName}`;
             const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(
               fullFileUrl
             )}&embedded=true`;
