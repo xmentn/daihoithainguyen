@@ -202,11 +202,11 @@ h2 {
   background-color: #33cccc; /* Xanh da trời nhạt (LightBlue) */
   color: black;
 }
-.seat.ntv_hdnd {
+.seat.hiephoidoanhnghiep {
   background-color: #ff99cc; /* Màu Bạc (Silver) */
   color: black;
 }
-.seat.ntv_ubnd {
+.seat.tongiao {
   background-color: #008080; /* Màu Xanh mòng két (Teal) */
   color: white;
 }
