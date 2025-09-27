@@ -491,6 +491,8 @@ document.addEventListener("DOMContentLoaded", () => {
       meVN: "Anh hùng, Mẹ VNAH",
       dienhinhtientien: "Điển hình tiên tiến",
       truongphongvanhoa: "Trưởng phòng Văn hóa",
+      congan: "Công an nhân dân",
+      quandoi: "Quân đội nhân dân",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -520,6 +522,8 @@ document.addEventListener("DOMContentLoaded", () => {
     "Bí thư, Chủ tịch xã, phường": "bithuchutichxa",
     "Điển hình tiên tiến": "dienhinhtientien",
     "Trưởng phòng Văn hóa": "truongphongvanhoa",
+    "Công an nhân dân": "congan",
+    "Quân đội nhân dân": "quandoi",
   };
 
   // =======================================================================
