@@ -509,6 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Lãnh đạo các sở, ngành": "lanhdaosonganh",
     "Huân chương Lao động (đợt 1)": "huanchuonglaodong1",
     "Huân chương Lao động (đợt 2)": "huanchuonglaodong2",
+    "Cờ thi đua Chính phủ": "cothiduachinhphu",
     "Bằng khen Chủ tịch UBND tỉnh (đợt 1)": "bangkhenchutich1",
     "Bằng khen Chủ tịch UBND tỉnh (đợt 2)": "bangkhenchutich2",
     "Bằng khen Thủ tướng": "bangkhenthutuong",
