@@ -478,7 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
       cothiduachinhphu: "Cờ thi đua Chính phủ",
       hiephoidoanhnghiep: "Hiệp hội Doanh nghiệp",
       daibieu_vip2: "Đại biểu V2",
-      lanhdaosonganh: "Lãnh đạo các sở, ngành",
+      lanhdaosonganh: "Danh hiệu cấp Nhà nước",
       coquanbaochi: "Cơ quan báo chí",
       bithuchutichxa: "Bí thư, Chủ tịch xã, phường",
       nguyenthuongtruc: "Nguyên Thường trực TU",
@@ -490,6 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
       tongiao: "Chức sắc tôn giáo",
       meVN: "Anh hùng, Mẹ VNAH",
       dienhinhtientien: "Điển hình tiên tiến",
+      truongphongvanhoa: "Trưởng phòng Văn hóa",
     },
     beMac: {
       daibieumoi: "Đại biểu Trung ương",
@@ -506,7 +507,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Nguyên Thường trực TU": "nguyenthuongtruc",
     "Đại biểu V2": "daibieu_vip2",
     "Cơ quan báo chí": "coquanbaochi",
-    "Lãnh đạo các sở, ngành": "lanhdaosonganh",
+    "Danh hiệu cấp Nhà nước": "lanhdaosonganh",
     "Huân chương Lao động (đợt 1)": "huanchuonglaodong1",
     "Huân chương Lao động (đợt 2)": "huanchuonglaodong2",
     "Cờ thi đua Chính phủ": "cothiduachinhphu",
@@ -518,6 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Anh hùng, Mẹ VNAH": "meVN",
     "Bí thư, Chủ tịch xã, phường": "bithuchutichxa",
     "Điển hình tiên tiến": "dienhinhtientien",
+    "Trưởng phòng Văn hóa": "truongphongvanhoa",
   };
 
   // =======================================================================
