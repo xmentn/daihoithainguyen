@@ -1,63 +1,91 @@
+/* =================================================== */
+/* TỔNG HỢP CSS CHO DỰ ÁN                 */
+/* =================================================== */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
 
+/* --- 1. CÀI ĐẶT CHUNG & BODY --- */
 body {
   font-family: "Roboto", sans-serif;
   background-color: #f4f7f9;
+  color: #333;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   margin: 0;
+  padding: 30px 15px;
+  box-sizing: border-box;
 }
 
-.container {
+/* --- 2. KHUNG CHÍNH & TIÊU ĐỀ --- */
+.main-wrapper {
   background-color: #fff;
-  padding: 40px;
+  padding: 30px 40px;
   border-radius: 10px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   width: 100%;
-  max-width: 500px;
-  text-align: center;
+  max-width: 900px;
+  box-sizing: border-box;
 }
 
 h1 {
-  color: #333;
+  color: #1a237e; /* Màu xanh đậm */
+  text-transform: uppercase;
+  text-align: center;
+  font-size: 24px;
+  margin-top: 0;
   margin-bottom: 30px;
+  font-weight: 700;
+}
+
+/* --- 3. KHU VỰC NHẬP LIỆU --- */
+.form-row {
+  display: flex;
+  align-items: flex-end; /* Căn các mục theo đáy */
+  gap: 15px; /* Khoảng cách giữa các mục */
+  margin-bottom: 10px;
 }
 
 .form-group {
-  margin-bottom: 20px;
-  text-align: left;
+  margin-bottom: 0;
 }
 
-label {
+.form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
   color: #555;
 }
 
-input[type="number"],
-select {
+.form-group.flex-grow {
+  flex-grow: 1; /* Cho phép Tên đơn vị co giãn */
+}
+
+input,
+select,
+button {
   width: 100%;
-  padding: 12px;
+  padding: 0 12px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
   font-size: 16px;
+  height: 45px;
+}
+
+input[type="number"] {
+  width: 180px; /* Cố định chiều rộng cho ô số liệu */
 }
 
 button {
-  width: 100%;
-  padding: 15px;
   border: none;
-  border-radius: 5px;
   background-color: #007bff;
   color: white;
-  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
   transition: background-color 0.3s ease;
+  width: auto;
+  min-width: 150px;
 }
 
 button:hover {
@@ -69,12 +97,60 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* --- 4. BẢNG DỮ LIỆU --- */
+.table-section {
+  margin-top: 40px;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 30px;
+}
+
+.table-section h2 {
+  text-align: center;
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 25px;
+  font-size: 20px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+table th,
+table td {
+  padding: 12px 15px;
+  border: 1px solid #e0e0e0;
+  text-align: left;
+  vertical-align: middle;
+}
+
+table th {
+  background-color: #f4f7f9;
+  font-weight: 600;
+}
+
+table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+/* --- 5. THÔNG BÁO (MESSAGE) --- */
 .message {
-  margin-top: 20px;
+  margin-top: 15px;
   padding: 15px;
   border-radius: 5px;
   font-weight: 500;
-  display: none; /* Ẩn ban đầu */
+  display: none;
+  text-align: center;
 }
 
 .message.success {
@@ -88,8 +164,8 @@ button:disabled {
   color: #721c24;
   display: block;
 }
-/* =================== MODAL STYLES =================== */
 
+/* --- 6. MODAL XÁC NHẬN --- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -97,14 +173,16 @@ button:disabled {
   width: 100%;
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
-  display: none; /* Ẩn ban đầu */
+  display: none;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 15px;
+  box-sizing: border-box;
 }
 
 .modal-overlay.visible {
-  display: flex; /* Hiện modal khi có class 'visible' */
+  display: flex;
 }
 
 .modal-content {
@@ -114,7 +192,7 @@ button:disabled {
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
   text-align: center;
   max-width: 400px;
-  width: 90%;
+  width: 100%;
   transform: translateY(-50px);
   transition: transform 0.3s ease-out;
 }
@@ -125,7 +203,6 @@ button:disabled {
 
 .modal-content p {
   font-size: 18px;
-  color: #333;
   margin: 0 0 25px 0;
   line-height: 1.6;
 }
@@ -137,14 +214,9 @@ button:disabled {
 }
 
 .modal-actions button {
-  border: none;
-  padding: 12px 25px;
-  border-radius: 5px;
-  font-size: 16px;
   font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
   width: auto;
+  min-width: 100px;
 }
 
 .btn-confirm {
@@ -164,4 +236,44 @@ button:disabled {
 
 .btn-cancel:hover {
   background-color: #d2d6da;
+}
+
+/* --- 7. RESPONSIVE CHO DI ĐỘNG --- */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  .main-wrapper {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .form-row {
+    flex-direction: column; /* Xếp dọc các mục nhập liệu */
+    align-items: stretch; /* Căn cho các mục giãn đều */
+    gap: 15px;
+  }
+
+  input[type="number"] {
+    width: 100%; /* Ô số liệu rộng 100% */
+  }
+
+  button {
+    min-width: unset;
+    width: 100%;
+  }
+}
+/* Căn giữa tiêu đề của bảng dữ liệu */
+/* Căn giữa toàn bộ hàng tiêu đề của bảng */
+table th {
+  text-align: center;
+}
+
+/* Chỉ căn giữa cột dữ liệu đầu tiên (STT) */
+table td:first-child {
+  text-align: center;
 }

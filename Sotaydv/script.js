@@ -1,10 +1,49 @@
-// DÁN URL ỨNG DỤNG WEB CỦA BẠN VÀO ĐÂY
-const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec"; // <<=== GIỮ NGUYÊN URL CỦA BẠN
+// ===================================================================
+// File: script.js (Chạy trên trình duyệt của người dùng)
+// File này KHÔNG được chứa SPREADSHEET_ID hay SpreadsheetApp
+// ===================================================================
 
-// Di chuyển tất cả các biến liên quan đến DOM vào trong DOMContentLoaded
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec"; // <<=== DÙNG URL CỦA BẠN
+
 let form, donViSelect, soLieuInput, submitBtn, messageDiv;
 let modal, modalMessage, confirmBtn, cancelBtn;
+let dataTableBody;
+
+// HÀM LẤY VÀ HIỂN THỊ DỮ LIỆU LÊN BẢNG
+function fetchAndDisplayData() {
+  dataTableBody.innerHTML = '<tr><td colspan="3">Đang tải dữ liệu...</td></tr>';
+  fetch(`${SCRIPT_URL}?action=getData`)
+    .then((response) => response.json())
+    .then((result) => {
+      if (result.status === "success") {
+        // Sắp xếp dữ liệu theo tên đơn vị (cột thứ 2, index là 1)
+        result.data.sort((a, b) => a[1].localeCompare(b[1], "vi"));
+
+        dataTableBody.innerHTML = ""; // Xóa dòng "Đang tải"
+        if (result.data.length === 0) {
+          dataTableBody.innerHTML =
+            '<tr><td colspan="3">Chưa có dữ liệu.</td></tr>';
+        } else {
+          result.data.forEach((row) => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${row[0]}</td>
+              <td>${row[1]}</td>
+              <td>${row[2]}</td>
+            `;
+            dataTableBody.appendChild(tr);
+          });
+        }
+      } else {
+        throw new Error(result.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Lỗi khi tải bảng dữ liệu:", error);
+      dataTableBody.innerHTML = `<tr><td colspan="3">Lỗi: Không thể tải dữ liệu.</td></tr>`;
+    });
+}
 
 // Hàm hiển thị thông báo
 function showMessage(type, text) {
@@ -44,10 +83,9 @@ function showConfirmationModal(message) {
   });
 }
 
-// Chỉ thực thi mã sau khi toàn bộ HTML đã được tải
+// CHẠY SAU KHI HTML ĐÃ TẢI XONG
 document.addEventListener("DOMContentLoaded", () => {
-  // *** THAY ĐỔI QUAN TRỌNG NHẤT NẰM Ở ĐÂY ***
-  // Lấy tất cả các phần tử HTML sau khi trang đã sẵn sàng
+  // Lấy các phần tử HTML
   form = document.getElementById("dataForm");
   donViSelect = document.getElementById("tenDonVi");
   soLieuInput = document.getElementById("soLieu");
@@ -57,9 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
   modalMessage = document.getElementById("modalMessage");
   confirmBtn = document.getElementById("confirmBtn");
   cancelBtn = document.getElementById("cancelBtn");
-  // *** KẾT THÚC THAY ĐỔI ***
+  dataTableBody = document.getElementById("dataTableBody");
 
-  // Tải danh sách đơn vị
+  // Tải danh sách đơn vị cho dropdown
   fetch(SCRIPT_URL)
     .then((response) => response.json())
     .then((data) => {
@@ -82,26 +120,25 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage("error", "Lỗi: Không thể tải danh sách đơn vị.");
     });
 
+  // Tải bảng dữ liệu
+  fetchAndDisplayData();
+
   // Xử lý khi gửi form
   form.addEventListener("submit", function (e) {
     e.preventDefault();
-
     const tenDonVi = donViSelect.value;
     const soLieu = soLieuInput.value;
-
     if (!tenDonVi || soLieu === "") {
       showMessage("error", "Vui lòng chọn đơn vị và nhập số liệu.");
       return;
     }
-
     submitBtn.disabled = true;
     submitBtn.textContent = "Đang gửi...";
-
     submitData({ tenDonVi, soLieu, replaceData: false });
   });
 });
 
-// Hàm gửi dữ liệu (async function)
+// Hàm gửi dữ liệu
 async function submitData(payload) {
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -126,9 +163,9 @@ async function submitData(payload) {
       if (result.status === "success") {
         showMessage("success", result.message);
         form.reset();
+        fetchAndDisplayData(); // Cập nhật lại bảng
       } else if (result.status === "exists") {
         const userConfirmation = await showConfirmationModal(result.message);
-
         if (userConfirmation) {
           submitData({ ...payload, replaceData: true });
         } else {

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhập Liệu Tập Huấn</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="main-wrapper">
+      <h1>TỔNG HỢP TÌNH HÌNH TẬP HUẤN SỔ TAY ĐẢNG VIÊN</h1>
+
+      <form id="dataForm" class="input-section">
+        <div class="form-row">
+          <div class="form-group flex-grow">
+            <label for="tenDonVi">Tên đơn vị:</label>
+            <select id="tenDonVi" name="tenDonVi" required>
+              <option value="">Đang tải danh sách...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="soLieu">Số người tập huấn:</label>
+            <input type="number" id="soLieu" name="soLieu" required min="0" />
+          </div>
+
+          <button type="submit" id="submitBtn">Gửi Dữ Liệu</button>
+        </div>
+      </form>
+      <div id="message" class="message"></div>
+
+      <div class="table-section">
+        <h2>Dữ liệu đã báo cáo</h2>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên đơn vị</th>
+                <th>Số người tập huấn</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+    <div id="confirmationModal" class="modal-overlay">
+      <div class="modal-content">
+        <p id="modalMessage">Nội dung thông báo sẽ ở đây</p>
+        <div class="modal-actions">
+          <button id="confirmBtn" class="btn-confirm">Đồng ý</button>
+          <button id="cancelBtn" class="btn-cancel">Hủy</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
