@@ -1,0 +1,160 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
+
+/* --- Cài đặt chung --- */
+body {
+  background-color: lightblue !important; /* Dùng màu xanh da trời để test */
+}
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: #f3f4f6;
+  color: #374151;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Căn lề trên để dashboard luôn ở đầu trang */
+  min-height: 100vh;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.portal-container {
+  width: 100%;
+  max-width: 1200px;
+  text-align: center;
+}
+
+/* --- Header --- */
+.portal-header {
+  margin-bottom: 40px;
+}
+
+.portal-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.portal-header p {
+  font-size: 1.125rem;
+  color: #6b7280;
+  margin-top: 8px;
+}
+
+/* --- Bố cục 2 cột chính --- */
+.dashboard-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  text-align: left;
+}
+
+/* --- Cột trái: Panel Biểu đồ --- */
+.dashboard-panel {
+  flex: 1 1 65%;
+  min-width: 400px;
+  background-color: #ffffff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-panel h2 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+.chart-container {
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+.chart-container img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- Cột phải: Panel Chức năng --- */
+.functions-panel {
+  flex: 1 1 30%;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+/* --- Thẻ chức năng --- */
+.card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 25px;
+  text-decoration: none;
+  color: inherit;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  border-top: 4px solid #c8102e;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.08);
+}
+
+.card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.card h3 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin: 0 0 10px 0;
+  color: #111827;
+}
+
+.card p {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+  color: #4b5563;
+}
+
+.card.disabled {
+  background-color: #f9fafb;
+  border-top-color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.card.disabled:hover {
+  transform: none;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* --- Footer --- */
+.portal-footer {
+  margin-top: 50px;
+  padding-top: 20px;
+  border-top: 1px solid #e5e7eb;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+/* --- Responsive cho màn hình nhỏ --- */
+@media (max-width: 900px) {
+  body {
+    padding: 20px;
+    align-items: stretch;
+  }
+  .dashboard-panel,
+  .functions-panel {
+    min-width: 100%;
+  }
+}
