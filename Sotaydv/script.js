@@ -1,124 +1,149 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const SCRIPT_URL =
-    "https://script.google.com/macros/s/AKfycbxpimlKEJGclLedbBfjrZhxT72Z48IttcRmzR7GKF8P6B0hJSh1iCcqGzRoGQEX-GHV/exec"; // <<=== DÁN URL WEB APP CỦA BẠN VÀO ĐÂY
+// DÁN URL ỨNG DỤNG WEB CỦA BẠN VÀO ĐÂY
+const SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec"; // <<=== GIỮ NGUYÊN URL CỦA BẠN
 
-  // =================================================================
-  // LẤY CÁC THÀNH PHẦN GIAO DIỆN (DOM ELEMENTS)
-  // =================================================================
-  const form = document.getElementById("dataForm");
-  const unitSelect = document.getElementById("tenDonVi");
-  const dataInput = document.getElementById("soLieu");
-  const statusDiv = document.getElementById("status");
-  const submitButton = document.getElementById("submitButton");
-  const buttonText = document.getElementById("button-text");
-  const buttonSpinner = document.getElementById("button-spinner");
+// Di chuyển tất cả các biến liên quan đến DOM vào trong DOMContentLoaded
+let form, donViSelect, soLieuInput, submitBtn, messageDiv;
+let modal, modalMessage, confirmBtn, cancelBtn;
 
-  const confirmModal = new bootstrap.Modal(
-    document.getElementById("confirmModal")
-  );
-  const modalBodyMessage = document.getElementById("modalBodyMessage");
-  const confirmReplaceBtn = document.getElementById("confirmReplaceBtn");
+// Hàm hiển thị thông báo
+function showMessage(type, text) {
+  messageDiv.className = `message ${type}`;
+  messageDiv.textContent = text;
+  setTimeout(() => {
+    messageDiv.className = "message";
+    messageDiv.textContent = "";
+  }, 5000);
+}
 
-  let isSubmitting = false; // Biến trạng thái để tránh gửi nhiều lần
+// HÀM HIỂN THỊ MODAL XÁC NHẬN
+function showConfirmationModal(message) {
+  return new Promise((resolve) => {
+    modalMessage.textContent = message;
+    modal.classList.add("visible");
 
-  // =================================================================
-  // CÁC HÀM CHÍNH
-  // =================================================================
-
-  // --- Hàm tải danh sách đơn vị ---
-  const fetchUnits = async () => {
-    try {
-      const response = await fetch(SCRIPT_URL);
-      if (!response.ok) throw new Error("Network response was not ok.");
-      const result = await response.json();
-      if (result.status !== "success") throw new Error(result.message);
-
-      unitSelect.innerHTML =
-        '<option value="" disabled selected>-- Vui lòng chọn một đơn vị --</option>';
-      result.data.forEach((unit) => unitSelect.add(new Option(unit, unit)));
-    } catch (error) {
-      unitSelect.innerHTML =
-        '<option value="" disabled selected>Lỗi tải danh sách</option>';
-      showStatus(`Lỗi tải danh sách đơn vị: ${error.message}`, "danger");
-    }
-  };
-
-  // --- Hàm gửi dữ liệu ---
-  const handleFormSubmit = async (event) => {
-    event.preventDefault();
-    if (isSubmitting) return;
-
-    const data = {
-      tenDonVi: unitSelect.value,
-      soLieu: dataInput.value,
+    const handleConfirm = () => {
+      modal.classList.remove("visible");
+      resolve(true);
+      cleanup();
     };
 
-    await submitData(data);
-  };
+    const handleCancel = () => {
+      modal.classList.remove("visible");
+      resolve(false);
+      cleanup();
+    };
 
-  // --- Hàm logic chính để giao tiếp với Apps Script ---
-  const submitData = async (data, replace = false) => {
-    setSubmitting(true);
-    data.replaceData = replace;
+    const cleanup = () => {
+      confirmBtn.removeEventListener("click", handleConfirm);
+      cancelBtn.removeEventListener("click", handleCancel);
+    };
 
-    try {
-      const response = await fetch(SCRIPT_URL, {
-        method: "POST",
-        mode: "cors", // Thêm mode cors để xử lý tốt hơn
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data), // Gửi dưới dạng JSON chuẩn
-      });
+    confirmBtn.addEventListener("click", handleConfirm);
+    cancelBtn.addEventListener("click", handleCancel);
+  });
+}
 
-      if (!response.ok) throw new Error(`Lỗi server: ${response.statusText}`);
-      const result = await response.json();
+// Chỉ thực thi mã sau khi toàn bộ HTML đã được tải
+document.addEventListener("DOMContentLoaded", () => {
+  // *** THAY ĐỔI QUAN TRỌNG NHẤT NẰM Ở ĐÂY ***
+  // Lấy tất cả các phần tử HTML sau khi trang đã sẵn sàng
+  form = document.getElementById("dataForm");
+  donViSelect = document.getElementById("tenDonVi");
+  soLieuInput = document.getElementById("soLieu");
+  submitBtn = document.getElementById("submitBtn");
+  messageDiv = document.getElementById("message");
+  modal = document.getElementById("confirmationModal");
+  modalMessage = document.getElementById("modalMessage");
+  confirmBtn = document.getElementById("confirmBtn");
+  cancelBtn = document.getElementById("cancelBtn");
+  // *** KẾT THÚC THAY ĐỔI ***
 
-      if (result.status === "exists") {
-        modalBodyMessage.textContent = result.message;
-        confirmModal.show();
+  // Tải danh sách đơn vị
+  fetch(SCRIPT_URL)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === "success") {
+        donViSelect.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
+        data.data.forEach((donVi) => {
+          const option = document.createElement("option");
+          option.value = donVi;
+          option.textContent = donVi;
+          donViSelect.appendChild(option);
+        });
+      } else {
+        throw new Error(data.message);
+      }
+    })
+    .catch((error) => {
+      console.error("Lỗi khi tải danh sách đơn vị:", error);
+      donViSelect.innerHTML =
+        '<option value="">Không thể tải danh sách</option>';
+      showMessage("error", "Lỗi: Không thể tải danh sách đơn vị.");
+    });
 
-        confirmReplaceBtn.onclick = async () => {
-          confirmModal.hide();
-          await submitData(data, true);
-        };
-      } else if (result.status === "success") {
-        showStatus(result.message, "success");
+  // Xử lý khi gửi form
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const tenDonVi = donViSelect.value;
+    const soLieu = soLieuInput.value;
+
+    if (!tenDonVi || soLieu === "") {
+      showMessage("error", "Vui lòng chọn đơn vị và nhập số liệu.");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Đang gửi...";
+
+    submitData({ tenDonVi, soLieu, replaceData: false });
+  });
+});
+
+// Hàm gửi dữ liệu (async function)
+async function submitData(payload) {
+  fetch(SCRIPT_URL, {
+    method: "POST",
+    mode: "cors",
+    body: JSON.stringify(payload),
+  })
+    .then((res) =>
+      res
+        .clone()
+        .json()
+        .catch(() => res.text())
+    )
+    .then(async (result) => {
+      if (typeof result === "string") {
+        try {
+          result = JSON.parse(result);
+        } catch (e) {
+          throw new Error("Phản hồi từ server không hợp lệ.");
+        }
+      }
+
+      if (result.status === "success") {
+        showMessage("success", result.message);
         form.reset();
+      } else if (result.status === "exists") {
+        const userConfirmation = await showConfirmationModal(result.message);
+
+        if (userConfirmation) {
+          submitData({ ...payload, replaceData: true });
+        } else {
+          showMessage("error", "Hành động đã được hủy.");
+        }
       } else {
         throw new Error(result.message);
       }
-    } catch (error) {
-      showStatus(`Gửi dữ liệu thất bại: ${error.message}`, "danger");
-    } finally {
-      // Khối này LUÔN LUÔN chạy, dù thành công hay thất bại
-      setSubmitting(false);
-      // Dọn dẹp thủ công để đảm bảo 100%
-      const backdrop = document.querySelector(".modal-backdrop");
-      if (backdrop) backdrop.remove();
-      document.body.classList.remove("modal-open");
-      document.body.style.overflow = "";
-    }
-  };
-
-  // =================================================================
-  // CÁC HÀM TIỆN ÍCH
-  // =================================================================
-  const setSubmitting = (submitting) => {
-    isSubmitting = submitting;
-    submitButton.disabled = submitting;
-    buttonText.textContent = submitting ? "Đang xử lý..." : "Gửi dữ liệu";
-    buttonSpinner.classList.toggle("d-none", !submitting);
-  };
-
-  const showStatus = (message, type) => {
-    statusDiv.innerHTML = `<div class="alert alert-${type}" role="alert">${message}</div>`;
-    setTimeout(() => {
-      statusDiv.innerHTML = "";
-    }, 5000);
-  };
-
-  // =================================================================
-  // KHỞI CHẠY
-  // =================================================================
-  form.addEventListener("submit", handleFormSubmit);
-  fetchUnits();
-});
+    })
+    .catch((error) => {
+      console.error("Lỗi khi gửi dữ liệu:", error);
+      showMessage("error", `Gửi dữ liệu thất bại: ${error.message}`);
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Gửi Dữ Liệu";
+    });
+}
