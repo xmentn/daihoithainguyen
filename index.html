@@ -297,4 +297,57 @@
     </script>
     <script src="counter.js"></script>
   </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // ==== Tài liệu Đại hội ====
+      const tailieuLink = document.querySelector(
+        'a[href="./Tailieu/tailieu.html"]'
+      );
+      if (tailieuLink) {
+        tailieuLink.style.pointerEvents = "none"; // Vô hiệu hóa click
+        tailieuLink.style.opacity = "0.5"; // Làm mờ
+        tailieuLink.title = "Chức năng tạm thời vô hiệu hóa";
+      }
+
+      // ==== Sơ đồ chụp ảnh, tặng hoa ====
+      const chupanhLink = document.querySelector(
+        'a[href="./SoDoChupAnh/chupanh.html"]'
+      );
+      if (chupanhLink) {
+        chupanhLink.style.pointerEvents = "none";
+        chupanhLink.style.opacity = "0.5";
+        chupanhLink.title = "Chức năng tạm thời vô hiệu hóa";
+      }
+
+      // ==== Thông tin phục vụ khác (toàn bộ dropdown) ====
+      const thongTinPhucVu = document.querySelector(
+        '.dropdown > a.nav-button > h3:contains("THÔNG TIN PHỤC VỤ KHÁC")'
+      );
+
+      // Cách chọn phần tử khác vì :contains() không phải CSS chuẩn
+      const dropdowns = document.querySelectorAll(
+        ".dropdown > a.nav-button h3"
+      );
+      dropdowns.forEach((h3) => {
+        if (h3.textContent.trim() === "THÔNG TIN PHỤC VỤ KHÁC") {
+          const parentLink = h3.closest("a.nav-button");
+          if (parentLink) {
+            parentLink.style.pointerEvents = "none";
+            parentLink.style.opacity = "0.5";
+            parentLink.title = "Chức năng tạm thời vô hiệu hóa";
+          }
+        }
+      });
+
+      // Ngoài ra vô hiệu hóa các link bên trong dropdown (nếu cần)
+      const subLinks = document.querySelectorAll(
+        '.dropdown-content a[href^="./Khachmoi/"], .dropdown-content a[href^="./ThongTinKhac/"]'
+      );
+      subLinks.forEach((link) => {
+        link.style.pointerEvents = "none";
+        link.style.opacity = "0.5";
+        link.title = "Chức năng tạm thời vô hiệu hóa";
+      });
+    });
+  </script>
 </html>
