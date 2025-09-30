@@ -1,34 +1,40 @@
-// ===================================================================
-// File: script.js (Chạy trên trình duyệt của người dùng)
-// File này KHÔNG được chứa SPREADSHEET_ID hay SpreadsheetApp
-// ===================================================================
-
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec"; // <<=== DÙNG URL CỦA BẠN
 
-let form, donViSelect, soLieuInput, submitBtn, messageDiv;
-let modal, modalMessage, confirmBtn, cancelBtn;
-let dataTableBody;
+let allUnits = [];
+let reportedUnits = [];
 
-// HÀM LẤY VÀ HIỂN THỊ DỮ LIỆU LÊN BẢNG
+let form,
+  donViSelect,
+  soLieuInput,
+  submitBtn,
+  messageDiv,
+  dataTableBody,
+  totalSumEl;
+let modal, modalMessage, confirmBtn, cancelBtn;
+let missingModal, closeMissingBtn, missingListEl, showMissingBtn;
+
 function fetchAndDisplayData() {
   dataTableBody.innerHTML = '<tr><td colspan="3">Đang tải dữ liệu...</td></tr>';
   fetch(`${SCRIPT_URL}?action=getData`)
     .then((response) => response.json())
     .then((result) => {
       if (result.status === "success") {
-        // Sắp xếp dữ liệu theo tên đơn vị (cột thứ 2, index là 1)
-        result.data.sort((a, b) => a[1].localeCompare(b[1], "vi"));
-
-        dataTableBody.innerHTML = ""; // Xóa dòng "Đang tải"
-        if (result.data.length === 0) {
+        const data = result.data;
+        data.sort((a, b) => a[1].localeCompare(b[1], "vi"));
+        reportedUnits = data.map((row) => row[1]);
+        dataTableBody.innerHTML = "";
+        if (data.length === 0) {
           dataTableBody.innerHTML =
             '<tr><td colspan="3">Chưa có dữ liệu.</td></tr>';
+          totalSumEl.textContent = "0";
         } else {
-          result.data.forEach((row) => {
+          const total = data.reduce((sum, row) => sum + Number(row[2] || 0), 0);
+          totalSumEl.textContent = total;
+          data.forEach((row, index) => {
             const tr = document.createElement("tr");
             tr.innerHTML = `
-              <td>${row[0]}</td>
+              <td>${index + 1}</td>
               <td>${row[1]}</td>
               <td>${row[2]}</td>
             `;
@@ -45,7 +51,6 @@ function fetchAndDisplayData() {
     });
 }
 
-// Hàm hiển thị thông báo
 function showMessage(type, text) {
   messageDiv.className = `message ${type}`;
   messageDiv.textContent = text;
@@ -55,55 +60,55 @@ function showMessage(type, text) {
   }, 5000);
 }
 
-// HÀM HIỂN THỊ MODAL XÁC NHẬN
 function showConfirmationModal(message) {
   return new Promise((resolve) => {
     modalMessage.textContent = message;
     modal.classList.add("visible");
-
     const handleConfirm = () => {
       modal.classList.remove("visible");
       resolve(true);
       cleanup();
     };
-
     const handleCancel = () => {
       modal.classList.remove("visible");
       resolve(false);
       cleanup();
     };
-
     const cleanup = () => {
       confirmBtn.removeEventListener("click", handleConfirm);
       cancelBtn.removeEventListener("click", handleCancel);
     };
-
     confirmBtn.addEventListener("click", handleConfirm);
     cancelBtn.addEventListener("click", handleCancel);
   });
 }
 
-// CHẠY SAU KHI HTML ĐÃ TẢI XONG
 document.addEventListener("DOMContentLoaded", () => {
-  // Lấy các phần tử HTML
+  // Lấy các phần tử DOM
   form = document.getElementById("dataForm");
   donViSelect = document.getElementById("tenDonVi");
   soLieuInput = document.getElementById("soLieu");
   submitBtn = document.getElementById("submitBtn");
   messageDiv = document.getElementById("message");
+  dataTableBody = document.getElementById("dataTableBody");
+  totalSumEl = document.getElementById("totalSum");
   modal = document.getElementById("confirmationModal");
   modalMessage = document.getElementById("modalMessage");
   confirmBtn = document.getElementById("confirmBtn");
   cancelBtn = document.getElementById("cancelBtn");
-  dataTableBody = document.getElementById("dataTableBody");
+  missingModal = document.getElementById("missingUnitsModal");
+  closeMissingBtn = document.getElementById("closeMissingBtn");
+  missingListEl = document.getElementById("missingUnitsList");
+  showMissingBtn = document.getElementById("showMissingBtn");
 
-  // Tải danh sách đơn vị cho dropdown
+  // Tải danh sách đơn vị
   fetch(SCRIPT_URL)
     .then((response) => response.json())
     .then((data) => {
       if (data.status === "success") {
+        allUnits = data.data;
         donViSelect.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
-        data.data.forEach((donVi) => {
+        allUnits.forEach((donVi) => {
           const option = document.createElement("option");
           option.value = donVi;
           option.textContent = donVi;
@@ -136,9 +141,40 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.textContent = "Đang gửi...";
     submitData({ tenDonVi, soLieu, replaceData: false });
   });
-});
 
-// Hàm gửi dữ liệu
+  // =========================================================================
+  // DI CHUYỂN TOÀN BỘ CÁC SỰ KIỆN CLICK VÀO ĐÂY
+  // =========================================================================
+
+  // Sự kiện cho nút "Đơn vị chưa báo cáo"
+  showMissingBtn.addEventListener("click", () => {
+    const missingUnits = allUnits.filter(
+      (unit) => !reportedUnits.includes(unit)
+    );
+    missingListEl.innerHTML = "";
+    if (missingUnits.length > 0) {
+      missingUnits.forEach((unit) => {
+        const li = document.createElement("li");
+        li.textContent = unit;
+        missingListEl.appendChild(li);
+      });
+    } else {
+      missingListEl.innerHTML = "<li>Tất cả các đơn vị đã báo cáo đầy đủ.</li>";
+    }
+    missingModal.classList.add("visible");
+  });
+
+  // Sự kiện đóng modal danh sách
+  closeMissingBtn.addEventListener("click", () => {
+    missingModal.classList.remove("visible");
+  });
+  missingModal.addEventListener("click", (e) => {
+    if (e.target === missingModal) {
+      missingModal.classList.remove("visible");
+    }
+  });
+}); // <-- Kết thúc của DOMContentLoaded
+
 async function submitData(payload) {
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -159,11 +195,10 @@ async function submitData(payload) {
           throw new Error("Phản hồi từ server không hợp lệ.");
         }
       }
-
       if (result.status === "success") {
         showMessage("success", result.message);
         form.reset();
-        fetchAndDisplayData(); // Cập nhật lại bảng
+        fetchAndDisplayData();
       } else if (result.status === "exists") {
         const userConfirmation = await showConfirmationModal(result.message);
         if (userConfirmation) {

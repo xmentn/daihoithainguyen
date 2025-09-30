@@ -277,3 +277,63 @@ table th {
 table td:first-child {
   text-align: center;
 }
+/* --- Nâng cấp cho bảng dữ liệu --- */
+
+/* Dàn tiêu đề và nút bấm trên cùng hàng */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+.table-header h2 {
+  margin: 0;
+}
+
+/* Nút phụ "Đơn vị chưa báo cáo" */
+.secondary-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.secondary-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Hàng tổng kết trong bảng */
+table tfoot {
+  font-weight: 700;
+  background-color: #f8f9fa;
+  color: #333;
+}
+table tfoot td {
+  border-top: 2px solid #dee2e6;
+}
+#totalSum {
+  text-align: right;
+  font-size: 16px;
+  color: #c8102e;
+}
+
+/* Modal danh sách đơn vị chưa báo cáo */
+#missingUnitsList {
+  list-style-type: decimal; /* Đánh số thứ tự */
+  padding-left: 25px;
+  max-height: 300px;
+  overflow-y: auto;
+  text-align: left;
+  margin-bottom: 25px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+#missingUnitsList li {
+  padding: 5px 0;
+}

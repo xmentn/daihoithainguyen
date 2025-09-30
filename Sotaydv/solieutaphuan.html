@@ -19,19 +19,23 @@
               <option value="">Đang tải danh sách...</option>
             </select>
           </div>
-
           <div class="form-group">
             <label for="soLieu">Số người tập huấn:</label>
             <input type="number" id="soLieu" name="soLieu" required min="0" />
           </div>
-
           <button type="submit" id="submitBtn">Gửi Dữ Liệu</button>
         </div>
       </form>
       <div id="message" class="message"></div>
 
       <div class="table-section">
-        <h2>Dữ liệu đã báo cáo</h2>
+        <div class="table-header">
+          <h2>Dữ liệu đã báo cáo</h2>
+          <button id="showMissingBtn" class="secondary-btn">
+            Đơn vị chưa báo cáo
+          </button>
+        </div>
+
         <div class="table-wrapper">
           <table>
             <thead>
@@ -42,11 +46,17 @@
               </tr>
             </thead>
             <tbody id="dataTableBody"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Tổng cộng</td>
+                <td id="totalSum">0</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
     </div>
-    <script src="script.js"></script>
+
     <div id="confirmationModal" class="modal-overlay">
       <div class="modal-content">
         <p id="modalMessage">Nội dung thông báo sẽ ở đây</p>
@@ -56,5 +66,16 @@
         </div>
       </div>
     </div>
+
+    <div id="missingUnitsModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Danh sách đơn vị chưa báo cáo</h3>
+        <ul id="missingUnitsList"></ul>
+        <div class="modal-actions">
+          <button id="closeMissingBtn" class="btn-confirm">Đóng</button>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
   </body>
 </html>
