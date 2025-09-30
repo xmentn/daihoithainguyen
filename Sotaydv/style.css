@@ -337,3 +337,32 @@ table tfoot td {
 #missingUnitsList li {
   padding: 5px 0;
 }
+/* --- CSS cho Tiêu đề trang và Nút Home --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px; /* Giữ khoảng cách với form bên dưới */
+}
+
+.page-header h1 {
+  margin: 0; /* Bỏ margin mặc định của H1 */
+}
+
+.btn-home {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  color: #343a40;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap; /* Ngăn nút bị xuống dòng */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-home:hover {
+  background-color: #e9ecef;
+  color: #000;
+}
