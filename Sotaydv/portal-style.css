@@ -2,16 +2,13 @@
 
 /* --- Cài đặt chung --- */
 body {
-  background-color: lightblue !important; /* Dùng màu xanh da trời để test */
-}
-body {
   font-family: "Roboto", sans-serif;
   background-color: #f3f4f6;
   color: #374151;
   margin: 0;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* Căn lề trên để dashboard luôn ở đầu trang */
+  align-items: flex-start;
   min-height: 100vh;
   padding: 40px 20px;
   box-sizing: border-box;
@@ -21,6 +18,7 @@ body {
   width: 100%;
   max-width: 1200px;
   text-align: center;
+  margin: 0 auto;
 }
 
 /* --- Header --- */
@@ -52,11 +50,11 @@ body {
 /* --- Cột trái: Panel Biểu đồ --- */
 .dashboard-panel {
   flex: 1 1 65%;
-  min-width: 400px;
-  background-color: #ffffff;
+  background: #fff;
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .dashboard-panel h2 {
@@ -67,22 +65,21 @@ body {
 }
 
 .chart-container {
-  width: 100%;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
+  position: relative;
+  height: 450px; /* Chiều cao cố định để sửa lỗi biểu đồ bị trôi */
 }
 
-.chart-container img {
-  width: 100%;
-  height: auto;
-  display: block;
+.chart-container p {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #6b7280;
 }
 
 /* --- Cột phải: Panel Chức năng --- */
 .functions-panel {
   flex: 1 1 30%;
-  min-width: 280px;
   display: flex;
   flex-direction: column;
   gap: 25px;
@@ -99,8 +96,6 @@ body {
   transition: all 0.3s ease;
   border-top: 4px solid #c8102e;
   text-align: left;
-  width: 100%;
-  box-sizing: border-box;
 }
 
 .card:hover {
@@ -148,13 +143,39 @@ body {
 }
 
 /* --- Responsive cho màn hình nhỏ --- */
-@media (max-width: 900px) {
-  body {
-    padding: 20px;
-    align-items: stretch;
+@media (max-width: 1024px) {
+  .dashboard-layout {
+    flex-direction: column;
   }
   .dashboard-panel,
   .functions-panel {
-    min-width: 100%;
+    flex-basis: 100%; /* Đảm bảo mỗi cột chiếm toàn bộ chiều rộng */
   }
+}
+/* --- CSS cho bộ lọc Dashboard --- */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.dashboard-header h2 {
+  margin: 0;
+}
+
+.dashboard-filters {
+  display: flex;
+  gap: 10px;
+}
+
+.dashboard-filters select {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  font-size: 14px;
+  cursor: pointer;
 }

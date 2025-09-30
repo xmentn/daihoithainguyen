@@ -5,23 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sổ tay Đảng viên Điện tử</title>
     <link rel="stylesheet" href="portal-style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div class="portal-container">
       <header class="portal-header">
-        <h1>Ứng dụng Sổ tay Đảng viên Điện tử</h1>
+        <h1>Tình hình triển khai Ứng dụng Sổ tay Đảng viên Điện tử</h1>
         <p>Công cụ hỗ trợ nghiệp vụ công tác Đảng</p>
       </header>
 
       <main class="portal-main">
         <div class="dashboard-layout">
           <div class="dashboard-panel">
-            <h2>Dashboard Tổng quan</h2>
+            <div class="dashboard-header">
+              <h2>Dashboard Tổng quan</h2>
+              <div class="dashboard-filters">
+                <select id="chartTypeSelect">
+                  <option value="tap-huan">Về tập huấn</option>
+                  <option value="cai-dat">Về cài đặt ứng dụng</option>
+                </select>
+                <select id="topSelect">
+                  <option value="top-cao-nhat">Top 10 cao nhất</option>
+                  <option value="top-thap-nhat">Top 10 thấp nhất</option>
+                </select>
+              </div>
+            </div>
             <div class="chart-container">
-              <img
-                src="https://i.imgur.com/G20g22s.png"
-                alt="Biểu đồ phân tích dữ liệu"
-              />
+              <canvas id="top10Chart"></canvas>
             </div>
           </div>
 
@@ -46,8 +56,9 @@
       </main>
 
       <footer class="portal-footer">
-        <p>&copy; 2025 - Phát triển bởi Ban Tổ chức Tỉnh ủy</p>
+        <p>&copy; 2025 - Phát triển bởi Văn phòng Tỉnh ủy</p>
       </footer>
     </div>
+    <script src="portal-script.js"></script>
   </body>
 </html>
