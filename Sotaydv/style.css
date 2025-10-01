@@ -346,7 +346,10 @@ table tfoot td {
 }
 
 .page-header h1 {
-  margin: 0; /* Bỏ margin mặc định của H1 */
+  flex-grow: 1; /* Cho phép tiêu đề chiếm hết không gian trống */
+  text-align: center; /* Căn giữa nội dung chữ bên trong */
+  margin: 0 20px 0 0; /* Tạo chút khoảng cách với nút bấm */
+  line-height: 1.4; /* Tăng khoảng cách giữa 2 dòng tiêu đề */
 }
 
 .btn-home {
@@ -365,4 +368,44 @@ table tfoot td {
 .btn-home:hover {
   background-color: #e9ecef;
   color: #000;
+}
+/* --- Tinh chỉnh độ rộng cho form trang Cài đặt --- */
+
+/* Đặt chiều rộng cụ thể cho các ô nhập liệu trên trang Cài đặt */
+.page-caidat .form-group input[type="number"] {
+  width: 100px; /* Thu nhỏ các ô nhập số */
+}
+
+.page-caidat .form-group input[type="date"] {
+  width: 145px; /* Đặt chiều rộng cho ô nhập ngày */
+}
+/* --- CSS cho Bộ lọc của bảng (Phiên bản cải tiến) --- */
+
+/* Đảm bảo tiêu đề và bộ lọc nằm trên cùng hàng, cách xa nhau */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+/* Căn chỉnh các mục trong bộ lọc */
+.table-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Khoảng cách giữa ô ngày và nút bấm */
+}
+
+/* Đặt chiều rộng hẹp hơn cho ô chọn ngày */
+.table-filters input[type="date"] {
+  width: 150px; /* <-- Chiều rộng hẹp hơn */
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+
+.table-filters .secondary-btn {
+  padding: 9px 15px;
+  font-size: 14px;
 }

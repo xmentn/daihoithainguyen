@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <link rel="icon" type="image/png" href="/images/Codang.png" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tình hình Cài đặt Ứng dụng</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="page-caidat">
+    <div class="main-wrapper">
+      <div class="page-header">
+        <h1>
+          TỔNG HỢP TÌNH HÌNH CÀI ĐẶT <br />
+          ỨNG DỤNG SỔ TAY ĐẢNG VIÊN ĐIỆN TỬ
+        </h1>
+        <a href="index.html" class="btn-home">← Về trang chủ</a>
+      </div>
+
+      <form id="dataForm" class="input-section">
+        <div class="form-row" style="align-items: flex-end; gap: 10px">
+          <div class="form-group flex-grow">
+            <label for="tenDonVi">Tên đơn vị:</label>
+            <select id="tenDonVi" name="tenDonVi" required>
+              <option value="">Đang tải danh sách...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tongSoDangVien">Tổng số đảng viên:</label>
+            <input
+              type="number"
+              id="tongSoDangVien"
+              name="tongSoDangVien"
+              required
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label for="soDaCaiDat">Số đảng viên đã cài ứng dụng:</label>
+            <input
+              type="number"
+              id="soDaCaiDat"
+              name="soDaCaiDat"
+              required
+              min="0"
+            />
+          </div>
+          <div class="form-group">
+            <label for="ngayBaoCao">Ngày báo cáo:</label>
+            <input type="date" id="ngayBaoCao" name="ngayBaoCao" required />
+          </div>
+          <button type="submit" id="submitBtn">Gửi Dữ Liệu</button>
+        </div>
+      </form>
+      <div id="message" class="message"></div>
+
+      <div class="table-section">
+        <div class="table-header">
+          <h2>Dữ liệu đã báo cáo</h2>
+          <div class="table-filters">
+            <span>Chọn ngày:</span>
+            <input type="date" id="dateFilter" title="Lọc theo ngày" />
+            <span>hoặc</span>
+            <button id="resetFilterBtn" class="secondary-btn">
+              Xem mới nhất
+            </button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên đơn vị</th>
+                <th>Tổng số ĐV</th>
+                <th>Số ĐV đã cài</th>
+                <th>Tỷ lệ (%)</th>
+                <th>Ngày báo cáo</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirmationModal" class="modal-overlay"></div>
+    <div id="missingUnitsModal" class="modal-overlay"></div>
+
+    <script src="caidat-script.js"></script>
+  </body>
+</html>
