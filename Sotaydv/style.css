@@ -376,9 +376,6 @@ table tfoot td {
   width: 100px; /* Thu nhỏ các ô nhập số */
 }
 
-.page-caidat .form-group input[type="date"] {
-  width: 145px; /* Đặt chiều rộng cho ô nhập ngày */
-}
 /* --- CSS cho Bộ lọc của bảng (Phiên bản cải tiến) --- */
 
 /* Đảm bảo tiêu đề và bộ lọc nằm trên cùng hàng, cách xa nhau */
@@ -408,4 +405,12 @@ table tfoot td {
 .table-filters .secondary-btn {
   padding: 9px 15px;
   font-size: 14px;
+}
+/* --- CSS cho nút "Về trang chủ" cố định --- */
+.btn-home {
+  position: fixed; /* Giữ nút cố định trên màn hình */
+  bottom: 25px; /* Cách lề dưới 25px */
+  right: 25px; /* Cách lề phải 25px */
+  z-index: 1000; /* Đảm bảo nút luôn nổi lên trên */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Thêm bóng đổ cho đẹp */
 }

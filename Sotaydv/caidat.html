@@ -11,16 +11,15 @@
     <div class="main-wrapper">
       <div class="page-header">
         <h1>
-          TỔNG HỢP TÌNH HÌNH CÀI ĐẶT <br />
+          BÁO CÁO TÌNH HÌNH CÀI ĐẶT <br />
           ỨNG DỤNG SỔ TAY ĐẢNG VIÊN ĐIỆN TỬ
         </h1>
-        <a href="index.html" class="btn-home">← Về trang chủ</a>
       </div>
 
       <form id="dataForm" class="input-section">
         <div class="form-row" style="align-items: flex-end; gap: 10px">
           <div class="form-group flex-grow">
-            <label for="tenDonVi">Tên đơn vị:</label>
+            <label for="tenDonVi">Đơn vị báo cáo:</label>
             <select id="tenDonVi" name="tenDonVi" required>
               <option value="">Đang tải danh sách...</option>
             </select>
@@ -36,7 +35,7 @@
             />
           </div>
           <div class="form-group">
-            <label for="soDaCaiDat">Số đảng viên đã cài ứng dụng:</label>
+            <label for="soDaCaiDat">Số đảng viên đã cài:</label>
             <input
               type="number"
               id="soDaCaiDat"
@@ -45,24 +44,23 @@
               min="0"
             />
           </div>
-          <div class="form-group">
-            <label for="ngayBaoCao">Ngày báo cáo:</label>
-            <input type="date" id="ngayBaoCao" name="ngayBaoCao" required />
-          </div>
           <button type="submit" id="submitBtn">Gửi Dữ Liệu</button>
         </div>
       </form>
       <div id="message" class="message"></div>
 
       <div class="table-section">
+        <h2>DỮ LIỆU ĐÃ BÁO CÁO</h2>
         <div class="table-header">
-          <h2>Dữ liệu đã báo cáo</h2>
           <div class="table-filters">
             <span>Chọn ngày:</span>
             <input type="date" id="dateFilter" title="Lọc theo ngày" />
             <span>hoặc</span>
             <button id="resetFilterBtn" class="secondary-btn">
               Xem mới nhất
+            </button>
+            <button id="showMissingTodayBtn" class="secondary-btn">
+              ĐV chưa báo cáo hôm nay
             </button>
           </div>
         </div>
@@ -84,9 +82,26 @@
       </div>
     </div>
 
-    <div id="confirmationModal" class="modal-overlay"></div>
-    <div id="missingUnitsModal" class="modal-overlay"></div>
+    <div id="confirmationModal" class="modal-overlay">
+      <div class="modal-content">
+        <p id="modalMessage">Nội dung thông báo sẽ ở đây</p>
+        <div class="modal-actions">
+          <button id="confirmBtn" class="btn-confirm">Đồng ý</button>
+          <button id="cancelBtn" class="btn-cancel">Hủy</button>
+        </div>
+      </div>
+    </div>
 
+    <div id="missingUnitsModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3>Danh sách đơn vị chưa báo cáo</h3>
+        <ul id="missingUnitsList"></ul>
+        <div class="modal-actions">
+          <button id="closeMissingBtn" class="btn-confirm">Đóng</button>
+        </div>
+      </div>
+    </div>
     <script src="caidat-script.js"></script>
+    <a href="index.html" class="btn-home">← Về trang chủ</a>
   </body>
 </html>
