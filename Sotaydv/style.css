@@ -414,3 +414,22 @@ table tfoot td {
   z-index: 1000; /* Đảm bảo nút luôn nổi lên trên */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Thêm bóng đổ cho đẹp */
 }
+/* --- CSS cho Tiêu đề Modal mới --- */
+.modal-title-container {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+#missingUnitsTitleMain {
+  text-transform: uppercase; /* In hoa */
+  margin: 0;
+  font-size: 1.75rem; /* Tăng cỡ chữ */
+  color: #333;
+  font-weight: 700;
+}
+
+#missingUnitsTitleSub {
+  margin: 5px 0 0 0;
+  color: #6c757d; /* Màu xám */
+  font-size: 1rem;
+}

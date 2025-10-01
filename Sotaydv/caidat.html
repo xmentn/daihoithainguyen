@@ -60,7 +60,7 @@
               Xem mới nhất
             </button>
             <button id="showMissingTodayBtn" class="secondary-btn">
-              ĐV chưa báo cáo hôm nay
+              Các đơn chưa báo cáo (hôm nay)
             </button>
           </div>
         </div>
@@ -94,7 +94,10 @@
 
     <div id="missingUnitsModal" class="modal-overlay">
       <div class="modal-content">
-        <h3>Danh sách đơn vị chưa báo cáo</h3>
+        <div class="modal-title-container">
+          <h3 id="missingUnitsTitleMain">DANH SÁCH</h3>
+          <p id="missingUnitsTitleSub">Các đơn vị chưa báo cáo ngày...</p>
+        </div>
         <ul id="missingUnitsList"></ul>
         <div class="modal-actions">
           <button id="closeMissingBtn" class="btn-confirm">Đóng</button>

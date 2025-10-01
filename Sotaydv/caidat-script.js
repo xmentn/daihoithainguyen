@@ -100,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
   closeMissingBtn = document.getElementById("closeMissingBtn");
   missingListEl = document.getElementById("missingUnitsList");
   showMissingTodayBtn = document.getElementById("showMissingTodayBtn");
+  missingUnitsTitleSub = document.getElementById("missingUnitsTitleSub");
 
   fetch(SCRIPT_URL)
     .then((response) => response.json())
@@ -143,8 +144,15 @@ document.addEventListener("DOMContentLoaded", () => {
   showMissingTodayBtn.addEventListener("click", () => {
     showMissingTodayBtn.disabled = true;
     showMissingTodayBtn.textContent = "Đang kiểm tra...";
-    const today = new Date().toISOString().split("T")[0];
-    fetch(`${SCRIPT_URL}?action=getDataCaiDat&date=${today}`)
+
+    const today = new Date();
+    const todayStr_for_API = today.toISOString().split("T")[0]; // Định dạng YYYY-MM-DD cho API
+    const todayStr_for_Display = today.toLocaleDateString("vi-VN"); // Định dạng dd/MM/yyyy để hiển thị
+
+    // CẬP NHẬT TIÊU ĐỀ MODAL
+    missingUnitsTitleSub.textContent = `Các đơn vị chưa báo cáo ngày ${todayStr_for_Display}`;
+
+    fetch(`${SCRIPT_URL}?action=getDataCaiDat&date=${todayStr_for_API}`)
       .then((response) => response.json())
       .then((result) => {
         if (result.status === "success") {
@@ -152,6 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const missingTodayUnits = allUnits.filter(
             (unit) => !reportedTodayUnits.includes(unit)
           );
+
           missingListEl.innerHTML = "";
           if (missingTodayUnits.length > 0) {
             missingTodayUnits.forEach((unit) => {
@@ -169,8 +178,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       })
       .catch((error) => {
-        console.error("Lỗi khi kiểm tra:", error);
-        alert("Đã có lỗi xảy ra.");
+        console.error("Lỗi khi kiểm tra đơn vị chưa báo cáo:", error);
+        alert("Đã có lỗi xảy ra. Vui lòng thử lại.");
       })
       .finally(() => {
         showMissingTodayBtn.disabled = false;
