@@ -1,15 +1,12 @@
-// ===================================================================
-// DÁN URL ỨNG DỤNG WEB CỦA BẠN VÀO ĐÂY
-// ===================================================================
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec";
+
 let form, donViSelect, tongSoDangVienInput, soDaCaiDatInput, submitBtn;
 let messageDiv, dataTableBody, dateFilterInput, resetFilterBtn;
 let modal, modalMessage, confirmBtn, cancelBtn;
 let allUnits = [];
 let missingModal, closeMissingBtn, missingListEl, showMissingTodayBtn;
 
-// Hàm tải và hiển thị dữ liệu
 function fetchAndDisplayData(selectedDate = null) {
   let url = `${SCRIPT_URL}?action=getDataCaiDat`;
   if (selectedDate) {
@@ -75,6 +72,7 @@ function showConfirmationModal(message) {
   });
 }
 
+// Thêm lại hàm showMessage
 function showMessage(type, text) {
   messageDiv.className = `message ${type}`;
   messageDiv.textContent = text;
@@ -84,9 +82,7 @@ function showMessage(type, text) {
   }, 3000);
 }
 
-// CHẠY SAU KHI HTML TẢI XONG
 document.addEventListener("DOMContentLoaded", () => {
-  // Lấy các phần tử DOM
   form = document.getElementById("dataForm");
   donViSelect = document.getElementById("tenDonVi");
   tongSoDangVienInput = document.getElementById("tongSoDangVien");
@@ -105,7 +101,6 @@ document.addEventListener("DOMContentLoaded", () => {
   missingListEl = document.getElementById("missingUnitsList");
   showMissingTodayBtn = document.getElementById("showMissingTodayBtn");
 
-  // Tải danh sách đơn vị
   fetch(SCRIPT_URL)
     .then((response) => response.json())
     .then((data) => {
@@ -121,10 +116,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-  // Tải bảng dữ liệu ban đầu
   fetchAndDisplayData();
 
-  // Xử lý gửi form
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     submitBtn.disabled = true;
@@ -139,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
     submitData(payload);
   });
 
-  // Các sự kiện cho bộ lọc và modal
   dateFilterInput.addEventListener("change", () =>
     fetchAndDisplayData(dateFilterInput.value)
   );
@@ -196,7 +188,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// Hàm gửi dữ liệu
 async function submitData(payload) {
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -214,8 +205,6 @@ async function submitData(payload) {
         if (userConfirmation) {
           submitData({ ...payload, replaceData: true });
         } else {
-          // If user cancels, we still need to re-enable the button.
-          // The finally block handles this, but we can show a message.
           showMessage("error", "Hành động đã được hủy.");
         }
       } else {
