@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .finally(() => {
         showMissingTodayBtn.disabled = false;
-        showMissingTodayBtn.textContent = "ĐV chưa báo cáo hôm nay";
+        showMissingTodayBtn.textContent = "Các đơn vị chưa báo cáo (hôm nay)";
       });
   });
 
