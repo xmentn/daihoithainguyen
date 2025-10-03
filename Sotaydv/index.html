@@ -15,15 +15,22 @@
         <h1>Tình hình triển khai Ứng dụng Sổ tay Đảng viên Điện tử</h1>
         <p>Công cụ hỗ trợ nghiệp vụ công tác Đảng</p>
       </header>
-
       <main class="portal-main">
         <div class="dashboard-layout">
           <div class="dashboard-panel">
+            <h2>Dashboard Tổng quan</h2>
+
+            <div class="stats-grid">
+              <div class="stat-card">
+                <h4>Tỷ lệ chung toàn tỉnh</h4>
+                <p id="overallPercentageStat">0.0%</p>
+              </div>
+            </div>
+
             <div class="dashboard-header">
-              <h2>Dashboard Tổng quan</h2>
               <div class="dashboard-filters">
                 <select id="chartTypeSelect">
-                  <option value="tap-huan">Về tập huấn</option>
+                  <option value="tap-huan" selected>Về tập huấn</option>
                   <option value="cai-dat">Về cài đặt ứng dụng</option>
                 </select>
                 <select id="topSelect">
@@ -32,11 +39,11 @@
                 </select>
               </div>
             </div>
+
             <div class="chart-container">
               <canvas id="top10Chart"></canvas>
             </div>
           </div>
-
           <div class="functions-panel">
             <a href="solieutaphuan.html" class="card">
               <div class="card-icon">📊</div>

@@ -1,19 +1,22 @@
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec";
-
 // Biến toàn cục
 let trainingData = [];
 let installationData = [];
 let myChart = null;
 const chartCanvas = document.getElementById("top10Chart");
 const chartContainer = document.querySelector(".chart-container");
+let overallPercentageStatEl;
+let statsGridEl; // Thêm biến cho cả khối thống kê
+
+// Đăng ký plugin hiển thị số liệu với Chart.js
 Chart.register(ChartDataLabels);
-// HÀM VẼ BIỂU ĐỒ (ĐÃ NÂNG CẤP VỚI PLUGIN DATALABELS)
+
+// HÀM VẼ BIỂU ĐỒ
 function createChart(chartLabels, chartValues, datasetLabel, chartTitle) {
   if (myChart) {
     myChart.destroy();
   }
-
   myChart = new Chart(chartCanvas.getContext("2d"), {
     type: "bar",
     data: {
@@ -34,19 +37,12 @@ function createChart(chartLabels, chartValues, datasetLabel, chartTitle) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        title: {
-          display: true,
-          text: chartTitle,
-        },
-        // CẤU HÌNH CHO PLUGIN HIỂN THỊ SỐ LIỆU
+        title: { display: true, text: chartTitle },
         datalabels: {
-          anchor: "end", // Vị trí của số liệu: ở cuối thanh
-          align: "end", // Căn lề: ở cuối thanh (bên ngoài)
-          color: "#555", // Màu chữ
-          font: {
-            weight: "500", // Độ đậm của chữ
-          },
-          // Định dạng lại số liệu (thêm '%' cho biểu đồ tỷ lệ)
+          anchor: "end",
+          align: "end",
+          color: "#555",
+          font: { weight: "500" },
           formatter: function (value) {
             if (datasetLabel.includes("%")) {
               return value + "%";
@@ -60,14 +56,19 @@ function createChart(chartLabels, chartValues, datasetLabel, chartTitle) {
   });
 }
 
-// HÀM CHÍNH: CẬP NHẬT BIỂU ĐỒ DỰA VÀO BỘ LỌC
+// HÀM CẬP NHẬT BIỂU ĐỒ
 function updateChart() {
-  // ... (Hàm này không có gì thay đổi)
   const chartType = document.getElementById("chartTypeSelect").value;
   const topFilter = document.getElementById("topSelect").value;
-
   chartContainer.innerHTML = "";
   chartContainer.appendChild(chartCanvas);
+
+  // LOGIC ẨN/HIỆN THẺ THỐNG KÊ
+  if (chartType === "cai-dat") {
+    statsGridEl.style.display = "flex"; // Hiện thẻ
+  } else {
+    statsGridEl.style.display = "none"; // Ẩn thẻ
+  }
 
   if (chartType === "tap-huan") {
     if (trainingData.length === 0) {
@@ -104,7 +105,6 @@ function updateChart() {
         return { name: unitName, percentage: percentage };
       })
       .filter((item) => !isNaN(item.percentage));
-
     if (topFilter === "top-cao-nhat") {
       processedData.sort((a, b) => b.percentage - a.percentage);
     } else {
@@ -122,10 +122,13 @@ function updateChart() {
 
 // CHẠY SAU KHI TRANG ĐÃ TẢI XONG
 document.addEventListener("DOMContentLoaded", () => {
-  // ... (Phần này không có gì thay đổi)
   const chartTypeSelect = document.getElementById("chartTypeSelect");
   const topSelect = document.getElementById("topSelect");
+  overallPercentageStatEl = document.getElementById("overallPercentageStat");
+  statsGridEl = document.querySelector(".stats-grid");
+
   chartContainer.innerHTML = "<p>Đang tải dữ liệu...</p>";
+
   Promise.all([
     fetch(`${SCRIPT_URL}?action=getDataTapHuan`).then((res) => res.json()),
     fetch(`${SCRIPT_URL}?action=getDataCaiDat`).then((res) => res.json()),
@@ -138,6 +141,22 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (caiDatResult.status === "success") {
         installationData = caiDatResult.data;
+
+        if (installationData.length > 0 && overallPercentageStatEl) {
+          const totalMembers = installationData.reduce(
+            (sum, row) => sum + Number(row[2] || 0),
+            0
+          );
+          const totalInstalled = installationData.reduce(
+            (sum, row) => sum + Number(row[3] || 0),
+            0
+          );
+          const overallPercentage =
+            totalMembers > 0
+              ? ((totalInstalled / totalMembers) * 100).toFixed(1)
+              : 0;
+          overallPercentageStatEl.textContent = `${overallPercentage}%`;
+        }
       } else {
         console.error("Lỗi tải dữ liệu Cài đặt:", caiDatResult.message);
       }
@@ -147,6 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Lỗi nghiêm trọng khi tải dữ liệu:", error);
       chartContainer.innerHTML = "<p>Đã xảy ra lỗi khi tải dữ liệu.</p>";
     });
+
   chartTypeSelect.addEventListener("change", updateChart);
   topSelect.addEventListener("change", updateChart);
 });

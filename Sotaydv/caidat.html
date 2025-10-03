@@ -1,28 +1,33 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
-    <link rel="icon" type="image/png" href="/images/Codang.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tình hình Cài đặt Ứng dụng</title>
     <link rel="stylesheet" href="style.css" />
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"
+      defer
+    ></script>
   </head>
   <body class="page-caidat">
     <div class="main-wrapper">
       <div class="page-header">
         <h1>
-          BÁO CÁO TÌNH HÌNH CÀI ĐẶT <br />
-          ỨNG DỤNG SỔ TAY ĐẢNG VIÊN ĐIỆN TỬ
+          TỔNG HỢP TÌNH HÌNH CÀI ĐẶT<br />ỨNG DỤNG SỔ TAY ĐẢNG VIÊN ĐIỆN TỬ
         </h1>
       </div>
 
       <form id="dataForm" class="input-section">
-        <div class="form-row" style="align-items: flex-end; gap: 10px">
+        <div class="form-row">
           <div class="form-group flex-grow">
             <label for="tenDonVi">Đơn vị báo cáo:</label>
-            <select id="tenDonVi" name="tenDonVi" required>
-              <option value="">Đang tải danh sách...</option>
-            </select>
+            <select id="tenDonVi" name="tenDonVi" required></select>
           </div>
           <div class="form-group">
             <label for="tongSoDangVien">Tổng số đảng viên:</label>
@@ -50,20 +55,25 @@
       <div id="message" class="message"></div>
 
       <div class="table-section">
-        <h2>DỮ LIỆU ĐÃ BÁO CÁO</h2>
         <div class="table-header">
+          <h2>Dữ liệu đã báo cáo</h2>
           <div class="table-filters">
             <span>Chọn ngày:</span>
-            <input type="date" id="dateFilter" title="Lọc theo ngày" />
+            <input type="date" id="dateFilter" title="Lọc bảng theo ngày" />
             <span>hoặc</span>
             <button id="resetFilterBtn" class="secondary-btn">
               Xem mới nhất
             </button>
-            <button id="showMissingTodayBtn" class="secondary-btn">
-              Các đơn chưa báo cáo (hôm nay)
+            <button id="checkMissingBtn" class="secondary-btn">
+              ĐV chưa báo cáo hôm nay
             </button>
+            <div class="admin-only">
+              <span>cho ngày:</span>
+              <input type="date" id="missingDateFilter" />
+            </div>
           </div>
         </div>
+
         <div class="table-wrapper">
           <table>
             <thead>
@@ -77,6 +87,15 @@
               </tr>
             </thead>
             <tbody id="dataTableBody"></tbody>
+            <tfoot>
+              <tr>
+                <td colspan="2">Tổng cộng</td>
+                <td id="totalMembersSum">0</td>
+                <td id="totalInstalledSum">0</td>
+                <td id="totalPercentage">0.0%</td>
+                <td></td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>
@@ -104,7 +123,8 @@
         </div>
       </div>
     </div>
-    <script src="caidat-script.js"></script>
+
     <a href="index.html" class="btn-home">← Về trang chủ</a>
+    <script src="caidat-script.js"></script>
   </body>
 </html>
