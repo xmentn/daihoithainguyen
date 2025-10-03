@@ -1,6 +1,9 @@
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec";
+
+// --- KHAI BÁO BIẾN TOÀN CỤC ---
 let allUnits = [];
+let currentTableData = [];
 let form, donViSelect, tongSoDangVienInput, soDaCaiDatInput, submitBtn;
 let messageDiv, dataTableBody, dateFilterInput, resetFilterBtn;
 let modal, modalMessage, confirmBtn, cancelBtn;
@@ -15,7 +18,56 @@ let totalMembersSumEl, totalInstalledSumEl, totalPercentageEl;
 
 // --- CÁC HÀM CHỨC NĂNG ---
 
-// Hàm tải và hiển thị dữ liệu bảng
+/**
+ * Vẽ lại nội dung bảng và hàng tổng kết từ một mảng dữ liệu.
+ * @param {Array} dataToRender Mảng dữ liệu cần hiển thị.
+ */
+function renderTable(dataToRender) {
+  dataTableBody.innerHTML = "";
+
+  if (dataToRender.length === 0) {
+    dataTableBody.innerHTML =
+      '<tr><td colspan="6">Không có dữ liệu cho lựa chọn này.</td></tr>';
+    totalMembersSumEl.textContent = "0";
+    totalInstalledSumEl.textContent = "0";
+    totalPercentageEl.textContent = "0.0%";
+  } else {
+    const totalMembers = dataToRender.reduce(
+      (sum, row) => sum + Number(row[2] || 0),
+      0
+    );
+    const totalInstalled = dataToRender.reduce(
+      (sum, row) => sum + Number(row[3] || 0),
+      0
+    );
+    const overallPercentage =
+      totalMembers > 0 ? ((totalInstalled / totalMembers) * 100).toFixed(1) : 0;
+    totalMembersSumEl.textContent = totalMembers;
+    totalInstalledSumEl.textContent = totalInstalled;
+    totalPercentageEl.textContent = `${overallPercentage}%`;
+
+    dataToRender.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      const tongSo = Number(row[2] || 0);
+      const daCai = Number(row[3] || 0);
+      const tyLe = tongSo > 0 ? ((daCai / tongSo) * 100).toFixed(1) : 0;
+      tr.innerHTML = `
+                <td style="text-align: center;">${index + 1}</td>
+                <td>${row[1]}</td>
+                <td style="text-align: right;">${tongSo}</td>
+                <td style="text-align: right;">${daCai}</td>
+                <td style="text-align: right;"><b>${tyLe}%</b></td>
+                <td style="text-align: center;">${row[4]}</td>
+            `;
+      dataTableBody.appendChild(tr);
+    });
+  }
+}
+
+/**
+ * Tải dữ liệu từ Google Sheet và hiển thị lên bảng.
+ * @param {string|null} selectedDate Ngày cần lọc (định dạng YYYY-MM-DD).
+ */
 function fetchAndDisplayData(selectedDate = null) {
   let url = `${SCRIPT_URL}?action=getDataCaiDat`;
   if (selectedDate) {
@@ -28,46 +80,8 @@ function fetchAndDisplayData(selectedDate = null) {
       if (result.status === "success") {
         const data = result.data;
         data.sort((a, b) => a[1].localeCompare(b[1], "vi"));
-        dataTableBody.innerHTML = "";
-        if (data.length === 0) {
-          dataTableBody.innerHTML =
-            '<tr><td colspan="6">Không có dữ liệu cho lựa chọn này.</td></tr>';
-          totalMembersSumEl.textContent = "0";
-          totalInstalledSumEl.textContent = "0";
-          totalPercentageEl.textContent = "0.0%";
-        } else {
-          const totalMembers = data.reduce(
-            (sum, row) => sum + Number(row[2] || 0),
-            0
-          );
-          const totalInstalled = data.reduce(
-            (sum, row) => sum + Number(row[3] || 0),
-            0
-          );
-          const overallPercentage =
-            totalMembers > 0
-              ? ((totalInstalled / totalMembers) * 100).toFixed(1)
-              : 0;
-          totalMembersSumEl.textContent = totalMembers;
-          totalInstalledSumEl.textContent = totalInstalled;
-          totalPercentageEl.textContent = `${overallPercentage}%`;
-
-          data.forEach((row, index) => {
-            const tr = document.createElement("tr");
-            const tongSo = Number(row[2] || 0);
-            const daCai = Number(row[3] || 0);
-            const tyLe = tongSo > 0 ? ((daCai / tongSo) * 100).toFixed(1) : 0;
-            tr.innerHTML = `
-                            <td style="text-align: center;">${index + 1}</td>
-                            <td>${row[1]}</td>
-                            <td style="text-align: right;">${tongSo}</td>
-                            <td style="text-align: right;">${daCai}</td>
-                            <td style="text-align: right;"><b>${tyLe}%</b></td>
-                            <td style="text-align: center;">${row[4]}</td>
-                        `;
-            dataTableBody.appendChild(tr);
-          });
-        }
+        currentTableData = data;
+        renderTable(currentTableData);
       } else {
         throw new Error(result.message);
       }
@@ -78,7 +92,11 @@ function fetchAndDisplayData(selectedDate = null) {
     });
 }
 
-// Hàm hiển thị modal xác nhận
+/**
+ * Hiển thị hộp thoại xác nhận (modal).
+ * @param {string} message Nội dung câu hỏi.
+ * @returns {Promise<boolean>} Trả về true nếu người dùng đồng ý, false nếu hủy.
+ */
 function showConfirmationModal(message) {
   return new Promise((resolve) => {
     modalMessage.textContent = message;
@@ -102,7 +120,11 @@ function showConfirmationModal(message) {
   });
 }
 
-// Hàm hiển thị thông báo
+/**
+ * Hiển thị thông báo tạm thời (thành công hoặc lỗi).
+ * @param {string} type Loại thông báo ('success' hoặc 'error').
+ * @param {string} text Nội dung thông báo.
+ */
 function showMessage(type, text) {
   messageDiv.className = `message ${type}`;
   messageDiv.textContent = text;
@@ -112,7 +134,10 @@ function showMessage(type, text) {
   }, 3000);
 }
 
-// Hàm gửi dữ liệu lên server
+/**
+ * Gửi dữ liệu báo cáo lên Google Sheet.
+ * @param {object} payload Dữ liệu cần gửi.
+ */
 async function submitData(payload) {
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -148,7 +173,7 @@ async function submitData(payload) {
 
 // --- LOGIC CHÍNH KHI TRANG TẢI XONG ---
 document.addEventListener("DOMContentLoaded", () => {
-  // Lấy tất cả các phần tử DOM cần thiết
+  // Lấy tất cả các phần tử DOM
   form = document.getElementById("dataForm");
   donViSelect = document.getElementById("tenDonVi");
   tongSoDangVienInput = document.getElementById("tongSoDangVien");
@@ -303,6 +328,26 @@ document.addEventListener("DOMContentLoaded", () => {
   missingModal.addEventListener("click", (e) => {
     if (e.target === missingModal) {
       missingModal.classList.remove("visible");
+    }
+  });
+
+  // Sự kiện lọc bảng khi tìm kiếm trong dropdown
+  donViSelect.addEventListener("search", function (event) {
+    const searchTerm = event.detail.value.toLowerCase();
+    const filteredData = currentTableData.filter((row) =>
+      row[1].toLowerCase().includes(searchTerm)
+    );
+    renderTable(filteredData);
+  });
+
+  donViSelect.addEventListener("change", function (event) {
+    if (!event.detail.value) {
+      renderTable(currentTableData);
+    } else {
+      const filteredData = currentTableData.filter(
+        (row) => row[1] === event.detail.value
+      );
+      renderTable(filteredData);
     }
   });
 });
