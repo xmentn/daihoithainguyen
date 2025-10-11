@@ -1,12 +1,73 @@
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec";
 
+// --- KHAI BÁO BIẾN TOÀN CỤC ---
+let allUnits = [];
+let currentTableData = [];
 let form, donViSelect, tongSoDangVienInput, soDaCaiDatInput, submitBtn;
 let messageDiv, dataTableBody, dateFilterInput, resetFilterBtn;
 let modal, modalMessage, confirmBtn, cancelBtn;
-let allUnits = [];
-let missingModal, closeMissingBtn, missingListEl, showMissingTodayBtn;
+let missingModal,
+  closeMissingBtn,
+  missingListEl,
+  missingUnitsTitleSub,
+  checkMissingBtn,
+  adminDateFilter,
+  adminControls;
+let totalMembersSumEl, totalInstalledSumEl, totalPercentageEl;
 
+// --- CÁC HÀM CHỨC NĂNG ---
+
+/**
+ * Vẽ lại nội dung bảng và hàng tổng kết từ một mảng dữ liệu.
+ * @param {Array} dataToRender Mảng dữ liệu cần hiển thị.
+ */
+function renderTable(dataToRender) {
+  dataTableBody.innerHTML = "";
+
+  if (dataToRender.length === 0) {
+    dataTableBody.innerHTML =
+      '<tr><td colspan="6">Không có dữ liệu cho lựa chọn này.</td></tr>';
+    totalMembersSumEl.textContent = "0";
+    totalInstalledSumEl.textContent = "0";
+    totalPercentageEl.textContent = "0.0%";
+  } else {
+    const totalMembers = dataToRender.reduce(
+      (sum, row) => sum + Number(row[2] || 0),
+      0
+    );
+    const totalInstalled = dataToRender.reduce(
+      (sum, row) => sum + Number(row[3] || 0),
+      0
+    );
+    const overallPercentage =
+      totalMembers > 0 ? ((totalInstalled / totalMembers) * 100).toFixed(1) : 0;
+    totalMembersSumEl.textContent = totalMembers;
+    totalInstalledSumEl.textContent = totalInstalled;
+    totalPercentageEl.textContent = `${overallPercentage}%`;
+
+    dataToRender.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      const tongSo = Number(row[2] || 0);
+      const daCai = Number(row[3] || 0);
+      const tyLe = tongSo > 0 ? ((daCai / tongSo) * 100).toFixed(1) : 0;
+      tr.innerHTML = `
+                <td style="text-align: center;">${index + 1}</td>
+                <td>${row[1]}</td>
+                <td style="text-align: right;">${tongSo}</td>
+                <td style="text-align: right;">${daCai}</td>
+                <td style="text-align: right;"><b>${tyLe}%</b></td>
+                <td style="text-align: center;">${row[4]}</td>
+            `;
+      dataTableBody.appendChild(tr);
+    });
+  }
+}
+
+/**
+ * Tải dữ liệu từ Google Sheet và hiển thị lên bảng.
+ * @param {string|null} selectedDate Ngày cần lọc (định dạng YYYY-MM-DD).
+ */
 function fetchAndDisplayData(selectedDate = null) {
   let url = `${SCRIPT_URL}?action=getDataCaiDat`;
   if (selectedDate) {
@@ -19,36 +80,23 @@ function fetchAndDisplayData(selectedDate = null) {
       if (result.status === "success") {
         const data = result.data;
         data.sort((a, b) => a[1].localeCompare(b[1], "vi"));
-        dataTableBody.innerHTML = "";
-        if (data.length === 0) {
-          dataTableBody.innerHTML =
-            '<tr><td colspan="6">Không có dữ liệu cho lựa chọn này.</td></tr>';
-        } else {
-          data.forEach((row, index) => {
-            const tr = document.createElement("tr");
-            const tongSo = Number(row[2] || 0);
-            const daCai = Number(row[3] || 0);
-            const tyLe = tongSo > 0 ? ((daCai / tongSo) * 100).toFixed(1) : 0;
-            tr.innerHTML = `
-                            <td style="text-align: center;">${index + 1}</td>
-                            <td>${row[1]}</td>
-                            <td style="text-align: right;">${tongSo}</td>
-                            <td style="text-align: right;">${daCai}</td>
-                            <td style="text-align: right;"><b>${tyLe}%</b></td>
-                            <td style="text-align: center;">${row[4]}</td>
-                        `;
-            dataTableBody.appendChild(tr);
-          });
-        }
+        currentTableData = data;
+        renderTable(currentTableData);
       } else {
         throw new Error(result.message);
       }
     })
     .catch((error) => {
-      console.error(error);
+      console.error("Lỗi khi tải dữ liệu bảng:", error);
+      dataTableBody.innerHTML = `<tr><td colspan="6">Lỗi: ${error.message}</td></tr>`;
     });
 }
 
+/**
+ * Hiển thị hộp thoại xác nhận (modal).
+ * @param {string} message Nội dung câu hỏi.
+ * @returns {Promise<boolean>} Trả về true nếu người dùng đồng ý, false nếu hủy.
+ */
 function showConfirmationModal(message) {
   return new Promise((resolve) => {
     modalMessage.textContent = message;
@@ -72,7 +120,11 @@ function showConfirmationModal(message) {
   });
 }
 
-// Thêm lại hàm showMessage
+/**
+ * Hiển thị thông báo tạm thời (thành công hoặc lỗi).
+ * @param {string} type Loại thông báo ('success' hoặc 'error').
+ * @param {string} text Nội dung thông báo.
+ */
 function showMessage(type, text) {
   messageDiv.className = `message ${type}`;
   messageDiv.textContent = text;
@@ -82,121 +134,10 @@ function showMessage(type, text) {
   }, 3000);
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  form = document.getElementById("dataForm");
-  donViSelect = document.getElementById("tenDonVi");
-  tongSoDangVienInput = document.getElementById("tongSoDangVien");
-  soDaCaiDatInput = document.getElementById("soDaCaiDat");
-  submitBtn = document.getElementById("submitBtn");
-  messageDiv = document.getElementById("message");
-  dataTableBody = document.getElementById("dataTableBody");
-  dateFilterInput = document.getElementById("dateFilter");
-  resetFilterBtn = document.getElementById("resetFilterBtn");
-  modal = document.getElementById("confirmationModal");
-  modalMessage = document.getElementById("modalMessage");
-  confirmBtn = document.getElementById("confirmBtn");
-  cancelBtn = document.getElementById("cancelBtn");
-  missingModal = document.getElementById("missingUnitsModal");
-  closeMissingBtn = document.getElementById("closeMissingBtn");
-  missingListEl = document.getElementById("missingUnitsList");
-  showMissingTodayBtn = document.getElementById("showMissingTodayBtn");
-  missingUnitsTitleSub = document.getElementById("missingUnitsTitleSub");
-
-  fetch(SCRIPT_URL)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status === "success") {
-        allUnits = data.data;
-        donViSelect.innerHTML = '<option value="">-- Chọn đơn vị --</option>';
-        allUnits.forEach((donVi) => {
-          const option = document.createElement("option");
-          option.value = donVi;
-          option.textContent = donVi;
-          donViSelect.appendChild(option);
-        });
-      }
-    });
-
-  fetchAndDisplayData();
-
-  form.addEventListener("submit", function (e) {
-    e.preventDefault();
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Đang gửi...";
-    const payload = {
-      sheetName: "Cài đặt",
-      tenDonVi: donViSelect.value,
-      tongSoDangVien: tongSoDangVienInput.value,
-      soDaCaiDat: soDaCaiDatInput.value,
-      replaceData: false,
-    };
-    submitData(payload);
-  });
-
-  dateFilterInput.addEventListener("change", () =>
-    fetchAndDisplayData(dateFilterInput.value)
-  );
-  resetFilterBtn.addEventListener("click", () => {
-    dateFilterInput.value = "";
-    fetchAndDisplayData();
-  });
-
-  showMissingTodayBtn.addEventListener("click", () => {
-    showMissingTodayBtn.disabled = true;
-    showMissingTodayBtn.textContent = "Đang kiểm tra...";
-
-    const today = new Date();
-    const todayStr_for_API = today.toISOString().split("T")[0]; // Định dạng YYYY-MM-DD cho API
-    const todayStr_for_Display = today.toLocaleDateString("vi-VN"); // Định dạng dd/MM/yyyy để hiển thị
-
-    // CẬP NHẬT TIÊU ĐỀ MODAL
-    missingUnitsTitleSub.textContent = `Các đơn vị chưa báo cáo ngày ${todayStr_for_Display}`;
-
-    fetch(`${SCRIPT_URL}?action=getDataCaiDat&date=${todayStr_for_API}`)
-      .then((response) => response.json())
-      .then((result) => {
-        if (result.status === "success") {
-          const reportedTodayUnits = result.data.map((row) => row[1]);
-          const missingTodayUnits = allUnits.filter(
-            (unit) => !reportedTodayUnits.includes(unit)
-          );
-
-          missingListEl.innerHTML = "";
-          if (missingTodayUnits.length > 0) {
-            missingTodayUnits.forEach((unit) => {
-              const li = document.createElement("li");
-              li.textContent = unit;
-              missingListEl.appendChild(li);
-            });
-          } else {
-            missingListEl.innerHTML =
-              "<li>Tất cả các đơn vị đã báo cáo hôm nay.</li>";
-          }
-          missingModal.classList.add("visible");
-        } else {
-          throw new Error(result.message);
-        }
-      })
-      .catch((error) => {
-        console.error("Lỗi khi kiểm tra đơn vị chưa báo cáo:", error);
-        alert("Đã có lỗi xảy ra. Vui lòng thử lại.");
-      })
-      .finally(() => {
-        showMissingTodayBtn.disabled = false;
-        showMissingTodayBtn.textContent = "Các đơn vị chưa báo cáo (hôm nay)";
-      });
-  });
-
-  closeMissingBtn.addEventListener("click", () =>
-    missingModal.classList.remove("visible")
-  );
-  missingModal.addEventListener("click", (e) => {
-    if (e.target === missingModal) {
-      missingModal.classList.remove("visible");
-    }
-  });
-});
-
+/**
+ * Gửi dữ liệu báo cáo lên Google Sheet.
+ * @param {object} payload Dữ liệu cần gửi.
+ */
 async function submitData(payload) {
   fetch(SCRIPT_URL, {
     method: "POST",
@@ -229,3 +170,184 @@ async function submitData(payload) {
       submitBtn.textContent = "Gửi Dữ Liệu";
     });
 }
+
+// --- LOGIC CHÍNH KHI TRANG TẢI XONG ---
+document.addEventListener("DOMContentLoaded", () => {
+  // Lấy tất cả các phần tử DOM
+  form = document.getElementById("dataForm");
+  donViSelect = document.getElementById("tenDonVi");
+  tongSoDangVienInput = document.getElementById("tongSoDangVien");
+  soDaCaiDatInput = document.getElementById("soDaCaiDat");
+  submitBtn = document.getElementById("submitBtn");
+  messageDiv = document.getElementById("message");
+  dataTableBody = document.getElementById("dataTableBody");
+  dateFilterInput = document.getElementById("dateFilter");
+  resetFilterBtn = document.getElementById("resetFilterBtn");
+  modal = document.getElementById("confirmationModal");
+  modalMessage = document.getElementById("modalMessage");
+  confirmBtn = document.getElementById("confirmBtn");
+  cancelBtn = document.getElementById("cancelBtn");
+  missingModal = document.getElementById("missingUnitsModal");
+  closeMissingBtn = document.getElementById("closeMissingBtn");
+  missingListEl = document.getElementById("missingUnitsList");
+  missingUnitsTitleSub = document.getElementById("missingUnitsTitleSub");
+  checkMissingBtn = document.getElementById("checkMissingBtn");
+  adminDateFilter = document.getElementById("missingDateFilter");
+  adminControls = document.querySelector(".admin-only");
+  totalMembersSumEl = document.getElementById("totalMembersSum");
+  totalInstalledSumEl = document.getElementById("totalInstalledSum");
+  totalPercentageEl = document.getElementById("totalPercentage");
+
+  // Khởi tạo dropdown có tìm kiếm
+  const choices = new Choices(donViSelect, {
+    searchPlaceholderValue: "Gõ để tìm kiếm...",
+    itemSelectText: "Nhấn để chọn",
+  });
+
+  // Logic phân quyền Admin
+  const urlParams = new URLSearchParams(window.location.search);
+  const isAdmin = urlParams.get("admin") === "true";
+  if (isAdmin) {
+    adminControls.style.display = "inline-flex";
+    checkMissingBtn.textContent = "Kiểm tra ĐV chưa báo cáo";
+  }
+
+  // Tải danh sách đơn vị
+  fetch(SCRIPT_URL)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === "success") {
+        allUnits = data.data;
+        choices.clearStore();
+        choices.setChoices([
+          {
+            value: "",
+            label: "-- Chọn đơn vị --",
+            selected: true,
+            disabled: true,
+          },
+        ]);
+        const unitChoices = allUnits.map((unit) => ({
+          value: unit,
+          label: unit,
+        }));
+        choices.setChoices(unitChoices, "value", "label", false);
+      } else {
+        choices.clearStore();
+        choices.setChoices([
+          {
+            value: "",
+            label: "Lỗi tải danh sách",
+            selected: true,
+            disabled: true,
+          },
+        ]);
+      }
+    });
+
+  // Tải bảng dữ liệu ban đầu
+  fetchAndDisplayData();
+
+  // Gắn sự kiện cho form
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Đang gửi...";
+    const payload = {
+      sheetName: "Cài đặt",
+      tenDonVi: donViSelect.value,
+      tongSoDangVien: tongSoDangVienInput.value,
+      soDaCaiDat: soDaCaiDatInput.value,
+      replaceData: false,
+    };
+    submitData(payload);
+  });
+
+  // Gắn sự kiện cho các bộ lọc
+  dateFilterInput.addEventListener("change", () =>
+    fetchAndDisplayData(dateFilterInput.value)
+  );
+  resetFilterBtn.addEventListener("click", () => {
+    dateFilterInput.value = "";
+    fetchAndDisplayData();
+  });
+
+  // Gắn sự kiện cho nút kiểm tra đơn vị thiếu
+  checkMissingBtn.addEventListener("click", () => {
+    checkMissingBtn.disabled = true;
+    checkMissingBtn.textContent = "Đang kiểm tra...";
+    let checkDateStr;
+    if (isAdmin && adminDateFilter.value) {
+      checkDateStr = adminDateFilter.value;
+    } else {
+      checkDateStr = new Date().toISOString().split("T")[0];
+    }
+    const displayDate = new Date(checkDateStr + "T00:00:00").toLocaleDateString(
+      "vi-VN"
+    );
+    missingUnitsTitleSub.textContent = `Các đơn vị chưa báo cáo ngày ${displayDate}`;
+    fetch(`${SCRIPT_URL}?action=getDataCaiDat&date=${checkDateStr}`)
+      .then((response) => response.json())
+      .then((result) => {
+        if (result.status === "success") {
+          const reportedUnitsOnDate = result.data.map((row) => row[1]);
+          const missingUnits = allUnits.filter(
+            (unit) => !reportedUnitsOnDate.includes(unit)
+          );
+          missingListEl.innerHTML = "";
+          if (missingUnits.length > 0) {
+            missingUnits.forEach((unit) => {
+              const li = document.createElement("li");
+              li.textContent = unit;
+              missingListEl.appendChild(li);
+            });
+          } else {
+            missingListEl.innerHTML = `<li>Tất cả các đơn vị đã báo cáo trong ngày ${displayDate}.</li>`;
+          }
+          missingModal.classList.add("visible");
+        } else {
+          throw new Error(result.message);
+        }
+      })
+      .catch((error) => {
+        console.error("Lỗi khi kiểm tra:", error);
+        alert("Đã có lỗi xảy ra.");
+      })
+      .finally(() => {
+        checkMissingBtn.disabled = false;
+        checkMissingBtn.textContent = isAdmin
+          ? "Kiểm tra ĐV chưa báo cáo"
+          : "ĐV chưa báo cáo hôm nay";
+      });
+  });
+
+  // Gắn sự kiện đóng modal
+  closeMissingBtn.addEventListener("click", () =>
+    missingModal.classList.remove("visible")
+  );
+  missingModal.addEventListener("click", (e) => {
+    if (e.target === missingModal) {
+      missingModal.classList.remove("visible");
+    }
+  });
+
+  // Sự kiện lọc bảng khi tìm kiếm trong dropdown
+  donViSelect.addEventListener("search", function (event) {
+    const searchTerm = event.detail.value.toLowerCase();
+    const filteredData = currentTableData.filter((row) =>
+      row[1].toLowerCase().includes(searchTerm)
+    );
+    renderTable(filteredData);
+  });
+
+  donViSelect.addEventListener("change", function (event) {
+    if (!event.detail.value) {
+      renderTable(currentTableData);
+    } else {
+      const filteredData = currentTableData.filter(
+        (row) => row[1] === event.detail.value
+      );
+      renderTable(filteredData);
+    }
+  });
+});

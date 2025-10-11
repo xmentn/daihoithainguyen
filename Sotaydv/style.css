@@ -1,66 +1,57 @@
-/* =================================================== */
-/* TỔNG HỢP CSS CHO DỰ ÁN                 */
-/* =================================================== */
 @import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
 
-/* --- 1. CÀI ĐẶT CHUNG & BODY --- */
 body {
   font-family: "Roboto", sans-serif;
   background-color: #f4f7f9;
   color: #333;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
   margin: 0;
-  padding: 30px 15px;
-  box-sizing: border-box;
 }
 
-/* --- 2. KHUNG CHÍNH & TIÊU ĐỀ --- */
+/* --- BỐ CỤC CHUNG CHO CÁC TRANG NHẬP LIỆU --- */
 .main-wrapper {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 40px;
   background-color: #fff;
-  padding: 30px 40px;
   border-radius: 10px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  width: 100%;
-  max-width: 900px;
-  box-sizing: border-box;
 }
-
-h1 {
-  color: #1a237e; /* Màu xanh đậm */
-  text-transform: uppercase;
-  text-align: center;
-  font-size: 24px;
-  margin-top: 0;
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 30px;
-  font-weight: 700;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 20px;
+}
+.page-header h1 {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0 20px 0 0;
+  line-height: 1.4;
+  color: #1a237e;
+  text-transform: uppercase;
+  font-size: 22px;
 }
 
-/* --- 3. KHU VỰC NHẬP LIỆU --- */
+/* --- FORM NHẬP LIỆU --- */
 .form-row {
   display: flex;
-  align-items: flex-end; /* Căn các mục theo đáy */
-  gap: 15px; /* Khoảng cách giữa các mục */
+  align-items: flex-end;
+  gap: 15px;
   margin-bottom: 10px;
 }
-
 .form-group {
   margin-bottom: 0;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 8px;
   font-weight: 500;
-  color: #555;
 }
-
 .form-group.flex-grow {
-  flex-grow: 1; /* Cho phép Tên đơn vị co giãn */
+  flex-grow: 1;
 }
-
 input,
 select,
 button {
@@ -72,100 +63,144 @@ button {
   font-size: 16px;
   height: 45px;
 }
-
-input[type="number"] {
-  width: 180px; /* Cố định chiều rộng cho ô số liệu */
-}
-
-button {
-  border: none;
-  background-color: #007bff;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+#submitBtn {
   width: auto;
   min-width: 150px;
 }
 
-button:hover {
-  background-color: #0056b3;
+/* Tinh chỉnh riêng cho trang Cài đặt */
+.page-caidat .form-group input[type="number"] {
+  width: 145px;
+}
+.page-caidat .form-group input[type="date"] {
+  width: 145px;
 }
 
-button:disabled {
-  background-color: #aaa;
-  cursor: not-allowed;
-}
-
-/* --- 4. BẢNG DỮ LIỆU --- */
+/* --- BẢNG DỮ LIỆU --- */
 .table-section {
   margin-top: 40px;
-  border-top: 1px solid #e0e0e0;
-  padding-top: 30px;
 }
-
-.table-section h2 {
-  text-align: center;
-  color: #333;
-  margin-top: 0;
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 25px;
+}
+.table-header h2 {
+  margin: 0;
   font-size: 20px;
 }
-
 .table-wrapper {
   overflow-x: auto;
 }
-
 table {
   width: 100%;
   border-collapse: collapse;
   font-size: 15px;
 }
-
 table th,
 table td {
   padding: 12px 15px;
   border: 1px solid #e0e0e0;
   text-align: left;
-  vertical-align: middle;
 }
-
 table th {
   background-color: #f4f7f9;
   font-weight: 600;
+  text-align: center;
 }
-
+table td:first-child {
+  text-align: center;
+}
 table tbody tr:nth-child(even) {
   background-color: #f8f9fa;
 }
-
-table tbody tr:hover {
-  background-color: #e9ecef;
+table tfoot {
+  font-weight: 700;
+  background-color: #f8f9fa;
+}
+#totalSum {
+  text-align: right;
+  font-size: 16px;
+  color: #c8102e;
 }
 
-/* --- 5. THÔNG BÁO (MESSAGE) --- */
+/* --- BỘ LỌC BẢNG --- */
+.table-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.table-filters span {
+  color: #555;
+}
+.table-filters input[type="date"] {
+  width: 150px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+}
+.secondary-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 9px 15px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.secondary-btn:hover {
+  background-color: #5a6268;
+}
+
+/* Ẩn chức năng Admin */
+.admin-only {
+  display: none;
+}
+.admin-only span,
+.admin-only input {
+  display: inline-block;
+}
+
+/* --- CÁC THÀNH PHẦN KHÁC --- */
 .message {
   margin-top: 15px;
   padding: 15px;
   border-radius: 5px;
-  font-weight: 500;
   display: none;
   text-align: center;
 }
-
 .message.success {
   background-color: #d4edda;
   color: #155724;
   display: block;
 }
-
 .message.error {
   background-color: #f8d7da;
   color: #721c24;
   display: block;
 }
+.btn-home {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #f8f9fa;
+  color: #343a40;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+}
+.btn-home:hover {
+  background-color: #e9ecef;
+}
 
-/* --- 6. MODAL XÁC NHẬN --- */
+/* --- MODAL --- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -177,259 +212,60 @@ table tbody tr:hover {
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 15px;
-  box-sizing: border-box;
 }
-
 .modal-overlay.visible {
   display: flex;
 }
-
 .modal-content {
   background-color: #fff;
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-  text-align: center;
-  max-width: 400px;
-  width: 100%;
-  transform: translateY(-50px);
-  transition: transform 0.3s ease-out;
+  max-width: 500px;
+  width: 90%;
 }
-
-.modal-overlay.visible .modal-content {
-  transform: translateY(0);
-}
-
-.modal-content p {
-  font-size: 18px;
-  margin: 0 0 25px 0;
-  line-height: 1.6;
-}
-
 .modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-}
-
-.modal-actions button {
-  font-weight: 500;
-  width: auto;
-  min-width: 100px;
-}
-
-.btn-confirm {
-  background-color: #007bff;
-  color: white;
-}
-
-.btn-confirm:hover {
-  background-color: #0056b3;
-}
-
-.btn-cancel {
-  background-color: #e9ecef;
-  color: #495057;
-  border: 1px solid #ced4da;
-}
-
-.btn-cancel:hover {
-  background-color: #d2d6da;
-}
-
-/* --- 7. RESPONSIVE CHO DI ĐỘNG --- */
-@media (max-width: 768px) {
-  body {
-    padding: 15px;
-  }
-
-  .main-wrapper {
-    padding: 20px;
-  }
-
-  h1 {
-    font-size: 20px;
-  }
-
-  .form-row {
-    flex-direction: column; /* Xếp dọc các mục nhập liệu */
-    align-items: stretch; /* Căn cho các mục giãn đều */
-    gap: 15px;
-  }
-
-  input[type="number"] {
-    width: 100%; /* Ô số liệu rộng 100% */
-  }
-
-  button {
-    min-width: unset;
-    width: 100%;
-  }
-}
-/* Căn giữa tiêu đề của bảng dữ liệu */
-/* Căn giữa toàn bộ hàng tiêu đề của bảng */
-table th {
-  text-align: center;
-}
-
-/* Chỉ căn giữa cột dữ liệu đầu tiên (STT) */
-table td:first-child {
-  text-align: center;
-}
-/* --- Nâng cấp cho bảng dữ liệu --- */
-
-/* Dàn tiêu đề và nút bấm trên cùng hàng */
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-.table-header h2 {
-  margin: 0;
-}
-
-/* Nút phụ "Đơn vị chưa báo cáo" */
-.secondary-btn {
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.secondary-btn:hover {
-  background-color: #5a6268;
-}
-
-/* Hàng tổng kết trong bảng */
-table tfoot {
-  font-weight: 700;
-  background-color: #f8f9fa;
-  color: #333;
-}
-table tfoot td {
-  border-top: 2px solid #dee2e6;
-}
-#totalSum {
+  margin-top: 25px;
   text-align: right;
-  font-size: 16px;
-  color: #c8102e;
 }
-
-/* Modal danh sách đơn vị chưa báo cáo */
+.modal-title-container {
+  text-align: center;
+  margin-bottom: 15px;
+}
+#missingUnitsTitleMain {
+  text-transform: uppercase;
+  margin: 0;
+  font-size: 1.75rem;
+}
+#missingUnitsTitleSub {
+  margin: 5px 0 0 0;
+  color: #6c757d;
+}
 #missingUnitsList {
-  list-style-type: decimal; /* Đánh số thứ tự */
+  list-style-type: decimal;
   padding-left: 25px;
   max-height: 300px;
   overflow-y: auto;
   text-align: left;
-  margin-bottom: 25px;
+  margin: 20px 0;
   border-top: 1px solid #eee;
   border-bottom: 1px solid #eee;
   padding-top: 10px;
   padding-bottom: 10px;
 }
-#missingUnitsList li {
-  padding: 5px 0;
-}
-/* --- CSS cho Tiêu đề trang và Nút Home --- */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px; /* Giữ khoảng cách với form bên dưới */
-}
-
-.page-header h1 {
-  flex-grow: 1; /* Cho phép tiêu đề chiếm hết không gian trống */
-  text-align: center; /* Căn giữa nội dung chữ bên trong */
-  margin: 0 20px 0 0; /* Tạo chút khoảng cách với nút bấm */
-  line-height: 1.4; /* Tăng khoảng cách giữa 2 dòng tiêu đề */
-}
-
-.btn-home {
-  display: inline-block;
-  padding: 10px 20px;
+/* --- CSS cho hàng tổng kết của bảng --- */
+table tfoot td {
+  font-weight: 700; /* In đậm */
+  text-align: right; /* Căn phải cho các số */
   background-color: #f8f9fa;
-  color: #343a40;
-  border: 1px solid #dee2e6;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  white-space: nowrap; /* Ngăn nút bị xuống dòng */
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-.btn-home:hover {
-  background-color: #e9ecef;
-  color: #000;
-}
-/* --- Tinh chỉnh độ rộng cho form trang Cài đặt --- */
-
-/* Đặt chiều rộng cụ thể cho các ô nhập liệu trên trang Cài đặt */
-.page-caidat .form-group input[type="number"] {
-  width: 100px; /* Thu nhỏ các ô nhập số */
-}
-
-/* --- CSS cho Bộ lọc của bảng (Phiên bản cải tiến) --- */
-
-/* Đảm bảo tiêu đề và bộ lọc nằm trên cùng hàng, cách xa nhau */
-.table-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
-/* Căn chỉnh các mục trong bộ lọc */
-.table-filters {
-  display: flex;
-  align-items: center;
-  gap: 10px; /* Khoảng cách giữa ô ngày và nút bấm */
-}
-
-/* Đặt chiều rộng hẹp hơn cho ô chọn ngày */
-.table-filters input[type="date"] {
-  width: 150px; /* <-- Chiều rộng hẹp hơn */
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-}
-
-.table-filters .secondary-btn {
-  padding: 9px 15px;
-  font-size: 14px;
-}
-/* --- CSS cho nút "Về trang chủ" cố định --- */
-.btn-home {
-  position: fixed; /* Giữ nút cố định trên màn hình */
-  bottom: 25px; /* Cách lề dưới 25px */
-  right: 25px; /* Cách lề phải 25px */
-  z-index: 1000; /* Đảm bảo nút luôn nổi lên trên */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Thêm bóng đổ cho đẹp */
-}
-/* --- CSS cho Tiêu đề Modal mới --- */
-.modal-title-container {
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-#missingUnitsTitleMain {
-  text-transform: uppercase; /* In hoa */
-  margin: 0;
-  font-size: 1.75rem; /* Tăng cỡ chữ */
   color: #333;
-  font-weight: 700;
 }
 
-#missingUnitsTitleSub {
-  margin: 5px 0 0 0;
-  color: #6c757d; /* Màu xám */
-  font-size: 1rem;
+/* Căn giữa lại cho ô "Tổng cộng" */
+table tfoot td[colspan="2"] {
+  text-align: center;
+}
+
+#totalPercentage {
+  color: #c8102e; /* Làm nổi bật tỷ lệ tổng */
 }
