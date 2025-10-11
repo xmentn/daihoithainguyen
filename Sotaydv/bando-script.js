@@ -2,26 +2,22 @@
 // KHAI BÁO BIẾN VÀ URL
 // =================================================================
 
-// URL để lấy dữ liệu từ Google Sheet (giống như trong các file script khác)
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbxfvE3oRILvgdQ7NSmU7m-UjRpyrrQ2qAUWud6qsSXDZg0n0sv9LV1cH40HJaBfa0eznA/exec";
 
-let geojsonLayer; // Biến lưu trữ layer bản đồ
+let geojsonLayer;
 
 // =================================================================
 // KHỞI TẠO BẢN ĐỒ VÀ CÁC THÀNH PHẦN GIAO DIỆN
 // =================================================================
 
-// 1. Khởi tạo bản đồ
 const map = L.map("map").setView([21.68, 105.85], 10);
 
-// 2. Thêm lớp bản đồ nền
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution:
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
 }).addTo(map);
 
-// 3. Tạo ô thông tin tùy chỉnh
 const info = L.control({ position: "topright" });
 info.onAdd = function (map) {
   this._div = L.DomUtil.create("div", "info-box");
@@ -29,14 +25,13 @@ info.onAdd = function (map) {
   return this._div;
 };
 
-// Cập nhật nội dung ô thông tin
 info.update = function (props) {
   let content = "<h4>Thông tin đơn vị</h4>";
   if (props && props.ten_xa) {
     const tenXa = props.ten_xa;
     const tongSo = props.tongSoDangVien || 0;
     const daCai = props.soDaCaiDat || 0;
-    const tyLe = props.tyLeCaiDat; // Lấy tỷ lệ đã tính sẵn
+    const tyLe = props.tyLeCaiDat;
 
     content += `<b>${tenXa}</b><br/>`;
 
@@ -55,25 +50,46 @@ info.update = function (props) {
 };
 info.addTo(map);
 
+// === BẮT ĐẦU THÊM CHÚ THÍCH (LEGEND) ===
+const legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function (map) {
+  const div = L.DomUtil.create("div", "info-box legend");
+  const grades = [90, 50, 0];
+  const labels = ["&ge; 90%", "50% &ndash; < 90%", "< 50%", "Chưa có dữ liệu"];
+  const colors = ["#28a745", "#ffc107", "#dc3545", "#D3D3D3"];
+
+  div.innerHTML = "<strong>Tỷ lệ cài đặt</strong><br>";
+
+  for (let i = 0; i < grades.length; i++) {
+    div.innerHTML +=
+      '<i style="background:' + colors[i] + '"></i> ' + labels[i] + "<br>";
+  }
+  div.innerHTML += '<i style="background:' + colors[3] + '"></i> ' + labels[3];
+
+  return div;
+};
+
+legend.addTo(map);
+// === KẾT THÚC THÊM CHÚ THÍCH ===
+
 // =================================================================
 // CÁC HÀM XỬ LÝ DỮ LIỆU VÀ TƯƠNG TÁC BẢN ĐỒ
 // =================================================================
 
-// 4. Hàm quyết định MÀU SẮC của xã dựa trên tỷ lệ cài đặt
 function getColor(percentage) {
   if (percentage === undefined || percentage === null) {
-    return "#D3D3D3"; // Màu xám cho các xã chưa có dữ liệu
+    return "#D3D3D3";
   }
   if (percentage >= 90) {
-    return "#28a745"; // Xanh lá cây
+    return "#28a745";
   }
   if (percentage >= 50) {
-    return "#ffc107"; // Vàng
+    return "#ffc107";
   }
-  return "#dc3545"; // Đỏ
+  return "#dc3545";
 }
 
-// 5. Hàm tạo kiểu (style) cho mỗi xã
 function style(feature) {
   const tyLe = feature.properties.tyLeCaiDat;
   return {
@@ -85,7 +101,6 @@ function style(feature) {
   };
 }
 
-// 6. Hàm làm nổi bật xã khi di chuột vào
 function highlightFeature(e) {
   const layer = e.target;
   layer.setStyle({
@@ -98,13 +113,11 @@ function highlightFeature(e) {
   info.update(layer.feature.properties);
 }
 
-// 7. Hàm trả về kiểu cũ khi di chuột ra
 function resetHighlight(e) {
   geojsonLayer.resetStyle(e.target);
   info.update();
 }
 
-// 8. Gán các sự kiện cho mỗi xã
 function onEachFeature(feature, layer) {
   const tenXa = feature.properties.ten_xa || "";
   layer.bindTooltip(tenXa, {
@@ -122,13 +135,11 @@ function onEachFeature(feature, layer) {
 // LUỒNG CHÍNH: TẢI DỮ LIỆU VÀ VẼ BẢN ĐỒ
 // =================================================================
 
-// Sử dụng Promise.all để tải đồng thời cả 2 nguồn dữ liệu
 Promise.all([
   fetch("thainguyen.geojson").then((res) => res.json()),
   fetch(`${SCRIPT_URL}?action=getDataCaiDat`).then((res) => res.json()),
 ])
   .then(([geojson, installationResult]) => {
-    // Xử lý dữ liệu cài đặt
     const installationData = installationResult.data;
     const dataMap = new Map();
 
@@ -145,18 +156,15 @@ Promise.all([
       });
     });
 
-    // Gắn dữ liệu cài đặt vào GeoJSON
     geojson.features.forEach((feature) => {
       const tenXa = feature.properties.ten_xa;
       const installInfo = dataMap.get(tenXa);
 
       if (installInfo) {
-        // Gộp các thuộc tính tìm thấy vào properties của feature
         Object.assign(feature.properties, installInfo);
       }
     });
 
-    // Vẽ bản đồ với dữ liệu đã được làm giàu
     geojsonLayer = L.geoJson(geojson, {
       style: style,
       onEachFeature: onEachFeature,
@@ -186,4 +194,4 @@ function toggleLabels() {
   }
 }
 map.on("zoomend", toggleLabels);
-toggleLabels(); // Chạy lần đầu
+toggleLabels();

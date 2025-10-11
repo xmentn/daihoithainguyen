@@ -49,3 +49,16 @@
 .labels-hidden .commune-label {
   display: none;
 }
+/* CSS cho phần chú thích (Legend) */
+.legend {
+  line-height: 22px; /* Tăng khoảng cách dòng cho dễ đọc */
+  color: #555;
+}
+.legend i {
+  width: 18px;
+  height: 18px;
+  float: left;
+  margin-right: 8px;
+  opacity: 0.9;
+  border: 1px solid #999;
+}
