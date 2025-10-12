@@ -215,3 +215,26 @@ body {
 .stats-grid {
   display: none;
 }
+/* =================================== */
+/* CSS TỐI ƯU CHO TRANG BẢN ĐỒ      */
+/* =================================== */
+
+/* Áp dụng riêng cho trang bản đồ để loại bỏ padding của body */
+body.page-map {
+  padding: 0;
+}
+
+/* Ghi đè lại wrapper chung để nó chiếm toàn bộ chiều rộng */
+body.page-map .main-wrapper {
+  max-width: 100%;
+  padding: 15px 20px; /* Giảm padding trên dưới */
+}
+
+/* Thu gọn tiêu đề của trang bản đồ */
+body.page-map .page-header {
+  margin-bottom: 10px;
+}
+
+body.page-map .page-header h1 {
+  font-size: 1.5rem; /* Giảm kích thước chữ tiêu đề */
+}

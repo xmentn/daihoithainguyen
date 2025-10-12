@@ -55,8 +55,8 @@ const legend = L.control({ position: "bottomright" });
 
 legend.onAdd = function (map) {
   const div = L.DomUtil.create("div", "info-box legend");
-  const grades = [90, 50, 0];
-  const labels = ["&ge; 90%", "50% &ndash; < 90%", "< 50%", "Chưa có dữ liệu"];
+  const grades = [90, 70, 0];
+  const labels = ["&ge; 90%", "70% &ndash; < 90%", "< 70%", "Chưa có dữ liệu"];
   const colors = ["#28a745", "#ffc107", "#dc3545", "#D3D3D3"];
 
   div.innerHTML = "<strong>Tỷ lệ cài đặt</strong><br>";
@@ -84,7 +84,7 @@ function getColor(percentage) {
   if (percentage >= 90) {
     return "#28a745";
   }
-  if (percentage >= 50) {
+  if (percentage >= 70) {
     return "#ffc107";
   }
   return "#dc3545";
