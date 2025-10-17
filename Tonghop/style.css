@@ -198,3 +198,15 @@ legend {
   /* color: #cc0000; */ /* Màu đỏ đậm hơn */
   /* letter-spacing: 1px; */ /* Khoảng cách chữ */
 }
+#dataTable tfoot tr {
+  background-color: #e9ecef; /* Màu nền xám nhạt */
+  font-weight: bold; /* In đậm chữ */
+  color: #0d6efd; /* Chữ màu xanh dương */
+}
+
+#dataTable tfoot td {
+  text-align: center; /* Căn giữa các số tổng cộng */
+  vertical-align: middle;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
