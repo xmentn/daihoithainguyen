@@ -192,3 +192,9 @@ legend {
 .function-card.disabled .function-icon {
   color: #6c757d;
 }
+.department-name {
+  font-size: 2 rem; /* Tăng kích thước font, ví dụ 1.5rem hoặc 24px */
+  /* Bạn có thể thêm các thuộc tính khác nếu muốn: */
+  /* color: #cc0000; */ /* Màu đỏ đậm hơn */
+  /* letter-spacing: 1px; */ /* Khoảng cách chữ */
+}
