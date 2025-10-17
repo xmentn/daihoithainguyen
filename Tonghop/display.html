@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
-    <link rel="icon" type="image/png" href="/Tonghop/images/report.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dữ liệu Báo cáo</title>
@@ -30,7 +29,8 @@
               id="radioSingleDay"
               value="single"
               checked
-            /><label class="form-check-label fw-bold" for="radioSingleDay"
+            />
+            <label class="form-check-label fw-bold" for="radioSingleDay"
               >Xem theo ngày</label
             >
           </div>
@@ -41,7 +41,8 @@
               name="filterType"
               id="radioDateRange"
               value="range"
-            /><label class="form-check-label fw-bold" for="radioDateRange"
+            />
+            <label class="form-check-label fw-bold" for="radioDateRange"
               >Xem theo khoảng thời gian</label
             >
           </div>
@@ -53,7 +54,8 @@
           <div class="col-md-4">
             <label for="filterDate" class="form-label"
               >Chọn ngày xem báo cáo:</label
-            ><input
+            >
+            <input
               type="text"
               id="filterDate"
               class="form-control"
@@ -72,8 +74,8 @@
           style="display: none"
         >
           <div class="col-md-4">
-            <label for="startDate" class="form-label">Từ ngày:</label
-            ><input
+            <label for="startDate" class="form-label">Từ ngày:</label>
+            <input
               type="text"
               id="startDate"
               class="form-control"
@@ -81,8 +83,8 @@
             />
           </div>
           <div class="col-md-4">
-            <label for="endDate" class="form-label">Đến ngày:</label
-            ><input
+            <label for="endDate" class="form-label">Đến ngày:</label>
+            <input
               type="text"
               id="endDate"
               class="form-control"
@@ -91,7 +93,12 @@
           </div>
         </div>
         <div class="text-center mt-3">
-          <button id="filterButton" class="btn btn-success">Xem báo cáo</button>
+          <button id="filterButton" class="btn btn-success btn-lg">
+            Xem báo cáo
+          </button>
+          <button id="exportBtn" class="btn btn-info btn-lg ms-2">
+            Xuất ra file Excel
+          </button>
         </div>
       </div>
 
@@ -128,6 +135,7 @@
     >
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="display.js"></script>
   </body>
 </html>

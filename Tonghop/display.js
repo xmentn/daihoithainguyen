@@ -1,11 +1,7 @@
 // Dán URL Web App mới nhất của bạn vào đây (phải giống với file script.js)
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbwHWKyt9xsIPSkfJGvAJ22TZoPoTbF13tm9M_eaNbA-0l0tIYrR3F7re4L77NFJb8SMLg/exec";
-/**
- * Hàm chung để gọi API backend bằng phương thức GET.
- * @param {string} action - Tên hành động cần thực hiện.
- * @param {object} params - Các tham số gửi kèm (ví dụ: { date: '2025-10-17' }).
- */
+
 async function callApiGet(action, params = {}) {
   try {
     const url = new URL(SCRIPT_URL);
@@ -22,13 +18,10 @@ async function callApiGet(action, params = {}) {
     return result.data;
   } catch (e) {
     console.error(`Lỗi khi gọi API:`, e);
-    throw e; // Ném lỗi ra để các hàm khác có thể xử lý
+    throw e;
   }
 }
 
-/**
- * Tải dữ liệu từ backend dựa trên lựa chọn của người dùng và hiển thị lên bảng.
- */
 async function loadTableData() {
   const dataTable = document.getElementById("dataTable");
   const dataTableBody = document.getElementById("dataTableBody");
@@ -75,15 +68,11 @@ async function loadTableData() {
 
     const totals = new Array(11).fill(0);
 
-    // THAY ĐỔI 1: Thêm 'rowIndex' để tự tạo STT
     data.forEach((row, rowIndex) => {
       const tr = dataTableBody.insertRow();
-
-      // THAY ĐỔI 2: Tạo ô STT mới dựa trên rowIndex
       const sttCell = tr.insertCell();
       sttCell.textContent = rowIndex + 1;
 
-      // THAY ĐỔI 3: Lặp qua các ô còn lại, bỏ qua STT cũ từ Google Sheet (row[0])
       for (let i = 1; i < row.length; i++) {
         const cell = row[i];
         const td = tr.insertCell();
@@ -102,7 +91,6 @@ async function loadTableData() {
     totalLabelCell.colSpan = 2;
     totalLabelCell.textContent = "Tổng cộng";
 
-    // Vòng lặp bắt đầu từ 2 để khớp với index của totals
     for (let i = 2; i < totals.length; i++) {
       const totalCell = footerRow.insertCell();
       totalCell.textContent = totals[i].toLocaleString("vi-VN");
@@ -111,9 +99,7 @@ async function loadTableData() {
     dataTableBody.innerHTML = `<tr><td colspan="11" class="text-center text-danger">Lỗi khi tải dữ liệu!</td></tr>`;
   }
 }
-/**
- * Kiểm tra và hiển thị danh sách các đơn vị chưa báo cáo trong ngày đã chọn.
- */
+
 async function checkUnreportedUnits() {
   const selectedDateInput = document.getElementById("filterDate");
   const selectedDate = selectedDateInput.value;
@@ -146,10 +132,6 @@ async function checkUnreportedUnits() {
       );
     } else {
       const displayDate = selectedDateInput._flatpickr.altInput.value;
-
-      // ========================================================
-      // === SỬA LỖI TẠI ĐÂY: Thêm (index + 1) vào đầu mỗi dòng ===
-      // ========================================================
       const unitListHtml =
         '<ul class="list-group text-start">' +
         unreportedUnits
@@ -161,7 +143,6 @@ async function checkUnreportedUnits() {
         "</ul>";
 
       Swal.fire({
-        // Thêm số lượng vào tiêu đề
         title: `Có ${unreportedUnits.length} đơn vị chưa báo cáo ngày ${displayDate}`,
         html: unitListHtml,
         icon: "warning",
@@ -173,25 +154,56 @@ async function checkUnreportedUnits() {
   }
 }
 
+/**
+ * Hàm mới để xuất dữ liệu ra file Excel
+ */
+function exportToExcel() {
+  const table = document.getElementById("dataTable");
+
+  const firstRow = document.getElementById("dataTableBody").rows[0];
+  if (!firstRow || firstRow.cells.length <= 1) {
+    Swal.fire("Thông báo", "Không có dữ liệu để xuất file Excel.", "info");
+    return;
+  }
+
+  const filterType = document.querySelector(
+    'input[name="filterType"]:checked'
+  ).value;
+  let datePart = "";
+  if (filterType === "single") {
+    datePart = document
+      .getElementById("filterDate")
+      ._flatpickr.altInput.value.replace(/\//g, "-");
+  } else {
+    const start = document
+      .getElementById("startDate")
+      ._flatpickr.altInput.value.replace(/\//g, "-");
+    const end = document
+      .getElementById("endDate")
+      ._flatpickr.altInput.value.replace(/\//g, "-");
+    datePart = `Tu_${start}_Den_${end}`;
+  }
+  const fileName = `BaoCao_TongHop_${datePart}.xlsx`;
+
+  const wb = XLSX.utils.table_to_book(table, { sheet: "Báo cáo tổng hợp" });
+  XLSX.writeFile(wb, fileName);
+}
+
 // --- Chạy các hàm sau khi trang đã tải xong ---
 document.addEventListener("DOMContentLoaded", () => {
-  // --- Khởi tạo Flatpickr cho các ô chọn ngày ---
   const today = new Date();
-
   flatpickr("#filterDate", {
     altInput: true,
     altFormat: "d/m/Y",
     dateFormat: "Y-m-d",
     defaultDate: today,
   });
-
   flatpickr("#startDate", {
     altInput: true,
     altFormat: "d/m/Y",
     dateFormat: "Y-m-d",
     defaultDate: today,
   });
-
   flatpickr("#endDate", {
     altInput: true,
     altFormat: "d/m/Y",
@@ -199,27 +211,25 @@ document.addEventListener("DOMContentLoaded", () => {
     defaultDate: today,
   });
 
-  // --- Quản lý hiển thị các bộ lọc ---
-  const radioButtons = document.querySelectorAll('input[name="filterType"]');
-  const singleDayFilter = document.getElementById("singleDayFilter");
-  const dateRangeFilter = document.getElementById("dateRangeFilter");
-
-  radioButtons.forEach((radio) => {
+  document.querySelectorAll('input[name="filterType"]').forEach((radio) => {
     radio.addEventListener("change", (event) => {
-      const isSingleDay = event.target.value === "single";
-      singleDayFilter.style.display = isSingleDay ? "flex" : "none";
-      dateRangeFilter.style.display = isSingleDay ? "none" : "flex";
+      const isSingle = event.target.value === "single";
+      document.getElementById("singleDayFilter").style.display = isSingle
+        ? "flex"
+        : "none";
+      document.getElementById("dateRangeFilter").style.display = isSingle
+        ? "none"
+        : "flex";
     });
   });
 
-  // --- Tải dữ liệu ban đầu và gắn sự kiện cho các nút ---
-  // Dùng setTimeout để đảm bảo Flatpickr đã kịp khởi tạo và điền ngày mặc định
   setTimeout(loadTableData, 100);
-
   document
     .getElementById("filterButton")
     .addEventListener("click", loadTableData);
   document
     .getElementById("checkUnreportedBtn")
     .addEventListener("click", checkUnreportedUnits);
+  // Gắn sự kiện cho nút xuất Excel
+  document.getElementById("exportBtn").addEventListener("click", exportToExcel);
 });

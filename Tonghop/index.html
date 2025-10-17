@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
   <head>
-    <link rel="icon" type="image/png" href="/Tonghop/images/report.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hệ thống Báo cáo Tổng hợp</title>
@@ -32,6 +31,30 @@
             <h2 class="panel-title">Dashboard Tổng quan</h2>
 
             <div class="filter-container mb-3">
+              <div class="row justify-content-center align-items-end mb-3">
+                <div class="col-md-5">
+                  <label for="chartCriteria" class="form-label"
+                    >Chọn tiêu chí:</label
+                  >
+                  <select id="chartCriteria" class="form-select">
+                    <option value="total_submitted" selected>
+                      Số lượng hồ sơ tiếp nhận
+                    </option>
+                    <option value="on_time_rate">
+                      Tỷ lệ giải quyết đúng hạn
+                    </option>
+                    <option value="overdue_rate">Tỷ lệ hồ sơ quá hạn</option>
+                  </select>
+                </div>
+                <div class="col-md-5">
+                  <label for="chartRanking" class="form-label">Xếp hạng:</label>
+                  <select id="chartRanking" class="form-select">
+                    <option value="top" selected>Top 10 cao nhất</option>
+                    <option value="bottom">Top 10 thấp nhất</option>
+                  </select>
+                </div>
+              </div>
+
               <div class="text-center mb-2">
                 <div class="form-check form-check-inline">
                   <input
@@ -156,7 +179,6 @@
         </aside>
       </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
