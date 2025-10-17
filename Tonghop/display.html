@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dữ liệu Báo cáo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="text-center main-title">DỮ LIỆU BÁO CÁO TỔNG HỢP</h1>
+
+      <div class="filter-container my-4">
+        <div class="text-center mb-3">
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="filterType"
+              id="radioSingleDay"
+              value="single"
+              checked
+            /><label class="form-check-label fw-bold" for="radioSingleDay"
+              >Xem theo ngày</label
+            >
+          </div>
+          <div class="form-check form-check-inline">
+            <input
+              class="form-check-input"
+              type="radio"
+              name="filterType"
+              id="radioDateRange"
+              value="range"
+            /><label class="form-check-label fw-bold" for="radioDateRange"
+              >Xem theo khoảng thời gian</label
+            >
+          </div>
+        </div>
+        <div
+          id="singleDayFilter"
+          class="row justify-content-center align-items-end"
+        >
+          <div class="col-md-4">
+            <label for="filterDate" class="form-label"
+              >Chọn ngày xem báo cáo:</label
+            ><input
+              type="text"
+              id="filterDate"
+              class="form-control"
+              placeholder="Chọn ngày..."
+            />
+          </div>
+          <div class="col-md-auto">
+            <button id="checkUnreportedBtn" class="btn btn-warning">
+              Các đơn vị chưa báo cáo
+            </button>
+          </div>
+        </div>
+        <div
+          id="dateRangeFilter"
+          class="row justify-content-center align-items-end"
+          style="display: none"
+        >
+          <div class="col-md-4">
+            <label for="startDate" class="form-label">Từ ngày:</label
+            ><input
+              type="text"
+              id="startDate"
+              class="form-control"
+              placeholder="Chọn ngày bắt đầu..."
+            />
+          </div>
+          <div class="col-md-4">
+            <label for="endDate" class="form-label">Đến ngày:</label
+            ><input
+              type="text"
+              id="endDate"
+              class="form-control"
+              placeholder="Chọn ngày kết thúc..."
+            />
+          </div>
+        </div>
+        <div class="text-center mt-3">
+          <button id="filterButton" class="btn btn-success">Xem báo cáo</button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table id="dataTable" class="table table-striped table-bordered mt-4">
+          <thead class="table-dark">
+            <tr>
+              <th>STT</th>
+              <th>Tên đơn vị</th>
+              <th>SL VB Đảng</th>
+              <th>SL VB CQ</th>
+              <th>Đơn thư</th>
+              <th>HS Tiếp nhận</th>
+              <th>HS GQ Đúng hạn</th>
+              <th>HS GQ Quá hạn</th>
+              <th>HS Đang GQ</th>
+              <th>HS Chưa GQ</th>
+              <th>HS Chưa GQ Quá hạn</th>
+            </tr>
+          </thead>
+          <tbody id="dataTableBody">
+            <tr>
+              <td colspan="11" class="text-center">
+                Vui lòng chọn ngày để xem báo cáo.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <a href="index.html" id="home-button" title="Về trang chủ"
+      >🏠 Về trang chủ</a
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="display.js"></script>
+  </body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nhập liệu Báo cáo</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container mt-4">
+      <h1 class="mb-4 text-center main-title">FORM NHẬP DỮ LIỆU BÁO CÁO</h1>
+      <form id="dataForm">
+        <div class="row align-items-end">
+          <div class="col-md-7 mb-3">
+            <label for="tenDonVi" class="form-label fw-bold">Tên đơn vị:</label
+            ><select id="tenDonVi" class="form-select" required>
+              <option value="">-- Đang tải... --</option>
+            </select>
+          </div>
+          <div class="col-md-5 mb-3">
+            <label for="ngayBaoCao" class="form-label fw-bold"
+              >Ngày báo cáo:</label
+            ><input
+              type="text"
+              id="ngayBaoCao"
+              class="form-control"
+              required
+              placeholder="Chọn ngày..."
+            />
+          </div>
+        </div>
+        <fieldset class="form-section">
+          <legend>Công tác lãnh đạo, chỉ đạo</legend>
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label for="slVanBanDang" class="form-label"
+                >Số lượng văn bản của Đảng:</label
+              ><input
+                type="number"
+                id="slVanBanDang"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label for="slVanBanCQ" class="form-label"
+                >Số lượng văn bản của chính quyền:</label
+              ><input
+                type="number"
+                id="slVanBanCQ"
+                class="form-control"
+                required
+              />
+            </div>
+          </div>
+        </fieldset>
+        <fieldset class="form-section">
+          <legend>Công tác, xử lý đơn thư</legend>
+          <div class="mb-2">
+            <label for="donThu" class="form-label"
+              >Thông tin xử lý đơn thư:</label
+            ><input
+              type="text"
+              id="donThu"
+              class="form-control"
+              placeholder="(Để trống nếu không có)"
+            />
+          </div>
+        </fieldset>
+        <fieldset class="form-section">
+          <legend>Trung tâm Hành chính công</legend>
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label for="hsTiepNhan" class="form-label"
+                >Số hồ sơ tiếp nhận:</label
+              ><input
+                type="number"
+                id="hsTiepNhan"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label for="hsGQDungHan" class="form-label"
+                >Số HS đã giải quyết đúng hạn:</label
+              ><input
+                type="number"
+                id="hsGQDungHan"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label for="hsGQQuaHan" class="form-label"
+                >Số HS đã giải quyết quá hạn:</label
+              ><input
+                type="number"
+                id="hsGQQuaHan"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label for="hsDangGQ" class="form-label"
+                >Số HS đang giải quyết:</label
+              ><input
+                type="number"
+                id="hsDangGQ"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label for="hsChuaGQ" class="form-label"
+                >Số HS chưa giải quyết (đúng hạn):</label
+              ><input
+                type="number"
+                id="hsChuaGQ"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="col-md-6 mb-2">
+              <label for="hsChuaGQQuaHan" class="form-label"
+                >Số HS chưa giải quyết (quá hạn):</label
+              ><input
+                type="number"
+                id="hsChuaGQQuaHan"
+                class="form-control"
+                required
+              />
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="text-center mt-4">
+          <button
+            type="submit"
+            id="submitButton"
+            class="btn btn-primary btn-lg"
+          >
+            Lưu Dữ Liệu
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <a href="index.html" id="home-button" title="Về trang chủ"
+      >🏠 Về trang chủ</a
+    >
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
