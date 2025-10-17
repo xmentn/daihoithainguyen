@@ -22,16 +22,17 @@ async function callApiGet(action, params = {}) {
   }
 }
 
-/**
- * Lấy dữ liệu và vẽ biểu đồ Top 10 đơn vị
- */
 async function renderTopUnitsChart() {
   try {
     const chartData = await callApiGet("getDashboardData");
 
-    // Tách dữ liệu thành labels (tên đơn vị) và dataPoints (số liệu)
     const labels = chartData.map((item) => item.unit);
     const dataPoints = chartData.map((item) => item.total);
+
+    // ========================================================
+    // === THAY ĐỔI 1: ĐĂNG KÝ PLUGIN VỚI CHART.JS ===
+    // ========================================================
+    Chart.register(ChartDataLabels);
 
     const ctx = document.getElementById("topUnitsChart").getContext("2d");
     new Chart(ctx, {
@@ -49,18 +50,30 @@ async function renderTopUnitsChart() {
         ],
       },
       options: {
-        indexAxis: "y", // Biến biểu đồ thành dạng bar ngang
+        indexAxis: "y",
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: {
-            display: false, // Ẩn chú thích trên đầu
-          },
+          legend: { display: false },
           title: {
             display: true,
             text: "Top 10 đơn vị có số hồ sơ tiếp nhận nhiều nhất",
+            font: { size: 16 },
+          },
+          // ========================================================
+          // === THAY ĐỔI 2: CẤU HÌNH CHO PLUGIN DATALABELS ===
+          // ========================================================
+          datalabels: {
+            anchor: "end", // Vị trí của nhãn (cuối thanh bar)
+            align: "right", // Căn lề sang phải
+            offset: 8, // Khoảng cách từ cuối thanh bar
+            color: "#333", // Màu chữ
             font: {
-              size: 16,
+              weight: "bold", // In đậm chữ
+            },
+            // Định dạng lại số liệu (ví dụ: 1000 -> 1,000) - Tùy chọn
+            formatter: (value) => {
+              return value.toLocaleString("vi-VN");
             },
           },
         },

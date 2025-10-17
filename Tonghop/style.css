@@ -177,3 +177,18 @@ legend {
 .sidebar .card-title {
   font-size: 1.25rem;
 }
+.function-icon {
+  font-size: 2.5rem; /* Kích thước của biểu tượng */
+  color: #0d6efd; /* Màu xanh dương chủ đạo */
+}
+
+/* Căn lề trái cho mô tả chức năng */
+.function-card .card-text {
+  align-self: flex-start;
+  padding-left: calc(2.5rem + 1rem); /* Căn lề thẳng với tiêu đề */
+}
+
+/* Thay đổi màu biểu tượng cho thẻ bị vô hiệu hóa */
+.function-card.disabled .function-icon {
+  color: #6c757d;
+}
