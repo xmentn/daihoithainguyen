@@ -1,3 +1,7 @@
+/* =================================================================== */
+/* === 1. CÀI ĐẶT CHUNG & GIAO DIỆN TRANG CHỦ (DASHBOARD) === */
+/* =================================================================== */
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
@@ -5,9 +9,13 @@ body {
   color: #212529;
 }
 
-.container {
-  /* Tăng độ rộng tối đa để bảng hiển thị đẹp hơn */
-  max-width: 1200px;
+.dashboard-body {
+  background-color: #f4f7fa;
+}
+
+.container,
+.container-fluid {
+  max-width: 1400px;
   background-color: #ffffff;
   padding: 2rem;
   border-radius: 0.5rem;
@@ -16,20 +24,90 @@ body {
   margin-bottom: 2rem;
 }
 
-/* ================================================= */
-/* === THAY ĐỔI 1: ĐỊNH DẠNG LẠI TIÊU ĐỀ CHÍNH === */
-/* ================================================= */
-h1.main-title {
-  background-color: #e7f1ff; /* Nền xanh dương nhạt */
-  color: #0a58ca; /* Chữ màu xanh đậm hơn */
-  padding: 1rem;
-  border-radius: 0.375rem;
-  text-transform: uppercase; /* In hoa chữ */
-  font-weight: bold;
-  font-size: 1.75rem; /* Tăng kích thước chữ một chút */
+.department-name {
+  font-size: 1.5rem; /* Tăng kích thước font */
 }
 
-/* Các style của form giữ nguyên */
+h1.main-title {
+  background-color: #e7f1ff;
+  color: #0a58ca;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  text-transform: uppercase;
+  font-weight: bold;
+  font-size: 1.75rem;
+}
+
+/* --- Khu vực Dashboard Panel (Biểu đồ) --- */
+.dashboard-panel {
+  background-color: #ffffff;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+  height: 100%;
+}
+
+.panel-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.chart-container {
+  position: relative;
+  height: 60vh;
+}
+
+/* --- Khu vực Sidebar Chức năng --- */
+.sidebar .function-card {
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease-in-out;
+}
+
+.sidebar .function-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15);
+  background-color: #f8f9fa;
+}
+
+.card-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.sidebar .card-title {
+  font-size: 1.25rem;
+}
+
+.function-card.disabled {
+  border-color: #adb5bd;
+  background-color: #e9ecef;
+}
+
+.function-card.disabled .card-title,
+.function-card.disabled .card-text {
+  color: #6c757d;
+}
+
+.function-icon {
+  font-size: 2.5rem;
+  color: #0d6efd;
+}
+
+.function-card .card-text {
+  align-self: flex-start;
+  padding-left: calc(2.5rem + 1rem);
+}
+
+.function-card.disabled .function-icon {
+  color: #6c757d;
+}
+
+/* =================================================================== */
+/* === 2. GIAO DIỆN FORM NHẬP LIỆU === */
+/* =================================================================== */
+
 .form-section {
   border: 1px solid #dee2e6;
   border-radius: 0.375rem;
@@ -49,164 +127,86 @@ legend {
   margin-bottom: 0.25rem;
 }
 
-/* Các style chung của bảng */
+/* =================================================================== */
+/* === 3. BẢNG DỮ LIỆU (ĐÃ TỐI ƯU VÀ SỬA LỖI) === */
+/* =================================================================== */
+
 #dataTable {
-  font-size: 0.95rem;
   width: 100%;
+  font-size: 0.95rem;
+  border-collapse: collapse; /* Thêm vào để đảm bảo viền đẹp */
 }
 
-#dataTable thead th {
-  text-align: center;
-  vertical-align: middle;
-}
-
-/* ================================================= */
-/* === THAY ĐỔI 2: TĂNG ĐỘ RỘNG CỘT TÊN ĐƠN VỊ === */
-/* ================================================= */
-/* Chọn cột thứ 2 (cả header và body) của bảng */
-#dataTable th:nth-child(2),
-#dataTable td:nth-child(2) {
-  width: 20%; /* Giảm độ rộng một chút */
-  min-width: 200px;
-  text-align: left;
-}
-
-/* Thêm vào để định dạng cột Ngày báo cáo */
-#dataTable th:last-child,
-#dataTable td:last-child {
-  width: 10%;
-  min-width: 120px;
-  text-align: center;
-}
+/* --- Tiêu đề bảng (thead) --- */
 #dataTable thead.table-dark {
-  background-color: #004085; /* Xanh dương nhạt */
-  color: #cce5ff; /* Chữ màu xanh đậm */
-  border-color: #b8daff;
+  background-color: #0d6efd; /* Đổi màu nền cho nhất quán */
+  color: #ffffff;
+  border-color: #0a58ca;
 }
 
 #dataTable thead.table-dark th {
-  background-color: transparent; /* Bỏ màu nền mặc định của th */
-  border-color: #b8daff;
-}
-/* ... Các style cũ giữ nguyên ... */
-
-/* === STYLE CHO TRANG CHỦ MỚI === */
-.function-card {
-  border-color: #0d6efd;
-  border-width: 2px;
-  transition: all 0.3s ease-in-out;
+  background-color: transparent;
+  border-color: #9ec5fe;
 }
 
-.function-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.15);
-  background-color: #f8f9fa;
+/* --- Thân bảng (tbody), Chân bảng (tfoot) và Tiêu đề (thead) --- */
+#dataTable th,
+#dataTable td {
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
+  padding: 0.75rem; /* Thêm padding cho thoáng */
 }
 
-.card-link {
-  text-decoration: none;
-  color: inherit;
+/* --- Căn chỉnh nội dung --- */
+#dataTable thead th,          /* Toàn bộ tiêu đề */
+#dataTable tbody td,          /* Toàn bộ nội dung */
+#dataTable tfoot td {
+  /* Toàn bộ dòng tổng cộng */
+  text-align: center; /* Mặc định căn giữa hết */
 }
 
-.function-card .card-title {
-  color: #0d6efd;
-  font-weight: bold;
+/* Ghi đè: Căn trái riêng cho cột "Tên đơn vị" */
+#dataTable tbody td:nth-child(2) {
+  text-align: left;
 }
 
-.function-card.disabled {
-  border-color: #adb5bd;
+/* --- Phân bổ độ rộng các cột --- */
+#dataTable th:nth-child(1) {
+  width: 5%;
+} /* Cột STT */
+#dataTable th:nth-child(2) {
+  width: 25%;
+} /* Cột Tên đơn vị */
+/* Các cột còn lại sẽ tự động chia đều không gian */
+
+/* --- Định dạng dòng tổng cộng --- */
+#dataTable tfoot tr {
   background-color: #e9ecef;
+  font-weight: bold;
+  color: #0d6efd;
 }
 
-.function-card.disabled .card-title,
-.function-card.disabled .card-text {
-  color: #6c757d;
-}
-/* ... Các style cũ giữ nguyên ... */
+/* =================================================================== */
+/* === 4. CÁC THÀNH PHẦN KHÁC === */
+/* =================================================================== */
 
-/* === NÚT "VỀ TRANG CHỦ" CỐ ĐỊNH === */
 #home-button {
-  position: fixed; /* Giữ nút cố định trên màn hình */
-  bottom: 25px; /* Cách lề dưới 25px */
-  right: 25px; /* Cách lề phải 25px */
-  background-color: #0d6efd; /* Màu xanh dương */
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  background-color: #0d6efd;
   color: white;
   padding: 12px 18px;
-  border-radius: 50px; /* Bo tròn thành hình viên thuốc */
+  border-radius: 50px;
   text-decoration: none;
   font-size: 1rem;
   font-weight: 500;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  z-index: 1000; /* Đảm bảo nút luôn nổi lên trên */
+  z-index: 1000;
   transition: all 0.2s ease-in-out;
 }
 
 #home-button:hover {
-  background-color: #0b5ed7; /* Màu xanh đậm hơn khi di chuột vào */
-  transform: translateY(-2px); /* Hiệu ứng nhấc lên một chút */
+  background-color: #0b5ed7;
+  transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
-}
-.dashboard-body {
-  background-color: #f4f7fa; /* Nền xám nhạt cho toàn trang */
-}
-
-.dashboard-panel {
-  background-color: #ffffff;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
-  height: 100%;
-}
-
-.panel-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.chart-container {
-  position: relative;
-  height: 60vh; /* Chiều cao biểu đồ */
-}
-
-.sidebar .function-card {
-  border: 1px solid #dee2e6;
-}
-
-.sidebar .card-title {
-  font-size: 1.25rem;
-}
-.function-icon {
-  font-size: 2.5rem; /* Kích thước của biểu tượng */
-  color: #0d6efd; /* Màu xanh dương chủ đạo */
-}
-
-/* Căn lề trái cho mô tả chức năng */
-.function-card .card-text {
-  align-self: flex-start;
-  padding-left: calc(2.5rem + 1rem); /* Căn lề thẳng với tiêu đề */
-}
-
-/* Thay đổi màu biểu tượng cho thẻ bị vô hiệu hóa */
-.function-card.disabled .function-icon {
-  color: #6c757d;
-}
-.department-name {
-  font-size: 2 rem; /* Tăng kích thước font, ví dụ 1.5rem hoặc 24px */
-  /* Bạn có thể thêm các thuộc tính khác nếu muốn: */
-  /* color: #cc0000; */ /* Màu đỏ đậm hơn */
-  /* letter-spacing: 1px; */ /* Khoảng cách chữ */
-}
-#dataTable tfoot tr {
-  background-color: #e9ecef; /* Màu nền xám nhạt */
-  font-weight: bold; /* In đậm chữ */
-  color: #0d6efd; /* Chữ màu xanh dương */
-}
-
-#dataTable tfoot td {
-  text-align: center; /* Căn giữa các số tổng cộng */
-  vertical-align: middle;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
 }

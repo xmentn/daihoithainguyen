@@ -30,7 +30,7 @@ async function callApiGet(action, params = {}) {
  * Tải dữ liệu từ backend dựa trên lựa chọn của người dùng và hiển thị lên bảng.
  */
 async function loadTableData() {
-  const dataTable = document.getElementById("dataTable"); // Lấy cả thẻ table
+  const dataTable = document.getElementById("dataTable");
   const dataTableBody = document.getElementById("dataTableBody");
   const filterType = document.querySelector(
     'input[name="filterType"]:checked'
@@ -39,7 +39,6 @@ async function loadTableData() {
   dataTableBody.innerHTML =
     '<tr><td colspan="11" class="text-center">Đang tải dữ liệu...</td></tr>';
 
-  // Xóa dòng tổng cộng cũ (nếu có) trước mỗi lần tải lại
   const existingTfoot = dataTable.querySelector("tfoot");
   if (existingTfoot) {
     existingTfoot.remove();
@@ -57,7 +56,6 @@ async function loadTableData() {
       }
       data = await callApiGet("getTongHop", { date: selectedDate });
     } else {
-      // filterType === 'range'
       const startDate = document.getElementById("startDate").value;
       const endDate = document.getElementById("endDate").value;
       if (!startDate || !endDate) {
@@ -68,7 +66,6 @@ async function loadTableData() {
       data = await callApiGet("getTongHopRange", { startDate, endDate });
     }
 
-    // --- Hiển thị dữ liệu ---
     dataTableBody.innerHTML = "";
     if (!data || data.length === 0) {
       dataTableBody.innerHTML =
@@ -76,33 +73,36 @@ async function loadTableData() {
       return;
     }
 
-    // Khởi tạo mảng để lưu tổng các cột (11 cột)
     const totals = new Array(11).fill(0);
 
-    data.forEach((row) => {
+    // THAY ĐỔI 1: Thêm 'rowIndex' để tự tạo STT
+    data.forEach((row, rowIndex) => {
       const tr = dataTableBody.insertRow();
-      row.forEach((cell, index) => {
+
+      // THAY ĐỔI 2: Tạo ô STT mới dựa trên rowIndex
+      const sttCell = tr.insertCell();
+      sttCell.textContent = rowIndex + 1;
+
+      // THAY ĐỔI 3: Lặp qua các ô còn lại, bỏ qua STT cũ từ Google Sheet (row[0])
+      for (let i = 1; i < row.length; i++) {
+        const cell = row[i];
         const td = tr.insertCell();
         td.textContent = cell;
 
-        // Cộng dồn các cột số liệu (từ cột thứ 3 đến cột 11, tương ứng index 2 đến 10)
-        if (index >= 2 && index <= 10) {
-          totals[index] += Number(cell) || 0;
+        if (i >= 2 && i <= 10) {
+          totals[i] += Number(cell) || 0;
         }
-      });
+      }
     });
 
-    // --- Tạo và thêm dòng tổng cộng (tfoot) ---
     const tfoot = dataTable.createTFoot();
     const footerRow = tfoot.insertRow();
 
-    // Ô "Tổng cộng" chiếm 2 cột đầu tiên (STT và Tên đơn vị)
     const totalLabelCell = footerRow.insertCell();
     totalLabelCell.colSpan = 2;
     totalLabelCell.textContent = "Tổng cộng";
-    totalLabelCell.style.textAlign = "center";
 
-    // Thêm các ô tổng số cho các cột còn lại
+    // Vòng lặp bắt đầu từ 2 để khớp với index của totals
     for (let i = 2; i < totals.length; i++) {
       const totalCell = footerRow.insertCell();
       totalCell.textContent = totals[i].toLocaleString("vi-VN");
@@ -111,7 +111,6 @@ async function loadTableData() {
     dataTableBody.innerHTML = `<tr><td colspan="11" class="text-center text-danger">Lỗi khi tải dữ liệu!</td></tr>`;
   }
 }
-
 /**
  * Kiểm tra và hiển thị danh sách các đơn vị chưa báo cáo trong ngày đã chọn.
  */
