@@ -12,16 +12,102 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body class="dashboard-body">
     <div class="container-fluid p-4">
+      <p class="text-center text-danger fw-bold mb-2">
+        VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN
+      </p>
       <h1 class="text-center main-title mb-4">HỆ THỐNG BÁO CÁO TỔNG HỢP</h1>
 
       <div class="row g-4">
         <main class="col-lg-8">
           <div class="dashboard-panel">
             <h2 class="panel-title">Dashboard Tổng quan</h2>
+
+            <div class="filter-container mb-3">
+              <div class="text-center mb-2">
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="dashboardFilterType"
+                    id="radioSingleDay"
+                    value="single"
+                    checked
+                  />
+                  <label class="form-check-label" for="radioSingleDay"
+                    >Xem theo ngày</label
+                  >
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="dashboardFilterType"
+                    id="radioDateRange"
+                    value="range"
+                  />
+                  <label class="form-check-label" for="radioDateRange"
+                    >Xem theo khoảng thời gian</label
+                  >
+                </div>
+              </div>
+
+              <div
+                id="singleDayFilter"
+                class="row justify-content-center align-items-end"
+              >
+                <div class="col-md-5">
+                  <label for="dashboardDate" class="form-label"
+                    >Chọn ngày:</label
+                  >
+                  <input
+                    type="text"
+                    id="dashboardDate"
+                    class="form-control"
+                    placeholder="Chọn ngày..."
+                  />
+                </div>
+              </div>
+
+              <div
+                id="dateRangeFilter"
+                class="row justify-content-center align-items-end"
+                style="display: none"
+              >
+                <div class="col-md-5">
+                  <label for="startDate" class="form-label">Từ ngày:</label>
+                  <input
+                    type="text"
+                    id="startDate"
+                    class="form-control"
+                    placeholder="Chọn ngày bắt đầu..."
+                  />
+                </div>
+                <div class="col-md-5">
+                  <label for="endDate" class="form-label">Đến ngày:</label>
+                  <input
+                    type="text"
+                    id="endDate"
+                    class="form-control"
+                    placeholder="Chọn ngày kết thúc..."
+                  />
+                </div>
+              </div>
+
+              <div class="text-center mt-3">
+                <button id="viewDashboardBtn" class="btn btn-primary">
+                  Xem
+                </button>
+              </div>
+            </div>
+
             <div class="chart-container">
               <canvas id="topUnitsChart"></canvas>
             </div>
@@ -30,8 +116,8 @@
 
         <aside class="col-lg-4">
           <div class="sidebar">
-            <a href="nhaplieu.html" class="card-link">
-              <div class="card function-card mb-4">
+            <a href="nhaplieu.html" class="card-link"
+              ><div class="card function-card mb-4">
                 <div class="card-body">
                   <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-pencil-square function-icon me-3"></i>
@@ -41,11 +127,10 @@
                     Nhập số liệu báo cáo hàng ngày của các đơn vị.
                   </p>
                 </div>
-              </div>
-            </a>
-
-            <a href="display.html" class="card-link">
-              <div class="card function-card mb-4">
+              </div></a
+            >
+            <a href="display.html" class="card-link"
+              ><div class="card function-card mb-4">
                 <div class="card-body">
                   <div class="d-flex align-items-center mb-2">
                     <i class="bi bi-table function-icon me-3"></i>
@@ -55,9 +140,8 @@
                     Xem, lọc và tổng hợp dữ liệu đã báo cáo.
                   </p>
                 </div>
-              </div>
-            </a>
-
+              </div></a
+            >
             <div class="card function-card disabled mb-4">
               <div class="card-body">
                 <div class="d-flex align-items-center mb-2">
@@ -74,6 +158,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="index.js"></script>
   </body>
 </html>

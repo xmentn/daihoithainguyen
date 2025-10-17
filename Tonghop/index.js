@@ -1,6 +1,7 @@
 // !!! QUAN TRỌNG: Dán URL Web App mới nhất của bạn vào đây
 const SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbwHWKyt9xsIPSkfJGvAJ22TZoPoTbF13tm9M_eaNbA-0l0tIYrR3F7re4L77NFJb8SMLg/exec";
+let topUnitsChartInstance = null;
 
 async function callApiGet(action, params = {}) {
   try {
@@ -23,19 +24,59 @@ async function callApiGet(action, params = {}) {
 }
 
 async function renderTopUnitsChart() {
+  const filterType = document.querySelector(
+    'input[name="dashboardFilterType"]:checked'
+  ).value;
+  const chartContainer = document.querySelector(".chart-container");
+  chartContainer.innerHTML = '<canvas id="topUnitsChart"></canvas>';
+  const ctx = document.getElementById("topUnitsChart").getContext("2d");
+
+  if (topUnitsChartInstance) {
+    topUnitsChartInstance.destroy();
+  }
+
+  let chartData;
+  let chartTitle = "Top 10 đơn vị có số hồ sơ tiếp nhận nhiều nhất";
+
   try {
-    const chartData = await callApiGet("getDashboardData");
+    if (filterType === "single") {
+      const selectedDate = document.getElementById("dashboardDate").value;
+      if (!selectedDate) {
+        chartContainer.innerHTML =
+          '<p class="text-center">Vui lòng chọn ngày để xem biểu đồ.</p>';
+        return;
+      }
+      chartData = await callApiGet("getDashboardData", { date: selectedDate });
+      chartTitle += ` (Ngày ${
+        document.getElementById("dashboardDate")._flatpickr.altInput.value
+      })`;
+    } else {
+      // filterType === 'range'
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      if (!startDate || !endDate) {
+        chartContainer.innerHTML =
+          '<p class="text-center">Vui lòng chọn đủ "Từ ngày" và "Đến ngày".</p>';
+        return;
+      }
+      chartData = await callApiGet("getDashboardDataRange", {
+        startDate,
+        endDate,
+      });
+      chartTitle += ` (Từ ${
+        document.getElementById("startDate")._flatpickr.altInput.value
+      } đến ${document.getElementById("endDate")._flatpickr.altInput.value})`;
+    }
+
+    if (chartData.length === 0) {
+      chartContainer.innerHTML = `<p class="text-center">Không có dữ liệu cho lựa chọn này.</p>`;
+      return;
+    }
 
     const labels = chartData.map((item) => item.unit);
     const dataPoints = chartData.map((item) => item.total);
-
-    // ========================================================
-    // === THAY ĐỔI 1: ĐĂNG KÝ PLUGIN VỚI CHART.JS ===
-    // ========================================================
     Chart.register(ChartDataLabels);
-
-    const ctx = document.getElementById("topUnitsChart").getContext("2d");
-    new Chart(ctx, {
+    topUnitsChartInstance = new Chart(ctx, {
       type: "bar",
       data: {
         labels: labels,
@@ -57,38 +98,68 @@ async function renderTopUnitsChart() {
           legend: { display: false },
           title: {
             display: true,
-            text: "Top 10 đơn vị có số hồ sơ tiếp nhận nhiều nhất",
+            text: chartTitle,
             font: { size: 16 },
           },
-          // ========================================================
-          // === THAY ĐỔI 2: CẤU HÌNH CHO PLUGIN DATALABELS ===
-          // ========================================================
           datalabels: {
-            anchor: "end", // Vị trí của nhãn (cuối thanh bar)
-            align: "right", // Căn lề sang phải
-            offset: 8, // Khoảng cách từ cuối thanh bar
-            color: "#333", // Màu chữ
-            font: {
-              weight: "bold", // In đậm chữ
-            },
-            // Định dạng lại số liệu (ví dụ: 1000 -> 1,000) - Tùy chọn
-            formatter: (value) => {
-              return value.toLocaleString("vi-VN");
-            },
+            anchor: "end",
+            align: "right",
+            offset: 8,
+            color: "#333",
+            font: { weight: "bold" },
+            formatter: (value) => value.toLocaleString("vi-VN"),
           },
         },
         scales: {
-          x: {
-            beginAtZero: true,
-          },
+          x: { beginAtZero: true },
         },
       },
     });
   } catch (error) {
-    document.querySelector(".chart-container").innerHTML =
+    chartContainer.innerHTML =
       '<p class="text-danger text-center">Lỗi khi tải dữ liệu biểu đồ.</p>';
   }
 }
 
-// Chạy hàm vẽ biểu đồ khi trang đã tải xong
-document.addEventListener("DOMContentLoaded", renderTopUnitsChart);
+document.addEventListener("DOMContentLoaded", () => {
+  // SỬA LỖI: THÊM PHẦN KHỞI TẠO FLATPICKR BỊ THIẾU
+  const today = new Date();
+  flatpickr("#dashboardDate", {
+    altInput: true,
+    altFormat: "d/m/Y",
+    dateFormat: "Y-m-d",
+    defaultDate: today,
+  });
+  flatpickr("#startDate", {
+    altInput: true,
+    altFormat: "d/m/Y",
+    dateFormat: "Y-m-d",
+    defaultDate: today,
+  });
+  flatpickr("#endDate", {
+    altInput: true,
+    altFormat: "d/m/Y",
+    dateFormat: "Y-m-d",
+    defaultDate: today,
+  });
+
+  // --- Quản lý hiển thị bộ lọc ---
+  const radioButtons = document.querySelectorAll(
+    'input[name="dashboardFilterType"]'
+  );
+  const singleDayFilter = document.getElementById("singleDayFilter");
+  const dateRangeFilter = document.getElementById("dateRangeFilter");
+  radioButtons.forEach((radio) => {
+    radio.addEventListener("change", (event) => {
+      const isSingle = event.target.value === "single";
+      singleDayFilter.style.display = isSingle ? "flex" : "none";
+      dateRangeFilter.style.display = isSingle ? "none" : "flex";
+    });
+  });
+
+  // --- Gắn sự kiện và tải dữ liệu ban đầu ---
+  document
+    .getElementById("viewDashboardBtn")
+    .addEventListener("click", renderTopUnitsChart);
+  setTimeout(renderTopUnitsChart, 100);
+});
