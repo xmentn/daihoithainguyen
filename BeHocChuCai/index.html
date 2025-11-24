@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bé Học Chữ Cái: Chữ Ô</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  </head>
+  <body>
+    <audio id="clapping-audio" src="/image/votay.mp3"></audio>
+
+    <div class="container">
+      <div id="home-screen" class="screen active home-layout">
+        <h1>BÉ HỌC CHỮ CÁI: CHỮ Ô</h1>
+        <h2>Chủ đề: Gia đình</h2>
+        <p>Chào mừng các bé đến với trò chơi!</p>
+        <button class="btn btn-huge" onclick="startGame()">Bắt đầu ngay</button>
+      </div>
+
+      <div id="game-screen" class="screen">
+        <h2 class="question-text">Bé hãy chỉ vào chữ "ô" ở dưới nhé?</h2>
+
+        <div class="word-box">
+          <span class="letter" onclick="checkAnswer('ô')">ô</span>
+          <span class="letter" onclick="checkAnswer('n')">n</span>
+          <span class="letter" onclick="checkAnswer('g')">g</span>
+          &nbsp; <span class="letter" onclick="checkAnswer('n')">n</span>
+          <span class="letter" onclick="checkAnswer('ộ')">ộ</span>
+          <span class="letter" onclick="checkAnswer('i')">i</span>
+        </div>
+
+        <br />
+        <img src="/image/Ongnoi.jpg" alt="Ông và cháu" class="illustration" />
+      </div>
+
+      <div id="success-screen" class="screen">
+        <h1 class="success-msg animate-pop">Hoan hô! Bé giỏi quá! 🎉</h1>
+        <p>Bé đã tìm đúng chữ "ô" rồi.</p>
+        <img
+          src="https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"
+          alt="Vỗ tay"
+          class="gif-reward"
+        />
+        <br />
+        <button class="btn" onclick="location.reload()">Chơi lại từ đầu</button>
+      </div>
+
+      <div id="fail-screen" class="screen">
+        <h1 class="fail-msg">Ồ tiếc quá! 😢</h1>
+        <p>Đó chưa phải là chữ "ô". Bé thử lại nhé!</p>
+        <button class="btn btn-retry" onclick="retryGame()">Thử lại nào</button>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
