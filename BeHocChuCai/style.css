@@ -5,7 +5,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh; /* Sử dụng min-height để tránh lỗi trên màn hình nhỏ */
+  min-height: 100vh;
   margin: 0;
   text-align: center;
   padding: 20px;
@@ -16,12 +16,36 @@ body {
   padding: 40px;
   border-radius: 30px;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-  max-width: 800px; /* Tăng chiều rộng tối đa để chứa nội dung lớn */
+  max-width: 800px;
   width: 95%;
-  transition: all 0.3s ease;
 }
 
-/* --- CÁC LOẠI NÚT BẤM --- */
+/* --- TRANG CHỦ MỚI (Cập nhật theo yêu cầu) --- */
+.welcome-text {
+  font-size: 2rem;
+  color: #555;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  font-weight: normal;
+}
+
+.game-title {
+  font-size: 3.5rem; /* Tên game to nhất */
+  color: #0056b3;
+  margin: 10px 0;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.topic-text {
+  font-size: 2.5rem;
+  color: #ff6b6b;
+  margin-top: 10px;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+}
+
+/* --- NÚT BẤM --- */
 .btn {
   background-color: #4caf50;
   color: white;
@@ -30,103 +54,71 @@ body {
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  transition: transform 0.2s, background-color 0.2s;
-  margin-top: 25px;
+  transition: transform 0.2s;
   font-weight: bold;
-  box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
 }
 .btn:hover {
   transform: scale(1.08);
   background-color: #45a049;
 }
-.btn-retry {
-  background-color: #ff9800;
-  box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
-}
-.btn-retry:hover {
-  background-color: #e68a00;
-}
-
-/* Nút bấm siêu lớn cho trang chủ */
 .btn-huge {
-  font-size: 2.2rem;
-  padding: 25px 70px;
-  background-color: #2196f3; /* Màu xanh dương nổi bật */
+  font-size: 2rem;
+  padding: 20px 60px;
+  background-color: #2196f3;
   box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
 }
-.btn-huge:hover {
-  background-color: #0b7dda;
+.btn-retry {
+  background-color: #ff9800;
+  margin-top: 20px;
 }
 
-/* --- TÙY CHỈNH TRANG CHỦ LỚN HƠN --- */
-.home-layout h1 {
-  font-size: 4.5rem; /* Chữ tiêu đề cực lớn */
-  color: #004085;
-  margin-bottom: 15px;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.home-layout h2 {
-  font-size: 3rem; /* Chữ chủ đề lớn */
-  color: #ff5252;
-  margin-bottom: 50px;
-}
-
-.home-layout p {
-  font-size: 1.8rem; /* Chữ chào mừng lớn */
-  color: #555;
-  margin-bottom: 40px;
-}
-
-/* --- PHẦN MÀN HÌNH GAME --- */
-.question-text {
-  color: #0056b3;
-  font-size: 1.8rem;
-}
-
-/* Hộp chứa chữ Ông Nội */
+/* --- PHẦN CHỮ ÔNG NỘI (Đã chỉnh gần lại) --- */
 .word-box {
-  border: 4px solid #333;
+  border: 3px solid #333;
   border-radius: 20px;
-  padding: 15px 40px;
+  padding: 15px 30px;
   background-color: #fffdf5;
   display: inline-block;
   margin: 30px 0;
-  font-size: 4rem; /* Cỡ chữ to hơn nữa cho bé dễ nhìn */
+  font-size: 4rem;
   font-weight: bold;
   color: #004085;
-  cursor: pointer;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  cursor: default; /* Không hiện bàn tay ở vùng trống */
 }
 
-/* Từng chữ cái có thể click được */
 .letter {
   display: inline-block;
-  padding: 5px 10px;
-  border-radius: 15px;
-  transition: background-color 0.3s, color 0.3s;
+  padding: 5px 2px; /* Giảm padding ngang xuống còn 2px để chữ gần nhau */
+  border-radius: 10px;
+  cursor: pointer; /* Hiện bàn tay khi trỏ vào chữ */
+  transition: all 0.2s;
+  min-width: 40px; /* Đảm bảo chữ hẹp như 'i' vẫn dễ bấm */
 }
-/* Hiệu ứng khi di chuột vào chữ */
+
+/* Khoảng cách giữa chữ Ông và Nội */
+.space {
+  display: inline-block;
+  width: 20px;
+}
+
 .letter:hover {
   background-color: #e2e6ea;
   color: #ff5252;
   transform: scale(1.1);
 }
 
-/* Ảnh minh họa */
+/* Ảnh và Kết quả */
 .illustration {
   max-width: 80%;
-  height: auto;
-  margin-top: 20px;
   border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
 }
-
-/* --- PHẦN MÀN HÌNH KẾT QUẢ --- */
-.gif-reward {
-  width: 250px;
-  border-radius: 15px;
-  margin: 20px 0;
+.screen {
+  display: none;
+  animation: fadeIn 0.5s;
+}
+.active {
+  display: block;
 }
 .success-msg {
   color: #28a745;
@@ -136,57 +128,28 @@ body {
   color: #dc3545;
   font-size: 3rem;
 }
-
-/* Ẩn hiện các màn hình */
-.screen {
-  display: none;
-  animation: fadeIn 0.5s ease-in-out;
-}
-.active {
-  display: block;
+.gif-reward {
+  width: 250px;
+  margin: 20px 0;
+  border-radius: 15px;
 }
 
-/* Hiệu ứng xuất hiện nhẹ nhàng */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
-
-/* Hiệu ứng chữ nảy lên khi thắng */
 .animate-pop {
-  animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: pop 0.6s;
 }
 @keyframes pop {
   0% {
     transform: scale(0.5);
-    opacity: 0;
   }
   100% {
     transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* Responsive cho màn hình nhỏ (điện thoại) */
-@media (max-width: 600px) {
-  .home-layout h1 {
-    font-size: 2.5rem;
-  }
-  .home-layout h2 {
-    font-size: 1.8rem;
-  }
-  .btn-huge {
-    font-size: 1.5rem;
-    padding: 15px 40px;
-  }
-  .word-box {
-    font-size: 2.5rem;
-    padding: 10px 20px;
   }
 }

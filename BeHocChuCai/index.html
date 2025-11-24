@@ -8,14 +8,15 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   </head>
   <body>
-    <audio id="clapping-audio" src="/image/votay.mp3"></audio>
+    <audio id="clapping-audio" src="image/votay.mp3"></audio>
 
     <div class="container">
       <div id="home-screen" class="screen active home-layout">
-        <h1>BÉ HỌC CHỮ CÁI: CHỮ Ô</h1>
-        <h2>Chủ đề: Gia đình</h2>
-        <p>Chào mừng các bé đến với trò chơi!</p>
-        <button class="btn btn-huge" onclick="startGame()">Bắt đầu ngay</button>
+        <h1 class="welcome-text">CHÀO MỪNG BÉ ĐẾN VỚI TRÒ CHƠI</h1>
+        <h2 class="game-title">BÉ HỌC CHỮ CÁI: CHỮ Ô</h2>
+        <h3 class="topic-text">CHỦ ĐỀ: GIA ĐÌNH</h3>
+
+        <button class="btn btn-huge" onclick="startGame()">Bắt đầu</button>
       </div>
 
       <div id="game-screen" class="screen">
@@ -25,13 +26,16 @@
           <span class="letter" onclick="checkAnswer('ô')">ô</span>
           <span class="letter" onclick="checkAnswer('n')">n</span>
           <span class="letter" onclick="checkAnswer('g')">g</span>
-          &nbsp; <span class="letter" onclick="checkAnswer('n')">n</span>
+
+          <span class="space"></span>
+
+          <span class="letter" onclick="checkAnswer('n')">n</span>
           <span class="letter" onclick="checkAnswer('ộ')">ộ</span>
           <span class="letter" onclick="checkAnswer('i')">i</span>
         </div>
 
         <br />
-        <img src="/image/Ongnoi.jpg" alt="Ông và cháu" class="illustration" />
+        <img src="image/Ongnoi.jpg" alt="Ông và cháu" class="illustration" />
       </div>
 
       <div id="success-screen" class="screen">
