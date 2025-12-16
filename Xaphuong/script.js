@@ -90,6 +90,7 @@ function filterData() {
 }
 
 // 3. HÀM VẼ BẢNG
+// 3. HÀM VẼ BẢNG (Đã sửa lỗi lệch cột)
 function renderTable(list) {
   tableBody.innerHTML = "";
 
@@ -99,16 +100,20 @@ function renderTable(list) {
     noResultDiv.style.display = "none";
     list.forEach((item, index) => {
       const tr = document.createElement("tr");
-      // Cập nhật HTML: Thêm cột Email vào vị trí thứ 5 (sau SĐT)
+
+      // CHÚ Ý: Thứ tự các thẻ <td> phải khớp với thứ tự <th> bên HTML
       tr.innerHTML = `
-                <td>${index + 1}</td>
+                <td style="text-align: center;">${index + 1}</td>
                 <td style="font-weight:bold; color:#0056b3;">${item.hoTen}</td>
                 <td>${item.donVi}</td>
                 <td><span style="background:#e8f0fe; color:#1967d2; padding:2px 8px; border-radius:12px; font-size:12px;">${
                   item.chucVu
                 }</span></td>
-                <td>${item.sdt}</td>
-                <td>${item.email || ""}</td> <td>
+                <td style="text-align: center;">${item.sdt}</td>
+                
+                <td>${item.email || ""}</td> 
+                
+                <td style="text-align: center;">
                     <button class="action-btn btn-edit" onclick="prepareEdit('${
                       item.rowIndex
                     }')">Sửa</button>
