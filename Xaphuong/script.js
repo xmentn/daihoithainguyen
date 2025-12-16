@@ -161,7 +161,7 @@ window.deleteItem = function (rowIndex) {
     showCancelButton: true,
     confirmButtonColor: "#dc3545",
     cancelButtonColor: "#6c757d",
-    confirmButtonText: "Vâng, xóa đi!",
+    confirmButtonText: "Vâng, đồng ý xóa!",
     cancelButtonText: "Hủy bỏ",
   }).then(async (result) => {
     if (result.isConfirmed) {
