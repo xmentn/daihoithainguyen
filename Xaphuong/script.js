@@ -7,7 +7,8 @@ const form = document.getElementById("cadresForm");
 const tableBody = document.getElementById("tableBody");
 const selectDonVi = document.getElementById("donVi");
 const selectChucVu = document.getElementById("chucVu");
-// Các biến mới cho chức năng tìm kiếm
+
+// Các biến cho chức năng tìm kiếm
 const searchInput = document.getElementById("searchInput");
 const filterChucVu = document.getElementById("filterChucVu");
 const noResultDiv = document.getElementById("noResult");
@@ -35,13 +36,12 @@ async function loadAllData() {
     fillDropdown(selectDonVi, data.donVi);
     fillDropdown(selectChucVu, data.chucVu);
 
-    // B. Đổ dữ liệu vào Dropdown LỌC (Cái này mới)
-    // Ta thêm một option "Tất cả" đầu tiên, rồi mới thêm danh sách chức vụ
+    // B. Đổ dữ liệu vào Dropdown LỌC
     fillDropdown(filterChucVu, data.chucVu, true);
 
     // C. Lưu và vẽ bảng
     globalData = data.danhSach;
-    renderTable(globalData); // Vẽ toàn bộ danh sách ban đầu
+    renderTable(globalData);
   } catch (error) {
     console.error(error);
     alert("Lỗi kết nối! Kiểm tra lại đường dẫn Script.");
@@ -52,7 +52,6 @@ async function loadAllData() {
 
 // Hàm hỗ trợ điền dropdown
 function fillDropdown(selectElement, items, isFilter = false) {
-  // Giữ lại option đầu tiên (Ví dụ: -- Chọn -- hoặc -- Tất cả --)
   const firstOption = selectElement.options[0];
   selectElement.innerHTML = "";
   selectElement.appendChild(firstOption);
@@ -65,8 +64,7 @@ function fillDropdown(selectElement, items, isFilter = false) {
   });
 }
 
-// 2. CHỨC NĂNG TÌM KIẾM & LỌC (LOGIC MỚI)
-// Lắng nghe sự kiện khi gõ phím hoặc chọn dropdown
+// 2. CHỨC NĂNG TÌM KIẾM & LỌC
 searchInput.addEventListener("input", filterData);
 filterChucVu.addEventListener("change", filterData);
 
@@ -76,12 +74,13 @@ function filterData() {
 
   // Lọc mảng globalData
   const filtered = globalData.filter((item) => {
-    // Kiểm tra tên hoặc đơn vị có chứa từ khóa không
+    // Kiểm tra tên, đơn vị HOẶC EMAIL có chứa từ khóa không
     const matchKeyword =
       item.hoTen.toLowerCase().includes(keyword) ||
-      item.donVi.toLowerCase().includes(keyword);
+      item.donVi.toLowerCase().includes(keyword) ||
+      (item.email && item.email.toLowerCase().includes(keyword)); // Tìm cả trong email
 
-    // Kiểm tra chức vụ (nếu chọn "Tất cả" thì luôn đúng, ngược lại phải trùng khớp)
+    // Kiểm tra chức vụ
     const matchRole = selectedRole === "" || item.chucVu === selectedRole;
 
     return matchKeyword && matchRole;
@@ -100,6 +99,7 @@ function renderTable(list) {
     noResultDiv.style.display = "none";
     list.forEach((item, index) => {
       const tr = document.createElement("tr");
+      // Cập nhật HTML: Thêm cột Email vào vị trí thứ 5 (sau SĐT)
       tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td style="font-weight:bold; color:#0056b3;">${item.hoTen}</td>
@@ -108,7 +108,7 @@ function renderTable(list) {
                   item.chucVu
                 }</span></td>
                 <td>${item.sdt}</td>
-                <td>
+                <td>${item.email || ""}</td> <td>
                     <button class="action-btn btn-edit" onclick="prepareEdit('${
                       item.rowIndex
                     }')">Sửa</button>
@@ -122,24 +122,22 @@ function renderTable(list) {
   }
 }
 
-// 4. CÁC HÀM XỬ LÝ SỬA / XÓA (Giữ nguyên logic cũ nhưng cập nhật UI)
+// 4. CÁC HÀM XỬ LÝ SỬA / XÓA
 window.prepareEdit = function (rowIndex) {
-  // Tìm item trong globalData dựa trên rowIndex
   const item = globalData.find((x) => x.rowIndex == rowIndex);
   if (!item) return;
 
   document.getElementById("rowIndex").value = item.rowIndex;
   document.getElementById("hoTen").value = item.hoTen;
   document.getElementById("sdt").value = item.sdt;
+  document.getElementById("email").value = item.email || ""; // Điền Email vào ô input
   document.getElementById("donVi").value = item.donVi;
   document.getElementById("chucVu").value = item.chucVu;
 
-  // Đổi trạng thái nút
   btnSubmit.textContent = "Cập Nhật";
   btnSubmit.classList.add("btn-warning");
   btnCancel.style.display = "inline-block";
 
-  // Cuộn lên form
   document.querySelector(".card").scrollIntoView({ behavior: "smooth" });
 };
 
@@ -156,20 +154,18 @@ window.deleteItem = function (rowIndex) {
     text: "Dữ liệu sau khi xóa sẽ không thể khôi phục!",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#dc3545", // Màu đỏ cho nút Xóa
-    cancelButtonColor: "#6c757d", // Màu xám cho nút Hủy
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#6c757d",
     confirmButtonText: "Vâng, xóa đi!",
     cancelButtonText: "Hủy bỏ",
   }).then(async (result) => {
     if (result.isConfirmed) {
-      // Nếu người dùng bấm "Đồng ý xóa" thì mới gửi lệnh
       showStatus("Đang xóa...", "blue");
-
-      // Gọi hàm gửi dữ liệu nhưng xử lý kết quả ngay tại đây để hiện thông báo đẹp
       await sendData({ action: "delete", rowIndex: rowIndex }, true);
     }
   });
 };
+
 // 5. XỬ LÝ SUBMIT FORM
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -184,6 +180,7 @@ form.addEventListener("submit", async (e) => {
     donVi: document.getElementById("donVi").value,
     chucVu: document.getElementById("chucVu").value,
     sdt: document.getElementById("sdt").value,
+    email: document.getElementById("email").value, // Lấy giá trị Email từ form
   };
 
   btnSubmit.disabled = true;
@@ -192,9 +189,8 @@ form.addEventListener("submit", async (e) => {
   await sendData(formData);
 });
 
-// Hàm gửi dữ liệu (Đã nâng cấp thông báo)
+// Hàm gửi dữ liệu
 async function sendData(dataObj, isDelete = false) {
-  // Nếu là xóa thì không cần disable nút submit, ngược lại thì cần
   if (!isDelete) btnSubmit.disabled = true;
 
   try {
@@ -204,10 +200,9 @@ async function sendData(dataObj, isDelete = false) {
       mode: "no-cors",
     });
 
-    // --- HIỆN THÔNG BÁO THÀNH CÔNG ĐẸP MẮT ---
     const Toast = Swal.mixin({
       toast: true,
-      position: "top-end", // Hiện góc trên phải
+      position: "top-end",
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
@@ -221,10 +216,9 @@ async function sendData(dataObj, isDelete = false) {
       icon: "success",
       title: isDelete ? "Đã xóa thành công!" : "Đã lưu thông tin!",
     });
-    // ---------------------------------------------
 
-    if (!isDelete) resetForm(); // Nếu không phải xóa thì reset form
-    loadAllData(); // Tải lại bảng
+    if (!isDelete) resetForm();
+    loadAllData();
   } catch (error) {
     Swal.fire({
       icon: "error",
@@ -234,7 +228,7 @@ async function sendData(dataObj, isDelete = false) {
     console.error(error);
   } finally {
     if (!isDelete) btnSubmit.disabled = false;
-    statusMessage.textContent = ""; // Xóa dòng chữ loading cũ nếu có
+    statusMessage.textContent = "";
   }
 }
 
