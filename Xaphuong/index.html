@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quản Lý Cán Bộ</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        background-color: #f4f4f9;
+        padding: 20px;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+      h2 {
+        text-align: center;
+        color: #333;
+      }
+
+      /* Form Styles */
+      .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+      .form-group {
+        flex: 1;
+        min-width: 200px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-sizing: border-box;
+      }
+
+      /* Buttons */
+      .btn-group {
+        text-align: right;
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        color: white;
+      }
+      #btnSubmit {
+        background-color: #28a745;
+      }
+      #btnSubmit:hover {
+        background-color: #218838;
+      }
+      #btnCancel {
+        background-color: #6c757d;
+        display: none;
+        margin-left: 10px;
+      }
+
+      /* Table Styles */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+      th,
+      td {
+        padding: 10px;
+        border: 1px solid #ddd;
+        text-align: left;
+      }
+      th {
+        background-color: #007bff;
+        color: white;
+      }
+      tr:nth-child(even) {
+        background-color: #f9f9f9;
+      }
+
+      .action-btn {
+        padding: 5px 10px;
+        font-size: 12px;
+        margin-right: 5px;
+      }
+      .btn-edit {
+        background-color: #ffc107;
+        color: #333;
+      }
+      .btn-delete {
+        background-color: #dc3545;
+      }
+
+      .loading {
+        text-align: center;
+        color: blue;
+        font-style: italic;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Danh Sách Cán Bộ</h2>
+
+      <form id="cadresForm">
+        <input type="hidden" id="rowIndex" value="" />
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ và tên</label>
+            <input
+              type="text"
+              id="hoTen"
+              required
+              placeholder="Nhập họ tên..."
+            />
+          </div>
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input type="text" id="sdt" required placeholder="Nhập SĐT..." />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Đơn vị</label>
+            <select id="donVi" required>
+              <option value="">Đang tải...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Chức vụ</label>
+            <select id="chucVu" required>
+              <option value="">Đang tải...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <span
+            id="statusMessage"
+            style="margin-right: 10px; font-weight: bold"
+          ></span>
+          <button type="submit" id="btnSubmit">Thêm Mới</button>
+          <button type="button" id="btnCancel" onclick="resetForm()">
+            Hủy Sửa
+          </button>
+        </div>
+      </form>
+
+      <hr />
+
+      <p id="loadingText" class="loading">Đang tải dữ liệu...</p>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 50px">STT</th>
+            <th>Họ tên</th>
+            <th>Đơn vị</th>
+            <th>Chức vụ</th>
+            <th>SĐT</th>
+            <th style="width: 120px">Hành động</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+
+    <script>
+      // --- THAY LINK WEB APP CỦA BẠN VÀO DƯỚI ĐÂY ---
+      const SCRIPT_URL =
+        "https://script.google.com/macros/s/AKfycbyDA5QbkkianGeNgcjU4Y6Jsyb-qKCJqnXEVL_c-4aIeG4wJxfZveQmrqEQOYonDYNTdg/exec";
+
+      const form = document.getElementById("cadresForm");
+      const tableBody = document.getElementById("tableBody");
+      const selectDonVi = document.getElementById("donVi");
+      const selectChucVu = document.getElementById("chucVu");
+      const loadingText = document.getElementById("loadingText");
+      const btnSubmit = document.getElementById("btnSubmit");
+      const btnCancel = document.getElementById("btnCancel");
+      const statusMessage = document.getElementById("statusMessage");
+
+      // Biến toàn cục lưu trữ danh sách để tiện truy xuất khi sửa
+      let globalData = [];
+
+      // 1. Tải tất cả dữ liệu khi mở trang
+      async function loadAllData() {
+        loadingText.style.display = "block";
+        tableBody.innerHTML = "";
+
+        try {
+          const response = await fetch(SCRIPT_URL);
+          const data = await response.json();
+
+          // A. Đổ dữ liệu vào Dropdown Đơn vị
+          fillDropdown(selectDonVi, data.donVi);
+
+          // B. Đổ dữ liệu vào Dropdown Chức vụ
+          fillDropdown(selectChucVu, data.chucVu);
+
+          // C. Đổ dữ liệu vào Bảng
+          globalData = data.danhSach; // Lưu vào biến toàn cục
+          renderTable(globalData);
+        } catch (error) {
+          console.error(error);
+          alert("Lỗi tải dữ liệu. Hãy kiểm tra lại đường dẫn Script!");
+        } finally {
+          loadingText.style.display = "none";
+        }
+      }
+
+      function fillDropdown(selectElement, items) {
+        selectElement.innerHTML = '<option value="">-- Chọn --</option>';
+        items.forEach((item) => {
+          const opt = document.createElement("option");
+          opt.value = item;
+          opt.textContent = item;
+          selectElement.appendChild(opt);
+        });
+      }
+
+      // 2. Hàm vẽ bảng
+      function renderTable(list) {
+        tableBody.innerHTML = "";
+        if (list.length === 0) {
+          tableBody.innerHTML =
+            '<tr><td colspan="6" style="text-align:center">Chưa có dữ liệu</td></tr>';
+          return;
+        }
+
+        list.forEach((item, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.hoTen}</td>
+                <td>${item.donVi}</td>
+                <td>${item.chucVu}</td>
+                <td>${item.sdt}</td>
+                <td>
+                    <button class="action-btn btn-edit" onclick="prepareEdit(${index})">Sửa</button>
+                    <button class="action-btn btn-delete" onclick="deleteItem(${
+                      item.rowIndex
+                    })">Xóa</button>
+                </td>
+            `;
+          tableBody.appendChild(tr);
+        });
+      }
+
+      // 3. Chuẩn bị chế độ Sửa (đẩy data lên form)
+      window.prepareEdit = function (index) {
+        const item = globalData[index];
+        document.getElementById("rowIndex").value = item.rowIndex; // Lưu ID dòng
+        document.getElementById("hoTen").value = item.hoTen;
+        document.getElementById("sdt").value = item.sdt;
+        document.getElementById("donVi").value = item.donVi;
+        document.getElementById("chucVu").value = item.chucVu;
+
+        btnSubmit.textContent = "Cập Nhật";
+        btnSubmit.style.backgroundColor = "#ffc107";
+        btnSubmit.style.color = "black";
+        btnCancel.style.display = "inline-block";
+        statusMessage.textContent = "Đang sửa dòng " + (index + 1);
+        window.scrollTo(0, 0); // Cuộn lên đầu
+      };
+
+      // 4. Hủy chế độ sửa
+      window.resetForm = function () {
+        form.reset();
+        document.getElementById("rowIndex").value = "";
+        btnSubmit.textContent = "Thêm Mới";
+        btnSubmit.style.backgroundColor = "#28a745";
+        btnSubmit.style.color = "white";
+        btnCancel.style.display = "none";
+        statusMessage.textContent = "";
+      };
+
+      // 5. Xử lý nút Xóa
+      window.deleteItem = async function (rowIndex) {
+        if (!confirm("Bạn có chắc chắn muốn xóa cán bộ này?")) return;
+
+        showStatus("Đang xóa...", "blue");
+        await sendData({ action: "delete", rowIndex: rowIndex });
+      };
+
+      // 6. Xử lý Submit (Thêm hoặc Sửa)
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const rowIndex = document.getElementById("rowIndex").value;
+        const action = rowIndex ? "edit" : "add"; // Nếu có rowIndex là sửa, không là thêm
+
+        const formData = {
+          action: action,
+          rowIndex: rowIndex,
+          hoTen: document.getElementById("hoTen").value,
+          donVi: document.getElementById("donVi").value,
+          chucVu: document.getElementById("chucVu").value,
+          sdt: document.getElementById("sdt").value,
+        };
+
+        btnSubmit.disabled = true;
+        showStatus("Đang xử lý...", "blue");
+
+        await sendData(formData);
+      });
+
+      // Hàm gửi dữ liệu chung
+      async function sendData(dataObj) {
+        try {
+          await fetch(SCRIPT_URL, {
+            method: "POST",
+            body: JSON.stringify(dataObj),
+            mode: "no-cors",
+          });
+
+          // Vì no-cors không trả kết quả, ta giả định thành công
+          showStatus("Thành công!", "green");
+          resetForm();
+          loadAllData(); // Tải lại bảng để cập nhật dữ liệu mới nhất
+        } catch (error) {
+          showStatus("Có lỗi xảy ra!", "red");
+          console.error(error);
+        } finally {
+          btnSubmit.disabled = false;
+        }
+      }
+
+      function showStatus(msg, color) {
+        statusMessage.textContent = msg;
+        statusMessage.style.color = color;
+        setTimeout(() => {
+          statusMessage.textContent = "";
+        }, 3000);
+      }
+
+      // Khởi chạy
+      loadAllData();
+    </script>
+  </body>
+</html>
