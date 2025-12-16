@@ -1,0 +1,212 @@
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.main-title {
+  text-align: center;
+  color: #1a73e8;
+  margin-bottom: 20px;
+}
+
+/* Card Style cho Form */
+.card {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  padding: 15px 20px;
+  font-weight: bold;
+  border-bottom: 1px solid #eee;
+  color: #333;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* Form Elements */
+.form-row {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.form-group {
+  flex: 1;
+}
+
+label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #555;
+}
+
+.required {
+  color: red;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  transition: border 0.3s;
+}
+
+input:focus,
+select:focus {
+  border-color: #1a73e8;
+  outline: none;
+}
+
+/* Buttons */
+.btn-group-right {
+  text-align: right;
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+#btnSubmit {
+  background-color: #28a745;
+  color: white;
+}
+#btnSubmit:hover {
+  background-color: #218838;
+}
+
+#btnCancel {
+  background-color: #6c757d;
+  color: white;
+  display: none;
+}
+#btnCancel:hover {
+  background-color: #5a6268;
+}
+
+/* Filter Section (Mới) */
+.filter-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.search-box {
+  flex: 2;
+}
+.filter-box {
+  flex: 1;
+}
+
+/* Table */
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid #ccc;
+  margin-top: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  /* GIẢM PADDING ĐỂ HÀNG THẤP HƠN */
+  padding: 8px 10px; /* Trước là 12px 15px, giờ giảm xuống */
+  text-align: left; /* Mặc định các cột dữ liệu vẫn canh trái */
+  border: 1px solid #bdc3c7;
+  font-size: 14px;
+  vertical-align: middle; /* Căn giữa theo chiều dọc */
+}
+
+th {
+  background-color: #1a73e8;
+  color: white;
+  font-weight: 600;
+  border-color: #1557b0;
+
+  /* CANH GIỮA TOÀN BỘ TIÊU ĐỀ */
+  text-align: center;
+}
+
+tr:hover {
+  background-color: #e8f0fe;
+}
+td:nth-child(1),
+td:nth-child(5),
+td:nth-child(6) {
+  text-align: center;
+}
+
+/* Action Buttons in Table */
+.action-btn {
+  padding: 4px 10px; /* Giảm padding nút bấm */
+  border-radius: 4px;
+  font-size: 12px;
+  margin: 0 2px; /* Khoảng cách giữa 2 nút */
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+.btn-edit {
+  background-color: #ffc107;
+  color: #333;
+}
+.btn-delete {
+  background-color: #dc3545;
+}
+
+/* Utilities */
+.loading {
+  text-align: center;
+  color: #1a73e8;
+  font-style: italic;
+  margin: 20px;
+}
+#statusMessage {
+  font-size: 14px;
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+/* Responsive cho mobile */
+@media (max-width: 600px) {
+  .form-row,
+  .filter-section {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
