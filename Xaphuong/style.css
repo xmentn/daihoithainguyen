@@ -225,3 +225,31 @@ td:nth-child(6) {
 #btnExport:hover {
   background-color: #1e6b41;
 }
+/* Style cho nút Thêm Mới */
+#btnAdd {
+  background-color: #007bff; /* Màu xanh dương */
+  color: white;
+  margin-right: 5px;
+}
+#btnAdd:hover {
+  background-color: #0056b3;
+}
+
+#btnAdd:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* Style chung cho nút khi bị disabled */
+button:disabled {
+  background-color: #ccc !important; /* Màu xám */
+  cursor: not-allowed;
+  color: #666;
+}
+
+/* Khi input bị disabled thì nền xám nhẹ */
+input:disabled,
+select:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}

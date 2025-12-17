@@ -17,12 +17,57 @@ const loadingText = document.getElementById("loadingText");
 const btnSubmit = document.getElementById("btnSubmit");
 const btnCancel = document.getElementById("btnCancel");
 const statusMessage = document.getElementById("statusMessage");
+const btnAdd = document.getElementById("btnAdd");
 
 // Biến lưu trữ dữ liệu gốc để lọc
 // Biến lưu trữ dữ liệu gốc
 let globalData = [];
 // THÊM BIẾN NÀY: Lưu trữ dữ liệu đang hiển thị hiện tại
 let currentData = [];
+function toggleInputs(enable) {
+  const inputs = document.querySelectorAll(
+    "#cadresForm input, #cadresForm select"
+  );
+  inputs.forEach((input) => {
+    // Trừ cái input hidden rowIndex ra thì disable hết
+    if (input.id !== "rowIndex") {
+      input.disabled = !enable;
+    }
+  });
+}
+window.startAddNew = function () {
+  // Xóa trắng form cũ
+  form.reset();
+  document.getElementById("rowIndex").value = "";
+
+  // Mở khóa ô nhập
+  toggleInputs(true);
+  document.getElementById("hoTen").focus(); // Đặt trỏ chuột vào ô họ tên
+
+  // Điều khiển nút bấm
+  btnAdd.disabled = true; // Mờ nút Thêm
+  btnSubmit.disabled = false; // Sáng nút Lưu
+  btnCancel.style.display = "inline-block"; // Hiện nút Hủy
+
+  btnSubmit.textContent = "Lưu thông tin";
+  btnSubmit.classList.remove("btn-warning");
+};
+window.cancelAction = function () {
+  form.reset();
+  document.getElementById("rowIndex").value = "";
+
+  // Khóa lại ô nhập
+  toggleInputs(false);
+
+  // Điều khiển nút bấm về ban đầu
+  btnAdd.disabled = false; // Sáng nút Thêm
+  btnSubmit.disabled = true; // Mờ nút Lưu
+  btnCancel.style.display = "none"; // Ẩn nút Hủy
+
+  btnSubmit.textContent = "Lưu thông tin";
+  btnSubmit.classList.remove("btn-warning");
+  statusMessage.textContent = "";
+};
 
 // 1. KHỞI CHẠY: Tải dữ liệu khi mở trang
 document.addEventListener("DOMContentLoaded", loadAllData);
@@ -55,11 +100,36 @@ async function loadAllData() {
 }
 
 // Hàm hỗ trợ điền dropdown
-function fillDropdown(selectElement, items, isFilter = false) {
-  const firstOption = selectElement.options[0];
-  selectElement.innerHTML = "";
-  selectElement.appendChild(firstOption);
+// --- CẬP NHẬT HÀM NÀY VÀO FILE SCRIPT.JS ---
 
+// Hàm hỗ trợ điền dropdown (Đã nâng cấp để hiển thị chữ "Chọn..." thay vì "Đang tải...")
+function fillDropdown(selectElement, items, isFilter = false) {
+  // 1. Xóa sạch nội dung cũ (Xóa dòng <option>Đang tải...</option> gốc của HTML)
+  selectElement.innerHTML = "";
+
+  // 2. Tạo dòng chọn mặc định mới
+  const defaultOption = document.createElement("option");
+  defaultOption.value = ""; // Giá trị rỗng
+
+  // 3. Đặt tên tiêu đề cho hợp lý dựa trên ID của dropdown
+  if (isFilter) {
+    // Nếu là dropdown ở bộ lọc
+    defaultOption.textContent = "-- Tất cả chức vụ --";
+  } else {
+    // Nếu là dropdown nhập liệu trong Form
+    if (selectElement.id === "donVi") {
+      defaultOption.textContent = "-- Chọn đơn vị --";
+    } else if (selectElement.id === "chucVu") {
+      defaultOption.textContent = "-- Chọn chức vụ --";
+    } else {
+      defaultOption.textContent = "-- Chọn --";
+    }
+  }
+
+  // 4. Thêm dòng tiêu đề vào đầu tiên
+  selectElement.appendChild(defaultOption);
+
+  // 5. Đổ dữ liệu từ danh sách vào
   items.forEach((item) => {
     const opt = document.createElement("option");
     opt.value = item;
@@ -136,25 +206,26 @@ window.prepareEdit = function (rowIndex) {
   const item = globalData.find((x) => x.rowIndex == rowIndex);
   if (!item) return;
 
+  // Điền dữ liệu
   document.getElementById("rowIndex").value = item.rowIndex;
   document.getElementById("hoTen").value = item.hoTen;
   document.getElementById("sdt").value = item.sdt;
-  document.getElementById("email").value = item.email || ""; // Điền Email vào ô input
+  document.getElementById("email").value = item.email || "";
   document.getElementById("donVi").value = item.donVi;
   document.getElementById("chucVu").value = item.chucVu;
 
-  btnSubmit.textContent = "Cập Nhật";
-  btnSubmit.classList.add("btn-warning");
+  // --- LOGIC MỚI: Mở khóa để sửa ---
+  toggleInputs(true); // Mở khóa ô nhập
+
+  // Điều khiển nút
+  btnAdd.disabled = true; // Khóa nút Thêm mới khi đang sửa
+  btnSubmit.disabled = false; // Mở nút Lưu
   btnCancel.style.display = "inline-block";
 
-  document.querySelector(".card").scrollIntoView({ behavior: "smooth" });
-};
+  btnSubmit.textContent = "Cập Nhật";
+  btnSubmit.classList.add("btn-warning");
 
-window.resetForm = function () {
-  form.reset();
-  document.getElementById("rowIndex").value = "";
-  btnSubmit.textContent = "Lưu thông tin";
-  btnCancel.style.display = "none";
+  document.querySelector(".card").scrollIntoView({ behavior: "smooth" });
 };
 
 window.deleteItem = function (rowIndex) {
@@ -226,7 +297,9 @@ async function sendData(dataObj, isDelete = false) {
       title: isDelete ? "Đã xóa thành công!" : "Đã lưu thông tin!",
     });
 
-    if (!isDelete) resetForm();
+    if (!isDelete) {
+      cancelAction(); // Lưu xong thì khóa form lại như ban đầu
+    }
     loadAllData();
   } catch (error) {
     Swal.fire({
@@ -236,7 +309,10 @@ async function sendData(dataObj, isDelete = false) {
     });
     console.error(error);
   } finally {
-    if (!isDelete) btnSubmit.disabled = false;
+    // Nếu lỗi thì mở lại nút để người dùng thử lại (nhưng vẫn giữ trạng thái nhập liệu)
+    if (!isDelete && statusMessage.textContent !== "") {
+      btnSubmit.disabled = false;
+    }
     statusMessage.textContent = "";
   }
 }
