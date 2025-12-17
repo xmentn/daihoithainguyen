@@ -7,6 +7,7 @@
     <title>Thông tin cán bộ Văn phòng</title>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
   </head>
   <body>
     <div class="container">
@@ -90,6 +91,9 @@
             <option value="">-- Tất cả chức vụ --</option>
           </select>
         </div>
+        <button type="button" id="btnExport" onclick="exportExcel()">
+          📥 Xuất Excel
+        </button>
       </div>
 
       <div class="table-container">
@@ -99,9 +103,9 @@
             <tr>
               <th style="width: 35px; text-align: center">STT</th>
 
-              <th style="min-width: 140px">Họ tên</th>
+              <th style="min-width: 120px">Họ tên</th>
 
-              <th style="min-width: 180px">Đơn vị</th>
+              <th style="min-width: 160px">Đơn vị</th>
 
               <th style="min-width: 180px">Chức vụ</th>
 

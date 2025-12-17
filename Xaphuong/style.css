@@ -6,7 +6,7 @@ body {
 }
 
 .container {
-  max-width: 1250px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -118,6 +118,7 @@ button {
   display: flex;
   gap: 15px;
   margin-bottom: 15px;
+  align-items: center; /* Căn giữa dọc */
 }
 
 .search-box {
@@ -210,4 +211,17 @@ td:nth-child(6) {
     flex-direction: column;
     gap: 10px;
   }
+}
+#btnExport {
+  background-color: #217346; /* Màu xanh Excel */
+  color: white;
+  font-weight: bold;
+  white-space: nowrap; /* Giữ chữ không bị xuống dòng */
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#btnExport:hover {
+  background-color: #1e6b41;
 }

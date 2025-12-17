@@ -19,7 +19,10 @@ const btnCancel = document.getElementById("btnCancel");
 const statusMessage = document.getElementById("statusMessage");
 
 // Biến lưu trữ dữ liệu gốc để lọc
+// Biến lưu trữ dữ liệu gốc
 let globalData = [];
+// THÊM BIẾN NÀY: Lưu trữ dữ liệu đang hiển thị hiện tại
+let currentData = [];
 
 // 1. KHỞI CHẠY: Tải dữ liệu khi mở trang
 document.addEventListener("DOMContentLoaded", loadAllData);
@@ -41,6 +44,7 @@ async function loadAllData() {
 
     // C. Lưu và vẽ bảng
     globalData = data.danhSach;
+    currentData = data.danhSach;
     renderTable(globalData);
   } catch (error) {
     console.error(error);
@@ -85,7 +89,7 @@ function filterData() {
 
     return matchKeyword && matchRole;
   });
-
+  currentData = filtered;
   renderTable(filtered);
 }
 
@@ -240,4 +244,45 @@ async function sendData(dataObj, isDelete = false) {
 function showStatus(msg, color) {
   statusMessage.textContent = msg;
   statusMessage.style.color = color;
+}
+
+// --- CHỨC NĂNG XUẤT EXCEL (MỚI) ---
+function exportExcel() {
+  if (currentData.length === 0) {
+    Swal.fire("Thông báo", "Chưa có dữ liệu để xuất!", "info");
+    return;
+  }
+
+  // 1. Tạo dữ liệu chuẩn để xuất (Đổi tên cột sang tiếng Việt)
+  const dataToExport = currentData.map((item, index) => ({
+    STT: index + 1,
+    "Họ và tên": item.hoTen,
+    "Đơn vị": item.donVi,
+    "Chức vụ": item.chucVu,
+    "Số điện thoại": item.sdt,
+    Email: item.email,
+  }));
+
+  // 2. Tạo một Workbook (file Excel) mới
+  const workbook = XLSX.utils.book_new();
+
+  // 3. Tạo một Worksheet từ dữ liệu JSON
+  const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+  // 4. Tùy chỉnh độ rộng cột (Optional - cho đẹp)
+  const wscols = [
+    { wch: 5 }, // STT
+    { wch: 25 }, // Họ tên
+    { wch: 25 }, // Đơn vị
+    { wch: 25 }, // Chức vụ
+    { wch: 15 }, // SĐT
+    { wch: 30 }, // Email
+  ];
+  worksheet["!cols"] = wscols;
+
+  // 5. Thêm worksheet vào workbook
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sách cán bộ");
+
+  // 6. Xuất file và tải về
+  XLSX.writeFile(workbook, "Danh_Sach_Can_Bo.xlsx");
 }
