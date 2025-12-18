@@ -16,7 +16,14 @@
       </h2>
 
       <div class="card">
-        <div class="card-header">Thông tin cán bộ</div>
+        <div class="card-header">
+          <span class="header-title">Thông tin cán bộ</span>
+
+          <a href="map.html" target="_blank" class="btn-header-map">
+            🗺️ Bản đồ xã/phường
+          </a>
+        </div>
+
         <div class="card-body">
           <form id="cadresForm">
             <input type="hidden" id="rowIndex" value="" />
@@ -98,7 +105,6 @@
           </form>
         </div>
       </div>
-
       <div class="filter-section">
         <div class="search-box">
           <input
@@ -123,17 +129,11 @@
           <thead>
             <tr>
               <th style="width: 35px; text-align: center">STT</th>
-
-              <th style="min-width: 120px">Họ tên</th>
-
-              <th style="min-width: 160px">Đơn vị</th>
-
+              <th style="min-width: 140px">Họ tên</th>
+              <th style="min-width: 180px">Đơn vị</th>
               <th style="min-width: 180px">Chức vụ</th>
-
               <th style="width: 100px">SĐT</th>
-
               <th>Email</th>
-
               <th style="width: 100px; text-align: center">Hành động</th>
             </tr>
           </thead>

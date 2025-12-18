@@ -27,12 +27,41 @@ body {
 
 .card-header {
   background-color: #f8f9fa;
-  padding: 15px 20px;
-  font-weight: bold;
+  padding: 10px 20px;
   border-bottom: 1px solid #eee;
+
+  /* Kích hoạt chế độ dàn trang linh hoạt */
+  display: flex;
+
+  /* Đẩy 1 cái sang trái, 1 cái sang phải cực đại */
+  justify-content: space-between;
+
+  /* Căn giữa theo chiều dọc */
+  align-items: center;
+}
+.header-title {
+  font-weight: bold;
   color: #333;
+  font-size: 16px;
 }
 
+/* Style cho nút Bản đồ (Hình dáng nút bấm màu cam) */
+.btn-header-map {
+  background-color: #fd7e14; /* Màu cam */
+  color: white !important; /* Chữ màu trắng */
+  text-decoration: none; /* Bỏ gạch chân */
+  padding: 6px 15px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+}
+
+.btn-header-map:hover {
+  background-color: #e36d0a; /* Màu đậm hơn khi di chuột */
+}
 .card-body {
   padding: 20px;
 }
@@ -252,4 +281,23 @@ input:disabled,
 select:disabled {
   background-color: #e9ecef;
   cursor: not-allowed;
+}
+/* Style cho nút Bản đồ */
+#btnMap {
+  background-color: #fd7e14; /* Màu cam */
+  color: white;
+  padding: 10px 15px; /* Giống padding của nút button */
+  border-radius: 4px;
+  text-decoration: none; /* Bỏ gạch chân của thẻ a */
+  font-weight: bold;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+  height: 18px; /* Căn chỉnh chiều cao cho bằng các nút khác */
+}
+
+#btnMap:hover {
+  background-color: #e36d0a;
 }
