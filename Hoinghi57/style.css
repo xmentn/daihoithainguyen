@@ -45,6 +45,12 @@ input:disabled, select:disabled { background-color: #f8f9fa; color: #6c757d; cur
     transform: none; 
     box-shadow: none;
 }
+.btn-info { 
+    background-color: #17a2b8; /* Màu xanh ngọc */
+}
+.btn-info:hover { 
+    background-color: #138496; 
+}
 
 /* Table Grid View */
 table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-top: 20px; }
