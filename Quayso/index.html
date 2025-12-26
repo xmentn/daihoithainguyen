@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gán Số Ngẫu Nhiên</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h2>GIẢI CỜ TƯỚNG CLB CỜ TƯỚNG CẦU CA MỞ RỘNG NĂM 2025</h2>
+        <h1>ỨNG DỤNG LẤY SỐ TỰ ĐỘNG </h1>
+        
+        <div class="input-section">
+            <div class="card">
+                <h3>Cách 1: Nhập danh sách thủ công</h3>
+                <textarea id="manualInput" oninput="updatePreview()" placeholder="Nhập tên, mỗi người một dòng..."></textarea>
+            </div>
+
+            <div class="card">
+                <h3>Cách 2: Nhập từ Excel</h3>
+                <p>Chọn file Excel (cột A chứa tên)</p>
+                <input type="file" id="excelInput" accept=".xlsx, .xls" />
+            </div>
+        </div>
+
+        <div id="previewSection" class="hidden">
+            <h3>Danh sách đã nhập (<span id="totalCount">0</span> người)</h3>
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">STT</th>
+                            <th>Họ và tên</th>
+                        </tr>
+                    </thead>
+                    <tbody id="previewBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button onclick="processRandomize()" class="btn-action">🎲 Chọn Số Ngẫu Nhiên</button>
+            <button onclick="clearList()" class="btn-clear">🗑️ Xóa Danh Sách</button>
+        </div>
+
+        <div id="resultSection" class="hidden">
+            <h2>Kết Quả Bốc Thăm</h2>
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">STT</th>
+                        <th>Tên Người</th>
+                        <th>Số Được Chọn</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
