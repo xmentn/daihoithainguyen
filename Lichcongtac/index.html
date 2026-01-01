@@ -1,444 +1,302 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lịch Công Tác Lãnh Đạo</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
 
     <style>
-      /* --- CSS: GIAO DIỆN --- */
-      body {
-        font-family: "Times New Roman", Times, serif;
-        background-color: #f0f2f5;
-        padding: 20px;
-        margin: 0;
-      }
+        /* --- CSS: GIAO DIỆN --- */
+        body { font-family: "Times New Roman", Times, serif; background-color: #f0f2f5; padding: 20px; margin: 0; }
+        .container { background: white; padding: 30px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); max-width: 1280px; margin: 0 auto; min-height: 800px; border-radius: 4px; }
+        
+        /* Bộ lọc */
+        .controls { text-align: center; margin-bottom: 25px; padding: 15px; background: #e9ecef; border-radius: 8px; display: flex; justify-content: center; align-items: center; gap: 15px; }
+        .controls select { padding: 8px 12px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; font-family: "Times New Roman", serif; cursor: pointer; }
+        .controls label { font-weight: bold; font-size: 16px; }
+        .btn-print { padding: 8px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 5px; }
+        .btn-print:hover { background-color: #218838; }
 
-      .container {
-        background: white;
-        padding: 30px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        max-width: 1280px;
-        margin: 0 auto;
-        min-height: 800px;
-        border-radius: 4px;
-      }
+        /* Tiêu đề */
+        .header-section { text-align: center; margin-bottom: 20px; }
+        .title { text-transform: uppercase; font-weight: bold; font-size: 22px; margin-bottom: 8px; color: #000; }
+        .subtitle { font-style: italic; font-size: 16px; margin-top: 0; color: #333; }
 
-      /* Khu vực bộ lọc (Năm/Tuần) */
-      .controls {
-        text-align: center;
-        margin-bottom: 25px;
-        padding: 15px;
-        background: #e9ecef;
-        border-radius: 8px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 15px;
-      }
-      .controls select {
-        padding: 8px 12px;
-        font-size: 16px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        font-family: "Times New Roman", serif;
-        cursor: pointer;
-      }
-      .controls label {
-        font-weight: bold;
-        font-size: 16px;
-      }
-      .btn-print {
-        padding: 8px 15px;
-        background-color: #28a745;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .btn-print:hover {
-        background-color: #218838;
-      }
+        /* Bảng lịch */
+        table { width: 100%; border-collapse: collapse; font-size: 15px; color: #000; }
+        th, td { border: 1px solid #000; padding: 8px; vertical-align: middle; line-height: 1.4; }
+        
+        /* Tiêu đề bảng màu xanh đậm */
+        th { background-color: #004a80; color: #ffffff; font-weight: bold; text-align: center; text-transform: uppercase; border: 1px solid #000; }
 
-      /* Tiêu đề */
-      .header-section {
-        text-align: center;
-        margin-bottom: 20px;
-      }
-      .title {
-        text-transform: uppercase;
-        font-weight: bold;
-        font-size: 22px;
-        margin-bottom: 8px;
-        color: #000;
-      }
-      .subtitle {
-        font-style: italic;
-        font-size: 16px;
-        margin-top: 0;
-        color: #333;
-      }
+        /* Cột cụ thể */
+        .col-date { text-align: center; font-weight: bold; width: 100px; background-color: #fff; }
+        .col-session { text-align: center; font-weight: bold; width: 60px; }
+        .col-time { text-align: center; width: 80px; white-space: nowrap; }
+        .highlight { color: #d32f2f; font-weight: bold; } /* Tô đỏ Đ/c */
 
-      /* Bảng lịch */
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 15px;
-        color: #000;
-      }
+        .loading { text-align: center; font-size: 18px; color: #666; margin-top: 30px; font-style: italic; }
 
-      th,
-      td {
-        border: 1px solid #000; /* Viền đen đậm theo yêu cầu */
-        padding: 8px;
-        vertical-align: middle;
-        line-height: 1.4;
-      }
-
-      th {
-        background-color: #fff; /* Nền trắng */
-        font-weight: bold;
-        text-align: center;
-      }
-
-      /* Định dạng các cột cụ thể */
-      .col-date {
-        text-align: center;
-        font-weight: bold;
-        width: 100px;
-        background-color: #fff;
-      }
-
-      .col-session {
-        text-align: center;
-        font-weight: bold;
-        width: 60px;
-        /* writing-mode: vertical-rl; transform: rotate(180deg); */ /* Bỏ comment nếu muốn chữ dọc */
-      }
-
-      .col-time {
-        text-align: center;
-        width: 80px;
-        white-space: nowrap;
-      }
-
-      /* Text tô đỏ (ví dụ: Đ/c...) */
-      .highlight {
-        color: #d32f2f;
-        font-weight: bold;
-      }
-
-      /* Trạng thái Loading */
-      .loading {
-        text-align: center;
-        font-size: 18px;
-        color: #666;
-        margin-top: 30px;
-        font-style: italic;
-      }
-
-      /* Ẩn bộ lọc khi in ấn */
-      @media print {
-        .controls {
-          display: none;
+        @media print {
+            .controls { display: none; }
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; padding: 0; max-width: 100%; border: none; }
+            .title { font-size: 18pt; }
         }
-        body {
-          background: white;
-          padding: 0;
-        }
-        .container {
-          box-shadow: none;
-          padding: 0;
-          max-width: 100%;
-          border: none;
-        }
-        .title {
-          font-size: 18pt;
-        } /* Font to hơn khi in */
-      }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <div class="controls">
-        <label for="year-select">Năm:</label>
-        <select id="year-select"></select>
+        <div class="controls">
+            <label for="year-select">Năm:</label>
+            <select id="year-select"></select>
 
-        <label for="week-select">Tuần:</label>
-        <select id="week-select"></select>
+            <label for="week-select">Tuần:</label>
+            <select id="week-select"></select>
 
-        <button class="btn-print" onclick="window.print()">
-          <span>🖨️</span> In Lịch
-        </button>
-      </div>
-
-      <div class="header-section">
-        <div class="title">
-          DỰ KIẾN LỊCH CÔNG TÁC CỦA LÃNH ĐẠO VĂN PHÒNG TỈNH ỦY
+            <button class="btn-print" onclick="window.print()">
+                <span>🖨️</span> In Lịch
+            </button>
         </div>
-        <p class="subtitle" id="date-range-display">
-          (Từ ngày ... đến ngày ...)
-        </p>
-      </div>
 
-      <table id="schedule-table">
-        <thead>
-          <tr>
-            <th colspan="3">Thứ/ngày/giờ</th>
-            <th style="width: 12%">Đơn vị mời</th>
-            <th style="width: 25%">Nội dung, tên hội nghị</th>
-            <th style="width: 15%">Địa điểm</th>
-            <th style="width: 15%">Thường trực Tỉnh ủy</th>
-            <th style="width: 15%">Lãnh đạo VPTU,<br />Trưởng các phòng...</th>
-          </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-      </table>
+        <div class="header-section">
+            <div class="title">DỰ KIẾN LỊCH CÔNG TÁC CỦA LÃNH ĐẠO VĂN PHÒNG TỈNH ỦY</div>
+            <p class="subtitle" id="date-range-display">(Từ ngày ... đến ngày ...)</p>
+        </div>
 
-      <div id="loading-msg" class="loading">Đang kết nối dữ liệu...</div>
+        <table id="schedule-table">
+            <thead>
+                <tr>
+                    <th colspan="3">Thứ/ngày/giờ</th>
+                    <th style="width: 12%">Đơn vị mời</th>
+                    <th style="width: 25%">Nội dung, tên hội nghị</th>
+                    <th style="width: 15%">Địa điểm</th>
+                    <th style="width: 15%">Thường trực Tỉnh ủy</th>
+                    <th style="width: 15%">Lãnh đạo VPTU,<br />Trưởng các phòng...</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+
+        <div id="loading-msg" class="loading">Đang kết nối dữ liệu...</div>
     </div>
 
     <script>
-      // ============================================================
-      // ⚠️ CẤU HÌNH QUAN TRỌNG
-      // Hãy dán đường dẫn Web App URL (Apps Script) của bạn vào đây
-      // ============================================================
-      const WEB_APP_URL =
-        "https://script.google.com/macros/s/AKfycbzbRrO1huCYRA1It2sz7LpqQYmONl0pBenrTjHqY0kLN-Sikhs59jQx1JSaTIf73L-I/exec";
-      // Ví dụ: const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx.../exec';
+        // ============================================================
+        // ⚠️ CẤU HÌNH: Link Google Apps Script
+        // ============================================================
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzbRrO1huCYRA1It2sz7LpqQYmONl0pBenrTjHqY0kLN-Sikhs59jQx1JSaTIf73L-I/exec";
 
-      let fullData = [];
+        let fullData = [];
 
-      document.addEventListener("DOMContentLoaded", () => {
-        initFilters(); // 1. Tạo bộ lọc và chọn ngày hiện tại
-        fetchData(); // 2. Tải dữ liệu
-      });
-
-      // --- 1. Tải dữ liệu ---
-      function fetchData() {
-        const loadingEl = document.getElementById("loading-msg");
-
-        if (WEB_APP_URL.includes("DÁN_WEB_APP_URL")) {
-          loadingEl.innerHTML =
-            "<span style='color:red; font-weight:bold'>LỖI: Chưa dán Web App URL!</span>";
-          return;
-        }
-
-        loadingEl.textContent = "Đang tải dữ liệu...";
-
-        fetch(WEB_APP_URL)
-          .then((response) => response.json())
-          .then((data) => {
-            if (!data || data.length === 0) {
-              loadingEl.textContent = "Dữ liệu trống.";
-              return;
-            }
-            fullData = data;
-            loadingEl.style.display = "none";
-            renderSchedule(); // Vẽ bảng sau khi có dữ liệu
-          })
-          .catch((error) => {
-            console.error("Lỗi Fetch:", error);
-            loadingEl.textContent = "Lỗi kết nối server.";
-          });
-      }
-
-      // --- 2. Khởi tạo Dropdown (Đã sửa để chọn đúng tuần hiện tại) ---
-      function initFilters() {
-        const yearSelect = document.getElementById("year-select");
-        const weekSelect = document.getElementById("week-select");
-
-        // Lấy ngày hiện tại thực tế
-        const today = new Date();
-        let currentYear = today.getFullYear();
-        let currentWeek = getWeekNumber(today);
-
-        // Xử lý trường hợp đặc biệt: Nếu đang là cuối tháng 12 mà tính ra Tuần 1 -> Là tuần 1 của năm sau
-        if (today.getMonth() === 11 && currentWeek === 1) {
-          currentYear += 1;
-        }
-
-        // Tạo Dropdown Năm: Từ (Năm hiện tại - 1) đến (Năm hiện tại + 1)
-        yearSelect.innerHTML = "";
-        for (let y = currentYear - 1; y <= currentYear + 1; y++) {
-          const opt = document.createElement("option");
-          opt.value = y;
-          opt.textContent = y;
-          yearSelect.appendChild(opt);
-        }
-        // Ép buộc chọn Năm hiện tại
-        yearSelect.value = currentYear;
-
-        // Tạo Dropdown Tuần: 1 đến 53
-        weekSelect.innerHTML = "";
-        for (let w = 1; w <= 53; w++) {
-          const opt = document.createElement("option");
-          opt.value = w;
-          opt.textContent = `Tuần ${w}`;
-          weekSelect.appendChild(opt);
-        }
-        // Ép buộc chọn Tuần hiện tại
-        weekSelect.value = currentWeek;
-
-        // Cập nhật tiêu đề ngày ngay lập tức
-        updateDateSubtitle(currentWeek, currentYear);
-
-        // Gán sự kiện khi người dùng chọn lại
-        yearSelect.addEventListener("change", renderSchedule);
-        weekSelect.addEventListener("change", renderSchedule);
-      }
-
-      // --- 3. Vẽ bảng ---
-      function renderSchedule() {
-        // Lấy giá trị đang được chọn (lúc này đã là năm/tuần hiện tại do hàm initFilters set)
-        const selectedYear = document.getElementById("year-select").value;
-        const selectedWeek = document.getElementById("week-select").value;
-        const tbody = document.getElementById("table-body");
-
-        updateDateSubtitle(selectedWeek, selectedYear);
-        tbody.innerHTML = "";
-
-        // Lọc dữ liệu (Lưu ý: Sheet của bạn cần có cột 'Nam' và 'Tuan')
-        const weekData = fullData.filter(
-          (row) => row.Nam == selectedYear && row.Tuan == selectedWeek
-        );
-
-        if (weekData.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="8" style="text-align:center; padding: 30px;">Chưa có lịch cho tuần này.</td></tr>';
-          return;
-        }
-
-        const grouped = groupData(weekData);
-
-        // Render từng ngày
-        for (const dateKey in grouped) {
-          const dayData = grouped[dateKey];
-          const sessions = dayData.sessions;
-
-          let totalRowsInDate = 0;
-          for (let s in sessions) totalRowsInDate += sessions[s].length;
-
-          let isFirstRowOfDate = true;
-          const sessionOrder = ["Sáng", "Chiều", "Tối"];
-          const sortedSessions = Object.keys(sessions).sort(
-            (a, b) => sessionOrder.indexOf(a) - sessionOrder.indexOf(b)
-          );
-
-          sortedSessions.forEach((sessionName) => {
-            const events = sessions[sessionName];
-            let isFirstRowOfSession = true;
-
-            events.forEach((event) => {
-              const tr = document.createElement("tr");
-
-              // Cột Ngày
-              if (isFirstRowOfDate) {
-                const tdDate = document.createElement("td");
-                tdDate.className = "col-date";
-                let cleanDate = dayData.ngay.replace(/'/g, "");
-                tdDate.innerHTML = `${dayData.thu}<br><span style="font-weight:normal">${cleanDate}</span>`;
-                tdDate.rowSpan = totalRowsInDate;
-                tr.appendChild(tdDate);
-                isFirstRowOfDate = false;
-              }
-
-              // Cột Buổi
-              if (isFirstRowOfSession) {
-                const tdSession = document.createElement("td");
-                tdSession.className = "col-session";
-                tdSession.textContent = sessionName;
-                tdSession.rowSpan = events.length;
-                tr.appendChild(tdSession);
-                isFirstRowOfSession = false;
-              }
-
-              // Các cột còn lại
-              tr.innerHTML += `
-                        <td class="col-time">${event.Gio || ""}</td>
-                        <td>${event.DonViMoi || ""}</td>
-                        <td style="text-align: left;">${
-                          event.NoiDung || ""
-                        }</td>
-                        <td style="text-align: center;">${
-                          event.DiaDiem || ""
-                        }</td>
-                        <td class="${checkHighlight(event.ThanhPhan)}">${
-                event.ThanhPhan || ""
-              }</td>
-                        <td>${event.LanhDao || ""}</td>
-                    `;
-              tbody.appendChild(tr);
-            });
-          });
-        }
-      }
-
-      // --- Các hàm tiện ích ---
-      function groupData(data) {
-        const groups = {};
-        data.forEach((row) => {
-          if (!row.Ngay) return;
-          let rawDate = row.Ngay.toString().replace(/'/g, "").trim();
-          const key = rawDate;
-          if (!groups[key])
-            groups[key] = { ngay: rawDate, thu: row.Thu, sessions: {} };
-
-          const session = row.Buoi ? row.Buoi.toString().trim() : "Khác";
-          if (!groups[key].sessions[session])
-            groups[key].sessions[session] = [];
-          groups[key].sessions[session].push(row);
+        document.addEventListener("DOMContentLoaded", () => {
+            initFilters(); 
+            fetchData(); 
         });
-        return groups;
-      }
 
-      function checkHighlight(text) {
-        return text && text.toString().includes("Đ/c") ? "highlight" : "";
-      }
+        // 1. Tải dữ liệu
+        function fetchData() {
+            const loadingEl = document.getElementById("loading-msg");
 
-      function updateDateSubtitle(w, y) {
-        const simple = new Date(y, 0, 1 + (w - 1) * 7);
-        const dow = simple.getDay();
-        const ISOweekStart = simple;
-        if (dow <= 4)
-          ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-        else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+            if (WEB_APP_URL.includes("DÁN_WEB_APP_URL")) {
+                loadingEl.innerHTML = "<span style='color:red; font-weight:bold'>LỖI: Chưa dán Web App URL!</span>";
+                return;
+            }
 
-        const startStr = formatDate(ISOweekStart);
-        const endObj = new Date(ISOweekStart);
-        endObj.setDate(endObj.getDate() + 6);
-        const endStr = formatDate(endObj);
+            loadingEl.textContent = "Đang tải dữ liệu...";
 
-        document.getElementById(
-          "date-range-display"
-        ).textContent = `(Từ ngày ${startStr} đến ngày ${endStr})`;
-      }
+            fetch(WEB_APP_URL)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (!data || data.length === 0) {
+                        loadingEl.textContent = "Dữ liệu trống.";
+                        return;
+                    }
+                    fullData = data;
+                    loadingEl.style.display = "none";
+                    renderSchedule();
+                })
+                .catch((error) => {
+                    console.error("Lỗi Fetch:", error);
+                    loadingEl.textContent = "Lỗi kết nối server (Kiểm tra Console F12).";
+                });
+        }
 
-      function formatDate(d) {
-        return (
-          d.getDate().toString().padStart(2, "0") +
-          "/" +
-          (d.getMonth() + 1).toString().padStart(2, "0") +
-          "/" +
-          d.getFullYear()
-        );
-      }
+        // 2. Khởi tạo Dropdown (Chọn tuần hiện tại)
+        function initFilters() {
+            const yearSelect = document.getElementById("year-select");
+            const weekSelect = document.getElementById("week-select");
+            const today = new Date();
+            let currentYear = today.getFullYear();
+            let currentWeek = getWeekNumber(today);
 
-      // Hàm tính số tuần chuẩn ISO 8601
-      function getWeekNumber(d) {
-        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-      }
+            if (today.getMonth() === 11 && currentWeek === 1) { currentYear += 1; }
+
+            yearSelect.innerHTML = "";
+            for (let y = currentYear - 1; y <= currentYear + 1; y++) {
+                const opt = document.createElement("option");
+                opt.value = y; opt.textContent = y;
+                yearSelect.appendChild(opt);
+            }
+            yearSelect.value = currentYear;
+
+            weekSelect.innerHTML = "";
+            for (let w = 1; w <= 53; w++) {
+                const opt = document.createElement("option");
+                opt.value = w; opt.textContent = `Tuần ${w}`;
+                weekSelect.appendChild(opt);
+            }
+            weekSelect.value = currentWeek;
+
+            updateDateSubtitle(currentWeek, currentYear);
+
+            yearSelect.addEventListener("change", renderSchedule);
+            weekSelect.addEventListener("change", renderSchedule);
+        }
+
+        // 3. Vẽ bảng
+        function renderSchedule() {
+            const selectedYear = document.getElementById("year-select").value;
+            const selectedWeek = document.getElementById("week-select").value;
+            const tbody = document.getElementById("table-body");
+
+            updateDateSubtitle(selectedWeek, selectedYear);
+            tbody.innerHTML = "";
+
+            const weekData = fullData.filter((row) => row.Nam == selectedYear && row.Tuan == selectedWeek);
+
+            if (weekData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 30px;">Chưa có lịch cho tuần này.</td></tr>';
+                return;
+            }
+
+            const grouped = groupData(weekData);
+
+            for (const dateKey in grouped) {
+                const dayData = grouped[dateKey];
+                const sessions = dayData.sessions;
+
+                let totalRowsInDate = 0;
+                for (let s in sessions) totalRowsInDate += sessions[s].length;
+
+                let isFirstRowOfDate = true;
+                const sessionOrder = ["Sáng", "Chiều", "Tối"];
+                const sortedSessions = Object.keys(sessions).sort((a, b) => sessionOrder.indexOf(a) - sessionOrder.indexOf(b));
+
+                sortedSessions.forEach((sessionName) => {
+                    const events = sessions[sessionName];
+                    let isFirstRowOfSession = true;
+
+                    events.forEach((event) => {
+                        const tr = document.createElement("tr");
+
+                        // Cột Ngày
+                        if (isFirstRowOfDate) {
+                            const tdDate = document.createElement("td");
+                            tdDate.className = "col-date";
+                            let cleanDate = dayData.ngay.replace(/'/g, "");
+                            tdDate.innerHTML = `${dayData.thu}<br><span style="font-weight:normal">${cleanDate}</span>`;
+                            tdDate.rowSpan = totalRowsInDate;
+                            tr.appendChild(tdDate);
+                            isFirstRowOfDate = false;
+                        }
+
+                        // Cột Buổi
+                        if (isFirstRowOfSession) {
+                            const tdSession = document.createElement("td");
+                            tdSession.className = "col-session";
+                            tdSession.textContent = sessionName;
+                            tdSession.rowSpan = events.length;
+                            tr.appendChild(tdSession);
+                            isFirstRowOfSession = false;
+                        }
+
+                        // Các cột dữ liệu
+                        tr.innerHTML += `
+                            <td class="col-time">${event.Gio || ""}</td>
+                            <td>${event.DonViMoi || ""}</td>
+                            <td style="text-align: left;">${event.NoiDung || ""}</td>
+                            <td style="text-align: center;">${event.DiaDiem || ""}</td>
+                            
+                            <td class="${checkHighlight(event.ThanhPhan)}">${formatNameRender(event.ThanhPhan)}</td>
+                            <td>${formatNameRender(event.LanhDao)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                });
+            }
+        }
+
+        // --- CÁC HÀM TIỆN ÍCH ---
+
+        // ⚠️ ĐÂY LÀ HÀM QUAN TRỌNG BẠN BỊ THIẾU
+        function formatNameRender(text) {
+            if (!text) return "";
+            const groupNames = ["Thường trực Tỉnh ủy", "Tập thể lãnh đạo VPTU", "Ban Thường vụ Tỉnh ủy"];
+            let people = text.split(',').map(s => s.trim()).filter(s => s !== "");
+
+            if (people.length === 0) return "";
+
+            let formattedList = people.map(name => {
+                const isGroup = groupNames.some(g => g.toLowerCase() === name.toLowerCase());
+                if (isGroup) {
+                    return `<span style="font-weight:bold">${name}</span>`;
+                } else {
+                    return `Đ/c ${name}`;
+                }
+            });
+
+            if (formattedList.length >= 2) {
+                return `<div style="text-align: left;">${formattedList.join('<br>')}</div>`;
+            } else {
+                return formattedList[0];
+            }
+        }
+
+        function groupData(data) {
+            const groups = {};
+            data.forEach((row) => {
+                if (!row.Ngay) return;
+                let rawDate = row.Ngay.toString().replace(/'/g, "").trim();
+                const key = rawDate;
+                if (!groups[key]) groups[key] = { ngay: rawDate, thu: row.Thu, sessions: {} };
+                const session = row.Buoi ? row.Buoi.toString().trim() : "Khác";
+                if (!groups[key].sessions[session]) groups[key].sessions[session] = [];
+                groups[key].sessions[session].push(row);
+            });
+            return groups;
+        }
+
+        function checkHighlight(text) {
+            return text && text.toString().includes("Đ/c") ? "highlight" : "";
+        }
+
+        function updateDateSubtitle(w, y) {
+            const simple = new Date(y, 0, 1 + (w - 1) * 7);
+            const dow = simple.getDay();
+            const ISOweekStart = simple;
+            if (dow <= 4) ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+            else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+            const startStr = formatDate(ISOweekStart);
+            const endObj = new Date(ISOweekStart);
+            endObj.setDate(endObj.getDate() + 6);
+            const endStr = formatDate(endObj);
+
+            document.getElementById("date-range-display").textContent = `(Từ ngày ${startStr} đến ngày ${endStr})`;
+        }
+
+        function formatDate(d) {
+            return d.getDate().toString().padStart(2, "0") + "/" + (d.getMonth() + 1).toString().padStart(2, "0") + "/" + d.getFullYear();
+        }
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+        }
     </script>
-  </body>
+</body>
 </html>

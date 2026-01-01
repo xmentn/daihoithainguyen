@@ -1,569 +1,439 @@
 <!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quản Trị - Lịch Công Tác</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap"
-      rel="stylesheet"
-    />
-
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản Trị Lịch Công Tác</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
     <style>
-      /* --- CSS CHUNG --- */
-      body {
-        font-family: "Roboto", sans-serif;
-        background: #f0f2f5;
-        margin: 0;
-        padding: 20px;
-      }
-      .container {
-        max-width: 900px;
-        margin: 0 auto;
-        background: white;
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
-      }
-      h2,
-      h3 {
-        text-align: center;
-        color: #2c3e50;
-        margin-bottom: 20px;
-      }
+        /* --- CSS CŨ (GIỮ NGUYÊN) --- */
+        body { font-family: 'Roboto', sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+        h2, h3 { text-align: center; color: #2c3e50; margin-bottom: 20px; }
+        .controls { display: flex; gap: 20px; justify-content: center; margin-bottom: 10px; }
+        .row-2 { display: flex; gap: 20px; } .row-2 > div { flex: 1; }
+        .form-group { margin-bottom: 15px; position: relative; } /* Thêm relative cho dropdown */
+        label { font-weight: 500; display: block; margin-bottom: 6px; color: #34495e; }
+        select, input, textarea { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+        button { cursor: pointer; border: none; border-radius: 6px; font-weight: bold; transition: 0.3s; }
+        #btn-save { width: 100%; padding: 14px; background: #28a745; color: white; font-size: 16px; margin-top: 10px; }
+        #btn-save:hover { background: #218838; }
+        #btn-save.editing { background: #ffc107; color: #000; }
+        #btn-cancel { width: 100%; padding: 14px; background: #6c757d; color: white; font-size: 16px; margin-top: 10px; display: none; }
+        .list-section { margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 15px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background: #f8f9fa; font-weight: bold; }
+        .btn-action { padding: 5px 10px; font-size: 12px; margin-right: 5px; color: white; }
+        .btn-edit { background: #ffc107; color: black; }
+        .btn-delete { background: #dc3545; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 999; font-size: 20px; font-weight: bold; color: #555; }
 
-      .controls {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-bottom: 10px;
-      }
-      .row-2 {
-        display: flex;
-        gap: 20px;
-      }
-      .row-2 > div {
-        flex: 1;
-      }
-      .form-group {
-        margin-bottom: 15px;
-      }
-
-      label {
-        font-weight: 500;
-        display: block;
-        margin-bottom: 6px;
-        color: #34495e;
-      }
-      select,
-      input,
-      textarea {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ced4da;
-        border-radius: 6px;
-        font-size: 15px;
-        box-sizing: border-box;
-      }
-
-      /* Button Styles */
-      button {
-        cursor: pointer;
-        border: none;
-        border-radius: 6px;
-        font-weight: bold;
-        transition: 0.3s;
-      }
-
-      #btn-save {
-        width: 100%;
-        padding: 14px;
-        background: #28a745;
-        color: white;
-        font-size: 16px;
-        margin-top: 10px;
-      }
-      #btn-save:hover {
-        background: #218838;
-      }
-      #btn-save.editing {
-        background: #ffc107;
-        color: #000;
-      } /* Màu vàng khi đang sửa */
-
-      #btn-cancel {
-        width: 100%;
-        padding: 14px;
-        background: #6c757d;
-        color: white;
-        font-size: 16px;
-        margin-top: 10px;
-        display: none;
-      }
-
-      /* Table List Styles */
-      .list-section {
-        margin-top: 40px;
-        border-top: 2px solid #eee;
-        padding-top: 20px;
-      }
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-        margin-top: 15px;
-      }
-      th,
-      td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-      }
-      th {
-        background: #f8f9fa;
-        font-weight: bold;
-      }
-
-      .btn-action {
-        padding: 5px 10px;
-        font-size: 12px;
-        margin-right: 5px;
-        color: white;
-      }
-      .btn-edit {
-        background: #ffc107;
-        color: black;
-      }
-      .btn-delete {
-        background: #dc3545;
-      }
-
-      /* Loading Overlay */
-      .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 999;
-        font-size: 20px;
-        font-weight: bold;
-        color: #555;
-      }
+        /* --- CSS MỚI CHO MULTI-SELECT (CHỌN NHIỀU) --- */
+        .custom-select {
+            position: relative;
+            cursor: pointer;
+        }
+        .select-display {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: #fff;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+        }
+        .select-options {
+            display: none;
+            position: absolute;
+            top: 100%; left: 0; right: 0;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 0 0 6px 6px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .select-options.show { display: block; }
+        .option-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            align-items: center;
+        }
+        .option-item:hover { background: #f8f9fa; }
+        .option-item input { width: auto; margin-right: 10px; }
+        .option-item label { margin: 0; cursor: pointer; flex: 1; font-weight: normal;}
     </style>
-  </head>
-  <body>
-    <div class="loading-overlay" id="loadingOverlay">Đang xử lý...</div>
+</head>
+<body>
 
-    <div class="container">
-      <h2>QUẢN TRỊ LỊCH CÔNG TÁC</h2>
+<div class="loading-overlay" id="loadingOverlay">Đang tải dữ liệu...</div>
 
-      <div class="controls">
-        <div style="width: 120px">
-          <label>Năm:</label>
-          <select id="select-year"></select>
-        </div>
-        <div style="width: 120px">
-          <label>Tuần:</label>
-          <select id="select-week"></select>
-        </div>
-      </div>
-
-      <div
-        id="week-range"
-        style="text-align: center; font-style: italic; margin-bottom: 20px"
-      >
-        ...
-      </div>
-
-      <form id="schedule-form">
-        <input type="hidden" id="input-rowIndex" value="" />
-        <input type="hidden" id="input-action" value="add" />
-
-        <div class="row-2">
-          <div class="form-group">
-            <label>Ngày:</label>
-            <select id="input-date" required></select>
-          </div>
-          <div class="form-group">
-            <label>Buổi:</label>
-            <select id="input-session">
-              <option value="Sáng">Sáng</option>
-              <option value="Chiều">Chiều</option>
-              <option value="Tối">Tối</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row-2">
-          <div class="form-group">
-            <label>Giờ:</label>
-            <input type="text" id="input-time" placeholder="08h30" />
-          </div>
-          <div class="form-group">
-            <label>Đơn vị mời:</label>
-            <input type="text" id="input-host" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Nội dung:</label>
-          <textarea id="input-content" rows="3" required></textarea>
-        </div>
-
-        <div class="form-group">
-          <label>Địa điểm:</label>
-          <input type="text" id="input-location" />
-        </div>
-
-        <div class="row-2">
-          <div class="form-group">
-            <label>Thành phần:</label>
-            <input
-              type="text"
-              id="input-participants"
-              value="Thường trực Tỉnh ủy"
-            />
-          </div>
-          <div class="form-group">
-            <label>Lãnh đạo:</label>
-            <input type="text" id="input-leader" />
-          </div>
-        </div>
-
-        <div class="row-2">
-          <button type="submit" id="btn-save">THÊM MỚI</button>
-          <button type="button" id="btn-cancel" onclick="resetForm()">
-            HỦY SỬA
-          </button>
-        </div>
-      </form>
-
-      <div class="list-section">
-        <h3>DANH SÁCH LỊCH TUẦN NÀY</h3>
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 15%">Ngày/Giờ</th>
-              <th style="width: 45%">Nội dung</th>
-              <th style="width: 25%">Địa điểm</th>
-              <th style="width: 15%">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody id="admin-table-body"></tbody>
-        </table>
-      </div>
+<div class="container">
+    <h2>QUẢN TRỊ LỊCH CÔNG TÁC</h2>
+    <div class="controls">
+        <div><label>Năm:</label><select id="select-year"></select></div>
+        <div><label>Tuần:</label><select id="select-week"></select></div>
     </div>
+    <div id="week-range" style="text-align:center; font-style:italic; margin-bottom:20px;">...</div>
 
-    <script>
-      // ============================================================
-      // ⚠️ DÁN WEB APP URL CỦA BẠN VÀO ĐÂY
-      // ============================================================
-      const SCRIPT_URL =
-        "https://script.google.com/macros/s/AKfycbzbRrO1huCYRA1It2sz7LpqQYmONl0pBenrTjHqY0kLN-Sikhs59jQx1JSaTIf73L-I/exec";
+    <form id="schedule-form">
+        <input type="hidden" id="input-rowIndex" value="">
+        <input type="hidden" id="input-action" value="add">
 
-      let fullData = []; // Biến lưu toàn bộ dữ liệu tải về
+        <div class="row-2">
+            <div class="form-group"><label>Ngày:</label><select id="input-date" required></select></div>
+            <div class="form-group"><label>Buổi:</label><select id="input-session"><option>Sáng</option><option>Chiều</option><option>Tối</option></select></div>
+        </div>
 
-      // Khởi tạo
-      document.addEventListener("DOMContentLoaded", () => {
+        <div class="row-2">
+            <div class="form-group"><label>Giờ:</label><input type="text" id="input-time" placeholder="08h30"></div>
+            <div class="form-group"><label>Đơn vị mời:</label><input type="text" id="input-host"></div>
+        </div>
+
+        <div class="form-group"><label>Nội dung:</label><textarea id="input-content" rows="3" required></textarea></div>
+        <div class="form-group"><label>Địa điểm:</label><input type="text" id="input-location"></div>
+
+        <div class="row-2">
+            <div class="form-group">
+                <label>Thành phần (Thường trực...):</label>
+                <div class="custom-select" id="select-participants-container">
+                    <input type="hidden" id="input-participants"> <div class="select-display" onclick="toggleDropdown('participants-list')">-- Chọn thành phần --</div>
+                    <div class="select-options" id="participants-list">
+                        </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Lãnh đạo phụ trách:</label>
+                <div class="custom-select" id="select-leader-container">
+                    <input type="hidden" id="input-leader"> <div class="select-display" onclick="toggleDropdown('leader-list')">-- Chọn lãnh đạo --</div>
+                    <div class="select-options" id="leader-list">
+                         </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row-2">
+            <button type="submit" id="btn-save">THÊM MỚI</button>
+            <button type="button" id="btn-cancel" onclick="resetForm()">HỦY SỬA</button>
+        </div>
+    </form>
+
+    <div class="list-section">
+        <h3>DANH SÁCH LỊCH</h3>
+        <table>
+            <thead><tr><th width="15%">Ngày/Giờ</th><th width="40%">Nội dung</th><th width="20%">Thành phần</th><th width="15%">Thao tác</th></tr></thead>
+            <tbody id="admin-table-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    // ⚠️ DÁN LINK WEB APP CỦA BẠN VÀO ĐÂY
+    // ============================================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzbRrO1huCYRA1It2sz7LpqQYmONl0pBenrTjHqY0kLN-Sikhs59jQx1JSaTIf73L-I/exec'; 
+
+    let fullData = []; 
+    let systemConfig = { thuongTruc: [], lanhDaoVP: [] }; // Biến lưu danh sách cán bộ
+
+    document.addEventListener('DOMContentLoaded', () => {
         initControls();
-      });
+        fetchData();
+        
+        // Đóng dropdown khi click ra ngoài
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-select')) {
+                document.querySelectorAll('.select-options').forEach(el => el.classList.remove('show'));
+            }
+        });
+    });
 
-      // 1. Setup Dropdown & Load Data
-      function initControls() {
-        const yearSelect = document.getElementById("select-year");
-        const weekSelect = document.getElementById("select-week");
+    // 1. Tải dữ liệu (Lịch + Danh sách cán bộ)
+    function fetchData() {
+        showLoading(true);
+        // Thêm ?mode=admin để lấy cả Config
+        fetch(SCRIPT_URL + "?mode=admin")
+            .then(res => res.json())
+            .then(response => {
+                fullData = response.schedule; // Dữ liệu lịch
+                systemConfig = response.config; // Dữ liệu cán bộ
+                
+                // Khởi tạo các menu chọn
+                initMultiSelect('participants-list', systemConfig.thuongTruc, 'input-participants', "Thường trực Tỉnh ủy");
+                initMultiSelect('leader-list', systemConfig.lanhDaoVP, 'input-leader', "Tập thể lãnh đạo VPTU");
 
+                renderAdminTable();
+                showLoading(false);
+            })
+            .catch(err => {
+                alert("Lỗi tải dữ liệu: " + err);
+                showLoading(false);
+            });
+    }
+
+    // 2. Hàm tạo Multi-Select Checkbox
+    function initMultiSelect(containerId, dataList, inputId, groupName) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        dataList.forEach(name => {
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            div.innerHTML = `<label><input type="checkbox" value="${name}" data-group="${name === groupName}"> ${name}</label>`;
+            
+            // Xử lý sự kiện click checkbox
+            const checkbox = div.querySelector('input');
+            checkbox.addEventListener('change', function() {
+                handleCheckboxChange(containerId, inputId, this, groupName);
+            });
+
+            container.appendChild(div);
+        });
+    }
+
+    // 3. Logic: Chọn Nhóm thì bỏ chọn Cá nhân và ngược lại
+    function handleCheckboxChange(containerId, inputId, checkbox, groupName) {
+        const container = document.getElementById(containerId);
+        const allChecks = container.querySelectorAll('input[type="checkbox"]');
+        const isGroup = checkbox.getAttribute('data-group') === "true";
+
+        if (checkbox.checked) {
+            if (isGroup) {
+                // Nếu chọn Nhóm (VD: Thường trực Tỉnh ủy) -> Bỏ chọn tất cả người khác
+                allChecks.forEach(cb => {
+                    if (cb !== checkbox) cb.checked = false;
+                });
+            } else {
+                // Nếu chọn Cá nhân -> Bỏ chọn ô Nhóm
+                allChecks.forEach(cb => {
+                    if (cb.getAttribute('data-group') === "true") cb.checked = false;
+                });
+            }
+        }
+
+        // Cập nhật text hiển thị và giá trị input ẩn
+        updateDisplay(containerId, inputId);
+    }
+
+    function updateDisplay(containerId, inputId) {
+        const container = document.getElementById(containerId);
+        const displayDiv = container.previousElementSibling; // Thẻ .select-display
+        const hiddenInput = document.getElementById(inputId);
+        
+        const checked = Array.from(container.querySelectorAll('input:checked')).map(cb => cb.value);
+        
+        hiddenInput.value = checked.join(", "); // Gửi đi dạng: "Ông A, Bà B"
+        displayDiv.textContent = checked.length > 0 ? checked.join(", ") : "-- Chọn --";
+    }
+
+    // Toggle hiện dropdown
+    window.toggleDropdown = function(id) {
+        const el = document.getElementById(id);
+        const isShown = el.classList.contains('show');
+        document.querySelectorAll('.select-options').forEach(d => d.classList.remove('show')); // Đóng cái khác
+        if (!isShown) el.classList.add('show');
+    }
+
+    // --- CÁC HÀM CŨ (LOGIC XỬ LÝ LỊCH) GIỮ NGUYÊN ---
+    function initControls() {
+        // ... (Giữ nguyên logic tạo Năm/Tuần như bài trước) ...
+        const yearSelect = document.getElementById('select-year');
+        const weekSelect = document.getElementById('select-week');
         const today = new Date();
         let currentYear = today.getFullYear();
         let currentWeek = getWeekNumber(today);
-        if (today.getMonth() === 11 && currentWeek === 1) currentYear += 1;
+        if(today.getMonth() === 11 && currentWeek === 1) currentYear++;
 
-        // Tạo option Năm
-        for (let y = currentYear - 1; y <= currentYear + 1; y++) {
-          const opt = document.createElement("option");
-          opt.value = y;
-          opt.textContent = y;
-          yearSelect.appendChild(opt);
+        for(let y = currentYear -1; y <= currentYear +1; y++) {
+            let opt = document.createElement('option'); opt.value = y; opt.textContent = y; yearSelect.appendChild(opt);
         }
         yearSelect.value = currentYear;
-
-        // Tạo option Tuần
-        for (let w = 1; w <= 53; w++) {
-          const opt = document.createElement("option");
-          opt.value = w;
-          opt.textContent = `Tuần ${w}`;
-          weekSelect.appendChild(opt);
+        for(let w = 1; w <= 53; w++) {
+            let opt = document.createElement('option'); opt.value = w; opt.textContent = `Tuần ${w}`; weekSelect.appendChild(opt);
         }
         weekSelect.value = currentWeek;
+        updateDateRange();
+        yearSelect.addEventListener('change', ()=>{ updateDateRange(); renderAdminTable(); });
+        weekSelect.addEventListener('change', ()=>{ updateDateRange(); renderAdminTable(); });
+    }
 
-        updateDateRange(); // Tính ngày
-        fetchData(); // Tải dữ liệu về bảng
+    function renderAdminTable() {
+        const selectedYear = document.getElementById('select-year').value;
+        const selectedWeek = document.getElementById('select-week').value;
+        const tbody = document.getElementById('admin-table-body');
+        tbody.innerHTML = '';
+        const weekData = fullData.filter(row => row.Nam == selectedYear && row.Tuan == selectedWeek);
+        weekData.sort((a,b) => a.Ngay.localeCompare(b.Ngay));
 
-        // Sự kiện thay đổi
-        yearSelect.addEventListener("change", () => {
-          updateDateRange();
-          renderAdminTable();
-        });
-        weekSelect.addEventListener("change", () => {
-          updateDateRange();
-          renderAdminTable();
-        });
-      }
+        if(weekData.length === 0) { tbody.innerHTML = '<tr><td colspan="4" align="center">Chưa có dữ liệu</td></tr>'; return;}
 
-      // 2. Tải dữ liệu từ Google Sheet (Để hiển thị list bên dưới)
-      function fetchData() {
-        showLoading(true);
-        fetch(SCRIPT_URL)
-          .then((res) => res.json())
-          .then((data) => {
-            fullData = data;
-            renderAdminTable();
-            showLoading(false);
-          })
-          .catch((err) => {
-            alert("Lỗi tải dữ liệu: " + err);
-            showLoading(false);
-          });
-      }
-
-      // 3. Hiển thị dữ liệu ra bảng Admin
-      function renderAdminTable() {
-        const selectedYear = document.getElementById("select-year").value;
-        const selectedWeek = document.getElementById("select-week").value;
-        const tbody = document.getElementById("admin-table-body");
-
-        tbody.innerHTML = "";
-
-        // Lọc dữ liệu theo tuần/năm đang chọn
-        const weekData = fullData.filter(
-          (row) => row.Nam == selectedYear && row.Tuan == selectedWeek
-        );
-
-        if (weekData.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="4" style="text-align:center;">Chưa có dữ liệu nào.</td></tr>';
-          return;
-        }
-
-        // Sắp xếp theo ngày
-        weekData.sort((a, b) => {
-          // Logic sắp xếp đơn giản theo chuỗi ngày (cần cải thiện nếu muốn chuẩn xác tuyệt đối)
-          return a.Ngay.localeCompare(b.Ngay);
-        });
-
-        weekData.forEach((row) => {
-          const tr = document.createElement("tr");
-          // Lưu ý: row.rowIndex là ID dòng do Backend trả về
-          tr.innerHTML = `
-                <td><b>${row.Thu}</b><br>${row.Ngay.replace(
-            /'/g,
-            ""
-          )}<br><small>${row.Gio || ""}</small></td>
+        weekData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><b>${row.Thu}</b><br>${row.Ngay.replace(/'/g,"")}<br><small>${row.Gio||''}</small></td>
                 <td>${row.NoiDung}</td>
-                <td>${row.DiaDiem}</td>
+              <td>
+    <b>TP:</b> ${formatNameRender(row.ThanhPhan)} <br>
+    <b>LĐ:</b> ${formatNameRender(row.LanhDao)}
+</td>
                 <td>
-                    <button class="btn-action btn-edit" onclick='editRow(${JSON.stringify(
-                      row
-                    )})'>✏️ Sửa</button>
-                    <button class="btn-action btn-delete" onclick="deleteRow(${
-                      row.rowIndex
-                    })">🗑️ Xóa</button>
-                </td>
-            `;
-          tbody.appendChild(tr);
+                    <button class="btn-action btn-edit" onclick='editRow(${JSON.stringify(row)})'>✏️</button>
+                    <button class="btn-action btn-delete" onclick="deleteRow(${row.rowIndex})">🗑️</button>
+                </td>`;
+            tbody.appendChild(tr);
         });
-      }
+    }
 
-      // 4. CHỨC NĂNG SỬA: Đưa dữ liệu lên Form
-      window.editRow = function (row) {
-        // Cuộn lên đầu trang
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
-        // Điền dữ liệu vào form
-        document.getElementById("input-rowIndex").value = row.rowIndex;
-        document.getElementById("input-action").value = "edit";
-
-        // Chọn lại ngày trong dropdown (phức tạp vì dropdown chứa JSON)
-        // Ta duyệt qua các option để tìm option chứa ngày khớp
-        const dateSelect = document.getElementById("input-date");
-        let cleanDate = row.Ngay.replace(/'/g, "");
-        for (let i = 0; i < dateSelect.options.length; i++) {
-          let val = JSON.parse(dateSelect.options[i].value);
-          if (val.date === cleanDate) {
-            dateSelect.selectedIndex = i;
-            break;
-          }
+    window.editRow = function(row) {
+        window.scrollTo({top:0, behavior:'smooth'});
+        document.getElementById('input-rowIndex').value = row.rowIndex;
+        document.getElementById('input-action').value = 'edit';
+        
+        // Điền dữ liệu text thường
+        const dateSelect = document.getElementById('input-date');
+        let cleanDate = row.Ngay.replace(/'/g,"");
+        for(let i=0; i<dateSelect.options.length; i++){
+            let val = JSON.parse(dateSelect.options[i].value);
+            if(val.date === cleanDate) { dateSelect.selectedIndex = i; break; }
         }
+        document.getElementById('input-session').value = row.Buoi;
+        document.getElementById('input-time').value = row.Gio;
+        document.getElementById('input-host').value = row.DonViMoi;
+        document.getElementById('input-content').value = row.NoiDung;
+        document.getElementById('input-location').value = row.DiaDiem;
 
-        document.getElementById("input-session").value = row.Buoi;
-        document.getElementById("input-time").value = row.Gio;
-        document.getElementById("input-host").value = row.DonViMoi;
-        document.getElementById("input-content").value = row.NoiDung;
-        document.getElementById("input-location").value = row.DiaDiem;
-        document.getElementById("input-participants").value = row.ThanhPhan;
-        document.getElementById("input-leader").value = row.LanhDao;
+        // --- Xử lý CHECKBOX (Phục hồi trạng thái đã chọn) ---
+        restoreCheckboxState('participants-list', row.ThanhPhan, 'input-participants');
+        restoreCheckboxState('leader-list', row.LanhDao, 'input-leader');
 
-        // Đổi trạng thái nút
-        const btnSave = document.getElementById("btn-save");
+        const btnSave = document.getElementById('btn-save');
         btnSave.textContent = "CẬP NHẬT";
-        btnSave.classList.add("editing");
-        document.getElementById("btn-cancel").style.display = "block";
-      };
+        btnSave.classList.add('editing');
+        document.getElementById('btn-cancel').style.display = 'block';
+    }
 
-      // 5. CHỨC NĂNG XÓA
-      window.deleteRow = function (rowIndex) {
-        if (!confirm("Bạn có chắc chắn muốn xóa lịch này không?")) return;
+    function restoreCheckboxState(containerId, valueString, inputId) {
+        const container = document.getElementById(containerId);
+        const checkboxes = container.querySelectorAll('input');
+        // valueString ví dụ: "Ông A, Ông B"
+        const selectedValues = valueString ? valueString.split(',').map(s => s.trim()) : [];
+        
+        checkboxes.forEach(cb => {
+            cb.checked = selectedValues.includes(cb.value);
+        });
+        updateDisplay(containerId, inputId);
+    }
 
+    window.deleteRow = function(rowIndex) {
+        if(!confirm("Xóa lịch này?")) return;
         showLoading(true);
+        sendData({action: 'delete', rowIndex: rowIndex});
+    }
+
+    document.getElementById('schedule-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const dateObj = JSON.parse(document.getElementById('input-date').value);
+        
         const dataToSend = {
-          action: "delete",
-          rowIndex: rowIndex,
-        };
-
-        sendData(dataToSend);
-      };
-
-      // 6. Xử lý Submit Form (Thêm hoặc Sửa)
-      document
-        .getElementById("schedule-form")
-        .addEventListener("submit", (e) => {
-          e.preventDefault();
-
-          const action = document.getElementById("input-action").value;
-          const rowIndex = document.getElementById("input-rowIndex").value;
-          const dateObj = JSON.parse(
-            document.getElementById("input-date").value
-          );
-
-          const dataToSend = {
-            action: action, // 'add' hoặc 'edit'
-            rowIndex: rowIndex, // Chỉ dùng nếu edit
-
-            Nam: document.getElementById("select-year").value,
-            Tuan: document.getElementById("select-week").value,
+            action: document.getElementById('input-action').value,
+            rowIndex: document.getElementById('input-rowIndex').value,
+            Nam: document.getElementById('select-year').value,
+            Tuan: document.getElementById('select-week').value,
             Ngay: dateObj.date,
             Thu: dateObj.thu,
-            Buoi: document.getElementById("input-session").value,
-            Gio: document.getElementById("input-time").value,
-            DonViMoi: document.getElementById("input-host").value,
-            NoiDung: document.getElementById("input-content").value,
-            DiaDiem: document.getElementById("input-location").value,
-            ThanhPhan: document.getElementById("input-participants").value,
-            LanhDao: document.getElementById("input-leader").value,
-          };
+            Buoi: document.getElementById('input-session').value,
+            Gio: document.getElementById('input-time').value,
+            DonViMoi: document.getElementById('input-host').value,
+            NoiDung: document.getElementById('input-content').value,
+            DiaDiem: document.getElementById('input-location').value,
+            // Lấy giá trị từ input ẩn của custom select
+            ThanhPhan: document.getElementById('input-participants').value, 
+            LanhDao: document.getElementById('input-leader').value
+        };
+        showLoading(true);
+        sendData(dataToSend);
+    });
 
-          showLoading(true);
-          sendData(dataToSend);
-        });
-
-      // Hàm gửi dữ liệu đi
-      function sendData(data) {
+    function sendData(data) {
         fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        })
-          .then(() => {
-            // Vì no-cors không trả về response body, ta giả định thành công
-            // Tải lại dữ liệu mới nhất
-            fetchData();
-            resetForm();
-            // showLoading(false) sẽ được gọi trong fetchData
-          })
-          .catch((err) => {
-            alert("Lỗi: " + err);
-            showLoading(false);
-          });
-      }
+            method: 'POST', mode: 'no-cors',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        }).then(() => { fetchData(); resetForm(); })
+          .catch(err => { alert(err); showLoading(false); });
+    }
 
-      // Reset Form về trạng thái thêm mới
-      window.resetForm = function () {
-        document.getElementById("schedule-form").reset();
-        document.getElementById("input-action").value = "add";
-        document.getElementById("input-rowIndex").value = "";
+    window.resetForm = function() {
+        document.getElementById('schedule-form').reset();
+        document.getElementById('input-action').value = 'add';
+        document.getElementById('input-rowIndex').value = '';
+        document.getElementById('btn-save').textContent = "THÊM MỚI";
+        document.getElementById('btn-save').classList.remove('editing');
+        document.getElementById('btn-cancel').style.display = 'none';
+        
+        // Reset checkbox hiển thị
+        document.querySelectorAll('.select-display').forEach(d => d.textContent = '-- Chọn --');
+        document.querySelectorAll('input[type="checkbox"]').forEach(c => c.checked = false);
+        document.getElementById('input-participants').value = '';
+        document.getElementById('input-leader').value = '';
+    }
 
-        const btnSave = document.getElementById("btn-save");
-        btnSave.textContent = "THÊM MỚI";
-        btnSave.classList.remove("editing");
-        document.getElementById("btn-cancel").style.display = "none";
+    function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+    // (Các hàm helper ngày tháng giữ nguyên như cũ)
+    function getDateOfWeek(w,y){var s=new Date(y,0,1+(w-1)*7);var d=s.getDay();var i=s;if(d<=4)i.setDate(s.getDate()-s.getDay()+1);else i.setDate(s.getDate()+8-s.getDay());return i;}
+    function formatDate(d){var dd=d.getDate().toString().padStart(2,'0');var mm=(d.getMonth()+1).toString().padStart(2,'0');return `${dd}/${mm}/${d.getFullYear()}`;}
+    function getWeekNumber(d){d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));var y=new Date(Date.UTC(d.getUTCFullYear(),0,1));return Math.ceil((((d-y)/86400000)+1)/7);}
+    function updateDateRange(){
+        const y=parseInt(document.getElementById('select-year').value);const w=parseInt(document.getElementById('select-week').value);
+        const s=getDateOfWeek(w,y);const ds=document.getElementById('input-date');ds.innerHTML='';
+        let strS="",strE="";const days=["Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ Nhật"];
+        for(let i=0;i<7;i++){let c=new Date(s);c.setDate(s.getDate()+i);let dstr=formatDate(c);let t=days[i];
+        let opt=document.createElement('option');opt.value=JSON.stringify({date:dstr,thu:t});opt.textContent=`${t} - ${dstr}`;ds.appendChild(opt);
+        if(i===0)strS=dstr;if(i===6)strE=dstr;}document.getElementById('week-range').textContent=`(Từ ${strS} đến ${strE})`;
+    }
+    // --- HÀM XỬ LÝ HIỂN THỊ TÊN (Dùng chung cho cả 2 file) ---
+function formatNameRender(text) {
+    if (!text) return "";
 
-        // Set lại giá trị mặc định cho dropdown ngày (để tránh lỗi reset trắng)
-        updateDateRange();
-      };
+    // 1. Danh sách các nhóm KHÔNG thêm chữ "Đ/c"
+    // Bạn có thể thêm các nhóm khác vào mảng này nếu cần
+    const groupNames = [
+        "Thường trực Tỉnh ủy", 
+        "Tập thể lãnh đạo VPTU",
+        "Ban Thường vụ Tỉnh ủy"
+    ];
 
-      // Hiệu ứng Loading
-      function showLoading(show) {
-        document.getElementById("loadingOverlay").style.display = show
-          ? "flex"
-          : "none";
-      }
+    // 2. Tách chuỗi dấu phẩy thành mảng các tên
+    let people = text.split(',').map(s => s.trim()).filter(s => s !== "");
 
-      // --- CÁC HÀM TIỆN ÍCH NGÀY THÁNG (GIỮ NGUYÊN) ---
-      function getDateOfWeek(w, y) {
-        var simple = new Date(y, 0, 1 + (w - 1) * 7);
-        var dow = simple.getDay();
-        var ISOweekStart = simple;
-        if (dow <= 4)
-          ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
-        else ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
-        return ISOweekStart;
-      }
-      function formatDate(date) {
-        var d = date.getDate().toString().padStart(2, "0");
-        var m = (date.getMonth() + 1).toString().padStart(2, "0");
-        var y = date.getFullYear();
-        return `${d}/${m}/${y}`;
-      }
-      function getWeekNumber(d) {
-        d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-        var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
-      }
-      function updateDateRange() {
-        const y = parseInt(document.getElementById("select-year").value);
-        const w = parseInt(document.getElementById("select-week").value);
-        const startDate = getDateOfWeek(w, y);
-        const dateSelect = document.getElementById("input-date");
+    if (people.length === 0) return "";
 
-        // Lưu lại giá trị đang chọn (nếu có) để giữ lại sau khi reset
-        const currentVal = dateSelect.value;
-
-        dateSelect.innerHTML = "";
-        let startStr = "",
-          endStr = "";
-        const daysOfWeek = [
-          "Thứ Hai",
-          "Thứ Ba",
-          "Thứ Tư",
-          "Thứ Năm",
-          "Thứ Sáu",
-          "Thứ Bảy",
-          "Chủ Nhật",
-        ];
-
-        for (let i = 0; i < 7; i++) {
-          const currentDay = new Date(startDate);
-          currentDay.setDate(startDate.getDate() + i);
-          const dateStr = formatDate(currentDay);
-          const thuStr = daysOfWeek[i];
-          const opt = document.createElement("option");
-          opt.value = JSON.stringify({ date: dateStr, thu: thuStr });
-          opt.textContent = `${thuStr} - ${dateStr}`;
-          dateSelect.appendChild(opt);
-          if (i === 0) startStr = dateStr;
-          if (i === 6) endStr = dateStr;
+    // 3. Xử lý thêm "Đ/c"
+    let formattedList = people.map(name => {
+        // Kiểm tra xem tên này có nằm trong nhóm không cần Đ/c không
+        // (So sánh không phân biệt hoa thường để chính xác hơn)
+        const isGroup = groupNames.some(g => g.toLowerCase() === name.toLowerCase());
+        
+        if (isGroup) {
+            return `<span style="font-weight:bold">${name}</span>`; // In đậm tên nhóm
+        } else {
+            return `Đ/c ${name}`; // Thêm Đ/c vào trước tên riêng
         }
-        document.getElementById(
-          "week-range"
-        ).textContent = `(Từ ngày ${startStr} đến ngày ${endStr})`;
-      }
-    </script>
-  </body>
+    });
+
+    // 4. Logic xuống dòng
+    if (formattedList.length >= 2) {
+        // Nếu có 2 người trở lên: Xuống dòng (<br>), căn trái
+        return `<div style="text-align: left;">${formattedList.join('<br>')}</div>`;
+    } else {
+        // Nếu chỉ 1 người/nhóm: Giữ nguyên (Căn giữa theo CSS mặc định của ô)
+        return formattedList[0];
+    }
+}
+</script>
+</body>
 </html>
