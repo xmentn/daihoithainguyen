@@ -218,7 +218,6 @@
                             <td>${event.DonViMoi || ""}</td>
                             <td style="text-align: left;">${event.NoiDung || ""}</td>
                             <td style="text-align: center;">${event.DiaDiem || ""}</td>
-                            
                             <td class="${checkHighlight(event.ThanhPhan)}">${formatNameRender(event.ThanhPhan)}</td>
                             <td>${formatNameRender(event.LanhDao)}</td>
                         `;
@@ -230,23 +229,48 @@
 
         // --- CÁC HÀM TIỆN ÍCH ---
 
-        // ⚠️ ĐÂY LÀ HÀM QUAN TRỌNG BẠN BỊ THIẾU
+        // 🔥 HÀM XỬ LÝ TÊN (ĐÃ SỬA LOGIC THEO YÊU CẦU MỚI) 🔥
+// 🔥 HÀM XỬ LÝ TÊN (ĐÃ NÂNG CẤP ĐỂ BẮT LỖI KHOẢNG TRẮNG) 🔥
         function formatNameRender(text) {
             if (!text) return "";
-            const groupNames = ["Thường trực Tỉnh ủy", "Tập thể lãnh đạo VPTU", "Ban Thường vụ Tỉnh ủy"];
-            let people = text.split(',').map(s => s.trim()).filter(s => s !== "");
 
-            if (people.length === 0) return "";
+            // 1. Chuyển toàn bộ text về chữ thường và xóa khoảng trắng thừa để so sánh
+            // Ví dụ: "Tập thể  Lãnh đạo   VPTU" -> "tập thể lãnh đạo vptu"
+            const normalizedText = text.toLowerCase().replace(/\s+/g, ' ').trim();
 
-            let formattedList = people.map(name => {
-                const isGroup = groupNames.some(g => g.toLowerCase() === name.toLowerCase());
-                if (isGroup) {
-                    return `<span style="font-weight:bold">${name}</span>`;
-                } else {
-                    return `Đ/c ${name}`;
+            // 2. Danh sách từ khóa nhận diện Nhóm (Chỉ cần chứa từ này là tính)
+            const groupKeywords = [
+                "thường trực tỉnh ủy", 
+                "tập thể lãnh đạo",    // Chỉ cần chứa cụm này là được (bất kể phía sau là VPTU hay Văn phòng)
+                "ban thường vụ",
+                "thường trực hđnd",
+                "lãnh đạo ubnd"
+            ];
+
+            // 3. LOGIC ƯU TIÊN: Kiểm tra xem text có chứa từ khóa nhóm không
+            // Nếu có -> Trả về tên gốc (In đậm), Bỏ qua các tên khác đi kèm
+            for (let keyword of groupKeywords) {
+                if (normalizedText.includes(keyword)) {
+                    // Tìm thấy từ khóa nhóm!
+                    // Tách tên nhóm ra khỏi chuỗi (trong trường hợp chọn lộn xộn)
+                    // Nhưng đơn giản nhất là: Nếu phát hiện nhóm, ta lấy luôn tên nhóm gốc từ dữ liệu nhập vào
+                    // Để an toàn: Ta lấy lại đúng cái tên nhóm trong danh sách người nhập
+                    
+                    let people = text.split(',').map(s => s.trim());
+                    // Tìm lại cái tên gốc có chứa từ khóa này để hiển thị cho đẹp (giữ Hoa/Thường)
+                    let originalGroupName = people.find(p => p.toLowerCase().replace(/\s+/g, ' ').includes(keyword));
+                    
+                    return `<span style="font-weight:bold">${originalGroupName || text}</span>`;
                 }
+            }
+
+            // 4. Nếu không phải nhóm: Xử lý cá nhân bình thường (Thêm Đ/c)
+            let people = text.split(',').map(s => s.trim()).filter(s => s !== "");
+            let formattedList = people.map(name => {
+                return `Đ/c ${name}`;
             });
 
+            // 5. Trình bày: Nhiều người thì xuống dòng
             if (formattedList.length >= 2) {
                 return `<div style="text-align: left;">${formattedList.join('<br>')}</div>`;
             } else {
@@ -269,7 +293,9 @@
         }
 
         function checkHighlight(text) {
-            return text && text.toString().includes("Đ/c") ? "highlight" : "";
+            // Hàm này chỉ dùng để tô đỏ text trong thẻ td (nếu cần), hiện tại logic tô đỏ đã chuyển vào formatNameRender
+            // Nhưng vẫn giữ lại để tương thích CSS
+            return ""; 
         }
 
         function updateDateSubtitle(w, y) {
