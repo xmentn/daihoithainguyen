@@ -11,8 +11,7 @@
 <body>
 
     <div class="container">
-        <h2>GIẢI CỜ TƯỚNG CLB CỜ TƯỚNG CẦU CA MỞ RỘNG NĂM 2025</h2>
-        <h1>ỨNG DỤNG LẤY SỐ TỰ ĐỘNG </h1>
+        <h1>GÁN SỐ THỨ TỰ NGẪU NHIÊN</h1>
         
         <div class="input-section">
             <div class="card">
@@ -28,7 +27,7 @@
         </div>
 
         <div id="previewSection" class="hidden">
-            <h3>Danh sách đã nhập (<span id="totalCount">0</span> người)</h3>
+            <h3>Danh sách tham gia (<span id="totalCount">0</span> người)</h3>
             <div class="table-scroll">
                 <table>
                     <thead>
@@ -37,28 +36,27 @@
                             <th>Họ và tên</th>
                         </tr>
                     </thead>
-                    <tbody id="previewBody">
-                        </tbody>
+                    <tbody id="previewBody"></tbody>
                 </table>
             </div>
         </div>
 
         <div class="button-group">
-            <button onclick="processRandomize()" class="btn-action">🎲 Chọn Số Ngẫu Nhiên</button>
+            <button id="spinBtn" onclick="toggleSpin()" class="btn-action">🎲 Bắt đầu Quay</button>
             <button onclick="clearList()" class="btn-clear">🗑️ Xóa Danh Sách</button>
         </div>
 
         <div id="resultSection" class="hidden">
-            <h2>Kết Quả Bốc Thăm</h2>
+            <h2>KẾT QUẢ</h2>
             <table id="resultTable">
                 <thead>
                     <tr>
                         <th style="width: 50px;">STT</th>
                         <th>Tên Người</th>
-                        <th>Số Được Chọn</th>
+                        <th>Số May Mắn</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="resultBody">
                     </tbody>
             </table>
         </div>

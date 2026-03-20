@@ -1,6 +1,8 @@
 let namesList = [];
+let spinInterval = null; // Biến để kiểm soát vòng lặp quay
+let isSpinning = false;  // Trạng thái đang quay hay dừng
 
-// Xử lý khi chọn file Excel
+// --- PHẦN XỬ LÝ FILE EXCEL VÀ NHẬP LIỆU (GIỮ NGUYÊN) ---
 document.getElementById('excelInput').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -13,17 +15,13 @@ document.getElementById('excelInput').addEventListener('change', function(e) {
         const worksheet = workbook.Sheets[firstSheetName];
         const jsonData = XLSX.utils.sheet_to_json(worksheet, {header: 1});
         
-        // Lấy cột A, lọc bỏ ô trống
         namesList = jsonData.map(row => row[0]).filter(name => name && name.toString().trim() !== "");
-        
-        // Đưa vào ô nhập liệu và cập nhật bảng xem trước
         document.getElementById('manualInput').value = namesList.join("\n");
-        updatePreview(); // Gọi hàm cập nhật bảng
+        updatePreview();
     };
     reader.readAsArrayBuffer(file);
 });
 
-// Hàm cập nhật bảng "Danh sách đã nhập" (Có cột STT)
 function updatePreview() {
     const rawText = document.getElementById('manualInput').value;
     namesList = rawText.split('\n').map(n => n.trim()).filter(n => n !== "");
@@ -32,13 +30,11 @@ function updatePreview() {
     const previewBody = document.getElementById('previewBody');
     const totalCount = document.getElementById('totalCount');
 
-    // Nếu không có tên nào, ẩn bảng đi
     if (namesList.length === 0) {
         previewSection.classList.add('hidden');
         return;
     }
 
-    // Hiển thị bảng và cập nhật dữ liệu
     previewSection.classList.remove('hidden');
     previewBody.innerHTML = "";
     totalCount.innerText = namesList.length;
@@ -52,67 +48,98 @@ function updatePreview() {
     });
 }
 
-// Hàm Xóa Danh Sách
 function clearList() {
-    // 1. Xóa dữ liệu biến
+    if (isSpinning) {
+        alert("Đang quay số, vui lòng dừng trước khi xóa!");
+        return;
+    }
     namesList = [];
-    
-    // 2. Xóa giao diện input
     document.getElementById('manualInput').value = "";
-    document.getElementById('excelInput').value = ""; // Reset file input
-    
-    // 3. Ẩn các bảng
+    document.getElementById('excelInput').value = "";
     document.getElementById('previewSection').classList.add('hidden');
     document.getElementById('resultSection').classList.add('hidden');
-    
-    // 4. Xóa nội dung bảng
     document.getElementById('previewBody').innerHTML = "";
-    document.querySelector("#resultTable tbody").innerHTML = "";
+    document.getElementById('resultBody').innerHTML = "";
 }
 
-// Hàm Bốc Thăm
-function processRandomize() {
-    // Cập nhật lại danh sách lần cuối từ ô input để chắc chắn
+// --- PHẦN LOGIC QUAY SỐ MỚI ---
+
+function toggleSpin() {
+    const btn = document.getElementById('spinBtn');
+    
+    // Kiểm tra dữ liệu đầu vào
     const rawText = document.getElementById('manualInput').value;
     let finalNames = rawText.split('\n').map(n => n.trim()).filter(n => n !== "");
-
+    
     if (finalNames.length === 0) {
         alert("Danh sách trống! Vui lòng nhập tên.");
         return;
     }
 
-    // Tạo mảng số từ 1 đến N
-    let numbers = [];
-    for (let i = 1; i <= finalNames.length; i++) {
-        numbers.push(i);
+    if (!isSpinning) {
+        // --- BẮT ĐẦU QUAY ---
+        isSpinning = true;
+        
+        // 1. Đổi giao diện nút
+        btn.innerText = "🛑 DỪNG LẠI";
+        btn.classList.add('btn-stop'); // Đổi màu cam/đỏ
+        
+        // 2. Hiện bảng kết quả (nhưng chưa có số chính thức)
+        document.getElementById('resultSection').classList.remove('hidden');
+        const resultBody = document.getElementById('resultBody');
+        
+        // 3. Tạo cấu trúc bảng
+        resultBody.innerHTML = "";
+        finalNames.forEach((name, index) => {
+            const row = `<tr id="row-${index}">
+                            <td style="text-align:center;">${index + 1}</td>
+                            <td>${name}</td>
+                            <td class="spinning-number" id="num-${index}">...</td>
+                        </tr>`;
+            resultBody.innerHTML += row;
+        });
+
+        // 4. Bắt đầu hiệu ứng nhảy số
+        // Cứ 50ms sẽ thay đổi số 1 lần để tạo cảm giác đang quay
+        spinInterval = setInterval(() => {
+            finalNames.forEach((_, index) => {
+                const cell = document.getElementById(`num-${index}`);
+                // Hiện số ngẫu nhiên giả vờ (để đẹp mắt thôi)
+                const randomNum = Math.floor(Math.random() * finalNames.length) + 1; 
+                cell.innerText = randomNum;
+            });
+        }, 50);
+
+    } else {
+        // --- DỪNG QUAY VÀ CHỐT SỐ ---
+        isSpinning = false;
+        clearInterval(spinInterval); // Dừng hiệu ứng nhảy số
+
+        // 1. Đổi lại giao diện nút
+        btn.innerText = "🎲 Bắt đầu Quay";
+        btn.classList.remove('btn-stop');
+
+        // 2. Tính toán kết quả CHÍNH THỨC (không trùng lặp)
+        let numbers = [];
+        for (let i = 1; i <= finalNames.length; i++) {
+            numbers.push(i);
+        }
+        shuffleArray(numbers); // Trộn kỹ
+
+        // 3. Cập nhật giao diện lần cuối
+        finalNames.forEach((_, index) => {
+            const cell = document.getElementById(`num-${index}`);
+            cell.innerText = numbers[index]; // Gán số chính thức
+            cell.classList.remove('spinning-number');
+            cell.classList.add('final-number'); // Hiệu ứng chữ đậm/màu đỏ
+        });
     }
-
-    // Trộn ngẫu nhiên
-    shuffleArray(numbers);
-
-    // Hiển thị kết quả
-    displayResult(finalNames, numbers);
 }
 
+// Thuật toán tráo bài Fisher-Yates (Giữ nguyên)
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
     }
-}
-
-function displayResult(names, numbers) {
-    const tbody = document.querySelector("#resultTable tbody");
-    tbody.innerHTML = ""; 
-
-    for (let i = 0; i < names.length; i++) {
-        const row = `<tr>
-                        <td style="text-align:center;">${i + 1}</td>
-                        <td>${names[i]}</td>
-                        <td style="color: #d9534f; font-weight: bold; font-size: 1.1em;">${numbers[i]}</td>
-                    </tr>`;
-        tbody.innerHTML += row;
-    }
-
-    document.getElementById('resultSection').classList.remove('hidden');
 }
