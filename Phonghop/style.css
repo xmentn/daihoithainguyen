@@ -304,3 +304,113 @@ body {
     background-color: #ffeaa7;
     /* Đổi màu bảng tên sang vàng nhạt */
 }
+
+/* =========================================
+   GIAO DIỆN ĐIỆN THOẠI (Responsive Mobile)
+   ========================================= */
+@media screen and (max-width: 768px) {
+
+    /* Giảm lề xung quanh để tiết kiệm diện tích */
+    .room-container {
+        padding: 15px;
+    }
+
+    /* 1. Sửa lỗi thanh tra cứu bị co rúm */
+    .search-container {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        width: 100%;
+    }
+
+    .search-container input {
+        width: 100%;
+        flex: 1;
+        /* Cho ô nhập chữ tự động giãn hết mức có thể */
+    }
+
+    .search-container button {
+        white-space: nowrap;
+        /* Không cho chữ trong nút bị rớt dòng */
+    }
+
+    /* 2. Ép hàng Chủ tọa KHÔNG được rớt dòng (chồng lên nhau) */
+    .row-container {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        /* Nếu thêm 4-5 chủ tọa, cho phép dùng ngón tay vuốt ngang */
+        padding-bottom: 10px;
+        /* Tạo khoảng trống nhỏ cho thanh cuộn nếu có */
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* 3. Thu nhỏ bàn ghế Chủ tọa */
+    .top-seat .desk {
+        width: 100px;
+        height: 40px;
+        margin-top: 5px;
+    }
+
+    .top-seat .chair {
+        width: 30px;
+        height: 25px;
+        border-radius: 10px 10px 5px 5px;
+    }
+
+    .top-seat .nameplate {
+        width: 95px;
+    }
+
+    /* 4. Thu nhỏ bàn ghế 2 bên cánh */
+    .left-seat .desk,
+    .right-seat .desk {
+        width: 40px;
+        height: 100px;
+        margin-left: 5px;
+        margin-right: 5px;
+    }
+
+    .left-seat .chair,
+    .right-seat .chair {
+        width: 25px;
+        height: 30px;
+    }
+
+    .left-seat .chair {
+        border-radius: 10px 5px 5px 10px;
+    }
+
+    .right-seat .chair {
+        border-radius: 5px 10px 10px 5px;
+    }
+
+    .left-seat .nameplate,
+    .right-seat .nameplate {
+        width: 95px;
+    }
+
+    /* 5. Thu nhỏ phông chữ */
+    .delegate-name {
+        font-size: 8.5px;
+    }
+
+    .position-tag {
+        font-size: 8px;
+    }
+
+    /* 6. Chỉnh lại khu trung tâm cho cân đối */
+    .side-container {
+        max-width: 100%;
+    }
+
+    .middle-space {
+        padding: 0 15px;
+    }
+
+    .carpet {
+        min-height: 150px;
+        font-size: 11px;
+        text-align: center;
+        padding: 10px;
+    }
+}
