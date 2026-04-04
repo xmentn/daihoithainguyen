@@ -280,6 +280,10 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     margin-bottom: 5px;
     border: 1px solid #74b9ff;
+    text-align: center;
+    /* Căn giữa nội dung 2 dòng */
+    line-height: 1.4;
+    /* Tạo khoảng cách dòng vừa phải */
 }
 
 .tooltip::after {

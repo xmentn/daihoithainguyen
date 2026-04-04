@@ -70,18 +70,18 @@ function renderMeetingRoom(data) {
 
     // ĐÃ SỬA: Thay ${delegate.position} bằng chữ "Đồng chí" ở dòng <div class="position-tag">
     const createSeatHTML = (delegate, typeClass) => `
-        <div class="seat-wrapper ${typeClass}" data-name="${delegate.name.toLowerCase()}">
-            <div class="tooltip">${delegate.name}</div>
-            <div class="chair"></div>
-            <div class="desk">
-                <div class="nameplate">
-                    <div class="position-tag">Đồng chí</div>
-                    <div class="delegate-name">${delegate.name}</div>
-                </div>
+    <div class="seat-wrapper ${typeClass}" data-name="${delegate.name.toLowerCase()}">
+        <div class="tooltip">Đồng chí<br>${delegate.name}</div>
+        
+        <div class="chair"></div>
+        <div class="desk">
+            <div class="nameplate">
+                <div class="position-tag">Đồng chí</div>
+                <div class="delegate-name">${delegate.name}</div>
             </div>
         </div>
-    `;
-
+    </div>
+`;
     topSeats.forEach(delegate => topContainer.innerHTML += createSeatHTML(delegate, 'top-seat'));
     leftSeats.forEach(delegate => leftContainer.innerHTML += createSeatHTML(delegate, 'left-seat'));
     rightSeats.forEach(delegate => rightContainer.innerHTML += createSeatHTML(delegate, 'right-seat'));
