@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ban Chỉ đạo thực hiện NQ 57 các xã, phường</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="loading" class="loading-overlay">
+      <div class="spinner-border text-primary" role="status"></div>
+      <h5 class="mt-2" id="loading-text">Đang tải dữ liệu...</h5>
+    </div>
+
+    <div class="container mt-4">
+      <div class="row align-items-center mb-4">
+        <div class="col-md-3 d-none d-md-block"></div>
+        <div class="col-md-6 text-center">
+          <h2 class="text-primary fw-bold mb-0">
+            Ban Chỉ đạo NQ 57 các xã, phường
+          </h2>
+        </div>
+        <div class="col-md-3 text-end mt-3 mt-md-0">
+          <button
+            class="btn btn-success me-1 fw-bold shadow-sm"
+            onclick="showForm()"
+          >
+            + Nhập mới
+          </button>
+          <button
+            class="btn btn-info text-white fw-bold shadow-sm"
+            onclick="showReportModal()"
+          >
+            📊 Báo cáo
+          </button>
+        </div>
+      </div>
+
+      <div class="card mb-4 shadow-sm" id="listSection">
+        <div class="card-header bg-white fw-bold text-primary">
+          Danh sách đơn vị đã nhập dữ liệu
+        </div>
+        <div class="card-body p-0 table-responsive">
+          <table class="table table-hover table-bordered align-middle mb-0">
+            <thead class="table-light text-center">
+              <tr>
+                <th>Đơn vị</th>
+                <th>Trưởng ban</th>
+                <th>Số TV</th>
+                <th>Mô hình đột phá</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="dataTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div
+        class="card form-container shadow-sm mb-5"
+        id="formSection"
+        style="display: none"
+      >
+        <div
+          class="card-header bg-primary text-white d-flex justify-content-between align-items-center"
+        >
+          <div class="d-flex align-items-center">
+            <h5 class="mb-0 fw-bold" id="formTitle">Nhập dữ liệu mới</h5>
+            <button
+              type="button"
+              class="btn btn-sm btn-warning ms-3 fw-bold text-dark shadow-sm"
+              onclick="showHuongDan()"
+            >
+              💡 Hướng dẫn
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            onclick="hideForm()"
+          ></button>
+        </div>
+        <div class="card-body bg-white rounded-bottom">
+          <form id="dataForm">
+            <input type="hidden" id="action" value="add" />
+            <input type="hidden" id="rowIdx" value="" />
+
+            <div class="mb-3">
+              <label class="form-label fw-bold">1. Tên đơn vị</label>
+              <select class="form-select border-primary" id="donvi" required>
+                <option value="" disabled selected>-- Chọn đơn vị --</option>
+              </select>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold">2. Ban Chỉ đạo</label>
+                <select class="form-select" id="banchidao" required>
+                  <option value="Có Ban Chỉ đạo" selected>
+                    Có Ban Chỉ đạo
+                  </option>
+                  <option value="Không có Ban Chỉ đạo">
+                    Không có Ban Chỉ đạo
+                  </option>
+                </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold" id="label-truongban"
+                  >3. Trưởng Ban Chỉ đạo</label
+                >
+                <select class="form-select" id="truongban" required>
+                  <option value="Bí thư Đảng ủy">Bí thư Đảng ủy</option>
+                  <option value="Phó Bí thư Thường trực Đảng ủy">
+                    Phó Bí thư Thường trực Đảng ủy
+                  </option>
+                  <option value="Khác">Khác</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold" id="label-sothanhvien"
+                  >4. Số thành viên BCĐ</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="sothanhvien"
+                  min="0"
+                  required
+                  placeholder="Nhập số lượng"
+                />
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold text-success"
+                  >5. Nội dung đột phá/Mô hình tiêu biểu</label
+                >
+                <select
+                  class="form-select border-success"
+                  id="noidungdotpha"
+                  required
+                >
+                  <option value="Có">Có</option>
+                  <option value="Không có">Không có</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label fw-bold">6. Mô tả / Minh chứng</label>
+              <textarea
+                class="form-control"
+                id="mota"
+                rows="4"
+                placeholder="Nhập thông tin mô tả chi tiết, minh chứng cụ thể..."
+              ></textarea>
+            </div>
+
+            <div class="d-flex justify-content-end">
+              <button
+                type="button"
+                class="btn btn-secondary me-2 px-4"
+                onclick="hideForm()"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary px-5 fw-bold shadow-sm"
+              >
+                💾 Lưu Dữ Liệu
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="detailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title fw-bold" id="detailModalTitle">
+              Chi tiết Đơn vị
+            </h5>
+            <button
+              type="button"
+              class="btn-close btn-close-white"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body bg-light">
+            <div class="card border-0 shadow-sm">
+              <div class="card-body p-0">
+                <table class="table table-bordered mb-0">
+                  <tbody>
+                    <tr>
+                      <th class="bg-light" style="width: 35%">Ban Chỉ đạo</th>
+                      <td id="detBanChiDao"></td>
+                    </tr>
+                    <tr>
+                      <th class="bg-light">Trưởng Ban</th>
+                      <td id="detTruongBan"></td>
+                    </tr>
+                    <tr>
+                      <th class="bg-light">Số thành viên</th>
+                      <td id="detSoThanhVien"></td>
+                    </tr>
+                    <tr>
+                      <th class="bg-light">Mô hình tiêu biểu/Đột phá</th>
+                      <td><span class="badge bg-success fs-6">Có</span></td>
+                    </tr>
+                    <tr>
+                      <th class="bg-light">Mô tả / Minh chứng</th>
+                      <td
+                        id="detMoTa"
+                        style="
+                          white-space: pre-line;
+                          color: #055160;
+                          background-color: #cff4fc;
+                        "
+                        class="fw-bold fst-italic p-3"
+                      ></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer bg-light">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="reportModal" tabindex="-1">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content border-0 shadow-lg">
+          <div class="modal-header bg-info text-white">
+            <h5 class="modal-title fw-bold">Báo cáo tổng hợp</h5>
+            <div class="d-flex align-items-center">
+              <button
+                class="btn btn-danger btn-sm me-3 fw-bold shadow-sm"
+                onclick="exportPDF()"
+              >
+                📄 Xuất file PDF
+              </button>
+              <button
+                type="button"
+                class="btn-close btn-close-white"
+                data-bs-dismiss="modal"
+              ></button>
+            </div>
+          </div>
+          <div class="modal-body bg-light">
+            <ul class="nav nav-tabs" id="reportTabs" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active fw-bold"
+                  id="tab-canbo"
+                  data-bs-toggle="tab"
+                  data-bs-target="#content-canbo"
+                  type="button"
+                  role="tab"
+                >
+                  Theo Cán bộ nắm thông tin
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link fw-bold"
+                  id="tab-dotpha"
+                  data-bs-toggle="tab"
+                  data-bs-target="#content-dotpha"
+                  type="button"
+                  role="tab"
+                >
+                  Theo Nội dung đột phá
+                </button>
+              </li>
+            </ul>
+            <div
+              class="tab-content pt-3 bg-white border border-top-0 p-3 rounded-bottom shadow-sm"
+            >
+              <div
+                class="tab-pane fade show active"
+                id="content-canbo"
+                role="tabpanel"
+              >
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold text-muted"
+                      >Lọc theo cán bộ:</label
+                    >
+                    <select
+                      id="filterCanBo"
+                      class="form-select border-info shadow-sm"
+                    ></select>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="card border-success h-100 shadow-sm">
+                      <div
+                        class="card-header bg-success text-white fw-bold d-flex justify-content-between"
+                      >
+                        <span>Đã nhập thông tin</span>
+                        <span
+                          class="badge bg-light text-success fs-6"
+                          id="countDaNhap"
+                          >0</span
+                        >
+                      </div>
+                      <ul
+                        class="list-group list-group-flush"
+                        id="listDaNhap"
+                      ></ul>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div
+                      class="card border-danger h-100 mt-3 mt-md-0 shadow-sm"
+                    >
+                      <div
+                        class="card-header bg-danger text-white fw-bold d-flex justify-content-between"
+                      >
+                        <span>Chưa nhập thông tin</span>
+                        <span
+                          class="badge bg-light text-danger fs-6"
+                          id="countChuaNhap"
+                          >0</span
+                        >
+                      </div>
+                      <ul
+                        class="list-group list-group-flush"
+                        id="listChuaNhap"
+                      ></ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="content-dotpha" role="tabpanel">
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-bold text-muted"
+                      >Lọc theo tiêu chí:</label
+                    >
+                    <select
+                      id="filterDotPha"
+                      class="form-select border-info shadow-sm"
+                    >
+                      <option value="Có">
+                        Các đơn vị CÓ Nội dung đột phá/Mô hình tiêu biểu
+                      </option>
+                      <option value="Không có">
+                        Các đơn vị KHÔNG CÓ Nội dung đột phá/Mô hình tiêu biểu
+                      </option>
+                    </select>
+                  </div>
+                </div>
+                <div class="card border-primary shadow-sm">
+                  <div
+                    class="card-header bg-primary text-white fw-bold d-flex justify-content-between"
+                  >
+                    <span>Danh sách đơn vị</span>
+                    <span
+                      class="badge bg-light text-primary fs-6"
+                      id="countDotPha"
+                      >0</span
+                    >
+                  </div>
+                  <ul class="list-group list-group-flush" id="listDotPha"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
