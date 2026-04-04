@@ -44,7 +44,6 @@ function parseCSV(csvText) {
 }
 
 function renderMeetingRoom(data) {
-    // 1. Logic Chủ tọa: CT chẵn bên trái màn hình (phải chủ tọa), CT lẻ bên phải màn hình (trái chủ tọa)
     const allCT = data.filter(d => d.position.startsWith('CT')).sort((a, b) => getSeatNumber(a.position) - getSeatNumber(a.position));
     let topSeats = [];
     allCT.forEach(delegate => {
@@ -58,11 +57,7 @@ function renderMeetingRoom(data) {
         }
     });
 
-    // 2. SỬA LỖI ĐẢO BÊN: 
-    // Ghế P (Phải chủ tọa) -> Hiển thị ở Cột Trái màn hình
     const leftSeats = data.filter(d => d.position.startsWith('P')).sort((a, b) => getSeatNumber(a.position) - getSeatNumber(b.position));
-
-    // Ghế T (Trái chủ tọa) -> Hiển thị ở Cột Phải màn hình
     const rightSeats = data.filter(d => d.position.startsWith('T')).sort((a, b) => getSeatNumber(a.position) - getSeatNumber(b.position));
 
     const topContainer = document.getElementById('top-row');
@@ -73,14 +68,14 @@ function renderMeetingRoom(data) {
     leftContainer.innerHTML = '';
     rightContainer.innerHTML = '';
 
-    // 3. SỬA TOOLTIP: Chỉ hiển thị tên đại biểu
+    // ĐÃ SỬA: Thay ${delegate.position} bằng chữ "Đồng chí" ở dòng <div class="position-tag">
     const createSeatHTML = (delegate, typeClass) => `
         <div class="seat-wrapper ${typeClass}" data-name="${delegate.name.toLowerCase()}">
             <div class="tooltip">${delegate.name}</div>
             <div class="chair"></div>
             <div class="desk">
                 <div class="nameplate">
-                    <div class="position-tag">${delegate.position}</div>
+                    <div class="position-tag">Đồng chí</div>
                     <div class="delegate-name">${delegate.name}</div>
                 </div>
             </div>
