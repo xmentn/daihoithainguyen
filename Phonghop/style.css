@@ -1,3 +1,6 @@
+/* =========================================
+   CÀI ĐẶT CHUNG
+   ========================================= */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -29,7 +32,9 @@ body {
     letter-spacing: 2px;
 }
 
-/* === THANH TRA CỨU === */
+/* =========================================
+   THANH TRA CỨU
+   ========================================= */
 .search-container {
     display: flex;
     justify-content: center;
@@ -67,40 +72,42 @@ body {
     background-color: #074b83;
 }
 
-/* Bố cục phòng */
+/* =========================================
+   BỐ CỤC CHỮ U (CỐ ĐỊNH CHIỀU RỘNG)
+   ========================================= */
 .u-shape-layout {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
 }
 
+/* Hàng Chủ tọa */
 .row-container {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    margin-bottom: 15px;
-    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 5px;
+    /* Khoảng cách gần với 2 cánh */
+    width: 100%;
 }
 
+/* 2 dãy bàn Trái - Phải (Giữ chiều rộng cố định là 850px) */
 .side-container {
     display: flex;
     justify-content: space-between;
     width: 100%;
-    max-width: 900px;
+    max-width: 850px;
+    /* Khóa cứng độ rộng của chữ U */
 }
 
-.column-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
+/* Khu vực thảm ở giữa */
 .middle-space {
     flex-grow: 1;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0 40px;
+    padding: 0 10px;
 }
 
 .carpet {
@@ -116,7 +123,9 @@ body {
     min-height: 250px;
 }
 
-/* === MÔ PHỎNG BÀN GHẾ === */
+/* =========================================
+   MÔ PHỎNG BÀN GHẾ & BẢNG TÊN
+   ========================================= */
 .seat-wrapper {
     display: flex;
     align-items: center;
@@ -152,10 +161,14 @@ body {
 }
 
 .delegate-name {
-    font-size: 9.5px;
+    font-size: 9px;
     font-weight: bold;
     color: #333;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Hiện ... nếu tên quá dài */
+    width: 100%;
 }
 
 .position-tag {
@@ -165,6 +178,7 @@ body {
     margin-bottom: 2px;
 }
 
+/* Ghế Đỏ Nhung Viền Vàng */
 .chair {
     background: linear-gradient(145deg, #A00000, #600000);
     border: 1px solid #D4AF37;
@@ -173,13 +187,15 @@ body {
     transition: 0.3s;
 }
 
-/* Kích thước */
+/* --- Kích thước và Hướng xoay --- */
+
+/* Bàn Chủ tọa */
 .top-seat {
     flex-direction: column;
 }
 
 .top-seat .desk {
-    width: 140px;
+    width: 130px;
     height: 50px;
     margin-top: 8px;
 }
@@ -188,19 +204,23 @@ body {
     width: 45px;
     height: 35px;
     border-radius: 15px 15px 8px 8px;
+    background: linear-gradient(145deg, #D4AF37, #AA7C11);
+    /* Đã thêm màu vàng đồng cho giao diện máy tính */
+    border: 1px solid #8B6508;
 }
 
 .top-seat .nameplate {
-    width: 130px;
+    width: 120px;
 }
 
+/* Bàn Cánh Trái (Đã thu ngắn) */
 .left-seat {
     flex-direction: row;
 }
 
 .left-seat .desk {
     width: 50px;
-    height: 140px;
+    height: 100px;
     margin-left: 8px;
 }
 
@@ -211,17 +231,18 @@ body {
 }
 
 .left-seat .nameplate {
-    width: 130px;
+    width: 90px;
     transform: rotate(-90deg);
 }
 
+/* Bàn Cánh Phải (Đã thu ngắn) */
 .right-seat {
     flex-direction: row-reverse;
 }
 
 .right-seat .desk {
     width: 50px;
-    height: 140px;
+    height: 100px;
     margin-right: 8px;
 }
 
@@ -232,11 +253,14 @@ body {
 }
 
 .right-seat .nameplate {
-    width: 130px;
+    width: 90px;
     transform: rotate(90deg);
 }
 
-/* === TOOLTIP (Đổi sang Xanh Dương) === */
+
+/* =========================================
+   TOOLTIP XANH DƯƠNG
+   ========================================= */
 .tooltip {
     position: absolute;
     bottom: 100%;
@@ -275,7 +299,10 @@ body {
     transform: translateX(-50%) translateY(-5px);
 }
 
-/* === HIỆU ỨNG TÌM KIẾM (Sáng nhấp nháy) === */
+
+/* =========================================
+   HIỆU ỨNG TÌM KIẾM (Sáng nhấp nháy)
+   ========================================= */
 @keyframes pulse-highlight {
     0% {
         box-shadow: 0 0 0 0 rgba(9, 132, 227, 0.7);
@@ -302,20 +329,17 @@ body {
 
 .highlight-seat .nameplate {
     background-color: #ffeaa7;
-    /* Đổi màu bảng tên sang vàng nhạt */
 }
+
 
 /* =========================================
    GIAO DIỆN ĐIỆN THOẠI (Responsive Mobile)
    ========================================= */
 @media screen and (max-width: 768px) {
-
-    /* Giảm lề xung quanh để tiết kiệm diện tích */
     .room-container {
         padding: 15px;
     }
 
-    /* 1. Sửa lỗi thanh tra cứu bị co rúm */
     .search-container {
         flex-direction: row;
         flex-wrap: nowrap;
@@ -325,26 +349,22 @@ body {
     .search-container input {
         width: 100%;
         flex: 1;
-        /* Cho ô nhập chữ tự động giãn hết mức có thể */
     }
 
     .search-container button {
         white-space: nowrap;
-        /* Không cho chữ trong nút bị rớt dòng */
     }
 
-    /* 2. Ép hàng Chủ tọa KHÔNG được rớt dòng (chồng lên nhau) */
+    /* Ép hàng chủ tọa cuộn ngang nếu đông người, không bị rớt dòng */
     .row-container {
         flex-wrap: nowrap !important;
         overflow-x: auto;
-        /* Nếu thêm 4-5 chủ tọa, cho phép dùng ngón tay vuốt ngang */
         padding-bottom: 10px;
-        /* Tạo khoảng trống nhỏ cho thanh cuộn nếu có */
-        width: 100%;
         justify-content: center;
+        width: 100%;
     }
 
-    /* 3. Thu nhỏ bàn ghế Chủ tọa */
+    /* Thu nhỏ bàn Chủ tọa */
     .top-seat .desk {
         width: 100px;
         height: 40px;
@@ -352,20 +372,24 @@ body {
     }
 
     .top-seat .chair {
-        width: 30px;
-        height: 25px;
-        border-radius: 10px 10px 5px 5px;
+        width: 45px;
+        height: 35px;
+        border-radius: 15px 15px 8px 8px;
+        background: linear-gradient(145deg, #D4AF37, #AA7C11);
+        /* Gradient vàng đồng */
+        border: 1px solid #8B6508;
+        /* Viền tối màu tạo độ sâu */
     }
 
     .top-seat .nameplate {
-        width: 95px;
+        width: 90px;
     }
 
-    /* 4. Thu nhỏ bàn ghế 2 bên cánh */
+    /* Thu nhỏ bàn 2 bên cánh */
     .left-seat .desk,
     .right-seat .desk {
         width: 40px;
-        height: 100px;
+        height: 90px;
         margin-left: 5px;
         margin-right: 5px;
     }
@@ -386,31 +410,30 @@ body {
 
     .left-seat .nameplate,
     .right-seat .nameplate {
-        width: 95px;
+        width: 80px;
     }
 
-    /* 5. Thu nhỏ phông chữ */
     .delegate-name {
-        font-size: 8.5px;
+        font-size: 8px;
     }
 
     .position-tag {
         font-size: 8px;
     }
 
-    /* 6. Chỉnh lại khu trung tâm cho cân đối */
     .side-container {
         max-width: 100%;
+        gap: 5px;
     }
 
     .middle-space {
-        padding: 0 15px;
+        padding: 0 5px;
     }
 
     .carpet {
         min-height: 150px;
         font-size: 11px;
-        text-align: center;
         padding: 10px;
+        text-align: center;
     }
 }
