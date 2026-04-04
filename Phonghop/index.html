@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sơ Đồ Phòng Họp Chữ U</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="room-container">
+        <h1 class="room-title">SƠ ĐỒ CHỖ NGỒI PHÒNG HỌP BCH</h1>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Nhập tên đại biểu để tìm vị trí...">
+            <button onclick="searchDelegate()">Tra cứu</button>
+        </div>
+
+        <div class="u-shape-layout">
+            <div id="top-row" class="row-container top-row"></div>
+            <div class="side-container">
+                <div id="left-col" class="column-container left-col"></div>
+                <div class="middle-space">
+                    <div class="carpet">Khu vực trung tâm</div>
+                </div>
+                <div id="right-col" class="column-container right-col"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
