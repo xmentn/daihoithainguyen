@@ -26,15 +26,16 @@ body {
 
 .room-title {
   text-align: center;
-  color: #0f4c81; /* Màu xanh Classic Blue thanh lịch, chuyên nghiệp */
+  color: #0f4c81;
   margin-bottom: 30px;
   text-transform: uppercase;
-  font-family:
-    "Segoe UI", Arial, sans-serif; /* Ưu tiên phông Segoe UI hiển thị cực mượt trên Windows */
-  font-size: 28px; /* Tăng cỡ chữ lên một chút cho bề thế */
-  font-weight: 700; /* Giảm độ dày nét chữ từ 800 xuống 700 (bold) để nét thanh thoát hơn */
-  letter-spacing: 0.5px; /* Giãn cách nhè nhẹ để các chữ không bị dính chặt vào nhau */
-  text-shadow: none; /* Xóa bỏ bóng mờ để các mép chữ sắc nét tuyệt đối */
+  /* Đổi sang ưu tiên Tahoma, font này hiển thị tiêu đề in hoa rất thanh thoát */
+  font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+  font-size: 24px; /* Giảm cỡ chữ một chút để không bị quá thô */
+  font-weight: 600; /* Dùng Semi-bold (600) thay vì Bold (700) để nét chữ mỏng và sắc hơn */
+  letter-spacing: 1.5px; /* Tăng khoảng cách chữ để nhìn thoáng và sang trọng hơn */
+  line-height: 1.4; /* Tạo khoảng cách an toàn nếu tên cuộc họp quá dài phải rớt xuống 2 dòng */
+  text-shadow: none;
 }
 /* =========================================
    THANH TRA CỨU
