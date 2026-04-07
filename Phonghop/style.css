@@ -452,4 +452,8 @@ body {
     padding: 10px;
     text-align: center;
   }
+  .room-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
 }
