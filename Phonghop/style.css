@@ -7,7 +7,6 @@
   padding: 0;
   font-family: Arial, sans-serif;
 }
-
 body {
   background-color: #f0f2f5;
   display: flex;
@@ -29,52 +28,12 @@ body {
   color: #0f4c81;
   margin-bottom: 30px;
   text-transform: uppercase;
-  /* Đổi sang ưu tiên Tahoma, font này hiển thị tiêu đề in hoa rất thanh thoát */
   font-family: Tahoma, "Segoe UI", Arial, sans-serif;
-  font-size: 24px; /* Giảm cỡ chữ một chút để không bị quá thô */
-  font-weight: 600; /* Dùng Semi-bold (600) thay vì Bold (700) để nét chữ mỏng và sắc hơn */
-  letter-spacing: 1.5px; /* Tăng khoảng cách chữ để nhìn thoáng và sang trọng hơn */
-  line-height: 1.4; /* Tạo khoảng cách an toàn nếu tên cuộc họp quá dài phải rớt xuống 2 dòng */
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  line-height: 1.4;
   text-shadow: none;
-}
-/* =========================================
-   THANH TRA CỨU
-   ========================================= */
-.search-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 40px;
-}
-
-.search-container input {
-  padding: 10px 15px;
-  width: 300px;
-  border: 1px solid #bdc3c7;
-  border-radius: 6px;
-  font-size: 14px;
-  outline: none;
-  transition: 0.3s;
-}
-
-.search-container input:focus {
-  border-color: #0984e3;
-  box-shadow: 0 0 5px rgba(9, 132, 227, 0.3);
-}
-
-.search-container button {
-  padding: 10px 20px;
-  background-color: #0984e3;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s;
-}
-
-.search-container button:hover {
-  background-color: #074b83;
 }
 
 /* =========================================
@@ -93,39 +52,72 @@ body {
   justify-content: center;
   gap: 10px;
   margin-bottom: 5px;
-  /* Khoảng cách gần với 2 cánh */
   width: 100%;
 }
 
-/* 2 dãy bàn Trái - Phải (Giữ chiều rộng cố định là 850px) */
+/* 2 dãy bàn Trái - Phải */
 .side-container {
   display: flex;
   justify-content: space-between;
   width: 100%;
   max-width: 850px;
-  /* Khóa cứng độ rộng của chữ U */
 }
 
-/* Khu vực thảm ở giữa */
+/* Khu vực thảm và tìm kiếm ở giữa */
 .middle-space {
   flex-grow: 1;
   display: flex;
-  justify-content: center;
+  flex-direction: column; /* Xếp dọc: Tìm kiếm nằm trên, Thảm nằm dưới */
+  justify-content: flex-start; /* Căn lên sát hàng Chủ tọa */
   align-items: center;
   padding: 0 10px;
+  gap: 15px; /* Khoảng cách giữa ô tìm kiếm và thảm */
 }
 
+/* =========================================
+   TÌM KIẾM THÔNG MINH (TRONG CHỮ U)
+   ========================================= */
+.search-inside-u {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+  max-width: 260px;
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #e0e6ed;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.search-inside-u label {
+  font-size: 13px;
+  color: #0f4c81;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.search-inside-u input {
+  padding: 8px 12px;
+  width: 100%;
+  border: 1px solid #0984e3;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+  color: #333;
+  transition: 0.3s;
+}
+.search-inside-u input:focus {
+  box-shadow: 0 0 5px rgba(9, 132, 227, 0.3);
+}
+
+/* Thảm trung tâm */
 .carpet {
   width: 100%;
-  height: 100%;
+  flex-grow: 1;
   border: 2px dashed #bdc3c7;
   border-radius: 8px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #95a5a6;
-  font-weight: bold;
-  min-height: 250px;
+  min-height: 150px;
 }
 
 /* =========================================
@@ -139,7 +131,6 @@ body {
   cursor: pointer;
   transition: 0.3s;
 }
-
 .desk {
   background: linear-gradient(145deg, #d4a373, #bc8f63);
   border: 2px solid #a67c52;
@@ -152,7 +143,6 @@ body {
   box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s;
 }
-
 .nameplate {
   background-color: #fff;
   padding: 3px;
@@ -164,7 +154,6 @@ body {
   justify-content: center;
   align-items: center;
 }
-
 .delegate-name {
   font-size: 9px;
   font-weight: bold;
@@ -172,10 +161,8 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  /* Hiện ... nếu tên quá dài */
   width: 100%;
 }
-
 .position-tag {
   font-size: 9px;
   color: #e74c3c;
@@ -194,71 +181,57 @@ body {
   transition: 0.3s;
 }
 
-/* --- Kích thước và Hướng xoay --- */
-
-/* Bàn Chủ tọa */
+/* --- Kích thước --- */
 .top-seat {
   flex-direction: column;
 }
-
 .top-seat .desk {
   width: 130px;
   height: 50px;
   margin-top: 8px;
 }
-
 .top-seat .chair {
   width: 45px;
   height: 35px;
   border-radius: 15px 15px 8px 8px;
   background: linear-gradient(145deg, #d4af37, #aa7c11);
-  /* Đã thêm màu vàng đồng cho giao diện máy tính */
   border: 1px solid #8b6508;
 }
-
 .top-seat .nameplate {
   width: 120px;
 }
 
-/* Bàn Cánh Trái (Đã thu ngắn) */
 .left-seat {
   flex-direction: row;
 }
-
 .left-seat .desk {
   width: 50px;
   height: 100px;
   margin-left: 8px;
 }
-
 .left-seat .chair {
   width: 35px;
   height: 45px;
   border-radius: 15px 8px 8px 15px;
 }
-
 .left-seat .nameplate {
   width: 90px;
   transform: rotate(-90deg);
 }
 
-/* Bàn Cánh Phải (Đã thu ngắn) */
 .right-seat {
   flex-direction: row-reverse;
 }
-
 .right-seat .desk {
   width: 50px;
   height: 100px;
   margin-right: 8px;
 }
-
 .right-seat .chair {
   width: 35px;
   height: 45px;
   border-radius: 8px 15px 15px 8px;
 }
-
 .right-seat .nameplate {
   width: 90px;
   transform: rotate(90deg);
@@ -287,11 +260,8 @@ body {
   margin-bottom: 5px;
   border: 1px solid #74b9ff;
   text-align: center;
-  /* Căn giữa nội dung 2 dòng */
   line-height: 1.4;
-  /* Tạo khoảng cách dòng vừa phải */
 }
-
 .tooltip::after {
   content: "";
   position: absolute;
@@ -302,7 +272,6 @@ body {
   border-style: solid;
   border-color: #0984e3 transparent transparent transparent;
 }
-
 .seat-wrapper:hover .tooltip {
   opacity: 1;
   visibility: visible;
@@ -310,70 +279,50 @@ body {
 }
 
 /* =========================================
-   HIỆU ỨNG TÌM KIẾM (Sáng nhấp nháy)
+   HIỆU ỨNG TÌM KIẾM
    ========================================= */
 @keyframes pulse-highlight {
   0% {
     box-shadow: 0 0 0 0 rgba(9, 132, 227, 0.7);
   }
-
   70% {
     box-shadow: 0 0 0 15px rgba(9, 132, 227, 0);
   }
-
   100% {
     box-shadow: 0 0 0 0 rgba(9, 132, 227, 0);
   }
 }
-
 .highlight-seat {
   transform: scale(1.1);
   z-index: 10;
 }
-
 .highlight-seat .desk {
   border-color: #0984e3;
   animation: pulse-highlight 1.5s infinite;
 }
-
 .highlight-seat .nameplate {
   background-color: #ffeaa7;
 }
 
 /* =========================================
-   GIAO DIỆN ĐIỆN THOẠI (Responsive Mobile)
+   ĐIỆN THOẠI (Responsive)
    ========================================= */
 @media screen and (max-width: 768px) {
   .room-container {
     padding: 15px;
   }
-
-  .search-container {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    width: 100%;
+  .room-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
   }
 
-  .search-container input {
-    width: 100%;
-    flex: 1;
-  }
-
-  .search-container button {
-    white-space: nowrap;
-  }
-
-  /* Ép hàng chủ tọa cuộn ngang nếu đông người, không bị rớt dòng */
   .row-container {
     flex-wrap: nowrap !important;
     overflow-x: auto;
-    padding-bottom: 15px; /* Tăng khoảng cách dưới để dễ vuốt thanh cuộn */
-
-    /* ĐÃ SỬA: Đổi từ 'center' sang 'flex-start' để không bị cắt xén 2 bên */
+    padding-bottom: 15px;
     justify-content: flex-start;
     width: 100%;
-
-    /* Thêm khoảng lề để khi vuốt sang 2 mép không bị dính sát vào cạnh màn hình */
     padding-left: 10px;
     padding-right: 10px;
   }
@@ -381,28 +330,22 @@ body {
     display: none;
   }
 
-  /* Thu nhỏ bàn Chủ tọa */
   .top-seat .desk {
     width: 100px;
     height: 40px;
     margin-top: 5px;
   }
-
   .top-seat .chair {
     width: 45px;
     height: 35px;
     border-radius: 15px 15px 8px 8px;
     background: linear-gradient(145deg, #d4af37, #aa7c11);
-    /* Gradient vàng đồng */
     border: 1px solid #8b6508;
-    /* Viền tối màu tạo độ sâu */
   }
-
   .top-seat .nameplate {
     width: 90px;
   }
 
-  /* Thu nhỏ bàn 2 bên cánh */
   .left-seat .desk,
   .right-seat .desk {
     width: 40px;
@@ -410,21 +353,17 @@ body {
     margin-left: 5px;
     margin-right: 5px;
   }
-
   .left-seat .chair,
   .right-seat .chair {
     width: 25px;
     height: 30px;
   }
-
   .left-seat .chair {
     border-radius: 10px 5px 5px 10px;
   }
-
   .right-seat .chair {
     border-radius: 5px 10px 10px 5px;
   }
-
   .left-seat .nameplate,
   .right-seat .nameplate {
     width: 80px;
@@ -433,7 +372,6 @@ body {
   .delegate-name {
     font-size: 8px;
   }
-
   .position-tag {
     font-size: 8px;
   }
@@ -442,19 +380,16 @@ body {
     max-width: 100%;
     gap: 5px;
   }
-
   .middle-space {
     padding: 0 5px;
+    gap: 10px;
   }
 
-  .carpet {
-    min-height: 150px;
-    font-size: 11px;
-    padding: 10px;
-    text-align: center;
+  .search-inside-u {
+    max-width: 100%;
+    padding: 8px;
   }
-  .room-title {
-    font-size: 20px;
-    margin-bottom: 20px;
+  .carpet {
+    min-height: 100px;
   }
 }
