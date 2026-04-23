@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quản lý TTHC Đảng</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link
+      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        TÌNH HÌNH TRIỂN KHAI<br />THỦ TỤC HÀNH CHÍNH CỦA ĐẢNG TRÊN MÔI TRƯỜNG
+        ĐIỆN TỬ
+      </h1>
+    </header>
+
+    <main class="main-container">
+      <section class="left-panel">
+        <div id="left-kehoach" class="left-content active">
+          <div class="card" style="height: 100%">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-list-alt"></i> TỔNG HỢP BAN HÀNH KẾ HOẠCH
+              </h3>
+            </div>
+
+            <div class="stats-overview">
+              <div class="stat-box has-plan">
+                <h4>Đã ban hành</h4>
+                <span class="number" id="countCo">0</span>
+              </div>
+              <div class="stat-box no-plan">
+                <h4>Chưa ban hành</h4>
+                <span class="number" id="countKhong">0</span>
+              </div>
+            </div>
+
+            <div class="list-section">
+              <h4 class="text-success">
+                <i class="fas fa-check-circle"></i> Các đơn vị đã ban hành
+              </h4>
+              <ul class="scrollable-list" id="listCo">
+                <li class="loading-text">Đang tải dữ liệu...</li>
+              </ul>
+
+              <h4 class="text-danger" style="margin-top: 20px">
+                <i class="fas fa-exclamation-circle"></i> Các đơn vị chưa ban
+                hành / Chưa báo cáo
+              </h4>
+              <ul class="scrollable-list" id="listKhong">
+                <li class="loading-text">Đang tải dữ liệu...</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="left-taphuan" class="left-content">
+          <div class="card" style="height: 100%; overflow-y: auto">
+            <div class="card-header">
+              <h3>
+                <i class="fas fa-chart-bar"></i> BIỂU ĐỒ VÀ SỐ LIỆU TẬP HUẤN
+              </h3>
+            </div>
+
+            <div class="chart-container" style="padding: 15px; height: 350px">
+              <canvas id="taphuanChart"></canvas>
+            </div>
+
+            <div style="padding: 0 15px 20px 15px">
+              <h4 style="color: var(--primary); margin-bottom: 10px">
+                <i class="fas fa-list"></i> CHI TIẾT SỐ LIỆU
+              </h4>
+              <table class="data-table" id="tableTaphuan">
+                <thead>
+                  <tr>
+                    <th style="width: 50px; text-align: center">STT</th>
+                    <th>Tên đơn vị</th>
+                    <th style="width: 180px; text-align: center">
+                      Số người tham gia
+                    </th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+                <tfoot>
+                  <tr style="font-weight: bold; background-color: #f8f9fa">
+                    <td
+                      colspan="2"
+                      style="text-align: right; text-transform: uppercase"
+                    >
+                      Tổng cộng:
+                    </td>
+                    <td
+                      id="sumTaphuan"
+                      style="
+                        text-align: center;
+                        color: var(--red);
+                        font-size: 1.1rem;
+                      "
+                    >
+                      0
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div id="left-caidat" class="left-content">
+          <div class="card" style="height: 100%">
+            <div class="card-header">
+              <h3><i class="fas fa-mobile-alt"></i> TÌNH HÌNH CÀI ĐẶT</h3>
+            </div>
+            <div style="padding: 40px; text-align: center; color: #888">
+              Tính năng đang được phát triển...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="right-panel">
+        <div class="tab-container">
+          <div class="tab-menu">
+            <button class="tab-btn active" onclick="showTab('kehoach')">
+              1. BAN HÀNH KẾ HOẠCH
+            </button>
+            <button class="tab-btn" onclick="showTab('taphuan')">
+              2. TẬP HUẤN
+            </button>
+            <button class="tab-btn" onclick="showTab('caidat')">
+              3. CÀI ĐẶT, SỬ DỤNG
+            </button>
+          </div>
+
+          <div id="tab-kehoach" class="tab-content active">
+            <form id="kehoachForm">
+              <div class="form-group">
+                <label>Tên đảng bộ:</label>
+                <select
+                  name="tenDangBo"
+                  class="select2-db"
+                  required
+                  style="width: 100%"
+                ></select>
+              </div>
+              <div class="form-group">
+                <label>Ban hành Kế hoạch:</label>
+                <div class="radio-group">
+                  <label
+                    ><input
+                      type="radio"
+                      name="trangThai"
+                      value="Có ban hành"
+                      required
+                    />
+                    Có ban hành</label
+                  >
+                  <label
+                    ><input
+                      type="radio"
+                      name="trangThai"
+                      value="Không ban hành"
+                    />
+                    Không ban hành</label
+                  >
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Số hiệu văn bản:</label>
+                <input type="text" id="soHieu" name="soHieu" disabled />
+              </div>
+              <div class="form-group">
+                <label>Ngày văn bản:</label>
+                <input type="date" id="ngayVanBan" name="ngayVanBan" disabled />
+              </div>
+              <button type="submit" class="btn-save">
+                <i class="fas fa-save"></i> LƯU
+              </button>
+            </form>
+          </div>
+
+          <div id="tab-taphuan" class="tab-content">
+            <form id="taphuanForm">
+              <div class="form-group">
+                <label>Tên đảng bộ:</label>
+                <select
+                  name="tenDangBo"
+                  class="select2-db"
+                  required
+                  style="width: 100%"
+                ></select>
+              </div>
+              <div class="form-group">
+                <label>Số người tham gia tập huấn:</label>
+                <input
+                  type="number"
+                  name="soNguoi"
+                  id="soNguoi"
+                  required
+                  min="0"
+                  placeholder="Nhập số lượng người"
+                />
+              </div>
+              <button type="submit" class="btn-save">
+                <i class="fas fa-graduation-cap"></i> LƯU
+              </button>
+            </form>
+          </div>
+
+          <div id="tab-caidat" class="tab-content">
+            <div style="padding: 40px; text-align: center; color: #888">
+              Giao diện cập nhật cài đặt đang phát triển...
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
