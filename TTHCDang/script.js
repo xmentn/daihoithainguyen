@@ -70,19 +70,24 @@ function applyFilter(filterType) {
   $('.filter-btn').removeClass('active');
   $(`button[onclick="applyFilter('${filterType}')"]`).addClass('active');
 
-  let data = [...allData.taphuan];
+  // 1. Tách riêng dữ liệu cho Biểu đồ (chỉ lấy 5)
+  let chartData = [...allData.taphuan];
   let color = "#003366";
 
   if (filterType === 'top5high') {
-    data = data.sort((a, b) => b.soLuong - a.soLuong).slice(0, 5);
+    chartData = chartData.sort((a, b) => b.soLuong - a.soLuong).slice(0, 5);
     color = "#003366";
   } else {
-    data = data.sort((a, b) => a.soLuong - b.soLuong).slice(0, 5);
+    chartData = chartData.sort((a, b) => a.soLuong - b.soLuong).slice(0, 5);
     color = "#fd7e14";
   }
 
-  renderChart(data, color);
-  renderTableTaphuan(data);
+  // 2. Tách riêng dữ liệu cho Bảng (Luôn lấy TẤT CẢ, xếp từ cao xuống thấp)
+  let tableData = [...allData.taphuan].sort((a, b) => b.soLuong - a.soLuong);
+
+  // 3. Cập nhật giao diện
+  renderChart(chartData, color);   // Biểu đồ chỉ vẽ 5 cột
+  renderTableTaphuan(tableData);   // Bảng vẽ toàn bộ danh sách
 }
 
 function renderChart(data, barColor) {
