@@ -70,13 +70,13 @@ function applyFilter(filterType) {
   $('.filter-btn').removeClass('active');
   $(`button[onclick="applyFilter('${filterType}')"]`).addClass('active');
 
-  // 1. Tách riêng dữ liệu cho Biểu đồ (chỉ lấy 5)
+  // 1. Tách riêng dữ liệu cho Biểu đồ (chỉ lấy top 5)
   let chartData = [...allData.taphuan];
   let color = "#003366";
 
   if (filterType === 'top5high') {
     chartData = chartData.sort((a, b) => b.soLuong - a.soLuong).slice(0, 5);
-    color = "#003366";
+    color = "#8470ff";
   } else {
     chartData = chartData.sort((a, b) => a.soLuong - b.soLuong).slice(0, 5);
     color = "#fd7e14";
