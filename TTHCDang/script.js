@@ -76,7 +76,7 @@ function applyFilter(filterType) {
 
   if (filterType === 'top5high') {
     chartData = chartData.sort((a, b) => b.soLuong - a.soLuong).slice(0, 5);
-    color = "#8470ff";
+    color = "#6959CD";
   } else {
     chartData = chartData.sort((a, b) => a.soLuong - b.soLuong).slice(0, 5);
     color = "#fd7e14";
