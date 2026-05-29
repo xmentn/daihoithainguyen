@@ -2,18 +2,30 @@
   --primary: #003366;
   --red: #da251d;
   --green: #28a745;
+  --orange: #fd7e14;
 }
+
 body {
   font-family: sans-serif;
   background: #f4f4f4;
   margin: 0;
 }
+
 header {
   background: var(--primary);
   color: #fff;
   text-align: center;
   padding: 15px;
 }
+
+.sub-title {
+  font-size: 1rem;
+  margin: 0 0 8px 0;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 header h1 {
   font-size: 1.2rem;
   margin: 0;
@@ -28,9 +40,11 @@ header h1 {
   max-width: 1400px;
   margin: auto;
 }
+
 .left-panel {
   flex: 1.3;
 }
+
 .right-panel {
   flex: 1;
 }
@@ -39,112 +53,173 @@ header h1 {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  min-height: 600px;
 }
-.card-header {
+
+.card-header,
+.card-header-filter {
   padding: 15px;
   border-bottom: 1px solid #eee;
   color: var(--primary);
-  background: #f8f9fa;
-  border-radius: 8px 8px 0 0;
-}
-.card-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-/* -- CSS CHUYỂN TAB BÊN TRÁI -- */
-.left-content {
-  display: none;
-}
-.left-content.active {
-  display: block;
-}
-
-/* -- CSS THỐNG KÊ KẾ HOẠCH -- */
+/* Thống kê */
 .stats-overview {
   display: flex;
   gap: 15px;
-  padding: 20px;
+  padding: 15px;
 }
+
 .stat-box {
   flex: 1;
-  padding: 20px;
+  padding: 15px;
   border-radius: 8px;
   text-align: center;
-  color: white;
+  color: #fff;
 }
+
 .stat-box.has-plan {
-  background-color: var(--green);
+  background: var(--green);
 }
+
 .stat-box.no-plan {
-  background-color: var(--red);
+  background: var(--red);
 }
+
 .stat-box h4 {
-  margin: 0 0 10px 0;
+  margin: 0 0 5px 0;
   font-weight: normal;
 }
+
 .stat-box .number {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
 }
 
 .list-section {
-  padding: 0 20px 20px 20px;
+  padding: 0 15px 15px;
 }
-.text-success {
-  color: var(--green);
-  margin-bottom: 10px;
-}
-.text-danger {
-  color: var(--red);
-  margin-bottom: 10px;
-}
+
 .scrollable-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 250px;
+  max-height: 200px;
   overflow-y: auto;
   border: 1px solid #eee;
   border-radius: 4px;
 }
+
 .scrollable-list li {
-  padding: 10px 15px;
+  padding: 8px 12px;
   border-bottom: 1px solid #eee;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
-.scrollable-list li:last-child {
-  border-bottom: none;
-}
+
 .scrollable-list li:nth-child(even) {
-  background-color: #f9f9f9;
+  background: #f9f9f9;
+}
+
+/* Tab & Biểu đồ */
+.left-content {
+  display: none;
+}
+
+.left-content.active {
+  display: block;
 }
 
 .chart-container {
   padding: 15px;
-  height: 450px;
+  height: 350px;
 }
 
-/* -- CSS TAB BÊN PHẢI -- */
+/* Bảng số liệu */
+.table-section {
+  padding: 0 15px 20px;
+}
+
+.table-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.data-table th,
+.data-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+.data-table th {
+  background: var(--primary);
+  color: white;
+}
+
+.data-table tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+/* Nút bấm lọc */
+.filter-btn {
+  padding: 5px 12px;
+  border: 1px solid var(--primary);
+  background: #fff;
+  color: var(--primary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-view-missing {
+  background: #ffc107;
+  color: #000;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Form bên phải */
 .tab-container {
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
 .tab-menu {
   display: flex;
   background: #eee;
 }
+
 .tab-btn {
   flex: 1;
-  padding: 15px;
+  padding: 12px;
   border: none;
   cursor: pointer;
   font-weight: bold;
   color: #666;
-  font-size: 0.9rem;
 }
+
 .tab-btn.active {
   background: #fff;
   color: var(--primary);
@@ -153,8 +228,9 @@ header h1 {
 
 .tab-content {
   display: none;
-  padding: 25px;
+  padding: 20px;
 }
+
 .tab-content.active {
   display: block;
 }
@@ -162,11 +238,13 @@ header h1 {
 .form-group {
   margin-bottom: 15px;
 }
+
 label {
   display: block;
   font-weight: bold;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
 }
+
 input,
 select {
   width: 100%;
@@ -175,77 +253,27 @@ select {
   border-radius: 4px;
   box-sizing: border-box;
 }
-input:disabled {
-  background: #f8f9fa;
-}
+
 .radio-group {
   display: flex;
   gap: 20px;
   padding: 5px 0;
 }
+
 .btn-save {
   width: 100%;
-  padding: 15px;
+  padding: 12px;
   background: var(--primary);
   color: #fff;
   border: none;
   border-radius: 4px;
   font-weight: bold;
-  font-size: 1rem;
   cursor: pointer;
-}
-.btn-save:hover {
-  opacity: 0.9;
+  font-size: 1rem;
 }
 
-/* Tùy chỉnh ô Select2 */
-.select2-container .select2-selection--single {
-  height: 40px;
-  padding: 5px;
-  border: 1px solid #ccc;
-}
-.select2-container--default
-  .select2-selection--single
-  .select2-selection__arrow {
-  height: 38px;
-}
-/* -- CSS BẢNG DỮ LIỆU TẬP HUẤN -- */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-.data-table th,
-.data-table td {
-  border: 1px solid #ddd;
-  padding: 10px 12px;
-}
-.data-table th {
-  background-color: var(--primary);
-  color: white;
-  text-align: left;
-}
-.data-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
-}
-.data-table tbody tr:hover {
-  background-color: #f1f1f1;
-}
-/* -- CSS NHÓM NÚT LỌC BIỂU ĐỒ -- */
-.filter-btn {
-  padding: 6px 12px;
-  margin-left: 5px;
-  border: 1px solid var(--primary);
-  background: #fff;
-  color: var(--primary);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: bold;
-  transition: all 0.2s;
-}
-.filter-btn.active,
-.filter-btn:hover {
-  background: var(--primary);
-  color: #fff;
+.placeholder-msg {
+  padding: 40px;
+  text-align: center;
+  color: #888;
 }

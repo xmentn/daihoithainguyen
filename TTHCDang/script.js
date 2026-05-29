@@ -1,28 +1,25 @@
-// Dán URL Web App chuẩn xác của anh vào đây
 const SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbxyuvhGbONlWW9VWoZoIk-NpqLOA1peWPfaXdPiov35_Do4CAkq1ac-NH2NUlE8QY3w/exec";
+  "https://script.google.com/macros/s/AKfycbw5Cb8xP6L8Hk90tU29m1jJifZNHoYoPwMc3P0JrT7m-kRN_C2lS4rD3hEjWG6krGiN/exec";
 
 let myChart;
 let allData = { list: [], kehoach: [], taphuan: [] };
 
 $(document).ready(function () {
-  // 1. Tải dữ liệu
   loadAllData();
 
-  // 2. Kích hoạt Select2 (Bọc try/catch phòng trình duyệt chặn)
   try {
     $(".select2-db").select2();
-  } catch (error) {
-    console.warn("Select2 error:", error);
+  } catch (e) {
+    console.warn("Select2 error:", e);
   }
 
-  // 3. Logic: Ẩn/Hiện ô nhập liệu ngày tháng
+  // Logic enable/disable ô nhập kế hoạch
   $('input[name="trangThai"]').change(function () {
     const isCo = $(this).val() === "Có ban hành";
     $("#soHieu, #ngayVanBan").prop("disabled", !isCo).prop("required", isCo);
   });
 
-  // 4. Logic: Tự điền dữ liệu Tab Kế Hoạch
+  // Tự động điền dữ liệu khi chọn Đảng bộ
   $('#kehoachForm select[name="tenDangBo"]').on("change", function () {
     const entry = allData.kehoach.find((k) => k.ten === $(this).val());
     if (entry) {
@@ -32,35 +29,22 @@ $(document).ready(function () {
       $("#soHieu").val(entry.soHieu);
       $("#ngayVanBan").val(formatDateForInput(entry.ngay));
     } else {
-      // Chỉ xóa trắng các ô Trạng thái, Số hiệu, Ngày tháng (Tuyệt đối không dùng reset form)
       $('input[name="trangThai"]').prop("checked", false);
-      $("#soHieu").val("").prop("disabled", true).prop("required", false);
-      $("#ngayVanBan").val("").prop("disabled", true).prop("required", false);
+      $("#soHieu, #ngayVanBan").val("").prop("disabled", true);
     }
   });
 
-  // 5. Logic: Tự điền dữ liệu Tab Tập Huấn
   $('#taphuanForm select[name="tenDangBo"]').on("change", function () {
     const entry = allData.taphuan.find((k) => k.ten === $(this).val());
-    if (entry) {
-      $("#soNguoi").val(entry.soLuong);
-    } else {
-      $("#soNguoi").val("");
-    }
+    $("#soNguoi").val(entry ? entry.soLuong : "");
   });
 });
 
-// Hàm đồng bộ chuyển Tab (Cả trái và phải)
 function showTab(name) {
-  // Chuyển nút Tab và Form bên phải
-  $(".tab-content").removeClass("active");
-  $(`#tab-${name}`).addClass("active");
+  $(".tab-content, .left-content").removeClass("active");
+  $(`#tab-${name}, #left-${name}`).addClass("active");
   $(".tab-btn").removeClass("active");
   $(`button[onclick="showTab('${name}')"]`).addClass("active");
-
-  // Chuyển Khung hiển thị bên trái
-  $(".left-content").removeClass("active");
-  $(`#left-${name}`).addClass("active");
 }
 
 async function loadAllData() {
@@ -68,16 +52,10 @@ async function loadAllData() {
     const res = await fetch(SCRIPT_URL);
     allData = await res.json();
 
-    if (allData.error) {
-      throw new Error(allData.error);
-    }
-
-    // Đổ dữ liệu Dropdown
+    // Cập nhật Dropdown và ép Select2 nhận dữ liệu mới
     const opts =
       '<option value="">-- Chọn đảng bộ --</option>' +
       allData.list.map((n) => `<option value="${n}">${n}</option>`).join("");
-
-    // Vừa chèn dữ liệu, vừa ép Select2 cập nhật lại lõi bên trong
     $(".select2-db").html(opts).select2().trigger("change");
 
     // Tính toán Thống kê Kế hoạch
@@ -123,42 +101,14 @@ async function loadAllData() {
     $("#listKhong").html(listKhongHTML);
 
     // Render Biểu đồ
-   applyFilter('top5high');
+    renderChart(allData.taphuan);
+    renderTableTaphuan(allData.taphuan);
   } catch (err) {
     Swal.fire("Lỗi tải dữ liệu", err.message, "error");
   }
 }
-// Hàm Xử lý Lọc Dữ liệu (Top 5, Top 10, Tất cả)
-function applyFilter(filterType) {
-  if (!allData || !allData.taphuan) return;
 
-  // Đổi trạng thái nút bấm
-  $(".filter-btn").removeClass("active");
-  $(`button[onclick="applyFilter('${filterType}')"]`).addClass("active");
-
-  let filteredData = [...allData.taphuan];
-  let chartColor = "#003366"; // Mặc định màu xanh chính (Primary)
-
-  if (filterType === "top5high") {
-    // Sắp xếp từ cao xuống thấp và lấy 5 ông đầu
-    filteredData = filteredData
-      .sort((a, b) => b.soLuong - a.soLuong)
-      .slice(0, 5);
-    chartColor = "#003366"; // Màu xanh đậm trang trọng cho đơn vị dẫn đầu
-  } else if (filterType === "top5low") {
-    // Sắp xếp từ thấp lên cao và lấy 5 ông đầu
-    filteredData = filteredData
-      .sort((a, b) => a.soLuong - b.soLuong)
-      .slice(0, 5);
-    chartColor = "#fd7e14"; // Màu cam cảnh báo (warning) cho đơn vị thấp
-  }
-
-  // Cập nhật biểu đồ với màu sắc tương ứng
-  renderChart(filteredData, chartColor);
-  renderTableTaphuan(filteredData);
-}
-function renderChart(dataToShow) {
-function renderChart(dataToShow, barColor) {
+function renderChart(data) {
   const ctx = document.getElementById("taphuanChart").getContext("2d");
   if (myChart) myChart.destroy();
 
@@ -166,93 +116,58 @@ function renderChart(dataToShow, barColor) {
     type: "bar",
     plugins: [ChartDataLabels],
     data: {
-      labels: dataToShow.map((d) => d.ten),
-      datasets: [{
-        label: "Số người tập huấn",
-        data: dataToShow.map((d) => d.soLuong),
-        backgroundColor: barColor, // Sử dụng màu được truyền vào
-        borderRadius: 5,
-      }],
+      labels: sorted.map((d) => d.ten),
+      datasets: [
+        {
+          label: "Số người tập huấn",
+          data: sorted.map((d) => d.soLuong),
+          backgroundColor: "#da251d",
+          borderRadius: 5,
+        },
+      ],
     },
     options: {
       indexAxis: "y",
       maintainAspectRatio: false,
-      layout: { padding: { right: 50 } },
-      plugins: { 
-        legend: { display: false },
-        datalabels: {
-          color: barColor, // Số trên đầu cột cũng đổi màu theo cột
-          anchor: 'end',
-          align: 'right',
-          font: { weight: 'bold', size: 14 }
-        }
-      },
-      scales: { 
-        x: { beginAtZero: true } 
-      }
+      plugins: { legend: { display: false } },
     },
   });
 }
 
-// Xử lý gửi Form lên Google Sheets
+// Xem đơn vị chưa báo cáo tập huấn
+$(document).on("click", "#btnChuaBaoCaoTaphuan", function () {
+  const daBao = allData.taphuan.map((t) => t.ten);
+  const chuaBao = allData.list.filter((db) => !daBao.includes(db));
+  Swal.fire({
+    title: `Chưa báo cáo (${chuaBao.length})`,
+    html: `<div style="text-align:left; max-height:300px; overflow-y:auto"><ul>${chuaBao.map((n) => `<li>${n}</li>`).join("")}</ul></div>`,
+    confirmButtonColor: "#003366",
+  });
+});
+
+// Gửi dữ liệu
 $("form").submit(async function (e) {
   e.preventDefault();
-  const formId = $(this).attr("id");
-  const isTaphuan = formId === "taphuanForm";
   const formData = $(this)
     .serializeArray()
     .reduce((obj, item) => ({ ...obj, [item.name]: item.value }), {});
-
-  formData.action = isTaphuan ? "taphuan" : "kehoach";
-
-  // Kiểm tra cảnh báo ghi đè
-  const exists = (isTaphuan ? allData.taphuan : allData.kehoach).some(
-    (d) => (d.ten || d.tenDangBo) === formData.tenDangBo,
-  );
-
-  if (exists) {
-    const result = await Swal.fire({
-      title: "Cập nhật thông tin",
-      text: `Đơn vị "${formData.tenDangBo}" đã có dữ liệu. Bạn có muốn lưu thay đổi không?`,
-      icon: "question",
-      showCancelButton: true,
-      confirmButtonColor: "#003366",
-      cancelButtonColor: "#da251d",
-      confirmButtonText: "Có, lưu thay đổi",
-      cancelButtonText: "Hủy",
-    });
-    if (!result.isConfirmed) return;
-    formData.overwrite = true;
-  }
+  formData.action =
+    $(this).attr("id") === "taphuanForm" ? "taphuan" : "kehoach";
 
   Swal.showLoading();
   try {
     const res = await fetch(SCRIPT_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "text/plain;charset=utf-8", // Chống lỗi CORS
-      },
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(formData),
     });
-
     const resData = await res.json();
-
-    if (resData.status === "success" || resData.status === "updated") {
-      Swal.fire({
-        title: "Thành công!",
-        text: "Dữ liệu đã được lưu.",
-        icon: "success",
-        timer: 2000,
-      });
-      $(this)[0].reset();
-      $(".select2-db").val(null).trigger("change");
-      if (!isTaphuan) $("#soHieu, #ngayVanBan").prop("disabled", true);
-      loadAllData(); // Load lại dữ liệu biểu đồ/danh sách mới
-    } else {
-      Swal.fire("Lỗi", "Có lỗi từ máy chủ: " + resData.message, "error");
+    if (resData.status === "success") {
+      Swal.fire("Thành công", "Dữ liệu đã được lưu!", "success");
+      loadAllData();
     }
   } catch (err) {
-    Swal.fire("Lỗi mạng", "Không thể kết nối đến máy chủ.", "error");
+    Swal.fire("Lỗi", "Không thể kết nối máy chủ.", "error");
   }
 });
 
@@ -299,43 +214,3 @@ function renderTableTaphuan(data) {
   tbody.innerHTML = rowsHTML;
   tfootTotal.textContent = total;
 }
-// Sự kiện khi bấm nút "Xem đơn vị chưa báo cáo" ở phần Tập huấn
-$(document).on("click", "#btnChuaBaoCaoTaphuan", function () {
-  if (!allData || !allData.list || !allData.taphuan) return;
-
-  // 1. Lọc ra các đơn vị có trong danh sách tổng nhưng CHƯA CÓ trong danh sách tập huấn
-  const donViDaBaoCao = allData.taphuan.map((t) => t.ten);
-  const donViChuaBaoCao = allData.list.filter(
-    (db) => !donViDaBaoCao.includes(db),
-  );
-
-  // 2. Nếu tất cả đã báo cáo
-  if (donViChuaBaoCao.length === 0) {
-    Swal.fire({
-      title: "Tuyệt vời!",
-      text: "Tất cả các đơn vị đều đã báo cáo tập huấn.",
-      icon: "success",
-      confirmButtonColor: "#003366",
-    });
-    return;
-  }
-
-  // 3. Nếu có đơn vị chưa báo cáo -> Tạo danh sách HTML
-  const listHTML = `
-      <div style="text-align: left; max-height: 350px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 5px; background: #f9f9f9;">
-          <ul style="padding-left: 20px; margin: 0; line-height: 1.8;">
-              ${donViChuaBaoCao.map((db) => `<li>${db}</li>`).join("")}
-          </ul>
-      </div>
-  `;
-
-  // 4. Hiển thị Pop-up SweetAlert2
-  Swal.fire({
-    title: `Chưa báo cáo (${donViChuaBaoCao.length} đơn vị)`,
-    html: listHTML,
-    icon: "info",
-    confirmButtonColor: "#003366",
-    confirmButtonText: "Đóng",
-    width: "500px",
-  });
-});
