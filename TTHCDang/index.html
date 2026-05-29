@@ -16,9 +16,21 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
   </head>
   <body>
     <header>
+      <h2
+        style="
+          font-size: 1rem;
+          margin: 0 0 8px 0;
+          font-weight: bold;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+        "
+      >
+        TỈNH ỦY THÁI NGUYÊN
+      </h2>
       <h1>
         TÌNH HÌNH TRIỂN KHAI<br />THỦ TỤC HÀNH CHÍNH CỦA ĐẢNG TRÊN MÔI TRƯỜNG
         ĐIỆN TỬ
@@ -67,10 +79,31 @@
 
         <div id="left-taphuan" class="left-content">
           <div class="card" style="height: 100%; overflow-y: auto">
-            <div class="card-header">
-              <h3>
+            <div
+              class="card-header"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 10px;
+              "
+            >
+              <h3 style="margin: 0">
                 <i class="fas fa-chart-bar"></i> BIỂU ĐỒ VÀ SỐ LIỆU TẬP HUẤN
               </h3>
+
+              <div>
+                <button
+                  class="filter-btn active"
+                  onclick="applyFilter('top5high')"
+                >
+                  Top 5 Cao nhất
+                </button>
+                <button class="filter-btn" onclick="applyFilter('top5low')">
+                  Top 5 Thấp nhất
+                </button>
+              </div>
             </div>
 
             <div class="chart-container" style="padding: 15px; height: 350px">
@@ -78,9 +111,33 @@
             </div>
 
             <div style="padding: 0 15px 20px 15px">
-              <h4 style="color: var(--primary); margin-bottom: 10px">
-                <i class="fas fa-list"></i> CHI TIẾT SỐ LIỆU
-              </h4>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  margin-bottom: 15px;
+                "
+              >
+                <h4 style="color: var(--primary); margin: 0">
+                  <i class="fas fa-list"></i> CHI TIẾT SỐ LIỆU
+                </h4>
+                <button
+                  id="btnChuaBaoCaoTaphuan"
+                  style="
+                    background-color: #ffc107;
+                    color: #000;
+                    border: none;
+                    padding: 6px 12px;
+                    border-radius: 4px;
+                    font-weight: bold;
+                    cursor: pointer;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                  "
+                >
+                  <i class="fas fa-eye"></i> Xem đơn vị chưa báo cáo
+                </button>
+              </div>
               <table class="data-table" id="tableTaphuan">
                 <thead>
                   <tr>

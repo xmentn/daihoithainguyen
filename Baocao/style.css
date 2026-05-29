@@ -1,0 +1,136 @@
+/* Thiết lập cơ bản */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: #f5f7fa;
+  color: #333333;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Header mang phong cách cơ quan hành chính */
+.main-header {
+  background: linear-gradient(135deg, #a30000 0%, #d32f2f 100%);
+  color: #ffffff;
+  padding: 20px 0;
+  border-bottom: 4px solid #ffcc00; /* Đường viền vàng đồng */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.title-group h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.title-group .subtitle {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #ffcc00;
+  letter-spacing: 1px;
+  margin-top: 5px;
+}
+
+/* Khung nội dung thông báo */
+.content-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+}
+
+.announcement-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+  border-top: 6px solid #d32f2f;
+  padding: 40px;
+  max-width: 650px;
+  width: 100%;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.icon-warning {
+  margin-bottom: 20px;
+  animation: pulse 2s infinite;
+}
+
+.status-title {
+  font-size: 1.4rem;
+  color: #d32f2f;
+  margin-bottom: 15px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.notice-text {
+  font-size: 1.2rem;
+  color: #2c3e50;
+  font-weight: 500;
+  line-height: 1.8;
+}
+
+/* Footer chân trang */
+.main-footer {
+  background-color: #2c3e50;
+  color: #bdc3c7;
+  text-align: center;
+  padding: 15px 20px;
+  font-size: 0.9rem;
+  border-top: 1px solid #34495e;
+}
+
+/* Hiệu ứng chuyển động nhẹ cho biểu tượng */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Tương thích thiết bị di động */
+@media (max-width: 768px) {
+  .title-group h1 {
+    font-size: 1.2rem;
+  }
+  .title-group .subtitle {
+    font-size: 0.9rem;
+  }
+  .announcement-card {
+    padding: 25px 15px;
+  }
+  .notice-text {
+    font-size: 1.1rem;
+  }
+}

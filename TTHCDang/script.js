@@ -123,36 +123,73 @@ async function loadAllData() {
     $("#listKhong").html(listKhongHTML);
 
     // Render Biểu đồ
-    renderChart(allData.taphuan);
-    renderTableTaphuan(allData.taphuan);
+   applyFilter('top5high');
   } catch (err) {
     Swal.fire("Lỗi tải dữ liệu", err.message, "error");
   }
 }
+// Hàm Xử lý Lọc Dữ liệu (Top 5, Top 10, Tất cả)
+function applyFilter(filterType) {
+  if (!allData || !allData.taphuan) return;
 
-function renderChart(data) {
+  // Đổi trạng thái nút bấm
+  $(".filter-btn").removeClass("active");
+  $(`button[onclick="applyFilter('${filterType}')"]`).addClass("active");
+
+  let filteredData = [...allData.taphuan];
+  let chartColor = "#003366"; // Mặc định màu xanh chính (Primary)
+
+  if (filterType === "top5high") {
+    // Sắp xếp từ cao xuống thấp và lấy 5 ông đầu
+    filteredData = filteredData
+      .sort((a, b) => b.soLuong - a.soLuong)
+      .slice(0, 5);
+    chartColor = "#003366"; // Màu xanh đậm trang trọng cho đơn vị dẫn đầu
+  } else if (filterType === "top5low") {
+    // Sắp xếp từ thấp lên cao và lấy 5 ông đầu
+    filteredData = filteredData
+      .sort((a, b) => a.soLuong - b.soLuong)
+      .slice(0, 5);
+    chartColor = "#fd7e14"; // Màu cam cảnh báo (warning) cho đơn vị thấp
+  }
+
+  // Cập nhật biểu đồ với màu sắc tương ứng
+  renderChart(filteredData, chartColor);
+  renderTableTaphuan(filteredData);
+}
+function renderChart(dataToShow) {
+function renderChart(dataToShow, barColor) {
   const ctx = document.getElementById("taphuanChart").getContext("2d");
   if (myChart) myChart.destroy();
 
-  const sorted = [...data].sort((a, b) => b.soLuong - a.soLuong).slice(0, 10);
-
   myChart = new Chart(ctx, {
     type: "bar",
+    plugins: [ChartDataLabels],
     data: {
-      labels: sorted.map((d) => d.ten),
-      datasets: [
-        {
-          label: "Số người tập huấn",
-          data: sorted.map((d) => d.soLuong),
-          backgroundColor: "#da251d",
-          borderRadius: 5,
-        },
-      ],
+      labels: dataToShow.map((d) => d.ten),
+      datasets: [{
+        label: "Số người tập huấn",
+        data: dataToShow.map((d) => d.soLuong),
+        backgroundColor: barColor, // Sử dụng màu được truyền vào
+        borderRadius: 5,
+      }],
     },
     options: {
       indexAxis: "y",
       maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      layout: { padding: { right: 50 } },
+      plugins: { 
+        legend: { display: false },
+        datalabels: {
+          color: barColor, // Số trên đầu cột cũng đổi màu theo cột
+          anchor: 'end',
+          align: 'right',
+          font: { weight: 'bold', size: 14 }
+        }
+      },
+      scales: { 
+        x: { beginAtZero: true } 
+      }
     },
   });
 }
@@ -262,3 +299,43 @@ function renderTableTaphuan(data) {
   tbody.innerHTML = rowsHTML;
   tfootTotal.textContent = total;
 }
+// Sự kiện khi bấm nút "Xem đơn vị chưa báo cáo" ở phần Tập huấn
+$(document).on("click", "#btnChuaBaoCaoTaphuan", function () {
+  if (!allData || !allData.list || !allData.taphuan) return;
+
+  // 1. Lọc ra các đơn vị có trong danh sách tổng nhưng CHƯA CÓ trong danh sách tập huấn
+  const donViDaBaoCao = allData.taphuan.map((t) => t.ten);
+  const donViChuaBaoCao = allData.list.filter(
+    (db) => !donViDaBaoCao.includes(db),
+  );
+
+  // 2. Nếu tất cả đã báo cáo
+  if (donViChuaBaoCao.length === 0) {
+    Swal.fire({
+      title: "Tuyệt vời!",
+      text: "Tất cả các đơn vị đều đã báo cáo tập huấn.",
+      icon: "success",
+      confirmButtonColor: "#003366",
+    });
+    return;
+  }
+
+  // 3. Nếu có đơn vị chưa báo cáo -> Tạo danh sách HTML
+  const listHTML = `
+      <div style="text-align: left; max-height: 350px; overflow-y: auto; padding: 10px; border: 1px solid #eee; border-radius: 5px; background: #f9f9f9;">
+          <ul style="padding-left: 20px; margin: 0; line-height: 1.8;">
+              ${donViChuaBaoCao.map((db) => `<li>${db}</li>`).join("")}
+          </ul>
+      </div>
+  `;
+
+  // 4. Hiển thị Pop-up SweetAlert2
+  Swal.fire({
+    title: `Chưa báo cáo (${donViChuaBaoCao.length} đơn vị)`,
+    html: listHTML,
+    icon: "info",
+    confirmButtonColor: "#003366",
+    confirmButtonText: "Đóng",
+    width: "500px",
+  });
+});
