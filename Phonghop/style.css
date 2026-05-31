@@ -1,395 +1,210 @@
-/* =========================================
-   CÀI ĐẶT CHUNG
-   ========================================= */
+/* Giữ nguyên CSS V8, tinh chỉnh thêm text hiển thị tên đại biểu */
+:root {
+  --bg-main: #f0f2f5;
+  --panel-bg: #ffffff;
+  --table-color: #f5eedc;
+  --table-border: #d2b48c;
+  --seat-top: #e74c3c;
+  --seat-bottom: #c0392b;
+  --seat-shadow-3d: #8b0000;
+  --text-color: #2c3e50;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', sans-serif;
 }
+
 body {
-  background-color: #f0f2f5;
+  background-color: var(--bg-main);
+  padding: 20px;
   display: flex;
   justify-content: center;
-  padding: 40px;
 }
 
-.room-container {
-  background-color: #ffffff;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+.app-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1400px;
 }
 
-.room-title {
+.main-title {
   text-align: center;
-  color: #0f4c81;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-  font-family: Tahoma, "Segoe UI", Arial, sans-serif;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 1.5px;
-  line-height: 1.4;
-  text-shadow: none;
-}
-
-/* =========================================
-   BỐ CỤC CHỮ U (CỐ ĐỊNH CHIỀU RỘNG)
-   ========================================= */
-.u-shape-layout {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-/* Hàng Chủ tọa */
-.row-container {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 5px;
-  width: 100%;
-}
-
-/* 2 dãy bàn Trái - Phải */
-.side-container {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 850px;
-}
-
-/* Khu vực thảm và tìm kiếm ở giữa */
-.middle-space {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column; /* Xếp dọc: Tìm kiếm nằm trên, Thảm nằm dưới */
-  justify-content: flex-start; /* Căn lên sát hàng Chủ tọa */
-  align-items: center;
-  padding: 0 10px;
-  gap: 15px; /* Khoảng cách giữa ô tìm kiếm và thảm */
-}
-
-/* =========================================
-   TÌM KIẾM THÔNG MINH (TRONG CHỮ U)
-   ========================================= */
-.search-inside-u {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  width: 100%;
-  max-width: 260px;
-  background-color: #f8f9fa;
-  padding: 10px 15px;
-  border-radius: 8px;
-  border: 1px solid #e0e6ed;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.search-inside-u label {
-  font-size: 13px;
-  color: #0f4c81;
+  font-size: 28px;
   font-weight: bold;
-  text-transform: uppercase;
+  color: var(--text-color);
+  margin-bottom: 20px;
+  letter-spacing: 2px;
 }
-.search-inside-u input {
-  padding: 8px 12px;
+
+.hall-container {
+  background-color: var(--panel-bg);
+  padding: 50px 40px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.stage-section {
+  margin-bottom: 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.chairman-area {
+  width: 650px;
+}
+
+.chairman-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  border: 1px solid #0984e3;
+}
+
+.chairman-chairs {
+  display: flex;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.chair-slot {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.chairman-table {
+  display: flex;
+  width: 100%;
+  height: 55px;
+  background-color: var(--table-color);
+  border: 2px solid var(--table-border);
   border-radius: 6px;
-  font-size: 13px;
-  outline: none;
-  color: #333;
-  transition: 0.3s;
-}
-.search-inside-u input:focus {
-  box-shadow: 0 0 5px rgba(9, 132, 227, 0.3);
+  box-shadow: inset 0 -4px 6px rgba(0, 0, 0, 0.05), 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* Thảm trung tâm */
-.carpet {
-  width: 100%;
-  flex-grow: 1;
-  border: 2px dashed #bdc3c7;
-  border-radius: 8px;
-  min-height: 150px;
+.table-panel {
+  flex: 1;
+  border-right: 2px solid var(--table-border);
 }
 
-/* =========================================
-   MÔ PHỎNG BÀN GHẾ & BẢNG TÊN
-   ========================================= */
-.seat-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  cursor: pointer;
-  transition: 0.3s;
+.table-panel:last-child {
+  border-right: none;
 }
-.desk {
-  background: linear-gradient(145deg, #d4a373, #bc8f63);
-  border: 2px solid #a67c52;
-  border-radius: 4px;
-  position: relative;
+
+.seat-3d {
+  background: linear-gradient(to bottom, var(--seat-top), var(--seat-bottom));
+  border-radius: 18px 18px 4px 4px;
+  box-shadow: 0 6px 0 var(--seat-shadow-3d), 0 10px 5px rgba(0, 0, 0, 0.2);
+  border: 1px solid #a93226;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
-  transition: all 0.3s;
-}
-.nameplate {
-  background-color: #fff;
-  padding: 3px;
-  border-radius: 2px;
-  text-align: center;
-  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
   justify-content: center;
-  align-items: center;
+  color: white;
+  padding-bottom: 4px;
+  position: relative;
 }
+
+.c-seat {
+  width: 65px;
+  height: 45px;
+}
+
+.a-seat {
+  width: 48px;
+  height: 35px;
+}
+
+/* Thêm class để hiển thị tên đại biểu nổi bật trên ghế */
+.seat-code {
+  font-weight: bold;
+  font-size: 11px;
+  opacity: 0.8;
+}
+
 .delegate-name {
   font-size: 9px;
   font-weight: bold;
-  color: #333;
+  color: #fff176;
+  text-align: center;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 90%;
+  margin-top: 2px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.has-delegate {
+  box-shadow: 0 6px 0 #27ae60, 0 0 10px #2ecc71;
+  border-color: #2ecc71;
+  background: linear-gradient(to bottom, #2ecc71, #27ae60);
+}
+
+.hall-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 80px minmax(0, 1fr);
+  gap: 15px;
+}
+
+.center-aisle {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+}
+
+.seating-block {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.auditorium-row {
+  display: flex;
   width: 100%;
 }
-.position-tag {
-  font-size: 9px;
-  color: #e74c3c;
-  font-weight: bold;
-  margin-bottom: 2px;
+
+.tables-container {
+  display: flex;
+  flex: 1;
+  gap: 0;
 }
 
-/* Ghế Đỏ Nhung Viền Vàng */
-.chair {
-  background: linear-gradient(145deg, #a00000, #600000);
-  border: 1px solid #d4af37;
-  position: relative;
-  box-shadow:
-    inset 0 -3px 0 rgba(0, 0, 0, 0.4),
-    0 3px 5px rgba(0, 0, 0, 0.3);
-  transition: 0.3s;
-}
-
-/* --- Kích thước --- */
-.top-seat {
+.table-group {
+  display: flex;
   flex-direction: column;
-}
-.top-seat .desk {
-  width: 130px;
-  height: 50px;
-  margin-top: 8px;
-}
-.top-seat .chair {
-  width: 45px;
-  height: 35px;
-  border-radius: 15px 15px 8px 8px;
-  background: linear-gradient(145deg, #d4af37, #aa7c11);
-  border: 1px solid #8b6508;
-}
-.top-seat .nameplate {
-  width: 120px;
+  align-items: center;
+  flex: 1;
 }
 
-.left-seat {
-  flex-direction: row;
-}
-.left-seat .desk {
-  width: 50px;
-  height: 100px;
-  margin-left: 8px;
-}
-.left-seat .chair {
-  width: 35px;
-  height: 45px;
-  border-radius: 15px 8px 8px 15px;
-}
-.left-seat .nameplate {
-  width: 90px;
-  transform: rotate(-90deg);
+.auditorium-chairs {
+  display: flex;
+  width: 100%;
+  justify-content: space-evenly;
+  margin-top: 10px;
 }
 
-.right-seat {
-  flex-direction: row-reverse;
-}
-.right-seat .desk {
-  width: 50px;
-  height: 100px;
-  margin-right: 8px;
-}
-.right-seat .chair {
-  width: 35px;
-  height: 45px;
-  border-radius: 8px 15px 15px 8px;
-}
-.right-seat .nameplate {
-  width: 90px;
-  transform: rotate(90deg);
+.auditorium-table {
+  width: 100%;
+  height: 40px;
+  background-color: var(--table-color);
+  border: 2px solid var(--table-border);
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.03);
 }
 
-/* =========================================
-   TOOLTIP XANH DƯƠNG
-   ========================================= */
-.tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #0984e3;
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  z-index: 100;
-  pointer-events: none;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  margin-bottom: 5px;
-  border: 1px solid #74b9ff;
-  text-align: center;
-  line-height: 1.4;
-}
-.tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-left: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: #0984e3 transparent transparent transparent;
-}
-.seat-wrapper:hover .tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(-5px);
+.table-group:not(:last-child) .auditorium-table {
+  border-right: none;
 }
 
-/* =========================================
-   HIỆU ỨNG TÌM KIẾM
-   ========================================= */
-@keyframes pulse-highlight {
-  0% {
-    box-shadow: 0 0 0 0 rgba(9, 132, 227, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 15px rgba(9, 132, 227, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(9, 132, 227, 0);
-  }
-}
-.highlight-seat {
-  transform: scale(1.1);
-  z-index: 10;
-}
-.highlight-seat .desk {
-  border-color: #0984e3;
-  animation: pulse-highlight 1.5s infinite;
-}
-.highlight-seat .nameplate {
-  background-color: #ffeaa7;
+.table-group:first-child .auditorium-table {
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
 }
 
-/* =========================================
-   ĐIỆN THOẠI (Responsive)
-   ========================================= */
-@media screen and (max-width: 768px) {
-  .room-container {
-    padding: 15px;
-  }
-  .room-title {
-    font-size: 18px;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-  }
-
-  .row-container {
-    flex-wrap: nowrap !important;
-    overflow-x: auto;
-    padding-bottom: 15px;
-    justify-content: flex-start;
-    width: 100%;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-  .row-container::-webkit-scrollbar {
-    display: none;
-  }
-
-  .top-seat .desk {
-    width: 100px;
-    height: 40px;
-    margin-top: 5px;
-  }
-  .top-seat .chair {
-    width: 45px;
-    height: 35px;
-    border-radius: 15px 15px 8px 8px;
-    background: linear-gradient(145deg, #d4af37, #aa7c11);
-    border: 1px solid #8b6508;
-  }
-  .top-seat .nameplate {
-    width: 90px;
-  }
-
-  .left-seat .desk,
-  .right-seat .desk {
-    width: 40px;
-    height: 90px;
-    margin-left: 5px;
-    margin-right: 5px;
-  }
-  .left-seat .chair,
-  .right-seat .chair {
-    width: 25px;
-    height: 30px;
-  }
-  .left-seat .chair {
-    border-radius: 10px 5px 5px 10px;
-  }
-  .right-seat .chair {
-    border-radius: 5px 10px 10px 5px;
-  }
-  .left-seat .nameplate,
-  .right-seat .nameplate {
-    width: 80px;
-  }
-
-  .delegate-name {
-    font-size: 8px;
-  }
-  .position-tag {
-    font-size: 8px;
-  }
-
-  .side-container {
-    max-width: 100%;
-    gap: 5px;
-  }
-  .middle-space {
-    padding: 0 5px;
-    gap: 10px;
-  }
-
-  .search-inside-u {
-    max-width: 100%;
-    padding: 8px;
-  }
-  .carpet {
-    min-height: 100px;
-  }
+.table-group:last-child .auditorium-table {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
 }
