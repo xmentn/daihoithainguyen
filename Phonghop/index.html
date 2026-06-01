@@ -1,34 +1,89 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-
-<head>
-  <meta charset="UTF-8">
-  <title>Sơ đồ Hội trường</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-  <div class="app-container">
-    <h1 class="main-title">SƠ ĐỒ CHỖ NGỒI HỘI TRƯỜNG</h1>
-    <div style="text-align:center; margin-bottom: 20px;">
-      <a href="admin.html"
-        style="background:#34495e; color:white; padding:10px 20px; text-decoration:none; border-radius:5px; font-weight:bold;">⚙️
-        Chuyển sang Trang Quản trị</a>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sơ đồ Hội trường</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="admin-icon" class="admin-icon-btn">
+      <span>⚙️</span><span class="admin-text">Quản trị</span>
     </div>
-    <div class="hall-container">
-      <div class="stage-section">
-        <div class="chairman-area" id="chairman-container"></div>
-      </div>
-      <div class="auditorium-section">
-        <div class="hall-body">
-          <div class="seating-block" id="left-block"></div>
-          <div class="center-aisle"></div>
-          <div class="seating-block" id="right-block"></div>
+
+    <div id="login-modal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>Đăng nhập Quản trị</h3>
+        <div style="margin-bottom: 10px">
+          <input
+            type="text"
+            id="username"
+            placeholder="Tên đăng nhập"
+            style="width: 100%; padding: 8px"
+          />
+        </div>
+        <div style="margin-bottom: 15px">
+          <input
+            type="password"
+            id="password"
+            placeholder="Mật khẩu"
+            style="width: 100%; padding: 8px"
+          />
+        </div>
+        <p
+          id="login-error"
+          style="
+            color: red;
+            font-size: 12px;
+            display: none;
+            margin-bottom: 10px;
+          "
+        >
+          Sai tài khoản hoặc mật khẩu!
+        </p>
+        <div style="text-align: right">
+          <button id="close-login" style="padding: 6px 12px; margin-right: 5px">
+            Hủy
+          </button>
+          <button
+            id="submit-login"
+            style="
+              padding: 6px 12px;
+              background: #2980b9;
+              color: white;
+              border: none;
+              cursor: pointer;
+            "
+          >
+            Đăng nhập
+          </button>
         </div>
       </div>
     </div>
-  </div>
-  <script src="script.js"></script>
-</body>
 
+    <div class="app-container">
+      <h1 class="main-title">SƠ ĐỒ CHỖ NGỒI HỘI TRƯỜNG</h1>
+      <div class="hall-container">
+        <div class="stage-section">
+          <div class="chairman-area" id="chairman-container"></div>
+        </div>
+
+        <div class="search-area">
+          <input
+            type="text"
+            id="search-delegate"
+            placeholder="🔍 Nhập tên đại biểu để tìm vị trí ghế..."
+          />
+        </div>
+
+        <div class="auditorium-section">
+          <div class="hall-body">
+            <div class="seating-block" id="left-block"></div>
+            <div class="center-aisle"></div>
+            <div class="seating-block" id="right-block"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="script.js"></script>
+  </body>
 </html>

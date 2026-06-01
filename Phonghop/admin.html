@@ -1,59 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Quản trị Danh sách Đại biểu</title>
-    <link rel="stylesheet" href="admin.css">
-</head>
-
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quản trị Hệ thống</title>
+    <link rel="stylesheet" href="admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </head>
+  <body>
     <div class="admin-container">
-        <h1>QUẢN TRỊ DANH SÁCH ĐẠI BIỂU</h1>
-        <div class="nav-links">
-            <a href="index.html" target="_blank">👉 Xem Sơ đồ Hội trường</a>
-        </div>
+      <h1>QUẢN TRỊ HỆ THỐNG</h1>
+      <div class="nav-links"><a href="index.html">🔙 Quay lại Sơ đồ</a></div>
 
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-danhsach">
+          Danh sách Đại biểu
+        </button>
+        <button class="tab-btn" data-tab="tab-vitri">Vị trí Chỗ ngồi</button>
+      </div>
+
+      <div id="tab-danhsach" class="tab-content active">
         <div class="form-section">
-            <h2 id="form-title">Thêm Đại biểu mới</h2>
-            <form id="delegate-form">
-                <input type="hidden" id="delegate-id">
-
-                <div class="form-group">
-                    <label>Họ và Tên:</label>
-                    <input type="text" id="fullname" required placeholder="VD: Nguyễn Văn A">
-                </div>
-
-                <div class="form-group">
-                    <label>Vị trí ghế (V1-V5 hoặc A1, B2...):</label>
-                    <input type="text" id="seat-code" required placeholder="VD: V1 hoặc A3">
-                </div>
-
-                <div class="form-actions">
-                    <button type="submit" id="save-btn">Lưu thông tin</button>
-                    <button type="button" id="cancel-btn" style="display:none; background:#95a5a6;">Hủy sửa</button>
-                </div>
-            </form>
+          <h3 id="form-title">Thêm Đại biểu mới</h3>
+          <form id="delegate-form">
+            <input type="hidden" id="delegate-id" />
+            <div class="form-group" style="display: flex; gap: 10px">
+              <input
+                type="number"
+                id="delegate-rank"
+                required
+                placeholder="Rank (VD: 1, 2...)"
+                style="width: 120px"
+                min="1"
+              />
+              <input
+                type="text"
+                id="fullname"
+                required
+                placeholder="Nhập Họ và Tên (VD: Nguyễn Minh Đức)"
+                style="flex: 1"
+              />
+            </div>
+            <button type="submit" id="save-btn" class="btn-primary">
+              Lưu Đại biểu
+            </button>
+            <button
+              type="button"
+              id="cancel-btn"
+              style="display: none"
+              class="btn-secondary"
+            >
+              Hủy
+            </button>
+          </form>
         </div>
+        <table>
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Rank</th>
+              <th>Họ và Tên</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="table-danhsach"></tbody>
+        </table>
+      </div>
 
-        <div class="table-section">
-            <h2>Danh sách đã xếp chỗ</h2>
-            <table id="delegate-table">
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Họ và Tên</th>
-                        <th>Vị trí ghế</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    <!-- Dữ liệu sẽ đổ vào đây -->
-                </tbody>
-            </table>
+      <div id="tab-vitri" class="tab-content">
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+          "
+        >
+          <p style="color: #555; margin: 0">
+            <i>* Nhập mã ghế (V1, A1...) để xếp chỗ. Bỏ trống nếu không dự.</i>
+          </p>
+          <button
+            id="clear-all-seats"
+            style="
+              background: #e74c3c;
+              color: white;
+              border: none;
+              padding: 8px 15px;
+              border-radius: 4px;
+              font-weight: bold;
+              cursor: pointer;
+            "
+          >
+            🗑️ Xóa toàn bộ ghế
+          </button>
         </div>
+        <table>
+          <thead>
+            <tr>
+              <th>STT</th>
+              <th>Rank</th>
+              <th>Họ và Tên</th>
+              <th>Mã ghế hiện tại</th>
+              <th>Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="table-vitri"></tbody>
+        </table>
+      </div>
     </div>
-    <script src="admin.js"></script>
-</body>
-
+    <script type="module" src="admin.js"></script>
+  </body>
 </html>
