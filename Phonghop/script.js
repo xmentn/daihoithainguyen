@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   submitLogin.addEventListener("click", () => {
-    if (userIn.value === "admin" && passIn.value === "123456") {
+    if (userIn.value === "admin" && passIn.value === "Xmentn") {
       window.location.href = "admin.html";
     } else {
       errorMsg.style.display = "block";
