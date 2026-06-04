@@ -238,14 +238,13 @@ function checkLoginState() {
 }
 
 function applyPermissions() {
-  // Xác định vai trò tài khoản
-  const isAdmin = currentUser.role === "admin";
-  const isViewer = currentUser.role === "viewer";
+  const isAdmin = currentUser && currentUser.role === "admin";
+  const isViewer = currentUser && currentUser.role === "viewer";
 
-  // Nhóm có quyền xem toàn bộ menu quản lý (Admin và Viewer)
+  // Nhóm có quyền xem các menu điều hành chung (Admin và Viewer)
   const canViewAll = isAdmin || isViewer;
 
-  // 1. Phân quyền hiển thị Menu chính
+  // 1. Phân quyền hiển thị Menu chính cho Admin và Viewer
   document.getElementById("menuGiaoViec").style.display = canViewAll
     ? "block"
     : "none";
@@ -258,24 +257,20 @@ function applyPermissions() {
   document.getElementById("menuCanBo").style.display = canViewAll
     ? "block"
     : "none";
-  document.getElementById("menuTaiKhoan").style.display = canViewAll
-    ? "block"
-    : "none";
 
-  // 2. Phân quyền hiển thị cột Hành động/Thao tác trên các bảng dữ liệu (Chỉ Admin mới có)
-  const actionColumns = document.querySelectorAll(
-    "#colThaoTacBaoCao, .col-thao-tac, .thao-tac-header",
-  );
-  actionColumns.forEach((col) => {
-    col.style.display = isAdmin ? "table-cell" : "none";
-  });
+  // 2. ĐẶC BIỆT: Chỉ duy nhất Admin mới được hiển thị Menu Quản lý tài khoản (Tab 6)
+  // Tài khoản Viewer và User thông thường sẽ bị ẩn hoàn toàn menu này
+  const menuTaiKhoan = document.getElementById("menuTaiKhoan");
+  if (menuTaiKhoan) {
+    menuTaiKhoan.style.display = isAdmin ? "block" : "none";
+  }
 
-  // 3. Ẩn tất cả các nút Thêm mới/Tạo mới nếu là Viewer hoặc User thông thường
-  const createButtons = document.querySelectorAll(
-    ".btn-them-moi, #btnCreateTask, .btn-add",
+  // 3. Tự động ẩn/hiện các Form nhập liệu trên toàn bộ các Tab theo quyền Admin
+  const adminForms = document.querySelectorAll(
+    "#formGiaoViec, #formThemDanhMuc, #formThemQuyDoi, #formThemCanBo, #formThemTaiKhoan",
   );
-  createButtons.forEach((btn) => {
-    btn.style.display = isAdmin ? "block" : "none";
+  adminForms.forEach((form) => {
+    form.style.display = isAdmin ? "block" : "none";
   });
 }
 
