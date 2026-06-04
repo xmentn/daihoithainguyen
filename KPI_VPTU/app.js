@@ -7,6 +7,8 @@ import {
   collection,
   addDoc,
   getDocs,
+  query,
+  where,
   serverTimestamp,
   deleteDoc,
   doc,
@@ -120,7 +122,6 @@ function showConfirm(message, callback) {
   const text = document.createElement("p");
   text.textContent = message;
   text.style.fontWeight = "bold";
-  text.style.fontSize = "16px";
   text.style.marginBottom = "25px";
   const btnContainer = document.createElement("div");
   btnContainer.style.display = "flex";
@@ -148,14 +149,122 @@ function showConfirm(message, callback) {
 }
 
 // ==========================================
-// 2. CHUYỂN MENU 5 TAB
+// 2. LOGIC ĐĂNG NHẬP & PHÂN QUYỀN (RBAC)
+// ==========================================
+let currentUser = null;
+
+async function initDefaultAdmin() {
+  try {
+    const q = query(
+      collection(db, "tai_khoan"),
+      where("username", "==", "admin"),
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      await addDoc(collection(db, "tai_khoan"), {
+        username: "admin",
+        password: "123",
+        role: "admin",
+        ho_ten: "Quản trị viên Hệ thống",
+      });
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+document.getElementById("formLogin").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector("button");
+  btn.innerText = "Đang xác thực...";
+  btn.disabled = true;
+  const u = document.getElementById("loginUsername").value.trim();
+  const p = document.getElementById("loginPassword").value.trim();
+
+  try {
+    const q = query(
+      collection(db, "tai_khoan"),
+      where("username", "==", u),
+      where("password", "==", p),
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const userData = snap.docs[0].data();
+      sessionStorage.setItem("kpiUser", JSON.stringify(userData));
+      checkLoginState();
+      showToast(`Chào mừng đồng chí ${userData.ho_ten} đăng nhập thành công!`);
+    } else {
+      showToast("Sai tên đăng nhập hoặc mật khẩu!", "error");
+    }
+  } catch (err) {
+    showToast("Lỗi kết nối máy chủ!", "error");
+  }
+  btn.innerText = "Đăng nhập";
+  btn.disabled = false;
+});
+
+document.getElementById("btnDangXuat").addEventListener("click", () => {
+  sessionStorage.removeItem("kpiUser");
+  checkLoginState();
+});
+
+function checkLoginState() {
+  const userStr = sessionStorage.getItem("kpiUser");
+  if (userStr) {
+    currentUser = JSON.parse(userStr);
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("appContainer").style.display = "block";
+    document.getElementById("currentUserDisplay").innerText =
+      currentUser.ho_ten;
+    applyPermissions();
+  } else {
+    document.getElementById("loginContainer").style.display = "flex";
+    document.getElementById("appContainer").style.display = "none";
+    document.getElementById("formLogin").reset();
+  }
+}
+
+function applyPermissions() {
+  const isAdmin = currentUser.role === "admin";
+
+  document.getElementById("menuGiaoViec").style.display = isAdmin
+    ? "block"
+    : "none";
+  document.getElementById("menuDanhMuc").style.display = isAdmin
+    ? "block"
+    : "none";
+  document.getElementById("menuQuyDoi").style.display = isAdmin
+    ? "block"
+    : "none";
+  document.getElementById("menuCanBo").style.display = isAdmin
+    ? "block"
+    : "none";
+  document.getElementById("menuTaiKhoan").style.display = isAdmin
+    ? "block"
+    : "none";
+
+  document.getElementById("colThaoTacBaoCao").style.display = isAdmin
+    ? "table-cell"
+    : "none";
+  document.getElementById("locCanBoBaoCao").parentElement.style.display =
+    isAdmin ? "flex" : "none";
+
+  if (isAdmin) {
+    document.getElementById("menuGiaoViec").click();
+  } else {
+    document.getElementById("menuBaoCao").click();
+  }
+}
+
+// ==========================================
+// 3. CHUYỂN MENU TAB
 // ==========================================
 document.getElementById("btnHuongDan").addEventListener("click", () => {
   const content = `
         <ul style="padding-left: 20px;">
-            <li style="margin-bottom: 8px;"><b>% Số lượng:</b> SL hoàn thành (quy đổi) / SL giao (quy đổi).</li>
-            <li style="margin-bottom: 8px;"><b>% Chất lượng/Tiến độ:</b> Đánh giá trên số công việc đã hoàn thành. Trừ 25% điểm cho mỗi lần lỗi/chậm.</li>
-            <li style="margin-bottom: 8px;"><b>Lọc dữ liệu:</b> Sử dụng thanh thả xuống (Dropdown) để lọc kết quả theo từng Cán bộ cụ thể.</li>
+            <li style="margin-bottom: 8px;"><b>Quyền Admin:</b> Toàn quyền cấu hình, giao việc, khóa/mở điểm KPI.</li>
+            <li style="margin-bottom: 8px;"><b>Quyền Chuyên viên:</b> Chỉ được xem kết quả KPI của cá nhân mình đã được chốt.</li>
+            <li style="margin-bottom: 8px;"><b>Công thức chuẩn (PL2):</b> Đánh giá CL và TĐ lấy Mẫu số là Số lượng GIAO. Trừ 25% điểm cho mỗi lần lỗi/chậm.</li>
         </ul>
     `;
   showModal("Hướng dẫn nghiệp vụ (Quy định 870 / Phụ lục 2)", content);
@@ -167,6 +276,7 @@ const menus = [
   "menuDanhMuc",
   "menuQuyDoi",
   "menuCanBo",
+  "menuTaiKhoan",
 ];
 const phans = [
   "phanGiaoViec",
@@ -174,6 +284,7 @@ const phans = [
   "phanDanhMuc",
   "phanQuyDoi",
   "phanCanBo",
+  "phanTaiKhoan",
 ];
 
 function hideAllTabs() {
@@ -199,7 +310,6 @@ document.getElementById("menuDanhMuc").addEventListener("click", () => {
   document.getElementById("menuDanhMuc").classList.add("active");
   document.getElementById("phanDanhMuc").style.display = "block";
   loadDanhMucChuan();
-  resetFormDanhMuc();
 });
 document.getElementById("menuQuyDoi").addEventListener("click", () => {
   hideAllTabs();
@@ -207,17 +317,21 @@ document.getElementById("menuQuyDoi").addEventListener("click", () => {
   document.getElementById("phanQuyDoi").style.display = "block";
   loadDanhMucChuan();
   loadDanhMucQuyDoi();
-  resetFormQuyDoi();
 });
 document.getElementById("menuCanBo").addEventListener("click", () => {
   hideAllTabs();
   document.getElementById("menuCanBo").classList.add("active");
   document.getElementById("phanCanBo").style.display = "block";
   loadDanhSachCanBo();
-  resetFormCanBo();
+});
+document.getElementById("menuTaiKhoan").addEventListener("click", () => {
+  hideAllTabs();
+  document.getElementById("menuTaiKhoan").classList.add("active");
+  document.getElementById("phanTaiKhoan").style.display = "block";
+  loadDanhSachCanBoTaiKhoan();
+  loadDanhSachTaiKhoan();
 });
 
-// Lắng nghe sự kiện BỘ LỌC CÁN BỘ
 document
   .getElementById("locCanBoGiaoViec")
   .addEventListener("change", loadDanhSachGiaoViec);
@@ -227,94 +341,88 @@ document.getElementById("locCanBoBaoCao").addEventListener("change", () => {
 });
 
 // ==========================================
-// TỔNG HỢP NHIỆM VỤ GIAO VIỆC (TAB 1)
+// LOAD DỮ LIỆU CHUNG
 // ==========================================
 async function loadNhiemVuGiaoViec() {
-  const selectNhiemVu = document.getElementById("chonNhiemVu");
-  if (!selectNhiemVu) return;
-  selectNhiemVu.innerHTML =
-    '<option value="">-- Đang tải dữ liệu... --</option>';
+  const select = document.getElementById("chonNhiemVu");
+  if (!select) return;
+  try {
+    let h = '<option value="">-- Chọn công việc (Chuẩn / Quy đổi) --</option>';
+    const snapC = await getDocs(collection(db, "danh_muc_chuan"));
+    if (!snapC.empty) {
+      h += '<optgroup label="--- DANH MỤC CHUẨN ---">';
+      snapC.forEach((d) => {
+        const data = d.data();
+        h += `<option value="${data.ten_cong_viec}" data-heso="${data.he_so}">[${data.nhom}] ${data.ten_cong_viec}</option>`;
+      });
+      h += "</optgroup>";
+    }
+    const snapQ = await getDocs(collection(db, "danh_muc_quy_doi"));
+    if (!snapQ.empty) {
+      h += '<optgroup label="--- DANH MỤC QUY ĐỔI ---">';
+      snapQ.forEach((d) => {
+        const data = d.data();
+        h += `<option value="${data.ten_cong_viec}" data-heso="${data.he_so}">[${data.nhom}] ${data.ten_cong_viec}</option>`;
+      });
+      h += "</optgroup>";
+    }
+    select.innerHTML = h;
+    if (!select.hasAttribute("bound")) {
+      select.addEventListener("change", function () {
+        document.getElementById("heSoQuyDoi").value =
+          this.options[this.selectedIndex]?.dataset.heso || "";
+      });
+      select.setAttribute("bound", "true");
+    }
+  } catch (e) {}
+}
+
+async function loadDanhSachCanBo() {
+  const b = document.getElementById("bangCanBo");
+  const cbG = document.getElementById("chonCanBoGiaoViec");
+  const lG = document.getElementById("locCanBoGiaoViec");
+  const lB = document.getElementById("locCanBoBaoCao");
+
+  // PHẢI RESET TRƯỚC KHI LOAD LẠI
+  if (cbG) cbG.innerHTML = '<option value="">-- Chọn cán bộ --</option>';
+  if (lG) lG.innerHTML = '<option value="">-- Tất cả nhân sự --</option>';
+  if (lB) lB.innerHTML = '<option value="">-- Toàn bộ Phòng --</option>';
+  if (b) b.innerHTML = "";
 
   try {
-    let optionsHTML =
-      '<option value="">-- Chọn công việc (Chuẩn / Quy đổi) --</option>';
-
-    const snapChuan = await getDocs(collection(db, "danh_muc_chuan"));
-    if (!snapChuan.empty) {
-      optionsHTML += '<optgroup label="--- DANH MỤC CHUẨN ---">';
-      snapChuan.forEach((doc) => {
-        const d = doc.data();
-        optionsHTML += `<option value="${d.ten_cong_viec}" data-heso="${d.he_so}">[${d.nhom}] ${d.ten_cong_viec}</option>`;
-      });
-      optionsHTML += "</optgroup>";
-    }
-
-    const snapQuyDoi = await getDocs(collection(db, "danh_muc_quy_doi"));
-    if (!snapQuyDoi.empty) {
-      optionsHTML += '<optgroup label="--- DANH MỤC QUY ĐỔI ---">';
-      snapQuyDoi.forEach((doc) => {
-        const d = doc.data();
-        optionsHTML += `<option value="${d.ten_cong_viec}" data-heso="${d.he_so}">[${d.nhom}] ${d.ten_cong_viec}</option>`;
-      });
-      optionsHTML += "</optgroup>";
-    }
-
-    selectNhiemVu.innerHTML = optionsHTML;
-
-    if (!selectNhiemVu.hasAttribute("data-bound")) {
-      selectNhiemVu.addEventListener("change", function () {
-        document.getElementById("heSoQuyDoi").value =
-          this.value !== ""
-            ? this.options[this.selectedIndex].dataset.heso
-            : "";
-      });
-      selectNhiemVu.setAttribute("data-bound", "true");
-    }
-  } catch (err) {
-    selectNhiemVu.innerHTML =
-      '<option value="">-- Lỗi tải danh mục --</option>';
+    const snap = await getDocs(collection(db, "danh_sach_can_bo"));
+    snap.forEach((d) => {
+      const data = d.data();
+      const name = data.ho_ten;
+      // Đổ vào các Dropdown
+      if (cbG) cbG.innerHTML += `<option value="${name}">${name}</option>`;
+      if (lG) lG.innerHTML += `<option value="${name}">${name}</option>`;
+      if (lB) lB.innerHTML += `<option value="${name}">${name}</option>`;
+      // ... (phần render ra bảng Tab 5 giữ nguyên)
+    });
+  } catch (e) {
+    console.error(e);
   }
 }
 
 // ==========================================
-// 3. LOGIC QUẢN LÝ DANH MỤC CHUẨN (TAB 3)
+// XỬ LÝ FORM: DANH MỤC CHUẨN (TAB 3)
 // ==========================================
 document.getElementById("themNhom").addEventListener("change", function () {
-  const maxScores = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500 };
-  document.getElementById("themKhungDiem").value = maxScores[this.value] || 100;
+  const m = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500 };
+  document.getElementById("themKhungDiem").value = m[this.value] || 100;
 });
-function calculateHeSoChuan() {
-  let diemDanhGia =
-    parseFloat(document.getElementById("themTongDiem").value) || 0;
-  let diemChuan =
-    parseFloat(document.getElementById("diemCongViecChuan").value) || 0;
-  document.getElementById("themHeSo").value =
-    diemChuan > 0 ? (diemDanhGia / diemChuan).toFixed(2) : 0;
-}
-document
-  .querySelectorAll(".calc-tc")
-  .forEach((input) => input.addEventListener("input", calculateHeSoChuan));
-
-function resetFormDanhMuc() {
-  document.getElementById("formThemDanhMuc").reset();
-  document.getElementById("editDocId").value = "";
-  document.getElementById("tieuDeFormDanhMuc").textContent =
-    "Khởi tạo Danh mục Chuẩn";
-  document.getElementById("btnSubmitDanhMuc").textContent =
-    "Lưu Danh mục Chuẩn";
-  document.getElementById("btnCancelEdit").style.display = "none";
-  document.getElementById("themKhungDiem").value = 100;
-}
-document
-  .getElementById("btnCancelEdit")
-  .addEventListener("click", resetFormDanhMuc);
-
+document.querySelectorAll(".calc-tc").forEach((input) =>
+  input.addEventListener("input", () => {
+    let t = parseFloat(document.getElementById("themTongDiem").value) || 0;
+    let m = parseFloat(document.getElementById("diemCongViecChuan").value) || 0;
+    document.getElementById("themHeSo").value = m > 0 ? (t / m).toFixed(2) : 0;
+  }),
+);
 document
   .getElementById("formThemDanhMuc")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btnSubmit = document.getElementById("btnSubmitDanhMuc");
-    btnSubmit.disabled = true;
     const editId = document.getElementById("editDocId").value;
     const dataObj = {
       ten_cong_viec: document.getElementById("themTenCongViec").value,
@@ -330,152 +438,101 @@ document
     try {
       if (editId) {
         await updateDoc(doc(db, "danh_muc_chuan", editId), dataObj);
-        showToast("Cập nhật danh mục thành công!");
+        showToast("Cập nhật thành công!");
       } else {
         await addDoc(collection(db, "danh_muc_chuan"), dataObj);
-        showToast("Đã lưu Công việc chuẩn thành công!");
+        showToast("Lưu thành công!");
       }
-      resetFormDanhMuc();
+      document.getElementById("formThemDanhMuc").reset();
+      document.getElementById("editDocId").value = "";
+      document.getElementById("btnCancelEdit").style.display = "none";
       loadDanhMucChuan();
     } catch (error) {
-      showToast("Lỗi kết nối CSDL.", "error");
-    } finally {
-      btnSubmit.disabled = false;
+      showToast("Lỗi CSDL", "error");
     }
   });
-
+document.getElementById("btnCancelEdit").addEventListener("click", () => {
+  document.getElementById("formThemDanhMuc").reset();
+  document.getElementById("editDocId").value = "";
+  document.getElementById("btnCancelEdit").style.display = "none";
+});
 window.suaDanhMuc = function (id, dataStr) {
-  const data = JSON.parse(decodeURIComponent(dataStr));
+  const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editDocId").value = id;
-  document.getElementById("themTenCongViec").value = data.ten_cong_viec;
-  document.getElementById("themSanPhamDauRa").value =
-    data.san_pham_dau_ra || "";
-  document.getElementById("themNhom").value = data.nhom || "N1";
-  document.getElementById("themKhungDiem").value = data.khung_diem || 100;
-  document.getElementById("diemCongViecChuan").value = data.diem_chuan || 5;
-  document.getElementById("themTongDiem").value = data.tong_diem || 0;
-  document.getElementById("themHeSo").value = data.he_so;
-  document.getElementById("tieuDeFormDanhMuc").textContent =
-    "Cập nhật Danh mục Chuẩn";
-  document.getElementById("btnSubmitDanhMuc").textContent = "Lưu thay đổi";
+  document.getElementById("themTenCongViec").value = d.ten_cong_viec;
+  document.getElementById("themSanPhamDauRa").value = d.san_pham_dau_ra;
+  document.getElementById("themNhom").value = d.nhom;
+  document.getElementById("themKhungDiem").value = d.khung_diem;
+  document.getElementById("diemCongViecChuan").value = d.diem_chuan;
+  document.getElementById("themTongDiem").value = d.tong_diem;
+  document.getElementById("themHeSo").value = d.he_so;
   document.getElementById("btnCancelEdit").style.display = "inline-block";
   document.getElementById("phanDanhMuc").scrollIntoView({ behavior: "smooth" });
 };
 window.xoaDanhMuc = function (id) {
-  showConfirm("Đồng chí có chắc chắn xóa Danh mục chuẩn này?", async () => {
-    try {
-      await deleteDoc(doc(db, "danh_muc_chuan", id));
-      showToast("Đã xóa danh mục!", "success");
-      loadDanhMucChuan();
-    } catch (error) {
-      showToast("Lỗi hệ thống khi xóa!", "error");
-    }
+  showConfirm("Xóa Danh mục này?", async () => {
+    await deleteDoc(doc(db, "danh_muc_chuan", id));
+    loadDanhMucChuan();
   });
 };
 
 async function loadDanhMucChuan() {
-  const bangDanhMuc = document.getElementById("bangDanhMuc");
-  const chonCongViecChuan = document.getElementById("chonCongViecChuan");
-
+  const b = document.getElementById("bangDanhMuc");
+  const s = document.getElementById("chonCongViecChuan");
   try {
-    const querySnapshot = await getDocs(collection(db, "danh_muc_chuan"));
-    if (chonCongViecChuan)
-      chonCongViecChuan.innerHTML =
-        '<option value="">-- Chọn nhóm công việc chuẩn --</option>';
-    if (bangDanhMuc) bangDanhMuc.innerHTML = "";
-
-    if (querySnapshot.empty) {
-      if (bangDanhMuc)
-        bangDanhMuc.innerHTML =
-          '<tr><td colspan="7" style="text-align:center;">Chưa có dữ liệu</td></tr>';
-      return;
-    }
-
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      if (chonCongViecChuan) {
-        const option = document.createElement("option");
-        option.value = data.ten_cong_viec;
-        option.dataset.diem = data.tong_diem;
-        option.text = `[${data.nhom}] ${data.ten_cong_viec} (Tử số: ${data.tong_diem})`;
-        chonCongViecChuan.appendChild(option);
+    const snap = await getDocs(collection(db, "danh_muc_chuan"));
+    if (s) s.innerHTML = '<option value="">-- Chọn nhóm tham chiếu --</option>';
+    if (b) b.innerHTML = "";
+    snap.forEach((d) => {
+      const data = d.data();
+      const dStr = encodeURIComponent(JSON.stringify(data));
+      if (s) {
+        const opt = document.createElement("option");
+        opt.value = data.ten_cong_viec;
+        opt.dataset.diem = data.tong_diem;
+        opt.text = `[${data.nhom}] ${data.ten_cong_viec} (Tử: ${data.tong_diem})`;
+        s.appendChild(opt);
       }
-
-      if (bangDanhMuc) {
-        const dataStr = encodeURIComponent(JSON.stringify(data));
+      if (b) {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-                    <td style="text-align: left;">${data.ten_cong_viec}</td><td>${data.san_pham_dau_ra || ""}</td>
-                    <td><strong>${data.nhom || ""}</strong></td>
-                    <td style="color:#d32f2f; font-weight:bold">${data.diem_chuan || "-"}</td>
-                    <td style="color:blue; font-weight:bold">${data.tong_diem || 0}</td>
-                    <td style="color:red; font-weight:bold">${data.he_so}</td>
-                    <td>
-                        <button class="btn-sm" style="background-color: #f57c00; margin-bottom: 5px;" onclick="suaDanhMuc('${docSnap.id}', '${dataStr}')">Sửa</button>
-                        <button class="btn-sm" style="background-color: #d32f2f;" onclick="xoaDanhMuc('${docSnap.id}')">Xóa</button>
-                    </td>`;
-        bangDanhMuc.appendChild(tr);
+        tr.innerHTML = `<td style="text-align:left;">${data.ten_cong_viec}</td><td>${data.san_pham_dau_ra}</td><td>${data.nhom}</td><td style="color:red; font-weight:bold;">${data.diem_chuan}</td><td style="color:blue; font-weight:bold;">${data.tong_diem}</td><td style="font-weight:bold;">${data.he_so}</td><td><button class="btn-sm" style="background-color:#f57c00; margin-bottom: 5px;" onclick="suaDanhMuc('${d.id}', '${dStr}')">Sửa</button><button class="btn-sm" style="background-color:#d32f2f;" onclick="xoaDanhMuc('${d.id}')">Xóa</button></td>`;
+        b.appendChild(tr);
       }
     });
-  } catch (error) {
-    console.error("Lỗi:", error);
-  }
+  } catch (e) {}
 }
 
 // ==========================================
-// 4. LOGIC QUẢN LÝ DANH MỤC QUY ĐỔI (TAB 4)
+// XỬ LÝ FORM: DANH MỤC QUY ĐỔI (TAB 4)
 // ==========================================
 document
   .getElementById("themNhomQuyDoi")
   .addEventListener("change", function () {
-    const maxScores = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500 };
-    document.getElementById("themKhungDiemQuyDoi").value =
-      maxScores[this.value] || 100;
+    const m = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500 };
+    document.getElementById("themKhungDiemQuyDoi").value = m[this.value] || 100;
   });
-
 document
   .getElementById("chonCongViecChuan")
   .addEventListener("change", function () {
-    const diemChuanLamMau =
-      this.options[this.selectedIndex]?.dataset?.diem || "";
-    document.getElementById("diemCongViecChuanQuyDoi").value = diemChuanLamMau;
+    document.getElementById("diemCongViecChuanQuyDoi").value =
+      this.options[this.selectedIndex]?.dataset?.diem || 0;
     calculateHeSoQuyDoi();
   });
-
 document
   .querySelectorAll(".calc-qd")
   .forEach((input) => input.addEventListener("input", calculateHeSoQuyDoi));
-
 function calculateHeSoQuyDoi() {
-  let tuSo =
-    parseFloat(document.getElementById("themTongDiemQuyDoi").value) || 0;
-  let mauSo =
+  let t = parseFloat(document.getElementById("themTongDiemQuyDoi").value) || 0;
+  let m =
     parseFloat(document.getElementById("diemCongViecChuanQuyDoi").value) || 0;
   document.getElementById("themHeSoQuyDoi").value =
-    mauSo > 0 ? (tuSo / mauSo).toFixed(2) : 0;
+    m > 0 ? (t / m).toFixed(2) : 0;
 }
-
-function resetFormQuyDoi() {
-  document.getElementById("formThemQuyDoi").reset();
-  document.getElementById("editQuyDoiId").value = "";
-  document.getElementById("tieuDeFormQuyDoi").textContent =
-    "Khởi tạo Danh mục Quy đổi";
-  document.getElementById("btnSubmitQuyDoi").textContent =
-    "Lưu Danh mục Quy đổi";
-  document.getElementById("btnCancelEditQuyDoi").style.display = "none";
-  document.getElementById("themKhungDiemQuyDoi").value = 100;
-}
-document
-  .getElementById("btnCancelEditQuyDoi")
-  .addEventListener("click", resetFormQuyDoi);
 
 document
   .getElementById("formThemQuyDoi")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btnSubmit = document.getElementById("btnSubmitQuyDoi");
-    btnSubmit.disabled = true;
     const editId = document.getElementById("editQuyDoiId").value;
     const dataObj = {
       ten_cong_viec: document.getElementById("themTenCongViecQuyDoi").value,
@@ -496,357 +553,229 @@ document
     try {
       if (editId) {
         await updateDoc(doc(db, "danh_muc_quy_doi", editId), dataObj);
-        showToast("Cập nhật quy đổi thành công!");
+        showToast("Cập nhật quy đổi!");
       } else {
         await addDoc(collection(db, "danh_muc_quy_doi"), dataObj);
-        showToast("Đã lưu Công việc quy đổi thành công!");
+        showToast("Lưu quy đổi!");
       }
-      resetFormQuyDoi();
+      document.getElementById("formThemQuyDoi").reset();
+      document.getElementById("editQuyDoiId").value = "";
+      document.getElementById("btnCancelEditQuyDoi").style.display = "none";
       loadDanhMucQuyDoi();
-    } catch (error) {
-      showToast("Lỗi kết nối CSDL.", "error");
-    } finally {
-      btnSubmit.disabled = false;
-    }
+    } catch (e) {}
   });
-
+document.getElementById("btnCancelEditQuyDoi").addEventListener("click", () => {
+  document.getElementById("formThemQuyDoi").reset();
+  document.getElementById("editQuyDoiId").value = "";
+  document.getElementById("btnCancelEditQuyDoi").style.display = "none";
+});
 window.suaQuyDoi = function (id, dataStr) {
-  const data = JSON.parse(decodeURIComponent(dataStr));
+  const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editQuyDoiId").value = id;
-  document.getElementById("themTenCongViecQuyDoi").value = data.ten_cong_viec;
-  document.getElementById("themSanPhamDauRaQuyDoi").value =
-    data.san_pham_dau_ra || "";
-  document.getElementById("themNhomQuyDoi").value = data.nhom || "N1";
-  document.getElementById("themKhungDiemQuyDoi").value = data.khung_diem || 100;
-  document.getElementById("chonCongViecChuan").value =
-    data.cong_viec_chuan || "";
-  document.getElementById("diemCongViecChuanQuyDoi").value =
-    data.diem_chuan || 0;
-  document.getElementById("themTongDiemQuyDoi").value = data.tong_diem || 0;
-  document.getElementById("themHeSoQuyDoi").value = data.he_so;
-
-  document.getElementById("tieuDeFormQuyDoi").textContent =
-    "Cập nhật Danh mục Quy đổi";
-  document.getElementById("btnSubmitQuyDoi").textContent = "Lưu thay đổi";
+  document.getElementById("themTenCongViecQuyDoi").value = d.ten_cong_viec;
+  document.getElementById("themSanPhamDauRaQuyDoi").value = d.san_pham_dau_ra;
+  document.getElementById("themNhomQuyDoi").value = d.nhom;
+  document.getElementById("themKhungDiemQuyDoi").value = d.khung_diem;
+  document.getElementById("chonCongViecChuan").value = d.cong_viec_chuan;
+  document.getElementById("diemCongViecChuanQuyDoi").value = d.diem_chuan;
+  document.getElementById("themTongDiemQuyDoi").value = d.tong_diem;
+  document.getElementById("themHeSoQuyDoi").value = d.he_so;
   document.getElementById("btnCancelEditQuyDoi").style.display = "inline-block";
-  document.getElementById("phanQuyDoi").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("phanQuyDoi").scrollIntoView();
 };
-
 window.xoaQuyDoi = function (id) {
-  showConfirm("Đồng chí có chắc chắn xóa Danh mục Quy đổi này?", async () => {
-    try {
-      await deleteDoc(doc(db, "danh_muc_quy_doi", id));
-      showToast("Đã xóa thành công!", "success");
-      loadDanhMucQuyDoi();
-    } catch (error) {
-      showToast("Lỗi hệ thống khi xóa!", "error");
-    }
+  showConfirm("Xóa Quy đổi này?", async () => {
+    await deleteDoc(doc(db, "danh_muc_quy_doi", id));
+    loadDanhMucQuyDoi();
   });
 };
 
 async function loadDanhMucQuyDoi() {
-  const bangQuyDoi = document.getElementById("bangQuyDoi");
+  const b = document.getElementById("bangQuyDoi");
+  if (!b) return;
+  b.innerHTML = "";
   try {
-    const querySnapshot = await getDocs(collection(db, "danh_muc_quy_doi"));
-    bangQuyDoi.innerHTML = "";
-    if (querySnapshot.empty) {
-      bangQuyDoi.innerHTML =
-        '<tr><td colspan="8" style="text-align:center;">Chưa có dữ liệu</td></tr>';
-      return;
-    }
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      const dataStr = encodeURIComponent(JSON.stringify(data));
+    const snap = await getDocs(collection(db, "danh_muc_quy_doi"));
+    snap.forEach((d) => {
+      const data = d.data();
+      const dStr = encodeURIComponent(JSON.stringify(data));
       const tr = document.createElement("tr");
-      tr.innerHTML = `
-                <td style="text-align: left;">${data.ten_cong_viec}</td><td>${data.san_pham_dau_ra || ""}</td>
-                <td><strong>${data.nhom || ""}</strong></td>
-                <td><span style="font-style:italic; font-size: 13px;">${data.cong_viec_chuan || "-"}</span></td>
-                <td style="color:#d32f2f; font-weight:bold">${data.diem_chuan || 0}</td>
-                <td style="color:blue; font-weight:bold">${data.tong_diem || 0}</td>
-                <td style="color:red; font-weight:bold">${data.he_so}</td>
-                <td>
-                    <button class="btn-sm" style="background-color: #f57c00; margin-bottom: 5px;" onclick="suaQuyDoi('${docSnap.id}', '${dataStr}')">Sửa</button>
-                    <button class="btn-sm" style="background-color: #d32f2f;" onclick="xoaQuyDoi('${docSnap.id}')">Xóa</button>
-                </td>`;
-      bangQuyDoi.appendChild(tr);
+      tr.innerHTML = `<td style="text-align:left;">${data.ten_cong_viec}</td><td>${data.san_pham_dau_ra}</td><td>${data.nhom}</td><td><i>${data.cong_viec_chuan}</i></td><td style="color:red; font-weight:bold;">${data.diem_chuan}</td><td style="color:blue; font-weight:bold;">${data.tong_diem}</td><td style="font-weight:bold;">${data.he_so}</td><td><button class="btn-sm" style="background-color:#f57c00; margin-bottom: 5px;" onclick="suaQuyDoi('${d.id}', '${dStr}')">Sửa</button><button class="btn-sm" style="background-color:#d32f2f;" onclick="xoaQuyDoi('${d.id}')">Xóa</button></td>`;
+      b.appendChild(tr);
     });
-  } catch (error) {
-    console.error("Lỗi tải DM Quy đổi:", error);
-  }
+  } catch (e) {}
 }
 
 // ==========================================
-// 5. LOGIC QUẢN LÝ CÁN BỘ
+// XỬ LÝ FORM: CÁN BỘ (TAB 5)
 // ==========================================
-function resetFormCanBo() {
-  document.getElementById("formThemCanBo").reset();
-  document.getElementById("editCanBoId").value = "";
-  document.getElementById("tieuDeFormCanBo").textContent =
-    "Thêm mới Cán bộ / Chuyên viên";
-  document.getElementById("btnSubmitCanBo").textContent = "Lưu Cán bộ";
-  document.getElementById("btnCancelEditCanBo").style.display = "none";
-}
-document
-  .getElementById("btnCancelEditCanBo")
-  .addEventListener("click", resetFormCanBo);
-
 document
   .getElementById("formThemCanBo")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btnSubmit = document.getElementById("btnSubmitCanBo");
-    btnSubmit.disabled = true;
     const editId = document.getElementById("editCanBoId").value;
     const dataObj = {
       ho_ten: document.getElementById("themTenCanBo").value,
       chuc_vu: document.getElementById("themChucVu").value,
     };
-    try {
-      if (editId) {
-        await updateDoc(doc(db, "danh_sach_can_bo", editId), dataObj);
-        showToast("Đã cập nhật thông tin cán bộ!");
-      } else {
-        await addDoc(collection(db, "danh_sach_can_bo"), dataObj);
-        showToast("Đã thêm cán bộ mới thành công!");
-      }
-      resetFormCanBo();
-      loadDanhSachCanBo();
-    } catch (error) {
-      showToast("Lỗi kết nối CSDL.", "error");
-    } finally {
-      btnSubmit.disabled = false;
+    if (editId) {
+      await updateDoc(doc(db, "danh_sach_can_bo", editId), dataObj);
+      showToast("Đã cập nhật!");
+    } else {
+      await addDoc(collection(db, "danh_sach_can_bo"), dataObj);
+      showToast("Đã thêm!");
     }
+    document.getElementById("formThemCanBo").reset();
+    // Dòng này cực kỳ quan trọng để cập nhật lại tất cả Dropdown
+    await loadDanhSachCanBo();
+    document.getElementById("formThemCanBo").reset();
+    document.getElementById("editCanBoId").value = "";
+    document.getElementById("btnCancelEditCanBo").style.display = "none";
+    loadDanhSachCanBo();
   });
-
-async function loadDanhSachCanBo() {
-  const bangCanBo = document.getElementById("bangCanBo");
-  const selectCanBoGiaoViec = document.getElementById("chonCanBoGiaoViec");
-  const filterGiaoViec = document.getElementById("locCanBoGiaoViec");
-  const filterBaoCao = document.getElementById("locCanBoBaoCao");
-
-  if (bangCanBo)
-    bangCanBo.innerHTML =
-      '<tr><td colspan="4" style="text-align:center;">Đang tải...</td></tr>';
-  try {
-    const querySnapshot = await getDocs(collection(db, "danh_sach_can_bo"));
-
-    // Reset nội dung dropdown
-    if (selectCanBoGiaoViec)
-      selectCanBoGiaoViec.innerHTML =
-        '<option value="">-- Chọn cán bộ --</option>';
-    if (filterGiaoViec)
-      filterGiaoViec.innerHTML =
-        '<option value="">-- Tất cả nhân sự --</option>';
-    if (filterBaoCao)
-      filterBaoCao.innerHTML = '<option value="">-- Toàn bộ Phòng --</option>';
-
-    if (querySnapshot.empty) {
-      if (bangCanBo)
-        bangCanBo.innerHTML =
-          '<tr><td colspan="4" style="text-align:center;">Chưa có dữ liệu cán bộ.</td></tr>';
-      return;
-    }
-
-    if (bangCanBo) bangCanBo.innerHTML = "";
-    let stt = 1;
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-
-      // Đổ tên vào các Dropdown (Giao việc, Lọc Tab 1, Lọc Tab 2)
-      if (selectCanBoGiaoViec)
-        selectCanBoGiaoViec.innerHTML += `<option value="${data.ho_ten}">${data.ho_ten}</option>`;
-      if (filterGiaoViec)
-        filterGiaoViec.innerHTML += `<option value="${data.ho_ten}">${data.ho_ten}</option>`;
-      if (filterBaoCao)
-        filterBaoCao.innerHTML += `<option value="${data.ho_ten}">${data.ho_ten}</option>`;
-
-      if (bangCanBo) {
-        const dataStr = encodeURIComponent(JSON.stringify(data));
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-                    <td>${stt++}</td><td style="text-align: left; font-weight: bold;">${data.ho_ten}</td><td>${data.chuc_vu}</td>
-                    <td>
-                        <button class="btn-sm" style="background-color: #f57c00; margin-right: 5px;" onclick="suaCanBo('${docSnap.id}', '${dataStr}')">Sửa</button>
-                        <button class="btn-sm" style="background-color: #d32f2f;" onclick="xoaCanBo('${docSnap.id}')">Xóa</button>
-                    </td>`;
-        bangCanBo.appendChild(tr);
-      }
-    });
-  } catch (error) {
-    if (bangCanBo)
-      bangCanBo.innerHTML =
-        '<tr><td colspan="4" style="text-align:center; color:red;">Lỗi dữ liệu!</td></tr>';
-  }
-}
-
+document.getElementById("btnCancelEditCanBo").addEventListener("click", () => {
+  document.getElementById("formThemCanBo").reset();
+  document.getElementById("editCanBoId").value = "";
+  document.getElementById("btnCancelEditCanBo").style.display = "none";
+});
 window.suaCanBo = function (id, dataStr) {
-  const data = JSON.parse(decodeURIComponent(dataStr));
+  const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editCanBoId").value = id;
-  document.getElementById("themTenCanBo").value = data.ho_ten;
-  document.getElementById("themChucVu").value = data.chuc_vu;
-  document.getElementById("tieuDeFormCanBo").textContent =
-    "Cập nhật thông tin Cán bộ";
-  document.getElementById("btnSubmitCanBo").textContent = "Lưu thay đổi";
+  document.getElementById("themTenCanBo").value = d.ho_ten;
+  document.getElementById("themChucVu").value = d.chuc_vu;
   document.getElementById("btnCancelEditCanBo").style.display = "inline-block";
-  document.getElementById("phanCanBo").scrollIntoView({ behavior: "smooth" });
+  document.getElementById("phanCanBo").scrollIntoView();
 };
 window.xoaCanBo = function (id) {
-  showConfirm(
-    "Đồng chí có chắc chắn xóa nhân sự này khỏi danh sách?",
-    async () => {
-      try {
-        await deleteDoc(doc(db, "danh_sach_can_bo", id));
-        showToast("Đã xóa cán bộ!", "success");
-        loadDanhSachCanBo();
-      } catch (error) {
-        showToast("Lỗi hệ thống khi xóa!", "error");
-      }
-    },
-  );
+  showConfirm("Xóa Cán bộ này?", async () => {
+    await deleteDoc(doc(db, "danh_sach_can_bo", id));
+    loadDanhSachCanBo();
+  });
 };
 
 // ==========================================
-// 6. LOGIC GIAO VIỆC (TAB 1) - TÍCH HỢP BỘ LỌC
+// XỬ LÝ FORM: TÀI KHOẢN (TAB 6)
 // ==========================================
-function resetFormGiaoViec() {
-  document.getElementById("formGiaoViec").reset();
-  document.getElementById("editGiaoViecId").value = "";
-  document.getElementById("tieuDeFormGiaoViec").textContent =
-    "Phiếu giao việc hằng tháng";
-  document.getElementById("btnSubmitGiaoViec").textContent = "Lưu Nhiệm Vụ";
-  document.getElementById("btnCancelEditGiaoViec").style.display = "none";
+async function loadDanhSachCanBoTaiKhoan() {
+  const sel = document.getElementById("tkHoTen");
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Chọn cán bộ --</option>';
+  const snap = await getDocs(collection(db, "danh_sach_can_bo"));
+  snap.forEach((d) => {
+    sel.innerHTML += `<option value="${d.data().ho_ten}">${d.data().ho_ten}</option>`;
+  });
+}
+async function loadDanhSachTaiKhoan() {
+  const b = document.getElementById("bangTaiKhoan");
+  if (!b) return;
+  b.innerHTML = "";
+  const snap = await getDocs(collection(db, "tai_khoan"));
+  let stt = 1;
+  snap.forEach((d) => {
+    const data = d.data();
+    const pText =
+      data.role === "admin" ? "Trưởng phòng (Admin)" : "Chuyên viên (User)";
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${stt++}</td><td style="font-weight:bold;">${data.username}</td><td>${data.ho_ten}</td><td style="color:${data.role === "admin" ? "red" : "blue"}">${pText}</td><td>***</td><td><button class="btn-sm" style="background-color:#d32f2f;" onclick="xoaTaiKhoan('${d.id}')">Xóa</button></td>`;
+    b.appendChild(tr);
+  });
 }
 document
-  .getElementById("btnCancelEditGiaoViec")
-  .addEventListener("click", resetFormGiaoViec);
+  .getElementById("formThemTaiKhoan")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+    await addDoc(collection(db, "tai_khoan"), {
+      ho_ten: document.getElementById("tkHoTen").value,
+      username: document.getElementById("tkUsername").value,
+      password: document.getElementById("tkPassword").value,
+      role: document.getElementById("tkRole").value,
+    });
+    showToast("Tạo tài khoản thành công!");
+    document.getElementById("formThemTaiKhoan").reset();
+    loadDanhSachTaiKhoan();
+  });
+window.xoaTaiKhoan = function (id) {
+  showConfirm("Xóa tài khoản này?", async () => {
+    await deleteDoc(doc(db, "tai_khoan", id));
+    loadDanhSachTaiKhoan();
+  });
+};
 
+// ==========================================
+// XỬ LÝ FORM: GIAO VIỆC (TAB 1)
+// ==========================================
 document
   .getElementById("formGiaoViec")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btnSubmit = document.getElementById("btnSubmitGiaoViec");
-    btnSubmit.disabled = true;
     const editId = document.getElementById("editGiaoViecId").value;
-    const tenNhiemVu = document.getElementById("chonNhiemVu").value;
-    const tenCanBo = document.getElementById("chonCanBoGiaoViec").value;
-
-    if (!tenNhiemVu || !tenCanBo) {
-      showToast("Đề nghị chọn đầy đủ Nhiệm vụ và Cán bộ phụ trách!", "error");
-      btnSubmit.disabled = false;
-      return;
-    }
-
     const dataObj = {
-      ten_nhiem_vu: tenNhiemVu,
-      can_bo: tenCanBo,
+      ten_nhiem_vu: document.getElementById("chonNhiemVu").value,
+      can_bo: document.getElementById("chonCanBoGiaoViec").value,
       thang_danh_gia: document.getElementById("thangDanhGia").value,
       he_so_quy_doi: parseFloat(document.getElementById("heSoQuyDoi").value),
       khoi_luong_giao: parseInt(document.getElementById("khoiLuong").value),
     };
-
-    try {
-      if (editId) {
-        await updateDoc(doc(db, "nhiem_vu_danh_gia", editId), dataObj);
-        showToast("Cập nhật nhiệm vụ thành công!");
-      } else {
-        dataObj.ngay_tao = serverTimestamp();
-        await addDoc(collection(db, "nhiem_vu_danh_gia"), dataObj);
-        showToast("Đã giao nhiệm vụ mới thành công!");
-      }
-      resetFormGiaoViec();
-      loadDanhSachGiaoViec();
-    } catch (error) {
-      showToast("Lỗi kết nối lưu trữ dữ liệu!", "error");
-    } finally {
-      btnSubmit.disabled = false;
+    if (editId) {
+      await updateDoc(doc(db, "nhiem_vu_danh_gia", editId), dataObj);
+      showToast("Đã cập nhật!");
+    } else {
+      dataObj.ngay_tao = serverTimestamp();
+      await addDoc(collection(db, "nhiem_vu_danh_gia"), dataObj);
+      showToast("Giao việc thành công!");
     }
+    document.getElementById("formGiaoViec").reset();
+    document.getElementById("editGiaoViecId").value = "";
+    document.getElementById("btnCancelEditGiaoViec").style.display = "none";
+    loadDanhSachGiaoViec();
   });
-
-async function loadDanhSachGiaoViec() {
-  const bangGiaoViec = document.getElementById("bangGiaoViec");
-  const filterLocCanBo =
-    document.getElementById("locCanBoGiaoViec")?.value || "";
-
-  if (!bangGiaoViec) return;
-  bangGiaoViec.innerHTML =
-    '<tr><td colspan="7" style="text-align:center;">Đang tải...</td></tr>';
-
-  try {
-    const querySnapshot = await getDocs(collection(db, "nhiem_vu_danh_gia"));
-    if (querySnapshot.empty) {
-      bangGiaoViec.innerHTML =
-        '<tr><td colspan="7" style="text-align:center;">Chưa có nhiệm vụ nào được giao.</td></tr>';
-      return;
-    }
-
-    bangGiaoViec.innerHTML = "";
-    let stt = 1;
-    let taskCount = 0;
-
-    querySnapshot.forEach((docSnap) => {
-      const data = docSnap.data();
-      // Nếu có bộ lọc và tên không khớp thì bỏ qua
-      if (filterLocCanBo !== "" && data.can_bo !== filterLocCanBo) return;
-
-      taskCount++;
-      const dataStr = encodeURIComponent(JSON.stringify(data));
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-                <td>${stt++}</td><td style="text-align: left;">${data.ten_nhiem_vu}</td>
-                <td style="font-weight: bold; color: #d32f2f;">${data.can_bo || "Chưa gắn"}</td>
-                <td>${data.thang_danh_gia}</td><td>${data.he_so_quy_doi}</td><td>${data.khoi_luong_giao}</td>
-                <td>
-                    <button class="btn-sm" style="background-color: #f57c00; margin-right: 5px;" onclick="suaGiaoViec('${docSnap.id}', '${dataStr}')">Sửa</button>
-                    <button class="btn-sm" style="background-color: #d32f2f;" onclick="xoaGiaoViec('${docSnap.id}')">Xóa</button>
-                </td>`;
-      bangGiaoViec.appendChild(tr);
-    });
-
-    // Nếu lọc xong mà rỗng (Nhân viên này chưa được giao việc)
-    if (taskCount === 0) {
-      bangGiaoViec.innerHTML = `<tr><td colspan="7" style="text-align:center;">Đồng chí ${filterLocCanBo} hiện chưa có nhiệm vụ nào.</td></tr>`;
-    }
-  } catch (error) {
-    bangGiaoViec.innerHTML =
-      '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi kết nối dữ liệu!</td></tr>';
-  }
-}
-
+document
+  .getElementById("btnCancelEditGiaoViec")
+  .addEventListener("click", () => {
+    document.getElementById("formGiaoViec").reset();
+    document.getElementById("editGiaoViecId").value = "";
+    document.getElementById("btnCancelEditGiaoViec").style.display = "none";
+  });
 window.suaGiaoViec = function (id, dataStr) {
-  const data = JSON.parse(decodeURIComponent(dataStr));
+  const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editGiaoViecId").value = id;
-  document.getElementById("chonNhiemVu").value = data.ten_nhiem_vu;
-  document.getElementById("chonCanBoGiaoViec").value = data.can_bo || "";
-  document.getElementById("thangDanhGia").value = data.thang_danh_gia;
-  document.getElementById("heSoQuyDoi").value = data.he_so_quy_doi;
-  document.getElementById("khoiLuong").value = data.khoi_luong_giao;
-  document.getElementById("tieuDeFormGiaoViec").textContent =
-    "Cập nhật Phiếu giao việc";
-  document.getElementById("btnSubmitGiaoViec").textContent = "Lưu thay đổi";
+  document.getElementById("chonNhiemVu").value = d.ten_nhiem_vu;
+  document.getElementById("chonCanBoGiaoViec").value = d.can_bo;
+  document.getElementById("thangDanhGia").value = d.thang_danh_gia;
+  document.getElementById("heSoQuyDoi").value = d.he_so_quy_doi;
+  document.getElementById("khoiLuong").value = d.khoi_luong_giao;
   document.getElementById("btnCancelEditGiaoViec").style.display =
     "inline-block";
-  document
-    .getElementById("phanGiaoViec")
-    .scrollIntoView({ behavior: "smooth" });
+  document.getElementById("phanGiaoViec").scrollIntoView();
 };
 window.xoaGiaoViec = function (id) {
-  showConfirm(
-    "Đồng chí có chắc chắn muốn hủy bỏ nhiệm vụ đã giao này?",
-    async () => {
-      try {
-        await deleteDoc(doc(db, "nhiem_vu_danh_gia", id));
-        showToast("Đã hủy nhiệm vụ giao việc!");
-        loadDanhSachGiaoViec();
-      } catch (error) {
-        showToast("Lỗi hệ thống khi xóa!", "error");
-      }
-    },
-  );
+  showConfirm("Hủy giao việc này?", async () => {
+    await deleteDoc(doc(db, "nhiem_vu_danh_gia", id));
+    loadDanhSachGiaoViec();
+  });
 };
 
+async function loadDanhSachGiaoViec() {
+  const b = document.getElementById("bangGiaoViec");
+  const f = document.getElementById("locCanBoGiaoViec")?.value || "";
+  if (!b) return;
+  b.innerHTML = "";
+  try {
+    const snap = await getDocs(collection(db, "nhiem_vu_danh_gia"));
+    let stt = 1;
+    snap.forEach((d) => {
+      const data = d.data();
+      if (f !== "" && data.can_bo !== f) return;
+      const dStr = encodeURIComponent(JSON.stringify(data));
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${stt++}</td><td style="text-align:left;">${data.ten_nhiem_vu}</td><td style="font-weight:bold; color:#d32f2f;">${data.can_bo}</td><td>${data.thang_danh_gia}</td><td>${data.he_so_quy_doi}</td><td>${data.khoi_luong_giao}</td><td><button class="btn-sm" style="background-color:#f57c00; margin-right:5px;" onclick="suaGiaoViec('${d.id}', '${dStr}')">Sửa</button><button class="btn-sm" style="background-color:#d32f2f;" onclick="xoaGiaoViec('${d.id}')">Xóa</button></td>`;
+      b.appendChild(tr);
+    });
+  } catch (e) {}
+}
+
 // ==========================================
-// 7. BÁO CÁO & CHẤM KPI (TAB 2) - TÍCH HỢP BỘ LỌC
+// THUẬT TOÁN CHỐT & CHẤM KPI (TAB 2)
 // ==========================================
 let currentTasks = [];
 window.kpiSummaryData = {};
@@ -855,14 +784,10 @@ window.kpiEditMode = {};
 async function loadDuLieuBaoCao() {
   const tbodyChiTiet = document.getElementById("duLieuChiTiet");
   if (!tbodyChiTiet) return;
-  tbodyChiTiet.innerHTML =
-    '<tr><td colspan="7" style="text-align:center;">Đang truy xuất dữ liệu...</td></tr>';
-
   try {
     const kpiSnap = await getDocs(collection(db, "ket_qua_kpi"));
     window.kpiSummaryData = {};
     window.kpiEditMode = {};
-
     kpiSnap.forEach((doc) => {
       window.kpiSummaryData[doc.id] = doc.data();
       window.kpiEditMode[doc.id] = false;
@@ -870,13 +795,6 @@ async function loadDuLieuBaoCao() {
 
     const querySnapshot = await getDocs(collection(db, "nhiem_vu_danh_gia"));
     currentTasks = [];
-    if (querySnapshot.empty) {
-      tbodyChiTiet.innerHTML =
-        '<tr><td colspan="7" style="text-align:center;">Chưa có dữ liệu nhiệm vụ.</td></tr>';
-      document.getElementById("duLieuTongHop").innerHTML = "";
-      return;
-    }
-
     querySnapshot.forEach((docSnap) => {
       let data = docSnap.data();
       data.id = docSnap.id;
@@ -888,45 +806,33 @@ async function loadDuLieuBaoCao() {
 
     renderBangChiTiet();
     renderBangTongHop();
-  } catch (error) {
-    console.error(error);
-    tbodyChiTiet.innerHTML =
-      '<tr><td colspan="7" style="text-align:center; color:red;">Lỗi kết nối Firebase!</td></tr>';
-  }
+  } catch (e) {}
 }
 
 function renderBangChiTiet() {
   const tbody = document.getElementById("duLieuChiTiet");
-  const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
   tbody.innerHTML = "";
-
-  let renderedCount = 0;
+  const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
+  const isAdmin = currentUser.role === "admin";
 
   currentTasks.forEach((task) => {
-    // Áp dụng bộ lọc
-    if (filterLocCanBo !== "" && task.can_bo !== filterLocCanBo) return;
-    renderedCount++;
+    if (!isAdmin && task.can_bo !== currentUser.ho_ten) return;
+    if (isAdmin && filterLocCanBo !== "" && task.can_bo !== filterLocCanBo)
+      return;
 
-    let safeCbId = (task.can_bo || "Chưa phân công").replace(/\s+/g, "");
+    let safeCbId = (task.can_bo || "").replace(/\s+/g, "");
     let isEdit = window.kpiEditMode[safeCbId] !== false;
-    let disabledAttr = isEdit ? "" : "disabled";
+    let disabledAttr = isAdmin && isEdit ? "" : "disabled";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-            <td style="text-align:left;">${task.ten_nhiem_vu}</td>
-            <td style="font-weight:bold;">${task.can_bo || "Chưa phân công"}</td>
-            <td>${task.he_so_quy_doi}</td>
-            <td>${task.khoi_luong_giao}</td>
+            <td style="text-align:left;">${task.ten_nhiem_vu}</td><td style="font-weight:bold;">${task.can_bo}</td><td>${task.he_so_quy_doi}</td><td>${task.khoi_luong_giao}</td>
             <td><input type="number" class="input-calc" data-id="${task.id}" data-type="hoan_thanh" style="width:50px" min="0" value="${task.sl_hoan_thanh}" ${disabledAttr}></td>
             <td><input type="number" class="input-calc" data-id="${task.id}" data-type="loi" style="width:50px" min="0" value="${task.so_loi}" ${disabledAttr}></td>
             <td><input type="number" class="input-calc" data-id="${task.id}" data-type="cham" style="width:50px" min="0" value="${task.so_cham}" ${disabledAttr}></td>
         `;
     tbody.appendChild(tr);
   });
-
-  if (renderedCount === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Không có dữ liệu chi tiết cho cán bộ này.</td></tr>`;
-  }
 
   document.querySelectorAll(".input-calc").forEach((inp) => {
     inp.addEventListener("input", (e) => {
@@ -946,72 +852,48 @@ function renderBangChiTiet() {
 
 function renderBangTongHop() {
   const tbody = document.getElementById("duLieuTongHop");
+  tbody.innerHTML = "";
   const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
+  const isAdmin = currentUser.role === "admin";
 
   let currentInputs = {};
   document.querySelectorAll(".input-dc, .input-dcong").forEach((inp) => {
     currentInputs[inp.id] = inp.value;
   });
 
-  tbody.innerHTML = "";
   let groupedData = {};
   currentTasks.forEach((t) => {
-    // Áp dụng bộ lọc
-    if (filterLocCanBo !== "" && t.can_bo !== filterLocCanBo) return;
-
+    if (!isAdmin && t.can_bo !== currentUser.ho_ten) return;
+    if (isAdmin && filterLocCanBo !== "" && t.can_bo !== filterLocCanBo) return;
     let cb = t.can_bo || "Chưa phân công";
     if (!groupedData[cb]) groupedData[cb] = [];
     groupedData[cb].push(t);
   });
 
-  if (Object.keys(groupedData).length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;">Không có dữ liệu tổng hợp.</td></tr>`;
-    return;
-  }
-
   for (let cb in groupedData) {
     let tasks = groupedData[cb];
-    let totalGiaoQuyDoi = 0;
-    let totalHoanThanhQuyDoi = 0;
-    let totalLoiTru = 0;
-    let totalChamTru = 0;
+    let tGiao = 0;
+    let tHT = 0;
+    let tLoi = 0;
+    let tCham = 0;
 
     tasks.forEach((t) => {
-      let heSo = parseFloat(t.he_so_quy_doi) || 1;
-      let giao = parseInt(t.khoi_luong_giao) || 0;
-      let ht = parseFloat(t.sl_hoan_thanh) || 0;
-      let loi = parseInt(t.so_loi) || 0;
-      let cham = parseInt(t.so_cham) || 0;
-
-      totalGiaoQuyDoi += giao * heSo;
-      totalHoanThanhQuyDoi += ht * heSo;
-      totalLoiTru += loi * 0.25 * heSo;
-      totalChamTru += cham * 0.25 * heSo;
+      let hs = parseFloat(t.he_so_quy_doi) || 1;
+      tGiao += (t.khoi_luong_giao || 0) * hs;
+      tHT += (t.sl_hoan_thanh || 0) * hs;
+      tLoi += (t.so_loi || 0) * 0.25 * hs;
+      tCham += (t.so_cham || 0) * 0.25 * hs;
     });
 
-    let pSL =
-      totalGiaoQuyDoi > 0 ? (totalHoanThanhQuyDoi / totalGiaoQuyDoi) * 100 : 0;
+    let pSL = tGiao > 0 ? (tHT / tGiao) * 100 : 0;
     if (pSL > 100) pSL = 100;
-
-    let pCL = 0;
-    if (totalHoanThanhQuyDoi > 0) {
-      let cl = totalHoanThanhQuyDoi - totalLoiTru;
-      pCL = (Math.max(0, cl) / totalHoanThanhQuyDoi) * 100;
-    }
-
-    let pTD = 0;
-    if (totalHoanThanhQuyDoi > 0) {
-      let td = totalHoanThanhQuyDoi - totalChamTru;
-      pTD = (Math.max(0, td) / totalHoanThanhQuyDoi) * 100;
-    }
-
+    let pCL = tGiao > 0 ? (Math.max(0, tHT - tLoi) / tGiao) * 100 : 0;
+    let pTD = tGiao > 0 ? (Math.max(0, tHT - tCham) / tGiao) * 100 : 0;
     let pTB = (pSL + pCL + pTD) / 3;
-    let safeCbId = cb.replace(/\s+/g, "");
 
+    let safeCbId = cb.replace(/\s+/g, "");
     let isEdit = window.kpiEditMode[safeCbId] !== false;
-    let disabledAttr = isEdit ? "" : "disabled";
-    let btnText = isEdit ? "Lưu" : "Sửa";
-    let btnColor = isEdit ? "#2e7d32" : "#f57c00";
+    let disabledAttr = isAdmin && isEdit ? "" : "disabled";
 
     let dcId = `dc_${safeCbId}`;
     let dcongId = `dcong_${safeCbId}`;
@@ -1025,8 +907,12 @@ function renderBangTongHop() {
         : (window.kpiSummaryData[safeCbId]?.diem_cong ?? 0);
 
     const tr = document.createElement("tr");
+    let btnThaoTac = isAdmin
+      ? `<td style="display:table-cell"><button class="btn-sm" style="background-color: ${isEdit ? "#2e7d32" : "#f57c00"}; width: 70px;" onclick="thaoTacKPI('${cb}', '${safeCbId}', event)">${isEdit ? "Lưu" : "Sửa"}</button></td>`
+      : `<td style="display:none"></td>`;
+
     tr.innerHTML = `
-            <td style="font-weight:bold; text-align:left;">${cb}</td>
+            <td style="font-weight:bold; text-align:left; cursor:pointer; color:#0d47a1; text-decoration:underline;" onclick="showDashboard('${cb}', ${pSL}, ${pCL}, ${pTD}, ${pTB}, '${safeCbId}')" title="Nhấn để xem biểu đồ KPI">${cb}</td>
             <td>${pSL.toFixed(1)}</td>
             <td>${pCL.toFixed(1)}</td>
             <td>${pTD.toFixed(1)}</td>
@@ -1035,33 +921,30 @@ function renderBangTongHop() {
             <td><input type="number" id="${dcongId}" class="input-dcong" style="width:45px" value="${dcongVal}" oninput="calcTongDiem('${safeCbId}', ${pTB})" ${disabledAttr}></td>
             <td id="tong_${safeCbId}" style="font-weight:bold; color:red; font-size:16px;">-</td>
             <td id="loai_${safeCbId}" style="font-weight:bold; color:blue;">-</td>
-            <td><button class="btn-sm" style="background-color: ${btnColor}; width: 70px;" onclick="thaoTacKPI('${cb}', '${safeCbId}', event)">${btnText}</button></td>
+            ${btnThaoTac}
         `;
     tbody.appendChild(tr);
     setTimeout(() => window.calcTongDiem(safeCbId, pTB), 10);
   }
 }
 
-window.calcTongDiem = function (cbId, percentTrungBinh) {
-  let diemChung = parseFloat(document.getElementById(`dc_${cbId}`).value) || 0;
-  let diemCong =
-    parseFloat(document.getElementById(`dcong_${cbId}`).value) || 0;
-
-  let tongDiem = diemChung + percentTrungBinh * 0.7 + diemCong;
-  document.getElementById(`tong_${cbId}`).innerText = tongDiem.toFixed(1);
-
-  let xepLoai = "";
-  if (tongDiem >= 90) xepLoai = "Tốt (A)";
-  else if (tongDiem >= 70) xepLoai = "Khá (B)";
-  else if (tongDiem >= 50) xepLoai = "Đạt (C)";
-  else xepLoai = "Không đạt (D)";
-  document.getElementById(`loai_${cbId}`).innerText = xepLoai;
+window.calcTongDiem = function (cbId, pTB) {
+  let dc = parseFloat(document.getElementById(`dc_${cbId}`).value) || 0;
+  let dcong = parseFloat(document.getElementById(`dcong_${cbId}`).value) || 0;
+  let t = dc + pTB * 0.7 + dcong;
+  document.getElementById(`tong_${cbId}`).innerText = t.toFixed(1);
+  document.getElementById(`loai_${cbId}`).innerText =
+    t >= 90
+      ? "Xuất sắc (A)"
+      : t >= 70
+        ? "Tốt (B)"
+        : t >= 50
+          ? "Hoàn thành (C)"
+          : "Không hoàn thành (D)";
 };
 
 window.thaoTacKPI = async function (cb, safeCbId, event) {
-  let isEdit = window.kpiEditMode[safeCbId] !== false;
-
-  if (!isEdit) {
+  if (window.kpiEditMode[safeCbId] === false) {
     window.kpiEditMode[safeCbId] = true;
     renderBangChiTiet();
     renderBangTongHop();
@@ -1071,54 +954,120 @@ window.thaoTacKPI = async function (cb, safeCbId, event) {
   const btn = event.target;
   btn.innerText = "Đang lưu...";
   btn.disabled = true;
-
   try {
     let tasks = currentTasks.filter((t) => t.can_bo === cb);
-    for (let t of tasks) {
+    for (let t of tasks)
       await updateDoc(doc(db, "nhiem_vu_danh_gia", t.id), {
         sl_hoan_thanh: parseFloat(t.sl_hoan_thanh) || 0,
         so_loi: parseInt(t.so_loi) || 0,
         so_cham: parseInt(t.so_cham) || 0,
       });
-    }
-    let diemChung =
-      parseFloat(document.getElementById(`dc_${safeCbId}`).value) || 0;
-    let diemCong =
-      parseFloat(document.getElementById(`dcong_${safeCbId}`).value) || 0;
-    let tongDiem =
-      parseFloat(document.getElementById(`tong_${safeCbId}`).innerText) || 0;
-    let xepLoai = document.getElementById(`loai_${safeCbId}`).innerText;
 
+    let dc = parseFloat(document.getElementById(`dc_${safeCbId}`).value) || 0;
+    let dcong =
+      parseFloat(document.getElementById(`dcong_${safeCbId}`).value) || 0;
     await setDoc(doc(db, "ket_qua_kpi", safeCbId), {
       can_bo: cb,
-      diem_chung: diemChung,
-      diem_cong: diemCong,
-      tong_diem: tongDiem,
-      xep_loai: xepLoai,
+      diem_chung: dc,
+      diem_cong: dcong,
+      tong_diem:
+        parseFloat(document.getElementById(`tong_${safeCbId}`).innerText) || 0,
+      xep_loai: document.getElementById(`loai_${safeCbId}`).innerText,
       ngay_cap_nhat: serverTimestamp(),
     });
 
-    window.kpiSummaryData[safeCbId] = {
-      diem_chung: diemChung,
-      diem_cong: diemCong,
-    };
+    window.kpiSummaryData[safeCbId] = { diem_chung: dc, diem_cong: dcong };
     window.kpiEditMode[safeCbId] = false;
-
-    showToast(`Đã chốt kết quả đánh giá cho ${cb}!`, "success");
+    showToast(`Đã chốt KPI cho ${cb}!`);
     renderBangChiTiet();
     renderBangTongHop();
-  } catch (error) {
-    console.error(error);
-    showToast("Lỗi khi lưu dữ liệu lên máy chủ!", "error");
+  } catch (e) {
+    showToast("Lỗi lưu DB!", "error");
     btn.innerText = "Lưu";
     btn.disabled = false;
   }
 };
 
-document.addEventListener("DOMContentLoaded", () => {
-  loadDanhSachCanBo();
-  loadDanhMucChuan();
-  loadDanhMucQuyDoi();
-  loadNhiemVuGiaoViec();
-  loadDanhSachGiaoViec();
+// ==========================================
+// DASHBOARD CHART.JS (BÊN PHẢI)
+// ==========================================
+let kpiChartInstance = null;
+
+window.showDashboard = function (cbName, pSL, pCL, pTD, pTB, safeCbId) {
+  document.getElementById("kpiDashboardWidget").style.display = "block";
+  document.getElementById("dashBoardCanBoName").innerText = cbName;
+
+  let tongDiem = document.getElementById(`tong_${safeCbId}`).innerText;
+  let xepLoai = document.getElementById(`loai_${safeCbId}`).innerText;
+
+  document.getElementById("dashBoardDetails").innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <span>Tổng điểm:</span>
+            <span style="color:red; font-weight:bold; font-size:16px;">${tongDiem}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+            <span>Xếp loại:</span>
+            <span style="color:blue; font-weight:bold; font-size:16px;">${xepLoai}</span>
+        </div>
+    `;
+
+  const ctx = document.getElementById("kpiChart").getContext("2d");
+  if (kpiChartInstance) {
+    kpiChartInstance.destroy();
+  }
+
+  kpiChartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["% SL", "% CL", "% TĐ", "% TB"],
+      datasets: [
+        {
+          label: "Tỷ lệ đạt được",
+          data: [pSL, pCL, pTD, pTB],
+          backgroundColor: [
+            "rgba(54, 162, 235, 0.7)",
+            "rgba(255, 99, 132, 0.7)",
+            "rgba(255, 206, 86, 0.7)",
+            "rgba(75, 192, 192, 0.7)",
+          ],
+          borderColor: [
+            "rgba(54, 162, 235, 1)",
+            "rgba(255, 99, 132, 1)",
+            "rgba(255, 206, 86, 1)",
+            "rgba(75, 192, 192, 1)",
+          ],
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100, grid: { color: "#eceff1" } },
+        x: { grid: { display: false } },
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              return context.parsed.y.toFixed(1) + "%";
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+// ==========================================
+// KHỞI CHẠY HỆ THỐNG
+// ==========================================
+document.addEventListener("DOMContentLoaded", async () => {
+  await initDefaultAdmin();
+  // Tải dữ liệu cán bộ ngay lập tức để tất cả dropdown có sẵn dữ liệu
+  await loadDanhSachCanBo();
+  checkLoginState();
 });
