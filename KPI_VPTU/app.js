@@ -129,8 +129,7 @@ function showConfirm(message, callback) {
   btnContainer.style.justifyContent = "center";
   const btnCancel = document.createElement("button");
   btnCancel.textContent = "Hủy bỏ";
-  btnCancel.className = "btn-primary";
-  btnCancel.style.backgroundColor = "#757575";
+  btnCancel.className = "btn-secondary";
   btnCancel.onclick = () => overlay.remove();
   const btnOk = document.createElement("button");
   btnOk.textContent = "Đồng ý";
@@ -217,10 +216,8 @@ function checkLoginState() {
     document.getElementById("currentUserDisplay").innerText =
       currentUser.ho_ten;
 
-    // 1. Áp dụng ẩn/hiện menu chính dựa trên quyền mới
     applyPermissions();
 
-    // 2. ÉP HỆ THỐNG VẼ LẠI TOÀN BỘ CÁC BẢNG THEO QUYỀN MỚI NGAY LẬP TỨC
     if (typeof loadDanhSachTaiKhoan === "function") loadDanhSachTaiKhoan();
     if (typeof loadDanhSachGiaoViec === "function") loadDanhSachGiaoViec();
     if (typeof loadDuLieuBaoCao === "function") loadDuLieuBaoCao();
@@ -228,9 +225,7 @@ function checkLoginState() {
     if (typeof loadDanhMucQuyDoi === "function") loadDanhMucQuyDoi();
     if (typeof loadDanhSachCanBo === "function") loadDanhSachCanBo();
   } else {
-    // 3. ĐẶC BIỆT QUAN TRỌNG: Xóa sạch bộ nhớ quyền tài khoản cũ khi đăng xuất
     currentUser = null;
-
     document.getElementById("loginContainer").style.display = "flex";
     document.getElementById("appContainer").style.display = "none";
     document.getElementById("formLogin").reset();
@@ -240,32 +235,26 @@ function checkLoginState() {
 function applyPermissions() {
   const isAdmin = currentUser && currentUser.role === "admin";
   const isViewer = currentUser && currentUser.role === "viewer";
-
-  // Nhóm có quyền xem các menu điều hành chung (Admin và Viewer)
   const canViewAll = isAdmin || isViewer;
 
-  // 1. Phân quyền hiển thị Menu chính cho Admin và Viewer
   document.getElementById("menuGiaoViec").style.display = canViewAll
-    ? "block"
+    ? "flex"
     : "none";
   document.getElementById("menuDanhMuc").style.display = canViewAll
-    ? "block"
+    ? "flex"
     : "none";
   document.getElementById("menuQuyDoi").style.display = canViewAll
-    ? "block"
+    ? "flex"
     : "none";
   document.getElementById("menuCanBo").style.display = canViewAll
-    ? "block"
+    ? "flex"
     : "none";
 
-  // 2. ĐẶC BIỆT: Chỉ duy nhất Admin mới được hiển thị Menu Quản lý tài khoản (Tab 6)
-  // Tài khoản Viewer và User thông thường sẽ bị ẩn hoàn toàn menu này
   const menuTaiKhoan = document.getElementById("menuTaiKhoan");
   if (menuTaiKhoan) {
-    menuTaiKhoan.style.display = isAdmin ? "block" : "none";
+    menuTaiKhoan.style.display = isAdmin ? "flex" : "none";
   }
 
-  // 3. Tự động ẩn/hiện các Form nhập liệu trên toàn bộ các Tab theo quyền Admin
   const adminForms = document.querySelectorAll(
     "#formGiaoViec, #formThemDanhMuc, #formThemQuyDoi, #formThemCanBo, #formThemTaiKhoan",
   );
@@ -306,10 +295,25 @@ const phans = [
 ];
 
 function hideAllTabs() {
-  menus.forEach((m) => document.getElementById(m).classList.remove("active"));
-  phans.forEach((p) => (document.getElementById(p).style.display = "none"));
-}
+  menus.forEach((m) => {
+    let el = document.getElementById(m);
+    if (el) el.classList.remove("active");
+  });
 
+  phans.forEach((p) => {
+    let el = document.getElementById(p);
+    if (el) el.style.display = "none";
+  });
+
+  // Thêm lệnh ẩn dashboard tại đây
+  hideDashboard();
+}
+function hideDashboard() {
+  const dashboard = document.getElementById("kpiDashboardWidget");
+  if (dashboard) {
+    dashboard.style.display = "none";
+  }
+}
 document.getElementById("menuGiaoViec").addEventListener("click", () => {
   hideAllTabs();
   document.getElementById("menuGiaoViec").classList.add("active");
@@ -353,11 +357,33 @@ document.getElementById("menuTaiKhoan").addEventListener("click", () => {
 document
   .getElementById("locCanBoGiaoViec")
   .addEventListener("change", loadDanhSachGiaoViec);
-document.getElementById("locCanBoBaoCao").addEventListener("change", () => {
-  renderBangChiTiet();
-  renderBangTongHop();
-});
+document
+  .getElementById("locCanBoBaoCao")
+  .addEventListener("change", function () {
+    renderBangChiTiet();
+    renderBangTongHop();
 
+    // TỰ ĐỘNG KÍCH HOẠT DASHBOARD NẾU ĐÃ CHỌN CÁN BỘ
+    const selectedName = this.value;
+    if (selectedName !== "") {
+      // Tìm dòng tương ứng của cán bộ trong bảng
+      const safeCbId = selectedName.replace(/\s+/g, "");
+      const targetRow = document.querySelector(`#row_${safeCbId}`);
+
+      if (targetRow) {
+        // Tìm nút tên cán bộ trong hàng đó và giả lập một cú click
+        const nameCell = targetRow.querySelector(
+          'td[onclick*="showDashboard"]',
+        );
+        if (nameCell) {
+          nameCell.click();
+        }
+      }
+    } else {
+      // Nếu chọn "-- Toàn bộ Phòng --" thì ẩn dashboard đi
+      document.getElementById("kpiDashboardWidget").style.display = "none";
+    }
+  });
 // ==========================================
 // LOAD DỮ LIỆU CHUNG
 // ==========================================
@@ -400,67 +426,81 @@ async function loadDanhSachCanBo() {
   const cbG = document.getElementById("chonCanBoGiaoViec");
   const lG = document.getElementById("locCanBoGiaoViec");
   const lB = document.getElementById("locCanBoBaoCao");
-
-  // 1. PHẢI RESET TRƯỚC KHI LOAD LẠI
   if (cbG) cbG.innerHTML = '<option value="">-- Chọn cán bộ --</option>';
   if (lG) lG.innerHTML = '<option value="">-- Tất cả nhân sự --</option>';
   if (lB) lB.innerHTML = '<option value="">-- Toàn bộ Phòng --</option>';
   if (b) b.innerHTML = "";
 
-  // Kiểm tra quyền Admin để ẩn/hiện form thêm cán bộ
   const isAdmin = currentUser && currentUser.role === "admin";
   const formThemCanBo = document.getElementById("formThemCanBo");
-  if (formThemCanBo) {
-    formThemCanBo.style.display = isAdmin ? "block" : "none";
-  }
+  if (formThemCanBo) formThemCanBo.style.display = isAdmin ? "block" : "none";
 
   try {
     const snap = await getDocs(collection(db, "danh_sach_can_bo"));
     let stt = 1;
-
     snap.forEach((d) => {
       const data = d.data();
       const name = data.ho_ten;
-      const dStr = encodeURIComponent(JSON.stringify(data));
-
-      // 2. Đổ dữ liệu vào các ô Dropdown lựa chọn cán bộ
+      const dataStr = encodeURIComponent(JSON.stringify(data));
       if (cbG) cbG.innerHTML += `<option value="${name}">${name}</option>`;
       if (lG) lG.innerHTML += `<option value="${name}">${name}</option>`;
       if (lB) lB.innerHTML += `<option value="${name}">${name}</option>`;
 
-      // 3. Tiến hành vẽ dữ liệu ra bảng Danh sách Cán bộ (Tab 5)
       if (b) {
-        const tr = document.createElement("tr");
+        const nameParts = name.split(" ");
+        let initials = "NV";
+        if (nameParts.length >= 2)
+          initials =
+            nameParts[nameParts.length - 2].charAt(0) +
+            nameParts[nameParts.length - 1].charAt(0);
+        else if (nameParts.length === 1)
+          initials = nameParts[0].substring(0, 2);
 
-        // Phân quyền cột hành động: Chỉ Admin mới có nút Sửa/Xóa. Viewer/User chỉ xem
+        let badgeClass = "badge-outline";
+        if (
+          data.chuc_vu &&
+          data.chuc_vu.toLowerCase().includes("trưởng phòng") &&
+          !data.chuc_vu.toLowerCase().includes("phó")
+        )
+          badgeClass = "badge-primary";
+
         const hanhDongHTML = isAdmin
-          ? `<button class="btn-sm" style="background-color:#f57c00; margin-right: 5px; color:white; border:none; border-radius:3px;" onclick="suaCanBo('${d.id}', '${dStr}')">Sửa</button>
-             <button class="btn-sm" style="background-color:#d32f2f; color:white; border:none; border-radius:3px;" onclick="xoaCanBo('${d.id}')">Xóa</button>`
+          ? `
+            <button class="btn-text edit" onclick="suaCanBo('${d.id}', '${dataStr}')"><span class="material-symbols-outlined">edit</span> Sửa</button>
+            <button class="btn-text delete" onclick="xoaCanBo('${d.id}')"><span class="material-symbols-outlined">delete</span> Xóa</button>
+        `
           : `<span style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</span>`;
 
+        const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${stt++}</td>
-          <td style="font-weight:bold;">${name}</td>
-          <td>${data.chuc_vu || ""}</td>
-          <td>${hanhDongHTML}</td>
+            <td style="color: #71717a;">${stt++}</td>
+            <td>
+                <div class="avatar-cell">
+                    <div class="avatar-circle">${initials.toUpperCase()}</div>
+                    <div class="name-info">
+                        <div>${name}</div>
+                        <div>Phòng CĐS-CY</div>
+                    </div>
+                </div>
+            </td>
+            <td><span class="badge ${badgeClass}">${data.chuc_vu || "Chuyên viên"}</span></td>
+            <td>${hanhDongHTML}</td>
         `;
         b.appendChild(tr);
       }
     });
   } catch (e) {
-    console.error("Lỗi khi load danh sách cán bộ:", e);
     showToast("Không thể tải danh sách cán bộ!", "error");
   }
 }
 
 // ==========================================
-// XỬ LÝ FORM: DANH MỤC CHUẨN (TAB 3) - ĐÃ PHÂN QUYỀN
+// XỬ LÝ FORM: DANH MỤC CHUẨN (TAB 3)
 // ==========================================
 document.getElementById("themNhom").addEventListener("change", function () {
   const m = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500 };
   document.getElementById("themKhungDiem").value = m[this.value] || 100;
 });
-
 document.querySelectorAll(".calc-tc").forEach((input) =>
   input.addEventListener("input", () => {
     let t = parseFloat(document.getElementById("themTongDiem").value) || 0;
@@ -473,16 +513,10 @@ document
   .getElementById("formThemDanhMuc")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // CHẶN BẢO MẬT: Nếu không phải admin thì không cho phép lưu hoặc cập nhật
     if (!currentUser || currentUser.role !== "admin") {
-      showToast(
-        "Tài khoản của bạn không có quyền thực hiện chức năng này!",
-        "error",
-      );
+      showToast("Bạn không có quyền thực hiện chức năng này!", "error");
       return;
     }
-
     const editId = document.getElementById("editDocId").value;
     const dataObj = {
       ten_cong_viec: document.getElementById("themTenCongViec").value,
@@ -519,12 +553,6 @@ document.getElementById("btnCancelEdit").addEventListener("click", () => {
 });
 
 window.suaDanhMuc = function (id, dataStr) {
-  // CHẶN BẢO MẬT: Chặn kích hoạt chức năng sửa danh mục nếu không phải admin
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền chỉnh sửa danh mục chuẩn!", "error");
-    return;
-  }
-
   const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editDocId").value = id;
   document.getElementById("themTenCongViec").value = d.ten_cong_viec;
@@ -535,18 +563,14 @@ window.suaDanhMuc = function (id, dataStr) {
   document.getElementById("themTongDiem").value = d.tong_diem;
   document.getElementById("themHeSo").value = d.he_so;
   document.getElementById("btnCancelEdit").style.display = "inline-block";
-
-  const phanDanhMuc = document.getElementById("phanDanhMuc");
-  if (phanDanhMuc) phanDanhMuc.scrollIntoView({ behavior: "smooth" });
+  document.getElementById("phanDanhMuc").scrollIntoView({ behavior: "smooth" });
 };
 
 window.xoaDanhMuc = function (id) {
-  // CHẶN BẢO MẬT: Chặn thực thi lệnh xóa danh mục nếu không phải admin
   if (!currentUser || currentUser.role !== "admin") {
     showToast("Bạn không có quyền xóa danh mục chuẩn!", "error");
     return;
   }
-
   showConfirm("Xóa Danh mục này?", async () => {
     await deleteDoc(doc(db, "danh_muc_chuan", id));
     loadDanhMucChuan();
@@ -556,26 +580,18 @@ window.xoaDanhMuc = function (id) {
 async function loadDanhMucChuan() {
   const b = document.getElementById("bangDanhMuc");
   const s = document.getElementById("chonCongViecChuan");
-
-  // Xác định quyền Admin
   const isAdmin = currentUser && currentUser.role === "admin";
-
-  // 1. TỰ ĐỘNG ẨN/HIỆN PHẦN FORM NHẬP LIỆU DANH MỤC CHUẨN
-  // Nếu là Viewer hoặc User thường, ẩn toàn bộ form nhập liệu phía trên đi
   const formThemDanhMuc = document.getElementById("formThemDanhMuc");
-  if (formThemDanhMuc) {
+  if (formThemDanhMuc)
     formThemDanhMuc.style.display = isAdmin ? "block" : "none";
-  }
-
   try {
     const snap = await getDocs(collection(db, "danh_muc_chuan"));
     if (s) s.innerHTML = '<option value="">-- Chọn nhóm tham chiếu --</option>';
     if (b) b.innerHTML = "";
-
+    let stt = 1;
     snap.forEach((d) => {
       const data = d.data();
       const dStr = encodeURIComponent(JSON.stringify(data));
-
       if (s) {
         const opt = document.createElement("option");
         opt.value = data.ten_cong_viec;
@@ -583,35 +599,32 @@ async function loadDanhMucChuan() {
         opt.text = `[${data.nhom}] ${data.ten_cong_viec} (Tử: ${data.tong_diem})`;
         s.appendChild(opt);
       }
-
       if (b) {
-        const tr = document.createElement("tr");
-
-        // 2. TỰ ĐỘNG ẨN/HIỆN NÚT "SỬA / XÓA" TRONG BẢNG DANH MỤC
-        // Nếu là Admin thì sinh ra nút, nếu là Viewer/User thì hiện chữ "Chỉ xem"
         const hanhDongHTML = isAdmin
-          ? `<button class="btn-sm" style="background-color:#f57c00; margin-bottom: 5px; color:white; border:none; border-radius:3px;" onclick="suaDanhMuc('${d.id}', '${dStr}')">Sửa</button>
-             <button class="btn-sm" style="background-color:#d32f2f; color:white; border:none; border-radius:3px;" onclick="xoaDanhMuc('${d.id}')">Xóa</button>`
+          ? `
+            <button class="btn-text edit" onclick="suaDanhMuc('${d.id}', '${dStr}')"><span class="material-symbols-outlined">edit</span> Sửa</button>
+            <button class="btn-text delete" onclick="xoaDanhMuc('${d.id}')"><span class="material-symbols-outlined">delete</span> Xóa</button>
+        `
           : `<span style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</span>`;
-
+        const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td style="text-align:left;">${data.ten_cong_viec}</td>
-          <td>${data.san_pham_dau_ra}</td>
-          <td>${data.nhom}</td>
-          <td style="color:red; font-weight:bold;">${data.diem_chuan}</td>
-          <td style="color:blue; font-weight:bold;">${data.tong_diem}</td>
-          <td style="font-weight:bold;">${data.he_so}</td>
-          <td>${hanhDongHTML}</td>
-        `;
+    <td style="text-align:center;">${stt++}</td> 
+    <td style="text-align:left;">${data.ten_cong_viec}</td>
+    <td>${data.san_pham_dau_ra}</td>
+    <td>${data.nhom}</td>
+    <td style="color:red; font-weight:bold;">${data.diem_chuan}</td>
+    <td style="color:blue; font-weight:bold;">${data.tong_diem}</td>
+    <td style="font-weight:bold;">${data.he_so}</td>
+    <td>${hanhDongHTML}</td>
+`;
         b.appendChild(tr);
       }
     });
-  } catch (e) {
-    console.error("Lỗi tải danh mục chuẩn:", e);
-  }
+  } catch (e) {}
 }
+
 // ==========================================
-// XỬ LÝ FORM: DANH MỤC QUY ĐỔI (TAB 4) - ĐÃ PHÂN QUYỀN
+// XỬ LÝ FORM: DANH MỤC QUY ĐỔI (TAB 4)
 // ==========================================
 document
   .getElementById("themNhomQuyDoi")
@@ -619,7 +632,6 @@ document
     const m = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500 };
     document.getElementById("themKhungDiemQuyDoi").value = m[this.value] || 100;
   });
-
 document
   .getElementById("chonCongViecChuan")
   .addEventListener("change", function () {
@@ -627,11 +639,9 @@ document
       this.options[this.selectedIndex]?.dataset?.diem || 0;
     calculateHeSoQuyDoi();
   });
-
 document
   .querySelectorAll(".calc-qd")
   .forEach((input) => input.addEventListener("input", calculateHeSoQuyDoi));
-
 function calculateHeSoQuyDoi() {
   let t = parseFloat(document.getElementById("themTongDiemQuyDoi").value) || 0;
   let m =
@@ -644,8 +654,6 @@ document
   .getElementById("formThemQuyDoi")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // CHẶN BẢO MẬT: Nếu không phải admin thì không cho phép lưu hoặc cập nhật danh mục quy đổi
     if (!currentUser || currentUser.role !== "admin") {
       showToast(
         "Tài khoản của bạn không có quyền thực hiện chức năng này!",
@@ -653,7 +661,6 @@ document
       );
       return;
     }
-
     const editId = document.getElementById("editQuyDoiId").value;
     const dataObj = {
       ten_cong_viec: document.getElementById("themTenCongViecQuyDoi").value,
@@ -683,9 +690,7 @@ document
       document.getElementById("editQuyDoiId").value = "";
       document.getElementById("btnCancelEditQuyDoi").style.display = "none";
       loadDanhMucQuyDoi();
-    } catch (e) {
-      showToast("Lỗi CSDL", "error");
-    }
+    } catch (e) {}
   });
 
 document.getElementById("btnCancelEditQuyDoi").addEventListener("click", () => {
@@ -695,12 +700,6 @@ document.getElementById("btnCancelEditQuyDoi").addEventListener("click", () => {
 });
 
 window.suaQuyDoi = function (id, dataStr) {
-  // CHẶN BẢO MẬT: Chặn mở chức năng sửa danh mục quy đổi nếu không phải admin
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền chỉnh sửa danh mục quy đổi!", "error");
-    return;
-  }
-
   const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editQuyDoiId").value = id;
   document.getElementById("themTenCongViecQuyDoi").value = d.ten_cong_viec;
@@ -712,18 +711,13 @@ window.suaQuyDoi = function (id, dataStr) {
   document.getElementById("themTongDiemQuyDoi").value = d.tong_diem;
   document.getElementById("themHeSoQuyDoi").value = d.he_so;
   document.getElementById("btnCancelEditQuyDoi").style.display = "inline-block";
-
-  const phanQuyDoi = document.getElementById("phanQuyDoi");
-  if (phanQuyDoi) phanQuyDoi.scrollIntoView();
+  document.getElementById("phanQuyDoi").scrollIntoView();
 };
-
 window.xoaQuyDoi = function (id) {
-  // CHẶN BẢO MẬT: Chặn thực thi lệnh xóa danh mục quy đổi nếu không phải admin
   if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền xóa danh mục quy đổi!", "error");
+    showToast("Không có quyền thao tác!", "error");
     return;
   }
-
   showConfirm("Xóa Quy đổi này?", async () => {
     await deleteDoc(doc(db, "danh_muc_quy_doi", id));
     loadDanhMucQuyDoi();
@@ -734,65 +728,53 @@ async function loadDanhMucQuyDoi() {
   const b = document.getElementById("bangQuyDoi");
   if (!b) return;
   b.innerHTML = "";
-
-  // Xác định quyền Admin
   const isAdmin = currentUser && currentUser.role === "admin";
-
-  // 1. TỰ ĐỘNG ẨN/HIỆN PHẦN FORM NHẬP LIỆU DANH MỤC QUY ĐỔI
-  // Nếu là Viewer hoặc User thường, ẩn toàn bộ form thêm quy đổi đi
-  const formThemQuyDoi = document.getElementById("formThemQuyDoi");
-  if (formThemQuyDoi) {
-    formThemQuyDoi.style.display = isAdmin ? "block" : "none";
-  }
 
   try {
     const snap = await getDocs(collection(db, "danh_muc_quy_doi"));
+    let stt = 1; // 1. Khởi tạo biến đếm
+
     snap.forEach((d) => {
       const data = d.data();
       const dStr = encodeURIComponent(JSON.stringify(data));
       const tr = document.createElement("tr");
 
-      // 2. TỰ ĐỘNG ẨN/HIỆN NÚT "SỬA / XÓA" TRONG BẢNG QUY ĐỔI
-      // Nếu là Admin thì hiện nút, nếu là Viewer/User thì hiện chữ "Chỉ xem"
       const hanhDongHTML = isAdmin
-        ? `<button class="btn-sm" style="background-color:#f57c00; margin-bottom: 5px; color:white; border:none; border-radius:3px;" onclick="suaQuyDoi('${d.id}', '${dStr}')">Sửa</button>
-           <button class="btn-sm" style="background-color:#d32f2f; color:white; border:none; border-radius:3px;" onclick="xoaQuyDoi('${d.id}')">Xóa</button>`
+        ? `
+                <button class="btn-text edit" onclick="suaQuyDoi('${d.id}', '${dStr}')"><span class="material-symbols-outlined">edit</span> Sửa</button>
+                <button class="btn-text delete" onclick="xoaQuyDoi('${d.id}')"><span class="material-symbols-outlined">delete</span> Xóa</button>
+            `
         : `<span style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</span>`;
 
+      // 2. Chèn cột STT vào đầu dòng
       tr.innerHTML = `
-        <td style="text-align:left;">${data.ten_cong_viec}</td>
-        <td>${data.san_pham_dau_ra}</td>
-        <td>${data.nhom}</td>
-        <td><i>${data.cong_viec_chuan}</i></td>
-        <td style="color:red; font-weight:bold;">${data.diem_chuan}</td>
-        <td style="color:blue; font-weight:bold;">${data.tong_diem}</td>
-        <td style="font-weight:bold;">${data.he_so}</td>
-        <td>${hanhDongHTML}</td>
-      `;
+                <td style="text-align:center;">${stt++}</td> 
+                <td style="text-align:left;">${data.ten_cong_viec}</td>
+                <td>${data.san_pham_dau_ra}</td>
+                <td>${data.nhom}</td>
+                <td><i>${data.cong_viec_chuan}</i></td>
+                <td style="color:red; font-weight:bold;">${data.diem_chuan}</td>
+                <td style="color:blue; font-weight:bold;">${data.tong_diem}</td>
+                <td style="font-weight:bold;">${data.he_so}</td>
+                <td>${hanhDongHTML}</td>
+            `;
       b.appendChild(tr);
     });
   } catch (e) {
-    console.error("Lỗi tải danh mục quy đổi:", e);
+    console.error(e);
   }
 }
-
 // ==========================================
-// XỬ LÝ FORM: CÁN BỘ (TAB 5) - ĐÃ PHÂN QUYỀN
+// XỬ LÝ FORM: CÁN BỘ (TAB 5)
 // ==========================================
 document
   .getElementById("formThemCanBo")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // CHẶN BẢO MẬT: Nếu không phải admin thì không cho phép lưu hoặc cập nhật thông tin cán bộ
     if (!currentUser || currentUser.role !== "admin") {
-      showToast(
-        "Tài khoản của bạn không có quyền thực hiện chức năng này!",
-        "error",
-      );
+      showToast("Chỉ Admin mới có quyền thao tác!", "error");
       return;
     }
-
     const editId = document.getElementById("editCanBoId").value;
     const dataObj = {
       ho_ten: document.getElementById("themTenCanBo").value,
@@ -806,14 +788,10 @@ document
       showToast("Đã thêm!");
     }
     document.getElementById("formThemCanBo").reset();
-    // Dòng này cực kỳ quan trọng để cập nhật lại tất cả Dropdown
-    await loadDanhSachCanBo();
-    document.getElementById("formThemCanBo").reset();
     document.getElementById("editCanBoId").value = "";
     document.getElementById("btnCancelEditCanBo").style.display = "none";
-    loadDanhSachCanBo();
+    await loadDanhSachCanBo();
   });
-
 document.getElementById("btnCancelEditCanBo").addEventListener("click", () => {
   document.getElementById("formThemCanBo").reset();
   document.getElementById("editCanBoId").value = "";
@@ -821,32 +799,21 @@ document.getElementById("btnCancelEditCanBo").addEventListener("click", () => {
 });
 
 window.suaCanBo = function (id, dataStr) {
-  // CHẶN BẢO MẬT: Chặn mở chức năng sửa cán bộ nếu không phải admin
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền chỉnh sửa thông tin cán bộ!", "error");
-    return;
-  }
-
   const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editCanBoId").value = id;
   document.getElementById("themTenCanBo").value = d.ho_ten;
   document.getElementById("themChucVu").value = d.chuc_vu;
   document.getElementById("btnCancelEditCanBo").style.display = "inline-block";
-
-  const phanCanBo = document.getElementById("phanCanBo");
-  if (phanCanBo) phanCanBo.scrollIntoView();
+  document.getElementById("phanCanBo").scrollIntoView();
 };
-
 window.xoaCanBo = function (id) {
-  // CHẶN BẢO MẬT: Chặn thực thi lệnh xóa cán bộ nếu không phải admin
   if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền xóa cán bộ khỏi hệ thống!", "error");
+    showToast("Không có quyền xóa cán bộ!", "error");
     return;
   }
-
   showConfirm("Xóa Cán bộ này?", async () => {
     await deleteDoc(doc(db, "danh_sach_can_bo", id));
-    loadDanhSachCanBo();
+    await loadDanhSachCanBo();
   });
 };
 
@@ -868,69 +835,45 @@ async function loadDanhSachTaiKhoan() {
   b.innerHTML = "";
   const snap = await getDocs(collection(db, "tai_khoan"));
   let stt = 1;
-
-  // Xác định xem người đang xem danh sách này có phải Admin không
   const isAdmin = currentUser && currentUser.role === "admin";
-
   snap.forEach((d) => {
     const data = d.data();
-
-    // 1. Cập nhật hiển thị tên Phân quyền cho cả 3 loại tài khoản
     let pText = "Chuyên viên (User)";
     let pColor = "blue";
-
     if (data.role === "admin") {
       pText = "Trưởng phòng (Admin)";
       pColor = "red";
     } else if (data.role === "viewer") {
       pText = "Viewer (Xem dữ liệu)";
-      pColor = "purple"; // Màu tím để dễ phân biệt tài khoản Viewer
+      pColor = "purple";
     }
 
-    const tr = document.createElement("tr");
-
-    // 2. Kiểm tra quyền: Chỉ Admin mới hiện nút Xóa, Viewer/User sẽ ẩn nút Xóa tài khoản
     const hanhDongHTML = isAdmin
-      ? `<button class="btn-sm" style="background-color:#d32f2f;" onclick="xoaTaiKhoan('${d.id}')">Xóa</button>`
-      : `<span style="color:#757575; font-size:13px;">Không có quyền</span>`;
+      ? `
+        <button class="btn-text delete" onclick="xoaTaiKhoan('${d.id}')"><span class="material-symbols-outlined">delete</span> Xóa</button>
+    `
+      : `<span style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</span>`;
 
-    tr.innerHTML = `
-      <td>${stt++}</td>
-      <td style="font-weight:bold;">${data.username}</td>
-      <td>${data.ho_ten}</td>
-      <td style="color:${pColor}; font-weight:500;">${pText}</td>
-      <td>***</td>
-      <td>${hanhDongHTML}</td>
-    `;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${stt++}</td><td style="font-weight:bold;">${data.username}</td><td>${data.ho_ten}</td><td style="color:${pColor}; font-weight:500;">${pText}</td><td>***</td><td>${hanhDongHTML}</td>`;
     b.appendChild(tr);
   });
 }
-
 document
   .getElementById("formThemTaiKhoan")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // Code lấy giá trị tự động chạy tốt khi bạn đã thêm <option value="viewer"> vào HTML
     await addDoc(collection(db, "tai_khoan"), {
       ho_ten: document.getElementById("tkHoTen").value,
       username: document.getElementById("tkUsername").value,
       password: document.getElementById("tkPassword").value,
       role: document.getElementById("tkRole").value,
     });
-
     showToast("Tạo tài khoản thành công!");
     document.getElementById("formThemTaiKhoan").reset();
     loadDanhSachTaiKhoan();
   });
-
 window.xoaTaiKhoan = function (id) {
-  // Chặn bảo mật tầng sâu: Nếu không phải admin thì không cho thực hiện hành động xóa
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền thực hiện hành động này!", "error");
-    return;
-  }
-
   showConfirm("Xóa tài khoản này?", async () => {
     await deleteDoc(doc(db, "tai_khoan", id));
     loadDanhSachTaiKhoan();
@@ -938,15 +881,12 @@ window.xoaTaiKhoan = function (id) {
 };
 
 // ==========================================
-// ==========================================
-// XỬ LÝ FORM: GIAO VIỆC (TAB 1) - ĐÃ PHÂN QUYỀN
+// XỬ LÝ FORM: GIAO VIỆC (TAB 1)
 // ==========================================
 document
   .getElementById("formGiaoViec")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-
-    // CHẶN BẢO MẬT: Nếu không phải admin thì không cho lưu/cập nhật dữ liệu
     if (!currentUser || currentUser.role !== "admin") {
       showToast(
         "Tài khoản của bạn không có quyền thực hiện chức năng này!",
@@ -954,7 +894,6 @@ document
       );
       return;
     }
-
     const editId = document.getElementById("editGiaoViecId").value;
     const dataObj = {
       ten_nhiem_vu: document.getElementById("chonNhiemVu").value,
@@ -976,7 +915,6 @@ document
     document.getElementById("btnCancelEditGiaoViec").style.display = "none";
     loadDanhSachGiaoViec();
   });
-
 document
   .getElementById("btnCancelEditGiaoViec")
   .addEventListener("click", () => {
@@ -984,14 +922,7 @@ document
     document.getElementById("editGiaoViecId").value = "";
     document.getElementById("btnCancelEditGiaoViec").style.display = "none";
   });
-
 window.suaGiaoViec = function (id, dataStr) {
-  // CHẶN BẢO MẬT: Viewer bấm vào nút sửa (nếu có) sẽ bị chặn
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền chỉnh sửa nhiệm vụ!", "error");
-    return;
-  }
-
   const d = JSON.parse(decodeURIComponent(dataStr));
   document.getElementById("editGiaoViecId").value = id;
   document.getElementById("chonNhiemVu").value = d.ten_nhiem_vu;
@@ -1001,18 +932,9 @@ window.suaGiaoViec = function (id, dataStr) {
   document.getElementById("khoiLuong").value = d.khoi_luong_giao;
   document.getElementById("btnCancelEditGiaoViec").style.display =
     "inline-block";
-
-  const phanGiaoViec = document.getElementById("phanGiaoViec");
-  if (phanGiaoViec) phanGiaoViec.scrollIntoView();
+  document.getElementById("phanGiaoViec").scrollIntoView();
 };
-
 window.xoaGiaoViec = function (id) {
-  // CHẶN BẢO MẬT: Viewer bấm vào nút xóa (nếu có) sẽ bị chặn
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Bạn không có quyền hủy giao việc này!", "error");
-    return;
-  }
-
   showConfirm("Hủy giao việc này?", async () => {
     await deleteDoc(doc(db, "nhiem_vu_danh_gia", id));
     loadDanhSachGiaoViec();
@@ -1024,17 +946,7 @@ async function loadDanhSachGiaoViec() {
   const f = document.getElementById("locCanBoGiaoViec")?.value || "";
   if (!b) return;
   b.innerHTML = "";
-
-  // Kiểm tra quyền Admin
   const isAdmin = currentUser && currentUser.role === "admin";
-
-  // 1. TỰ ĐỘNG ẨN/HIỆN PHẦN FORM NHẬP LIỆU ("Phiếu giao việc hàng tháng")
-  // Nếu là Viewer hoặc User thường, ẩn toàn bộ form nhập liệu đi
-  const formGiaoViec = document.getElementById("formGiaoViec");
-  if (formGiaoViec) {
-    formGiaoViec.style.display = isAdmin ? "block" : "none";
-  }
-
   try {
     const snap = await getDocs(collection(db, "nhiem_vu_danh_gia"));
     let stt = 1;
@@ -1044,31 +956,21 @@ async function loadDanhSachGiaoViec() {
       const dStr = encodeURIComponent(JSON.stringify(data));
       const tr = document.createElement("tr");
 
-      // 2. TỰ ĐỘNG ẨN/HIỆN NÚT "SỬA / XÓA" TRONG BẢNG DỮ LIỆU
-      // Nếu là Admin thì hiện 2 nút, nếu là Viewer/User thì hiện chữ "Không có quyền" (hoặc để trống)
       const hanhDongHTML = isAdmin
-        ? `<button class="btn-sm" style="background-color:#f57c00; margin-right:5px;" onclick="suaGiaoViec('${d.id}', '${dStr}')">Sửa</button>
-           <button class="btn-sm" style="background-color:#d32f2f;" onclick="xoaGiaoViec('${d.id}')">Xóa</button>`
+        ? `
+          <button class="btn-text edit" onclick="suaGiaoViec('${d.id}', '${dStr}')"><span class="material-symbols-outlined">edit</span> Sửa</button>
+          <button class="btn-text delete" onclick="xoaGiaoViec('${d.id}')"><span class="material-symbols-outlined">delete</span> Xóa</button>
+      `
         : `<span style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</span>`;
 
-      tr.innerHTML = `
-        <td>${stt++}</td>
-        <td style="text-align:left;">${data.ten_nhiem_vu}</td>
-        <td style="font-weight:bold; color:#d32f2f;">${data.can_bo}</td>
-        <td>${data.thang_danh_gia}</td>
-        <td>${data.he_so_quy_doi}</td>
-        <td>${data.khoi_luong_giao}</td>
-        <td>${hanhDongHTML}</td>
-      `;
+      tr.innerHTML = `<td>${stt++}</td><td style="text-align:left;">${data.ten_nhiem_vu}</td><td style="font-weight:bold; color:#d32f2f;">${data.can_bo}</td><td>${data.thang_danh_gia}</td><td>${data.he_so_quy_doi}</td><td>${data.khoi_luong_giao}</td><td>${hanhDongHTML}</td>`;
       b.appendChild(tr);
     });
-  } catch (e) {
-    console.error("Lỗi tải danh sách giao việc:", e);
-  }
+  } catch (e) {}
 }
 
 // ==========================================
-// THUẬT TOÁN CHỐT & CHẤM KPI (TAB 2) - ĐÃ PHÂN QUYỀN
+// THUẬT TOÁN CHỐT & CHẤM KPI (TAB 2)
 // ==========================================
 let currentTasks = [];
 window.kpiSummaryData = {};
@@ -1099,41 +1001,32 @@ async function loadDuLieuBaoCao() {
 
     renderBangChiTiet();
     renderBangTongHop();
-  } catch (e) {
-    console.error("Lỗi load dữ liệu báo cáo KPI:", e);
-  }
+  } catch (e) {}
 }
 
 function renderBangChiTiet() {
   const tbody = document.getElementById("duLieuChiTiet");
-  if (!tbody) return;
   tbody.innerHTML = "";
   const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
-
-  // Phân tách quyền rõ ràng
   const isAdmin = currentUser && currentUser.role === "admin";
   const isViewer = currentUser && currentUser.role === "viewer";
-  const canViewAll = isAdmin || isViewer; // Admin và Viewer được xem tất cả
 
   currentTasks.forEach((task) => {
-    // Nếu không có quyền xem tất cả và tên cán bộ không khớp với user đăng nhập -> Bỏ qua
-    if (!canViewAll && task.can_bo !== currentUser.ho_ten) return;
-    // Nếu có quyền xem tất cả và đang chọn lọc theo cán bộ cụ thể -> Lọc dữ liệu
-    if (canViewAll && filterLocCanBo !== "" && task.can_bo !== filterLocCanBo)
+    if (!isAdmin && !isViewer && task.can_bo !== currentUser.ho_ten) return;
+    if (
+      (isAdmin || isViewer) &&
+      filterLocCanBo !== "" &&
+      task.can_bo !== filterLocCanBo
+    )
       return;
 
     let safeCbId = (task.can_bo || "").replace(/\s+/g, "");
     let isEdit = window.kpiEditMode[safeCbId] !== false;
-
-    // Chỉ ADMIN và đang trong chế độ BẬT SỬA mới mở khóa input nhập liệu
     let disabledAttr = isAdmin && isEdit ? "" : "disabled";
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-        <td style="text-align:left;">${task.ten_nhiem_vu}</td>
-        <td style="font-weight:bold;">${task.can_bo}</td>
-        <td>${task.he_so_quy_doi}</td>
-        <td>${task.khoi_luong_giao}</td>
+        <td style="text-align:left;">${task.ten_nhiem_vu}</td><td style="font-weight:bold;">${task.can_bo}</td><td>${task.he_so_quy_doi}</td><td>${task.khoi_luong_giao}</td>
         <td><input type="number" class="input-calc" data-id="${task.id}" data-type="hoan_thanh" style="width:50px" min="0" value="${task.sl_hoan_thanh}" ${disabledAttr}></td>
         <td><input type="number" class="input-calc" data-id="${task.id}" data-type="loi" style="width:50px" min="0" value="${task.so_loi}" ${disabledAttr}></td>
         <td><input type="number" class="input-calc" data-id="${task.id}" data-type="cham" style="width:50px" min="0" value="${task.so_cham}" ${disabledAttr}></td>
@@ -1143,9 +1036,7 @@ function renderBangChiTiet() {
 
   document.querySelectorAll(".input-calc").forEach((inp) => {
     inp.addEventListener("input", (e) => {
-      // Chặn bảo mật tầng sâu: Nếu không phải Admin sửa form thì không cập nhật mảng tạm
       if (!currentUser || currentUser.role !== "admin") return;
-
       const id = e.target.dataset.id;
       const type = e.target.dataset.type;
       const val = parseFloat(e.target.value) || 0;
@@ -1162,13 +1053,10 @@ function renderBangChiTiet() {
 
 function renderBangTongHop() {
   const tbody = document.getElementById("duLieuTongHop");
-  if (!tbody) return;
   tbody.innerHTML = "";
   const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
-
   const isAdmin = currentUser && currentUser.role === "admin";
   const isViewer = currentUser && currentUser.role === "viewer";
-  const canViewAll = isAdmin || isViewer;
 
   let currentInputs = {};
   document.querySelectorAll(".input-dc, .input-dcong").forEach((inp) => {
@@ -1177,8 +1065,12 @@ function renderBangTongHop() {
 
   let groupedData = {};
   currentTasks.forEach((t) => {
-    if (!canViewAll && t.can_bo !== currentUser.ho_ten) return;
-    if (canViewAll && filterLocCanBo !== "" && t.can_bo !== filterLocCanBo)
+    if (!isAdmin && !isViewer && t.can_bo !== currentUser.ho_ten) return;
+    if (
+      (isAdmin || isViewer) &&
+      filterLocCanBo !== "" &&
+      t.can_bo !== filterLocCanBo
+    )
       return;
     let cb = t.can_bo || "Chưa phân công";
     if (!groupedData[cb]) groupedData[cb] = [];
@@ -1202,14 +1094,20 @@ function renderBangTongHop() {
 
     let pSL = tGiao > 0 ? (tHT / tGiao) * 100 : 0;
     if (pSL > 100) pSL = 100;
-    let pCL = tGiao > 0 ? (Math.max(0, tHT - tLoi) / tGiao) * 100 : 0;
-    let pTD = tGiao > 0 ? (Math.max(0, tHT - tCham) / tGiao) * 100 : 0;
+    let pCL = 0;
+    if (tGiao > 0) {
+      let cl = tHT - tLoi;
+      pCL = (Math.max(0, cl) / tGiao) * 100;
+    }
+    let pTD = 0;
+    if (tGiao > 0) {
+      let td = tHT - tCham;
+      pTD = (Math.max(0, td) / tGiao) * 100;
+    }
     let pTB = (pSL + pCL + pTD) / 3;
 
     let safeCbId = cb.replace(/\s+/g, "");
     let isEdit = window.kpiEditMode[safeCbId] !== false;
-
-    // Ô nhập điểm chung, điểm cộng chỉ mở khóa khi là Admin và đang bật Edit
     let disabledAttr = isAdmin && isEdit ? "" : "disabled";
 
     let dcId = `dc_${safeCbId}`;
@@ -1224,10 +1122,13 @@ function renderBangTongHop() {
         : (window.kpiSummaryData[safeCbId]?.diem_cong ?? 0);
 
     const tr = document.createElement("tr");
-
-    // Phân quyền hiển thị ô Thao tác: Chỉ Admin mới có nút Sửa/Lưu. Viewer nhìn thấy chữ "Chỉ xem"
+    tr.id = `row_${safeCbId}`;
     let btnThaoTac = isAdmin
-      ? `<td style="display:table-cell"><button class="btn-sm" style="background-color: ${isEdit ? "#2e7d32" : "#f57c00"}; width: 70px; color:white; border:none; border-radius:3px;" onclick="thaoTacKPI('${cb}', '${safeCbId}', event)">${isEdit ? "Lưu" : "Sửa"}</button></td>`
+      ? `<td style="display:table-cell">
+        <button class="btn-text ${isEdit ? "edit" : "lock"}" onclick="thaoTacKPI('${cb}', '${safeCbId}', event)">
+            <span class="material-symbols-outlined">${isEdit ? "save" : "lock_open"}</span> ${isEdit ? "Lưu" : "Sửa"}
+        </button>
+    </td>`
       : `<td style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</td>`;
 
     tr.innerHTML = `
@@ -1248,60 +1149,42 @@ function renderBangTongHop() {
 }
 
 window.calcTongDiem = function (cbId, pTB) {
-  const elDc = document.getElementById(`dc_${cbId}`);
-  const elDcong = document.getElementById(`dcong_${cbId}`);
-  if (!elDc || !elDcong) return;
-
-  let dc = parseFloat(elDc.value) || 0;
-  let dcong = parseFloat(elDcong.value) || 0;
+  let dc = parseFloat(document.getElementById(`dc_${cbId}`).value) || 0;
+  let dcong = parseFloat(document.getElementById(`dcong_${cbId}`).value) || 0;
   let t = dc + pTB * 0.7 + dcong;
-
-  const elTong = document.getElementById(`tong_${cbId}`);
-  const elLoai = document.getElementById(`loai_${cbId}`);
-  if (elTong) elTong.innerText = t.toFixed(1);
-  if (elLoai) {
-    elLoai.innerText =
-      t >= 90
-        ? "Xuất sắc (A)"
-        : t >= 70
-          ? "Tốt (B)"
-          : t >= 50
-            ? "Hoàn thành (C)"
-            : "Không hoàn thành (D)";
-  }
+  document.getElementById(`tong_${cbId}`).innerText = t.toFixed(1);
+  document.getElementById(`loai_${cbId}`).innerText =
+    t >= 90
+      ? "Tốt (A)"
+      : t >= 70
+        ? "Khá (B)"
+        : t >= 50
+          ? "Đạt (C)"
+          : "Không đạt (D)";
 };
 
 window.thaoTacKPI = async function (cb, safeCbId, event) {
-  // CHẶN BẢO MẬT: Nếu không phải Admin bấm vào hàm này thì dừng lại luôn
-  if (!currentUser || currentUser.role !== "admin") {
-    showToast("Tài khoản của bạn không có quyền chấm điểm KPI!", "error");
-    return;
-  }
-
   if (window.kpiEditMode[safeCbId] === false) {
     window.kpiEditMode[safeCbId] = true;
     renderBangChiTiet();
     renderBangTongHop();
     return;
   }
-
   const btn = event.target;
   btn.innerText = "Đang lưu...";
   btn.disabled = true;
   try {
     let tasks = currentTasks.filter((t) => t.can_bo === cb);
-    for (let t of tasks) {
+    for (let t of tasks)
       await updateDoc(doc(db, "nhiem_vu_danh_gia", t.id), {
         sl_hoan_thanh: parseFloat(t.sl_hoan_thanh) || 0,
         so_loi: parseInt(t.so_loi) || 0,
         so_cham: parseInt(t.so_cham) || 0,
       });
-    }
 
     let dc = parseFloat(document.getElementById(`dc_${safeCbId}`).value) || 0;
     let dcong =
       parseFloat(document.getElementById(`dcong_${safeCbId}`).value) || 0;
-
     await setDoc(doc(db, "ket_qua_kpi", safeCbId), {
       can_bo: cb,
       diem_chung: dc,
@@ -1311,6 +1194,7 @@ window.thaoTacKPI = async function (cb, safeCbId, event) {
       xep_loai: document.getElementById(`loai_${safeCbId}`).innerText,
       ngay_cap_nhat: serverTimestamp(),
     });
+
     window.kpiSummaryData[safeCbId] = { diem_chung: dc, diem_cong: dcong };
     window.kpiEditMode[safeCbId] = false;
     showToast(`Đã chốt KPI cho ${cb}!`);
@@ -1337,12 +1221,10 @@ window.showDashboard = function (cbName, pSL, pCL, pTD, pTB, safeCbId) {
 
   document.getElementById("dashBoardDetails").innerHTML = `
         <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span>Tổng điểm:</span>
-            <span style="color:red; font-weight:bold; font-size:16px;">${tongDiem}</span>
+            <span>Tổng điểm:</span><span style="color:red; font-weight:bold; font-size:16px;">${tongDiem}</span>
         </div>
         <div style="display: flex; justify-content: space-between;">
-            <span>Xếp loại:</span>
-            <span style="color:blue; font-weight:bold; font-size:16px;">${xepLoai}</span>
+            <span>Xếp loại:</span><span style="color:blue; font-weight:bold; font-size:16px;">${xepLoai}</span>
         </div>
     `;
 
@@ -1402,7 +1284,6 @@ window.showDashboard = function (cbName, pSL, pCL, pTD, pTB, safeCbId) {
 // ==========================================
 document.addEventListener("DOMContentLoaded", async () => {
   await initDefaultAdmin();
-  // Tải dữ liệu cán bộ ngay lập tức để tất cả dropdown có sẵn dữ liệu
   await loadDanhSachCanBo();
   checkLoginState();
 });

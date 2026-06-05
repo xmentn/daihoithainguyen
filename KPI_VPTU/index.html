@@ -2,210 +2,215 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/images/Codang.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Đánh giá KPI - Phòng Chuyển đổi số - Cơ yếu</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script type="module" src="app.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
-    <div
-      id="loginContainer"
-      style="
-        display: flex;
-        height: 100vh;
-        align-items: center;
-        justify-content: center;
-        background-color: #f0f2f5;
-      "
-    >
-      <div
-        style="
-          background: white;
-          padding: 40px;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          width: 400px;
-          text-align: center;
-        "
-      >
-        <h2 style="color: #0d47a1; margin-bottom: 5px">Đăng nhập Hệ thống</h2>
-        <p style="color: #555; margin-bottom: 25px">
-          Đánh giá KPI - Chuyển đổi số & Cơ yếu
-        </p>
+    <div id="loginContainer" class="login-wrapper" style="display: flex">
+      <div class="login-box">
+        <h2>Đăng nhập Hệ thống</h2>
+        <p>Đánh giá KPI - Chuyển đổi số & Cơ yếu</p>
         <form id="formLogin">
-          <div style="margin-bottom: 15px; text-align: left">
-            <label style="font-weight: bold; font-size: 14px"
-              >Tên đăng nhập:</label
-            >
+          <div class="form-group">
+            <label>Tên đăng nhập:</label>
             <input
               type="text"
               id="loginUsername"
+              class="form-control"
               required
-              style="
-                width: 100%;
-                padding: 10px;
-                margin-top: 5px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                box-sizing: border-box;
-              "
             />
           </div>
-          <div style="margin-bottom: 25px; text-align: left">
-            <label style="font-weight: bold; font-size: 14px">Mật khẩu:</label>
+          <div class="form-group">
+            <label>Mật khẩu:</label>
             <input
               type="password"
               id="loginPassword"
+              class="form-control"
               required
-              style="
-                width: 100%;
-                padding: 10px;
-                margin-top: 5px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                box-sizing: border-box;
-              "
             />
           </div>
-          <button
-            type="submit"
-            class="btn-primary"
-            style="width: 100%; padding: 12px; font-size: 16px"
-          >
-            Đăng nhập
-          </button>
+          <button type="submit" class="btn-primary w-100">Đăng nhập</button>
         </form>
       </div>
     </div>
 
     <div id="appContainer" style="display: none">
-      <header class="chu-toa-row">
-        <div class="chu-toa-info">
+      <header class="top-header">
+        <div class="header-left">
           <h2>Hệ thống Đánh giá KPI</h2>
           <p>
             Phòng Chuyển đổi số - Cơ yếu | Xin chào,
-            <span
-              id="currentUserDisplay"
-              style="font-weight: bold; color: #ffd54f"
-            ></span>
+            <span id="currentUserDisplay" class="text-highlight"></span>
           </p>
         </div>
-        <div style="display: flex; gap: 10px">
-          <button id="btnHuongDan" class="btn-manual-instruction">
-            Hướng dẫn nghiệp vụ
+
+        <div class="header-center">
+          <div class="search-box">
+            <span class="material-symbols-outlined">search</span>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Tra cứu nhiệm vụ, cán bộ..."
+            />
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button id="btnHuongDan" class="btn-header-text">
+            <span class="material-symbols-outlined">menu_book</span> Hướng dẫn
+            nghiệp vụ
           </button>
-          <button
-            id="btnDangXuat"
-            class="btn-primary"
-            style="background-color: #d32f2f; border: 1px solid white"
-          >
-            Đăng xuất
-          </button>
+          <div class="avatar-circle" id="btnDangXuat" title="Đăng xuất">CY</div>
         </div>
       </header>
 
-      <div class="search-row">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Tra cứu nhiệm vụ, cán bộ..."
-        />
-        <button id="btnSearch" class="btn-primary">Tìm kiếm</button>
-      </div>
-
-      <div class="u-shape-container">
-        <aside class="left-sidebar">
+      <div class="main-layout">
+        <aside class="sidebar-left">
+          <div class="menu-label">MENU CHÍNH</div>
           <ul class="nav-menu">
-            <li class="active" id="menuGiaoViec">1. Giao nhiệm vụ tháng</li>
-            <li id="menuBaoCao">2. Báo cáo & Chấm KPI</li>
-            <li id="menuDanhMuc">3. Quản lý Danh mục chuẩn</li>
-            <li id="menuQuyDoi">4. Danh mục việc Quy đổi</li>
-            <li id="menuCanBo">5. Quản lý Cán bộ</li>
-            <li id="menuTaiKhoan">6. Quản lý Tài khoản</li>
+            <li class="active" id="menuGiaoViec">
+              <div class="menu-item-content">
+                <span class="material-symbols-outlined">calendar_month</span> 1.
+                Giao nhiệm vụ
+              </div>
+              <span class="material-symbols-outlined arrow">chevron_right</span>
+            </li>
+            <li id="menuBaoCao">
+              <div class="menu-item-content">
+                <span class="material-symbols-outlined">bar_chart</span> 2. Báo
+                cáo KPI
+              </div>
+              <span class="material-symbols-outlined arrow">chevron_right</span>
+            </li>
+            <li id="menuDanhMuc">
+              <div class="menu-item-content">
+                <span class="material-symbols-outlined">checklist</span> 3. Danh
+                mục chuẩn
+              </div>
+              <span class="material-symbols-outlined arrow">chevron_right</span>
+            </li>
+            <li id="menuQuyDoi">
+              <div class="menu-item-content">
+                <span class="material-symbols-outlined">sync_alt</span> 4. Việc
+                Quy đổi
+              </div>
+              <span class="material-symbols-outlined arrow">chevron_right</span>
+            </li>
+            <li id="menuCanBo">
+              <div class="menu-item-content">
+                <span class="material-symbols-outlined">group</span> 5. Quản lý
+                Cán bộ
+              </div>
+              <span class="material-symbols-outlined arrow">chevron_right</span>
+            </li>
+            <li id="menuTaiKhoan">
+              <div class="menu-item-content">
+                <span class="material-symbols-outlined">manage_accounts</span>
+                6. Quản lý Tài khoản
+              </div>
+              <span class="material-symbols-outlined arrow">chevron_right</span>
+            </li>
           </ul>
         </aside>
 
-        <main class="center-content">
-          <div id="phanGiaoViec" class="form-container">
-            <h3 id="tieuDeFormGiaoViec">Phiếu giao việc hằng tháng</h3>
-            <form id="formGiaoViec">
-              <input type="hidden" id="editGiaoViecId" value="" />
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 2">
-                  <label>Danh mục công việc (Chuẩn & Quy đổi):</label
-                  ><select id="chonNhiemVu" required></select>
+        <main class="content-center">
+          <div id="phanGiaoViec" class="card">
+            <div class="card-header">
+              <h3 id="tieuDeFormGiaoViec" style="margin: 0">
+                Phiếu giao việc hằng tháng
+              </h3>
+            </div>
+            <div class="card-body">
+              <form id="formGiaoViec">
+                <input type="hidden" id="editGiaoViecId" value="" />
+                <div style="display: flex; gap: 15px; margin-bottom: 10px">
+                  <div class="form-group" style="flex: 2">
+                    <label>Danh mục công việc (Chuẩn & Quy đổi):</label
+                    ><select
+                      id="chonNhiemVu"
+                      class="form-control"
+                      required
+                    ></select>
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Cán bộ phụ trách:</label
+                    ><select
+                      id="chonCanBoGiaoViec"
+                      class="form-control"
+                      required
+                    ></select>
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Cán bộ phụ trách:</label
-                  ><select id="chonCanBoGiaoViec" required></select>
+                <div style="display: flex; gap: 15px; margin-bottom: 10px">
+                  <div class="form-group" style="flex: 1">
+                    <label>Kỳ đánh giá (Tháng):</label
+                    ><input
+                      type="month"
+                      id="thangDanhGia"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Hệ số quy đổi chuẩn:</label
+                    ><input
+                      type="number"
+                      step="0.01"
+                      id="heSoQuyDoi"
+                      class="form-control bg-light"
+                      required
+                      readonly
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Khối lượng giao:</label
+                    ><input
+                      type="number"
+                      id="khoiLuong"
+                      class="form-control"
+                      required
+                      placeholder="Ví dụ: 10"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 1">
-                  <label>Kỳ đánh giá (Tháng):</label
-                  ><input type="month" id="thangDanhGia" required />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Hệ số quy đổi chuẩn:</label
-                  ><input
-                    type="number"
-                    step="0.01"
-                    id="heSoQuyDoi"
-                    required
-                    readonly
-                    style="background-color: #e9ecef"
-                  />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Khối lượng giao:</label
-                  ><input
-                    type="number"
-                    id="khoiLuong"
-                    required
-                    placeholder="Ví dụ: 10"
-                  />
-                </div>
-              </div>
-              <button type="submit" id="btnSubmitGiaoViec" class="btn-primary">
-                Lưu Nhiệm Vụ
-              </button>
-              <button
-                type="button"
-                id="btnCancelEditGiaoViec"
-                class="btn-primary"
-                style="background-color: #757575; display: none"
-              >
-                Hủy thao tác
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  id="btnSubmitGiaoViec"
+                  class="btn-primary mt-3"
+                >
+                  Lưu Nhiệm Vụ
+                </button>
+                <button
+                  type="button"
+                  id="btnCancelEditGiaoViec"
+                  class="btn-secondary mt-3"
+                  style="display: none"
+                >
+                  Hủy thao tác
+                </button>
+              </form>
+            </div>
 
             <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-top: 30px;
-                border-top: 1px solid #ccc;
-                padding-top: 15px;
-                margin-bottom: 10px;
-              "
+              class="card-header border-top mt-4 d-flex justify-between align-center"
             >
               <h4 style="margin: 0">Danh sách nhiệm vụ đã giao</h4>
-              <div style="display: flex; align-items: center; gap: 10px">
-                <label style="margin: 0; color: #0d47a1; font-weight: bold"
-                  >Lọc Cán bộ:</label
-                >
+              <div class="d-flex align-center gap-2">
+                <label style="margin: 0; font-weight: 500">Lọc Cán bộ:</label>
                 <select
                   id="locCanBoGiaoViec"
-                  style="
-                    padding: 6px;
-                    border-radius: 4px;
-                    border: 1px solid #0d47a1;
-                    outline: none;
-                    min-width: 200px;
-                  "
+                  class="form-control w-auto"
                 ></select>
               </div>
             </div>
@@ -213,13 +218,13 @@
               <table class="kpi-table">
                 <thead>
                   <tr>
-                    <th>STT</th>
-                    <th>Nhiệm vụ</th>
-                    <th>Cán bộ</th>
-                    <th>Tháng</th>
-                    <th>Hệ số</th>
-                    <th>KL</th>
-                    <th>Thao tác</th>
+                    <th style="width: 5%">STT</th>
+                    <th style="width: 35%">Nhiệm vụ</th>
+                    <th style="width: 20%">Cán bộ</th>
+                    <th style="width: 10%">Tháng</th>
+                    <th style="width: 10%">Hệ số</th>
+                    <th style="width: 5%">KL</th>
+                    <th style="width: 15%">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody id="bangGiaoViec"></tbody>
@@ -227,35 +232,18 @@
             </div>
           </div>
 
-          <div id="phanBaoCao" class="form-container" style="display: none">
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 15px;
-              "
-            >
+          <div id="phanBaoCao" class="card" style="display: none">
+            <div class="card-header d-flex justify-between align-center">
               <h3 style="margin: 0">1. Cập nhật chi tiết tiến độ nhiệm vụ</h3>
-              <div style="display: flex; align-items: center; gap: 10px">
-                <label style="margin: 0; color: #d32f2f; font-weight: bold"
-                  >Lọc KPI cho:</label
-                >
+              <div class="d-flex align-center gap-2">
+                <label style="margin: 0; font-weight: 500">Lọc KPI cho:</label>
                 <select
                   id="locCanBoBaoCao"
-                  style="
-                    padding: 6px;
-                    border-radius: 4px;
-                    border: 2px solid #d32f2f;
-                    color: #d32f2f;
-                    font-weight: bold;
-                    outline: none;
-                    min-width: 200px;
-                  "
+                  class="form-control w-auto"
                 ></select>
               </div>
             </div>
-            <div class="table-responsive" style="margin-bottom: 30px">
+            <div class="table-responsive mb-4">
               <table class="kpi-table">
                 <thead>
                   <tr>
@@ -263,49 +251,28 @@
                     <th>Cán bộ</th>
                     <th>Hệ số</th>
                     <th>KL Giao</th>
-                    <th
-                      style="
-                        color: #4dd0e1;
-                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-                      "
-                    >
-                      SL Hoàn thành
-                    </th>
-                    <th
-                      style="
-                        color: #ff8a80;
-                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-                      "
-                    >
-                      Số Lỗi
-                    </th>
-                    <th
-                      style="
-                        color: #ffd54f;
-                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
-                      "
-                    >
-                      Số lần Chậm
-                    </th>
+                    <th style="color: #0052cc">SL Hoàn thành</th>
+                    <th style="color: #ef4444">Số Lỗi</th>
+                    <th style="color: #f59e0b">Số lần Chậm</th>
                   </tr>
                 </thead>
                 <tbody id="duLieuChiTiet"></tbody>
               </table>
             </div>
-            <h3 style="border-top: 1px solid #ccc; padding-top: 20px">
-              2. Bảng Tổng hợp & Chốt KPI tháng theo Cán bộ
-            </h3>
+            <div class="card-header border-top">
+              <h3 style="margin: 0">2. Bảng Tổng hợp & Chốt KPI tháng</h3>
+            </div>
             <div class="table-responsive">
               <table class="kpi-table">
                 <thead>
                   <tr>
                     <th>Cán bộ</th>
-                    <th title="% Số lượng">% SL</th>
-                    <th title="% Chất lượng">% CL</th>
-                    <th title="% Tiến độ">% TĐ</th>
-                    <th title="% Trung bình">% TB</th>
-                    <th title="Điểm tiêu chí chung">Đ.Chung</th>
-                    <th title="Điểm cộng">Đ.Cộng</th>
+                    <th>% SL</th>
+                    <th>% CL</th>
+                    <th>% TĐ</th>
+                    <th>% TB</th>
+                    <th>Đ.Chung</th>
+                    <th>Đ.Cộng</th>
                     <th>Tổng điểm</th>
                     <th>Xếp loại</th>
                     <th id="colThaoTacBaoCao">Thao tác</th>
@@ -316,94 +283,116 @@
             </div>
           </div>
 
-          <div id="phanDanhMuc" class="form-container" style="display: none">
-            <h3 id="tieuDeFormDanhMuc">Khởi tạo Danh mục Chuẩn</h3>
-            <form id="formThemDanhMuc">
-              <input type="hidden" id="editDocId" value="" />
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 2">
-                  <label>Tên Công việc chuẩn:</label
-                  ><input type="text" id="themTenCongViec" required />
+          <div id="phanDanhMuc" class="card" style="display: none">
+            <div class="card-header">
+              <h3 id="tieuDeFormDanhMuc" style="margin: 0">
+                Khởi tạo Danh mục Chuẩn
+              </h3>
+            </div>
+            <div class="card-body">
+              <form id="formThemDanhMuc">
+                <input type="hidden" id="editDocId" value="" />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 2">
+                    <label>Tên Công việc chuẩn:</label
+                    ><input
+                      type="text"
+                      id="themTenCongViec"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Sản phẩm đầu ra:</label
+                    ><input
+                      type="text"
+                      id="themSanPhamDauRa"
+                      class="form-control"
+                      required
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Sản phẩm đầu ra:</label
-                  ><input type="text" id="themSanPhamDauRa" required />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 1">
+                    <label>Thuộc nhóm:</label
+                    ><select id="themNhom" class="form-control" required>
+                      <option value="N1">N1</option>
+                      <option value="N2">N2</option>
+                      <option value="N3">N3</option>
+                      <option value="N4">N4</option>
+                      <option value="N5">N5</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Khung điểm tối đa:</label
+                    ><input
+                      type="number"
+                      id="themKhungDiem"
+                      class="form-control bg-light"
+                      required
+                      value="100"
+                      readonly
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label style="color: #ef4444">Điểm CV chuẩn (Mẫu số):</label
+                    ><input
+                      type="number"
+                      step="0.1"
+                      id="diemCongViecChuan"
+                      class="form-control calc-tc"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 1">
-                  <label>Thuộc nhóm:</label
-                  ><select id="themNhom" required>
-                    <option value="N1">N1</option>
-                    <option value="N2">N2</option>
-                    <option value="N3">N3</option>
-                    <option value="N4">N4</option>
-                    <option value="N5">N5</option>
-                  </select>
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 1">
+                    <label style="color: #0052cc">Điểm đánh giá (Tử số):</label
+                    ><input
+                      type="number"
+                      step="0.1"
+                      id="themTongDiem"
+                      class="form-control calc-tc"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Hệ số quy đổi:</label
+                    ><input
+                      type="number"
+                      step="0.01"
+                      id="themHeSo"
+                      class="form-control bg-light"
+                      required
+                      readonly
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Khung điểm tối đa:</label
-                  ><input
-                    type="number"
-                    id="themKhungDiem"
-                    required
-                    value="100"
-                    readonly
-                    style="background-color: #e9ecef"
-                  />
-                </div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-bottom: 15px">
-                <div class="form-group" style="flex: 1">
-                  <label style="color: #d32f2f"
-                    >Điểm Công việc chuẩn (Mẫu số):</label
-                  ><input
-                    type="number"
-                    step="0.1"
-                    id="diemCongViecChuan"
-                    required
-                    class="calc-tc"
-                  />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label style="color: blue">Điểm đánh giá (Tử số):</label
-                  ><input
-                    type="number"
-                    step="0.1"
-                    id="themTongDiem"
-                    required
-                    class="calc-tc"
-                  />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Hệ số quy đổi:</label
-                  ><input
-                    type="number"
-                    step="0.01"
-                    id="themHeSo"
-                    required
-                    readonly
-                    style="background-color: #e9ecef"
-                  />
-                </div>
-              </div>
-              <button type="submit" id="btnSubmitDanhMuc" class="btn-primary">
-                Lưu Danh mục Chuẩn
-              </button>
-              <button
-                type="button"
-                id="btnCancelEdit"
-                class="btn-primary"
-                style="background-color: #757575; display: none"
-              >
-                Hủy thao tác
-              </button>
-            </form>
-            <h4 style="margin-top: 30px">Bảng Danh mục Công việc chuẩn</h4>
+                <button
+                  type="submit"
+                  id="btnSubmitDanhMuc"
+                  class="btn-primary mt-3"
+                >
+                  Lưu Danh mục Chuẩn
+                </button>
+                <button
+                  type="button"
+                  id="btnCancelEdit"
+                  class="btn-secondary mt-3"
+                  style="display: none"
+                >
+                  Hủy thao tác
+                </button>
+              </form>
+            </div>
+            <div class="card-header border-top mt-4">
+              <h4 style="margin: 0">Bảng Danh mục Công việc chuẩn</h4>
+            </div>
             <div class="table-responsive">
               <table class="kpi-table">
                 <thead>
                   <tr>
+                    <th style="width: 5%">STT</th>
                     <th>Nhiệm vụ chuẩn</th>
                     <th>Đầu ra</th>
                     <th>Nhóm</th>
@@ -418,105 +407,130 @@
             </div>
           </div>
 
-          <div id="phanQuyDoi" class="form-container" style="display: none">
-            <h3 id="tieuDeFormQuyDoi">
-              Khởi tạo Danh mục Sản phẩm / Công việc quy đổi
-            </h3>
-            <form id="formThemQuyDoi">
-              <input type="hidden" id="editQuyDoiId" value="" />
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 2">
-                  <label>Tên SP / CV quy đổi:</label
-                  ><input type="text" id="themTenCongViecQuyDoi" required />
+          <div id="phanQuyDoi" class="card" style="display: none">
+            <div class="card-header">
+              <h3 id="tieuDeFormQuyDoi" style="margin: 0">
+                Khởi tạo Danh mục Quy đổi
+              </h3>
+            </div>
+            <div class="card-body">
+              <form id="formThemQuyDoi">
+                <input type="hidden" id="editQuyDoiId" value="" />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 2">
+                    <label>Tên SP / CV quy đổi:</label
+                    ><input
+                      type="text"
+                      id="themTenCongViecQuyDoi"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Sản phẩm đầu ra:</label
+                    ><input
+                      type="text"
+                      id="themSanPhamDauRaQuyDoi"
+                      class="form-control"
+                      required
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Sản phẩm đầu ra:</label
-                  ><input type="text" id="themSanPhamDauRaQuyDoi" required />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 1">
+                    <label>Thuộc nhóm:</label
+                    ><select id="themNhomQuyDoi" class="form-control" required>
+                      <option value="N1">N1</option>
+                      <option value="N2">N2</option>
+                      <option value="N3">N3</option>
+                      <option value="N4">N4</option>
+                      <option value="N5">N5</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Khung điểm tối đa:</label
+                    ><input
+                      type="number"
+                      id="themKhungDiemQuyDoi"
+                      class="form-control bg-light"
+                      required
+                      value="100"
+                      readonly
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 2">
+                    <label style="color: #ef4444"
+                      >Nhóm việc chuẩn (Mẫu số):</label
+                    ><select
+                      id="chonCongViecChuan"
+                      class="form-control"
+                      required
+                    ></select>
+                  </div>
                 </div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 1">
-                  <label>Thuộc nhóm:</label
-                  ><select id="themNhomQuyDoi" required>
-                    <option value="N1">N1</option>
-                    <option value="N2">N2</option>
-                    <option value="N3">N3</option>
-                    <option value="N4">N4</option>
-                    <option value="N5">N5</option>
-                  </select>
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 1">
+                    <label style="color: #ef4444">Điểm CV chuẩn:</label
+                    ><input
+                      type="number"
+                      step="0.1"
+                      id="diemCongViecChuanQuyDoi"
+                      class="form-control bg-light"
+                      required
+                      readonly
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label style="color: #0052cc">Điểm đánh giá (Tử số):</label
+                    ><input
+                      type="number"
+                      step="0.1"
+                      id="themTongDiemQuyDoi"
+                      class="form-control calc-qd"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Hệ số:</label
+                    ><input
+                      type="number"
+                      step="0.01"
+                      id="themHeSoQuyDoi"
+                      class="form-control bg-light"
+                      required
+                      readonly
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Khung điểm tối đa:</label
-                  ><input
-                    type="number"
-                    id="themKhungDiemQuyDoi"
-                    required
-                    value="100"
-                    readonly
-                    style="background-color: #e9ecef"
-                  />
-                </div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-bottom: 15px">
-                <div class="form-group" style="flex: 2">
-                  <label style="color: #d32f2f"
-                    >Nhóm công việc chuẩn (Lấy mẫu số):</label
-                  ><select id="chonCongViecChuan" required></select>
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label style="color: #d32f2f">Điểm CV chuẩn:</label
-                  ><input
-                    type="number"
-                    step="0.1"
-                    id="diemCongViecChuanQuyDoi"
-                    required
-                    readonly
-                    style="background-color: #e9ecef"
-                  />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label style="color: blue">Điểm đánh giá (Tử số):</label
-                  ><input
-                    type="number"
-                    step="0.1"
-                    id="themTongDiemQuyDoi"
-                    required
-                    class="calc-qd"
-                  />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Hệ số:</label
-                  ><input
-                    type="number"
-                    step="0.01"
-                    id="themHeSoQuyDoi"
-                    required
-                    readonly
-                    style="background-color: #e9ecef"
-                  />
-                </div>
-              </div>
-              <button type="submit" id="btnSubmitQuyDoi" class="btn-primary">
-                Lưu Danh mục Quy đổi
-              </button>
-              <button
-                type="button"
-                id="btnCancelEditQuyDoi"
-                class="btn-primary"
-                style="background-color: #757575; display: none"
-              >
-                Hủy thao tác
-              </button>
-            </form>
-            <h4 style="margin-top: 30px">Bảng Danh mục Công việc Quy đổi</h4>
+                <button
+                  type="submit"
+                  id="btnSubmitQuyDoi"
+                  class="btn-primary mt-3"
+                >
+                  Lưu Quy đổi
+                </button>
+                <button
+                  type="button"
+                  id="btnCancelEditQuyDoi"
+                  class="btn-secondary mt-3"
+                  style="display: none"
+                >
+                  Hủy thao tác
+                </button>
+              </form>
+            </div>
+            <div class="card-header border-top mt-4">
+              <h4 style="margin: 0">Bảng Danh mục Công việc Quy đổi</h4>
+            </div>
             <div class="table-responsive">
               <table class="kpi-table">
                 <thead>
                   <tr>
+                    <th style="width: 5%">STT</th>
                     <th>Nhiệm vụ Quy đổi</th>
                     <th>Đầu ra</th>
                     <th>Nhóm</th>
-                    <th>Tham chiếu (Chuẩn)</th>
+                    <th>Tham chiếu</th>
                     <th>Mẫu số</th>
                     <th>Tử số</th>
                     <th>Hệ số</th>
@@ -528,33 +542,55 @@
             </div>
           </div>
 
-          <div id="phanCanBo" class="form-container" style="display: none">
-            <h3 id="tieuDeFormCanBo">Thêm mới Cán bộ / Chuyên viên</h3>
-            <form id="formThemCanBo">
-              <input type="hidden" id="editCanBoId" value="" />
-              <div style="display: flex; gap: 15px; margin-bottom: 15px">
-                <div class="form-group" style="flex: 2">
-                  <label>Họ và tên Cán bộ:</label
-                  ><input type="text" id="themTenCanBo" required />
+          <div id="phanCanBo" class="card" style="display: none">
+            <div class="card-header">
+              <h3 id="tieuDeFormCanBo" style="margin: 0">
+                Thêm mới Cán bộ / Chuyên viên
+              </h3>
+            </div>
+            <div class="card-body">
+              <form id="formThemCanBo">
+                <input type="hidden" id="editCanBoId" value="" />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 2">
+                    <label>Họ và tên Cán bộ:</label
+                    ><input
+                      type="text"
+                      id="themTenCanBo"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Chức vụ / Vị trí việc làm:</label
+                    ><input
+                      type="text"
+                      id="themChucVu"
+                      class="form-control"
+                      required
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Chức vụ / Vị trí việc làm:</label
-                  ><input type="text" id="themChucVu" required />
-                </div>
-              </div>
-              <button type="submit" id="btnSubmitCanBo" class="btn-primary">
-                Lưu Cán bộ
-              </button>
-              <button
-                type="button"
-                id="btnCancelEditCanBo"
-                class="btn-primary"
-                style="background-color: #757575; display: none"
-              >
-                Hủy thao tác
-              </button>
-            </form>
-            <h4 style="margin-top: 30px">Danh sách nhân sự thuộc Phòng</h4>
+                <button
+                  type="submit"
+                  id="btnSubmitCanBo"
+                  class="btn-primary mt-3"
+                >
+                  Lưu Cán bộ
+                </button>
+                <button
+                  type="button"
+                  id="btnCancelEditCanBo"
+                  class="btn-secondary mt-3"
+                  style="display: none"
+                >
+                  Hủy thao tác
+                </button>
+              </form>
+            </div>
+            <div class="card-header border-top mt-4">
+              <h4 style="margin: 0">Danh sách nhân sự thuộc Phòng</h4>
+            </div>
             <div class="table-responsive">
               <table class="kpi-table">
                 <thead>
@@ -570,74 +606,77 @@
             </div>
           </div>
 
-          <div id="phanTaiKhoan" class="form-container" style="display: none">
-            <h3 id="tieuDeFormTaiKhoan">Cấp mới Tài khoản Đăng nhập</h3>
-            <form id="formThemTaiKhoan">
-              <input type="hidden" id="editTaiKhoanId" value="" />
-              <div style="display: flex; gap: 15px; margin-bottom: 10px">
-                <div class="form-group" style="flex: 1">
-                  <label>Cán bộ (Chủ tài khoản):</label>
-                  <select id="tkHoTen" required>
-                    <option value="">-- Đang tải... --</option>
-                  </select>
+          <div id="phanTaiKhoan" class="card" style="display: none">
+            <div class="card-header">
+              <h3 id="tieuDeFormTaiKhoan" style="margin: 0">
+                Cấp mới Tài khoản Đăng nhập
+              </h3>
+            </div>
+            <div class="card-body">
+              <form id="formThemTaiKhoan">
+                <input type="hidden" id="editTaiKhoanId" value="" />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 1">
+                    <label>Cán bộ (Chủ tài khoản):</label
+                    ><select id="tkHoTen" class="form-control" required>
+                      <option value="">-- Đang tải... --</option>
+                    </select>
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Tên đăng nhập (Username):</label
+                    ><input
+                      type="text"
+                      id="tkUsername"
+                      class="form-control"
+                      required
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Tên đăng nhập (Username):</label>
-                  <input
-                    type="text"
-                    id="tkUsername"
-                    required
-                    placeholder="Ví dụ: xuyennh"
-                  />
+                <div style="display: flex; gap: 15px; margin-bottom: 15px">
+                  <div class="form-group" style="flex: 1">
+                    <label>Mật khẩu:</label
+                    ><input
+                      type="password"
+                      id="tkPassword"
+                      class="form-control"
+                      required
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1">
+                    <label>Phân quyền:</label
+                    ><select id="tkRole" class="form-control" required>
+                      <option value="user">
+                        Chuyên viên (User - Chỉ nhập số liệu)
+                      </option>
+                      <option value="viewer">
+                        Lãnh đạo (Viewer - Xem báo cáo)
+                      </option>
+                      <option value="admin">
+                        Trưởng phòng (Admin - Toàn quyền)
+                      </option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div style="display: flex; gap: 15px; margin-bottom: 15px">
-                <div class="form-group" style="flex: 1">
-                  <label>Mật khẩu:</label>
-                  <input
-                    type="password"
-                    id="tkPassword"
-                    required
-                    placeholder="********"
-                  />
-                </div>
-                <div class="form-group" style="flex: 1">
-                  <label>Phân quyền:</label>
-                  <select id="tkRole" required>
-                    <option value="user">
-                      Chuyên viên (Chỉ xem dữ liệu cá nhân)
-                    </option>
-                    <option value="viewer">
-                      Viewer (Xem toàn bộ, không sửa xóa)
-                    </option>
-                    <option value="admin">
-                      Trưởng phòng (Toàn quyền hệ thống)
-                    </option>
-                  </select>
-                </div>
-              </div>
-              <button type="submit" id="btnSubmitTaiKhoan" class="btn-primary">
-                Tạo Tài khoản
-              </button>
-              <button
-                type="button"
-                id="btnCancelEditTaiKhoan"
-                class="btn-primary"
-                style="background-color: #757575; display: none"
-              >
-                Hủy thao tác
-              </button>
-            </form>
-
-            <h4
-              style="
-                margin-top: 30px;
-                border-top: 1px solid #ccc;
-                padding-top: 15px;
-              "
-            >
-              Danh sách Tài khoản Hệ thống
-            </h4>
+                <button
+                  type="submit"
+                  id="btnSubmitTaiKhoan"
+                  class="btn-primary mt-3"
+                >
+                  Tạo Tài khoản
+                </button>
+                <button
+                  type="button"
+                  id="btnCancelEditTaiKhoan"
+                  class="btn-secondary mt-3"
+                  style="display: none"
+                >
+                  Hủy thao tác
+                </button>
+              </form>
+            </div>
+            <div class="card-header border-top mt-4">
+              <h4 style="margin: 0">Danh sách Tài khoản Hệ thống</h4>
+            </div>
             <div class="table-responsive">
               <table class="kpi-table">
                 <thead>
@@ -656,62 +695,84 @@
           </div>
         </main>
 
-        <aside class="right-sidebar">
+        <aside class="sidebar-right">
           <div class="widget">
-            <h4>Văn phòng Tỉnh ủy Thái Nguyên</h4>
-            <p style="font-size: 13px; color: #555">
-              Hệ thống lõi Đánh giá KPI theo Phụ lục 2 - Quy định 870
-            </p>
-          </div>
-
-          <div
-            class="widget"
-            id="kpiDashboardWidget"
-            style="display: none; margin-top: 20px"
-          >
-            <h4
-              style="
-                color: #0d47a1;
-                border-bottom: 2px solid #0d47a1;
-                padding-bottom: 8px;
-                margin-bottom: 15px;
-              "
-            >
-              📊 Dashboard Chỉ tiêu
-            </h4>
+            <div class="widget-header">
+              <div class="icon-box">
+                <span class="material-symbols-outlined">domain</span>
+              </div>
+              <h4 style="margin: 0; font-size: 15px; font-weight: 600">
+                VP Tỉnh ủy Thái Nguyên
+              </h4>
+            </div>
             <p
               style="
-                font-weight: bold;
-                color: #d32f2f;
-                margin-bottom: 15px;
-                font-size: 15px;
-                text-transform: uppercase;
+                font-size: 13px;
+                color: #71717a;
+                margin-top: 15px;
+                line-height: 1.5;
               "
-              id="dashBoardCanBoName"
             >
-              Tên cán bộ
+              Hệ thống lõi Đánh giá KPI theo Phụ lục 2 - Quy định 870
             </p>
 
+            <div class="info-row mt-3">
+              <span class="material-symbols-outlined text-muted"
+                >description</span
+              >
+              <div>
+                <div style="font-size: 13px; font-weight: 500">Quy định</div>
+                <div style="font-size: 12px; color: #71717a">
+                  Phụ lục 2 - QĐ 870
+                </div>
+              </div>
+            </div>
+            <div class="info-row mt-2">
+              <span class="material-symbols-outlined text-muted"
+                >calendar_today</span
+              >
+              <div>
+                <div style="font-size: 13px; font-weight: 500">Kỳ đánh giá</div>
+                <div style="font-size: 12px; color: #71717a">Tháng 6/2026</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="widget" id="kpiDashboardWidget" style="display: none">
+            <h4
+              style="
+                margin: 0 0 15px 0;
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <span class="material-symbols-outlined">trending_up</span> KPI:
+              <span
+                id="dashBoardCanBoName"
+                style="color: var(--primary)"
+              ></span>
+            </h4>
             <div
               style="
-                background: #f9f9f9;
+                background: #f9fafb;
                 padding: 10px;
                 border-radius: 8px;
-                border: 1px solid #eee;
+                border: 1px solid #e5e7eb;
               "
             >
               <canvas id="kpiChart" width="100%" height="180"></canvas>
             </div>
-
             <div
               id="dashBoardDetails"
               style="
                 margin-top: 15px;
                 font-size: 14px;
-                background: #e3f2fd;
+                background: #eff6ff;
                 padding: 12px;
-                border-radius: 6px;
-                border-left: 4px solid #0d47a1;
+                border-radius: 8px;
+                border-left: 4px solid #3b82f6;
               "
             ></div>
           </div>
