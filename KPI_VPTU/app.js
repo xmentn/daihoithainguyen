@@ -363,24 +363,37 @@ document
     renderBangChiTiet();
     renderBangTongHop();
 
-    // TỰ ĐỘNG KÍCH HOẠT DASHBOARD NẾU ĐÃ CHỌN CÁN BỘ
     const selectedName = this.value;
     if (selectedName !== "") {
-      // Tìm dòng tương ứng của cán bộ trong bảng
-      const safeCbId = selectedName.replace(/\s+/g, "");
-      const targetRow = document.querySelector(`#row_${safeCbId}`);
+      // TÌM CÁN BỘ ĐANG ĐƯỢC CHỌN TRONG DANH SÁCH
+      // Chúng ta phải tìm lại dữ liệu đã tính toán từ danh sách `currentTasks`
+      const tasksOfUser = currentTasks.filter((t) => t.can_bo === selectedName);
 
-      if (targetRow) {
-        // Tìm nút tên cán bộ trong hàng đó và giả lập một cú click
-        const nameCell = targetRow.querySelector(
-          'td[onclick*="showDashboard"]',
-        );
-        if (nameCell) {
-          nameCell.click();
-        }
+      if (tasksOfUser.length > 0) {
+        // TÍNH LẠI CÁC CHỈ SỐ ĐỂ CÓ DỮ LIỆU VẼ BIỂU ĐỒ
+        let tGiao = 0;
+        let tHT = 0;
+        let tLoi = 0;
+        let tCham = 0;
+        tasksOfUser.forEach((t) => {
+          let hs = parseFloat(t.he_so_quy_doi) || 1;
+          tGiao += (t.khoi_luong_giao || 0) * hs;
+          tHT += (t.sl_hoan_thanh || 0) * hs;
+          tLoi += (t.so_loi || 0) * 0.25 * hs;
+          tCham += (t.so_cham || 0) * 0.25 * hs;
+        });
+
+        let pSL = tGiao > 0 ? (tHT / tGiao) * 100 : 0;
+        if (pSL > 100) pSL = 100;
+        let pCL = tGiao > 0 ? (Math.max(0, tHT - tLoi) / tGiao) * 100 : 0;
+        let pTD = tGiao > 0 ? (Math.max(0, tHT - tCham) / tGiao) * 100 : 0;
+        let pTB = (pSL + pCL + pTD) / 3;
+        let safeCbId = selectedName.replace(/\s+/g, "");
+
+        // GỌI TRỰC TIẾP HÀM HIỂN THỊ DASHBOARD
+        showDashboard(selectedName, pSL, pCL, pTD, pTB, safeCbId);
       }
     } else {
-      // Nếu chọn "-- Toàn bộ Phòng --" thì ẩn dashboard đi
       document.getElementById("kpiDashboardWidget").style.display = "none";
     }
   });
@@ -1131,8 +1144,8 @@ function renderBangTongHop() {
     </td>`
       : `<td style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</td>`;
 
-    tr.innerHTML = `
-        <td style="font-weight:bold; text-align:left; cursor:pointer; color:#0d47a1; text-decoration:underline;" onclick="showDashboard('${cb}', ${pSL}, ${pCL}, ${pTD}, ${pTB}, '${safeCbId}')" title="Nhấn để xem biểu đồ KPI">${cb}</td>
+    tr.innerHTML = `      
+<td style="font-weight:bold; text-align:left;">${cb}</td>
         <td>${pSL.toFixed(1)}</td>
         <td>${pCL.toFixed(1)}</td>
         <td>${pTD.toFixed(1)}</td>
