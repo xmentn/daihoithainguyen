@@ -307,6 +307,7 @@ function hideAllTabs() {
 
   // Thêm lệnh ẩn dashboard tại đây
   hideDashboard();
+  document.getElementById("thongKeCanBoWidget").style.display = "none";
 }
 function hideDashboard() {
   const dashboard = document.getElementById("kpiDashboardWidget");
@@ -344,6 +345,7 @@ document.getElementById("menuCanBo").addEventListener("click", () => {
   hideAllTabs();
   document.getElementById("menuCanBo").classList.add("active");
   document.getElementById("phanCanBo").style.display = "block";
+  document.getElementById("thongKeCanBoWidget").style.display = "block";
   loadDanhSachCanBo();
 });
 document.getElementById("menuTaiKhoan").addEventListener("click", () => {
@@ -364,37 +366,52 @@ document
     renderBangTongHop();
 
     const selectedName = this.value;
-    if (selectedName !== "") {
-      // TÌM CÁN BỘ ĐANG ĐƯỢC CHỌN TRONG DANH SÁCH
-      // Chúng ta phải tìm lại dữ liệu đã tính toán từ danh sách `currentTasks`
-      const tasksOfUser = currentTasks.filter((t) => t.can_bo === selectedName);
+    const dashboardWidget = document.getElementById("kpiDashboardWidget");
 
-      if (tasksOfUser.length > 0) {
-        // TÍNH LẠI CÁC CHỈ SỐ ĐỂ CÓ DỮ LIỆU VẼ BIỂU ĐỒ
-        let tGiao = 0;
-        let tHT = 0;
-        let tLoi = 0;
-        let tCham = 0;
-        tasksOfUser.forEach((t) => {
-          let hs = parseFloat(t.he_so_quy_doi) || 1;
-          tGiao += (t.khoi_luong_giao || 0) * hs;
-          tHT += (t.sl_hoan_thanh || 0) * hs;
-          tLoi += (t.so_loi || 0) * 0.25 * hs;
-          tCham += (t.so_cham || 0) * 0.25 * hs;
-        });
+    // NẾU CHỌN "-- Toàn bộ --" (value rỗng) HOẶC KHÔNG CHỌN AI -> Ẩn ngay
+    if (selectedName === "") {
+      dashboardWidget.style.display = "none";
+      if (window.kpiChartInstance) window.kpiChartInstance.destroy();
+      return;
+    }
 
-        let pSL = tGiao > 0 ? (tHT / tGiao) * 100 : 0;
-        if (pSL > 100) pSL = 100;
-        let pCL = tGiao > 0 ? (Math.max(0, tHT - tLoi) / tGiao) * 100 : 0;
-        let pTD = tGiao > 0 ? (Math.max(0, tHT - tCham) / tGiao) * 100 : 0;
-        let pTB = (pSL + pCL + pTD) / 3;
-        let safeCbId = selectedName.replace(/\s+/g, "");
+    // TÌM CÁN BỘ ĐANG ĐƯỢC CHỌN
+    const tasksOfUser = currentTasks.filter((t) => t.can_bo === selectedName);
 
-        // GỌI TRỰC TIẾP HÀM HIỂN THỊ DASHBOARD
-        showDashboard(selectedName, pSL, pCL, pTD, pTB, safeCbId);
-      }
+    if (tasksOfUser.length > 0) {
+      // TÍNH LẠI CÁC CHỈ SỐ
+      let tGiao = 0,
+        tHT = 0,
+        tLoi = 0,
+        tCham = 0;
+      tasksOfUser.forEach((t) => {
+        let hs = parseFloat(t.he_so_quy_doi) || 1;
+        tGiao += (t.khoi_luong_giao || 0) * hs;
+        tHT += (t.sl_hoan_thanh || 0) * hs;
+        tLoi += (t.so_loi || 0) * 0.25 * hs;
+        tCham += (t.so_cham || 0) * 0.25 * hs;
+      });
+
+      let pSL = tGiao > 0 ? (tHT / tGiao) * 100 : 0;
+      if (pSL > 100) pSL = 100;
+      let pCL = tGiao > 0 ? (Math.max(0, tHT - tLoi) / tGiao) * 100 : 0;
+      let pTD = tGiao > 0 ? (Math.max(0, tHT - tCham) / tGiao) * 100 : 0;
+      let pTB = (pSL + pCL + pTD) / 3;
+      let safeCbId = selectedName.replace(/\s+/g, "");
+
+      // GỌI HIỂN THỊ
+      showDashboard(selectedName, pSL, pCL, pTD, pTB, safeCbId);
     } else {
-      document.getElementById("kpiDashboardWidget").style.display = "none";
+      // TRƯỜNG HỢP CÓ TÊN CÁN BỘ NHƯNG KHÔNG CÓ DỮ LIỆU KPI
+      dashboardWidget.style.display = "block";
+      document.getElementById("dashBoardCanBoName").innerText = selectedName;
+      document.getElementById("dashBoardDetails").innerHTML = `
+            <div style="text-align:center; padding: 15px; color: #666; font-style: italic;">
+                Chưa có dữ liệu KPI
+            </div>`;
+
+      // Hủy biểu đồ cũ nếu có
+      if (window.kpiChartInstance) window.kpiChartInstance.destroy();
     }
   });
 // ==========================================
@@ -502,6 +519,24 @@ async function loadDanhSachCanBo() {
         b.appendChild(tr);
       }
     });
+    // Thêm đoạn này vào bên trong hàm loadDanhSachCanBo()
+    let countTotal = snap.size;
+    let countLanhDao = 0;
+    let countChuyenVien = 0;
+    let countCoYeu = 0;
+
+    snap.forEach((d) => {
+      const cv = (d.data().chuc_vu || "").toLowerCase();
+      if (cv.includes("trưởng phòng") || cv.includes("phó")) countLanhDao++;
+      else if (cv.includes("cơ yếu")) countCoYeu++;
+      else countChuyenVien++;
+    });
+
+    // Cập nhật lên giao diện
+    document.getElementById("statTotal").innerText = countTotal;
+    document.getElementById("statLanhDao").innerText = countLanhDao;
+    document.getElementById("statChuyenVien").innerText = countChuyenVien;
+    document.getElementById("statCoYeu").innerText = countCoYeu;
   } catch (e) {
     showToast("Không thể tải danh sách cán bộ!", "error");
   }
@@ -1023,7 +1058,7 @@ function renderBangChiTiet() {
   const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
   const isAdmin = currentUser && currentUser.role === "admin";
   const isViewer = currentUser && currentUser.role === "viewer";
-
+  let stt = 1;
   currentTasks.forEach((task) => {
     if (!isAdmin && !isViewer && task.can_bo !== currentUser.ho_ten) return;
     if (
@@ -1039,7 +1074,8 @@ function renderBangChiTiet() {
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
-        <td style="text-align:left;">${task.ten_nhiem_vu}</td><td style="font-weight:bold;">${task.can_bo}</td><td>${task.he_so_quy_doi}</td><td>${task.khoi_luong_giao}</td>
+        <td style="text-align:center; color:#71717a;">${stt++}</td>
+    <td style="text-align:left;">${task.ten_nhiem_vu}</td><td style="font-weight:bold;">${task.can_bo}</td><td>${task.he_so_quy_doi}</td><td>${task.khoi_luong_giao}</td>
         <td><input type="number" class="input-calc" data-id="${task.id}" data-type="hoan_thanh" style="width:50px" min="0" value="${task.sl_hoan_thanh}" ${disabledAttr}></td>
         <td><input type="number" class="input-calc" data-id="${task.id}" data-type="loi" style="width:50px" min="0" value="${task.so_loi}" ${disabledAttr}></td>
         <td><input type="number" class="input-calc" data-id="${task.id}" data-type="cham" style="width:50px" min="0" value="${task.so_cham}" ${disabledAttr}></td>
@@ -1070,7 +1106,7 @@ function renderBangTongHop() {
   const filterLocCanBo = document.getElementById("locCanBoBaoCao")?.value || "";
   const isAdmin = currentUser && currentUser.role === "admin";
   const isViewer = currentUser && currentUser.role === "viewer";
-
+  let stt = 1;
   let currentInputs = {};
   document.querySelectorAll(".input-dc, .input-dcong").forEach((inp) => {
     currentInputs[inp.id] = inp.value;
@@ -1145,7 +1181,8 @@ function renderBangTongHop() {
       : `<td style="color:#757575; font-size:13px; font-style:italic;">Chỉ xem</td>`;
 
     tr.innerHTML = `      
-<td style="font-weight:bold; text-align:left;">${cb}</td>
+<td style="text-align:center; color:#71717a;">${stt++}</td>
+    <td style="font-weight:bold; text-align:left;">${cb}</td>
         <td>${pSL.toFixed(1)}</td>
         <td>${pCL.toFixed(1)}</td>
         <td>${pTD.toFixed(1)}</td>
@@ -1168,12 +1205,12 @@ window.calcTongDiem = function (cbId, pTB) {
   document.getElementById(`tong_${cbId}`).innerText = t.toFixed(1);
   document.getElementById(`loai_${cbId}`).innerText =
     t >= 90
-      ? "Tốt (A)"
+      ? "Xuất sắc (A)"
       : t >= 70
-        ? "Khá (B)"
+        ? "Tốt (B)"
         : t >= 50
-          ? "Đạt (C)"
-          : "Không đạt (D)";
+          ? "Hoàn thành (C)"
+          : "Không hoàn thành (D)";
 };
 
 window.thaoTacKPI = async function (cb, safeCbId, event) {
@@ -1224,29 +1261,59 @@ window.thaoTacKPI = async function (cb, safeCbId, event) {
 // DASHBOARD CHART.JS (BÊN PHẢI)
 // ==========================================
 let kpiChartInstance = null;
-
 window.showDashboard = function (cbName, pSL, pCL, pTD, pTB, safeCbId) {
+  if (isNaN(parseFloat(pTB))) {
+    document.getElementById("dashBoardCanBoName").innerText =
+      cbName + " (Chưa có dữ liệu)";
+    document.getElementById("dashBoardDetails").innerHTML = `
+        <div style="text-align:center; padding: 20px; color: #999;">Chưa có thông tin đánh giá KPI</div>
+    `;
+    // Xóa biểu đồ cũ
+    if (window.kpiChartInstance) window.kpiChartInstance.destroy();
+    return; // Dừng hàm tại đây, không vẽ tiếp nữa
+  }
+
+  // 2. NẾU CÓ DỮ LIỆU THÌ MỚI TIẾP TỤC HIỂN THỊ
   document.getElementById("kpiDashboardWidget").style.display = "block";
   document.getElementById("dashBoardCanBoName").innerText = cbName;
 
-  let tongDiem = document.getElementById(`tong_${safeCbId}`).innerText;
-  let xepLoai = document.getElementById(`loai_${safeCbId}`).innerText;
+  // Sử dụng setInterval để "quét" dữ liệu ngay khi ô trên bảng có số
+  // Cách này đảm bảo Dashboard sẽ hiển thị đúng con số sau khi calcTongDiem chạy xong
+  let attempts = 0;
+  let checkInterval = setInterval(() => {
+    const tongEl = document.getElementById(`tong_${safeCbId}`);
+    const loaiEl = document.getElementById(`loai_${safeCbId}`);
 
-  document.getElementById("dashBoardDetails").innerHTML = `
-        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <span>Tổng điểm:</span><span style="color:red; font-weight:bold; font-size:16px;">${tongDiem}</span>
+    // Chỉ lấy khi ô đã có số (không còn là dấu gạch ngang "-")
+    if (tongEl && tongEl.innerText !== "-") {
+      clearInterval(checkInterval); // Dừng vòng lặp quét khi đã lấy được số
+
+      let tongDiem = tongEl.innerText;
+      let xepLoai = loaiEl ? loaiEl.innerText : "-";
+
+      document.getElementById("dashBoardDetails").innerHTML = `
+        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+            <span>Tổng điểm:</span>
+            <span style="color: #d32f2f; font-weight: 700; font-size: 16px;">${tongDiem}</span>
         </div>
         <div style="display: flex; justify-content: space-between;">
-            <span>Xếp loại:</span><span style="color:blue; font-weight:bold; font-size:16px;">${xepLoai}</span>
+            <span>Xếp loại:</span>
+            <span style="color: #0288d1; font-weight: 700; font-size: 16px;">${xepLoai}</span>
         </div>
-    `;
+      `;
+    }
 
+    // Nếu quét quá 10 lần (1 giây) mà vẫn chưa thấy số thì dừng lại để tránh lỗi
+    if (++attempts > 10) clearInterval(checkInterval);
+  }, 100);
+
+  // 4. Vẽ biểu đồ (giữ nguyên logic cũ)
   const ctx = document.getElementById("kpiChart").getContext("2d");
-  if (kpiChartInstance) {
-    kpiChartInstance.destroy();
+  if (window.kpiChartInstance) {
+    window.kpiChartInstance.destroy();
   }
 
-  kpiChartInstance = new Chart(ctx, {
+  window.kpiChartInstance = new Chart(ctx, {
     type: "bar",
     data: {
       labels: ["% SL", "% CL", "% TĐ", "% TB"],
@@ -1291,7 +1358,6 @@ window.showDashboard = function (cbName, pSL, pCL, pTD, pTB, safeCbId) {
     },
   });
 };
-
 // ==========================================
 // KHỞI CHẠY HỆ THỐNG
 // ==========================================

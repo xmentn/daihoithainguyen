@@ -343,7 +343,7 @@ body {
 .kpi-table th {
   padding: 12px 24px;
   text-align: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
