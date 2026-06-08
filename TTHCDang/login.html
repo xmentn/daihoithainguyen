@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - Hệ thống Quản lý TTHC Đảng</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f4f6f9;
+        height: 100vh;
+      }
+      .login-card {
+        background: #fff;
+        padding: 35px 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        border-top: 5px solid #003366;
+      }
+      .login-card h2 {
+        text-align: center;
+        color: #003366;
+        font-size: 1.3rem;
+        margin-bottom: 25px;
+        font-weight: bold;
+        line-height: 1.4;
+      }
+      .error-msg {
+        color: #dc3545;
+        font-size: 0.85rem;
+        margin-bottom: 12px;
+        display: none;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-card">
+      <h2>HỆ THỐNG QUẢN LÝ TTHC CỦA ĐẢNG<br />ĐĂNG NHẬP HỆ THỐNG</h2>
+      <div id="login-error" class="error-msg">
+        Tài khoản hoặc mật khẩu không chính xác!
+      </div>
+      <form id="form-login">
+        <div class="form-group">
+          <label for="login-email">Tài khoản (Email):</label>
+          <input
+            type="email"
+            id="login-email"
+            required
+            placeholder="example@cdsthainguyen.vn"
+            style="
+              width: 100%;
+              padding: 10px;
+              border: 1px solid #ced4da;
+              border-radius: 4px;
+            "
+          />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Mật khẩu:</label>
+          <input
+            type="password"
+            id="login-password"
+            required
+            placeholder="••••••••"
+            style="
+              width: 100%;
+              padding: 10px;
+              border: 1px solid #ced4da;
+              border-radius: 4px;
+            "
+          />
+        </div>
+        <button type="submit" class="btn-submit" style="margin-top: 15px">
+          ĐĂNG NHẬP
+        </button>
+      </form>
+    </div>
+
+    <script type="module" src="login.js"></script>
+  </body>
+</html>
