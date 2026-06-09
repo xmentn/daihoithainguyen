@@ -66,7 +66,74 @@ onAuthStateChanged(auth, (user) => {
     }
   }
 });
+// ========================================================
+// --- CƠ CHẾ TỰ ĐỘNG ĐĂNG XUẤT SAU 15 PHÚT KHÔNG SỬ DỤNG ---
+// ========================================================
+const THOI_GIAN_CHO_PHUT = 15; // Anh có thể sửa số 15 này thành số phút anh muốn (ví dụ: 5, 10, 30)
+const THOI_GIAN_CHO_MS = THOI_GIAN_CHO_PHUT * 60 * 1000;
 
+// Hàm cập nhật mốc thời gian tương tác cuối cùng của người dùng
+function capNhatThoiGianTuongTacCuoi() {
+  localStorage.setItem("lastActivityTime", Date.now().toString());
+}
+
+// Hàm kiểm tra xem người dùng đã "bỏ quên" trang web quá lâu chưa
+function kiemTraThoiGianBaoQuen() {
+  const lastActivity = localStorage.getItem("lastActivityTime");
+
+  if (lastActivity) {
+    const thoiGianDaQua = Date.now() - parseInt(lastActivity);
+
+    // Nếu thời gian không sử dụng vượt quá mức cho phép
+    if (thoiGianDaQua >= THOI_GIAN_CHO_MS) {
+      clearInterval(window.intervalKiemTraPhiens); // Xóa đồng hồ đếm ngầm
+      localStorage.removeItem("lastActivityTime");
+      sessionStorage.clear();
+
+      // Hiển thị thông báo cưỡng chế đăng xuất bằng SweetAlert2
+      Swal.fire({
+        icon: "warning",
+        title: "HẾT PHIÊN LÀM VIỆC",
+        text: `Tài khoản tự động đăng xuất do đã quá ${THOI_GIAN_CHO_PHUT} phút bạn không tương tác với hệ thống!`,
+        confirmButtonColor: "#003366",
+        confirmButtonText: "Đăng nhập lại",
+        allowOutsideClick: false, // Không cho bấm ra ngoài để trốn thông báo
+      }).then(() => {
+        signOut(auth).then(() => {
+          window.location.href = "login.html";
+        });
+      });
+    }
+  }
+}
+
+// KÍCH HOẠT THEO DÕI KHI NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP HỢP LỆ
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // 1. Khởi tạo mốc thời gian ngay khi vừa tải trang
+    capNhatThoiGianTuongTacCuoi();
+
+    // 2. Lắng nghe các hành động tương tác phổ biến trên trình duyệt
+    const cacSuKien = [
+      "click",
+      "mousemove",
+      "mousedown",
+      "keypress",
+      "scroll",
+      "touchstart",
+    ];
+    cacSuKien.forEach((suKien) => {
+      window.addEventListener(suKien, capNhatThoiGianTuongTacCuoi, {
+        passive: true,
+      });
+    });
+
+    // 3. Thiết lập đồng hồ chạy ngầm kiểm tra định kỳ cứ sau mỗi 30 giây (30000ms)
+    if (window.intervalKiemTraPhiens)
+      clearInterval(window.intervalKiemTraPhiens);
+    window.intervalKiemTraPhiens = setInterval(kiemTraThoiGianBaoQuen, 30000);
+  }
+});
 document.getElementById("btn-logout").addEventListener("click", () => {
   signOut(auth).then(() => {
     sessionStorage.clear();

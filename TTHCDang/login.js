@@ -2,6 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import {
   getAuth,
   signInWithEmailAndPassword,
+  browserSessionPersistence, // Đưa lệnh import cấu hình phiên lên đầu file chuẩn vị trí
+  setPersistence,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import {
   getDatabase,
@@ -9,7 +11,7 @@ import {
   get,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-// Sử dụng hằng số cấu hình dự án TTHCDang của anh
+// Cấu hình dự án TTHCDang của anh
 const firebaseConfig = {
   apiKey: "AIzaSyBQf87uHhZkcnyVLCxMYSetDoeqjfUVphY",
   authDomain: "tthcdang.firebaseapp.com",
@@ -34,22 +36,26 @@ if (loginForm) {
     const email = document.getElementById("login-email").value.trim();
     const password = document.getElementById("password").value;
 
-    signInWithEmailAndPassword(auth, email, password)
+    // 1. Ép Firebase cấu hình bộ nhớ tạm thời (Session Persistence) trước khi đăng nhập
+    setPersistence(auth, browserSessionPersistence)
+      .then(() => {
+        // 2. Sau khi cấu hình xong, tiến hành gọi xác thực tài khoản
+        return signInWithEmailAndPassword(auth, email, password);
+      })
       .then((userCredential) => {
         const user = userCredential.user;
 
-        // Đọc phân quyền tài khoản từ Database
+        // 3. Đọc phân quyền tài khoản từ Database
         get(ref(database, "users/" + user.uid))
           .then((snapshot) => {
             if (snapshot.exists()) {
               const userData = snapshot.val();
               sessionStorage.setItem("userRole", userData.role || "user");
             } else {
-              // Nếu chưa được phân quyền trong Database, mặc định cấp quyền user thường
               sessionStorage.setItem("userRole", "user");
             }
 
-            // Thông báo đăng nhập thành công mượt mà
+            // Thông báo đăng nhập thành công bằng SweetAlert2
             Swal.fire({
               icon: "success",
               title: "ĐĂNG NHẬP THÀNH CÔNG",
@@ -85,7 +91,7 @@ if (loginForm) {
             "Tài khoản bị tạm khóa do nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút!";
         }
 
-        // Hiện hộp thoại rung lắc cảnh báo lỗi của SweetAlert2
+        // Hiện hộp thoại cảnh báo lỗi của SweetAlert2
         Swal.fire({
           icon: "error",
           title: "LỖI ĐĂNG NHẬP",
@@ -108,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         passwordInput.getAttribute("type") === "password" ? "text" : "password";
       passwordInput.setAttribute("type", type);
 
-      // Thay đổi hình dáng icon con mắt
+      // Thay đổi hình dáng icon con mắt đóng/mở
       if (type === "text") {
         this.classList.remove("fa-eye");
         this.classList.add("fa-eye-slash");
