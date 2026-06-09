@@ -1,253 +1,324 @@
-/* Thiết lập cơ bản */
+/* ==========================================================================
+   HỆ THỐNG GIAO DIỆN HÀNH CHÍNH ĐIỆN TỬ CAO CẤP (FULL-WIDTH FLAT DESIGN)
+   ========================================================================== */
+
+:root {
+  --primary-color: #003366; /* Xanh hành chính đậm đà, sang trọng */
+  --secondary-color: #0056b3; /* Xanh hoàng gia nổi bật */
+  --success-color: #10b981; /* Xanh ngọc bảo bảo (Emerald) cho thành công */
+  --danger-color: #ef4444; /* Đỏ rực rỡ cảnh báo */
+  --warning-color: #f59e0b; /* Vàng hổ phách phân quyền */
+  --background-gray: #f1f5f9; /* Xám nền dịu mắt */
+  --card-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: Arial, sans-serif;
+  font-family:
+    "Segoe UI",
+    -apple-system,
+    BlinkMacSystemFont,
+    Roboto,
+    sans-serif;
 }
 
 body {
-  background-color: #f0f2f5;
-  color: #333;
+  background-color: var(--background-gray);
+  color: #1e293b;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
-/* Header */
+/* --- THANH TRẠNG THÁI TÀI KHOẢN --- */
+.user-status-bar {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 24px !important;
+  font-size: 0.85rem !important;
+  font-weight: 500;
+  color: #64748b;
+}
+
+/* --- TIÊU ĐỀ CHÍNH (HEADER TRÀN TRANG) --- */
 .main-header {
-  background-color: #003366; /* Màu xanh navy đậm */
-  color: #ffffff;
+  background: linear-gradient(135deg, #002244 0%, #003366 100%);
+  padding: 24px 30px;
   text-align: center;
-  padding: 20px 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 .main-header h1 {
-  font-size: 1.4rem;
-  font-weight: bold;
-  line-height: 1.4;
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
   letter-spacing: 0.5px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Thân trang Layout chia đôi */
+/* --- KHUNG CHỨA TOÀN TRANG (ÉP CHIẾM 100% CHIỀU NGANG MÀN HÌNH) --- */
 .container {
   display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  max-width: 1400px;
-  width: 100%;
-  margin: 20px auto;
-  padding: 0 15px;
+  gap: 24px; /* Tăng khoảng cách giữa 2 khung lên một chút cho thoáng */
+  padding: 24px;
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1;
 }
 
 .left-panel {
-  flex: 1 1 550px;
+  flex: 0 0 25%; /* Cố định chiếm chính xác 25% chiều ngang màn hình */
+  min-width: 360px; /* Giới hạn chiều rộng tối thiểu để không bị quá hẹp trên màn hình nhỏ */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
+/* --- PANEL BÊN PHẢI (CHI TIẾT NỘI DUNG TABS - ĐÃ NÂNG CẤP TỶ LỆ) --- */
 .right-panel {
-  flex: 1 1 450px;
+  flex: 0 0 75%; /* Chiếm 75% chiều ngang màn hình để cân đối hoàn hảo */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-/* Khung Panel Trắng */
-.panel-card,
-.tab-content-container {
-  background-color: #ffffff;
-  border-radius: 6px;
+/* --- CẤU TRÚC THẺ CARD CHUYÊN NGHIỆP --- */
+.panel-card {
+  background: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  border: 1px solid #e1e4e8;
-  min-height: 500px;
+  box-shadow: var(--card-shadow);
 }
 
 .panel-title {
-  font-size: 1.1rem;
-  color: #003366;
-  border-bottom: 2px solid #003366;
+  font-size: 1rem;
+  color: var(--primary-color);
+  font-weight: 700;
+  border-bottom: 2px solid #cbd5e1;
   padding-bottom: 10px;
-  margin-bottom: 20px;
-  font-weight: bold;
-}
-
-/* Các hộp đếm số lượng tổng hợp */
-.summary-boxes {
+  margin-bottom: 15px;
   display: flex;
-  gap: 15px;
-  margin-bottom: 25px;
+  align-items: center;
+  gap: 8px;
 }
 
-.box {
-  flex: 1;
-  color: #ffffff;
-  text-align: center;
-  padding: 12px;
-  border-radius: 4px;
-  font-weight: bold;
-}
-
-.box-success {
-  background-color: #28a745;
-}
-.box-danger {
-  background-color: #dc3545;
-}
-
-.box-label {
-  display: block;
-  font-size: 0.95rem;
-  margin-bottom: 5px;
-}
-
-.box-number {
-  font-size: 2.2rem;
-  display: block;
-}
-
-/* Khung danh sách dữ liệu */
-.detail-section {
-  margin-bottom: 20px;
-}
-
-.detail-section h3 {
-  font-size: 0.95rem;
-  margin-bottom: 8px;
-  color: #495057;
-}
-
-.data-list-box {
-  border: 1px solid #e1e4e8;
-  border-radius: 4px;
-  padding: 12px;
-  min-height: 45px;
-  background-color: #fafafa;
-  font-size: 0.9rem;
-}
-
-.loading-text {
-  color: #868e96;
-  font-style: italic;
-}
-
-.data-item {
-  padding: 6px 8px;
-  border-bottom: 1px dashed #eee;
-  display: flex;
-  justify-content: space-between;
-}
-.data-item:last-child {
-  border-bottom: none;
-}
-
-/* Hệ thống Tabs điều hướng bên phải */
+/* --- HỆ THỐNG MENU TABS PHONG CÁCH HIỆN ĐẠI --- */
 .tabs-nav {
   display: flex;
-  border-bottom: 2px solid #003366;
-  background: #f1f3f5;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
+  gap: 5px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0;
 }
 
 .tab-btn {
-  flex: 1;
-  background: none;
+  background: #e2e8f0;
   border: none;
-  padding: 12px 5px;
-  font-weight: bold;
+  padding: 12px 24px;
   font-size: 0.85rem;
-  color: #495057;
+  font-weight: 700;
+  color: #475569;
   cursor: pointer;
-  transition: all 0.2s;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tab-btn:hover {
+  background: #cbd5e1;
+  color: var(--primary-color);
 }
 
 .tab-btn.active {
-  background-color: #ffffff;
-  color: #003366;
-  border: 1px solid #003366;
-  border-bottom: 2px solid #ffffff;
-  margin-bottom: -2px;
+  background: var(--primary-color);
+  color: #ffffff !important;
 }
 
-/* Nội dung Tab */
-.tab-content {
-  display: none;
+/* --- KHUNG CHỨA NỘI DUNG FORM --- */
+.tab-content-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 24px;
+  box-shadow: var(--card-shadow);
+  min-height: 500px;
 }
 
-.tab-content.active {
-  display: block;
-}
-
-/* Các ô Form nhập liệu */
+/* --- ĐỊNH DẠNG FORM & Ô NHẬP LIỆU PHẲNG --- */
 .form-group {
   margin-bottom: 18px;
 }
 
 .form-group label {
   display: block;
-  font-weight: bold;
-  margin-bottom: 8px;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 6px;
 }
 
-.form-group select,
-.form-group input[type="text"],
-.form-group input[type="date"] {
+input[type="text"],
+input[type="number"],
+input[type="date"],
+select {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ced4da;
-  border-radius: 4px;
-  font-size: 0.95rem;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  color: #0f172a;
+  background-color: #fff;
+  transition: all 0.2s;
+}
+
+input:focus,
+select:focus {
   outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
 }
 
-.form-group select:focus,
-.form-group input:focus {
-  border-color: #003366;
-}
-
-/* Cụm Radio buttons */
-.radio-group {
-  display: flex;
-  gap: 30px;
-  padding: 5px 0;
-}
-
-.radio-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: normal !important;
-}
-
-/* Nút bấm Lưu */
+/* --- NÚT BẤM (BUTTON) CHUẨN FLAT --- */
 .btn-submit {
-  width: 100%;
-  background-color: #003366;
+  background-color: var(--primary-color);
   color: white;
   border: none;
-  padding: 12px;
-  font-size: 1rem;
-  font-weight: bold;
-  border-radius: 4px;
+  padding: 10px 24px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: 6px;
   cursor: pointer;
-  margin-top: 10px;
-  transition: background 0.2s;
+  transition: background-color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-submit:hover {
-  background-color: #002244;
+  background-color: var(--secondary-color);
 }
 
-.placeholder-tab {
+.summary-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Chia thành 2 cột đều nhau */
+  gap: 16px; /* Tăng khoảng cách giữa các ô */
+  margin-bottom: 20px;
+}
+
+.box {
+  padding: 18px 14px; /* Tăng độ dày bên trong ô số nhìn sẽ sang trọng hơn */
+  border-radius: 8px;
   text-align: center;
-  color: #6c757d;
-  padding: 4px 0;
-  font-style: italic;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+.box-success {
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+.box-danger {
+  background-color: #fef2f2;
+  color: #991b1b;
 }
 
-/* Màu tiện ích */
-.text-success {
-  color: #28a745;
+.box-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+  text-transform: uppercase;
 }
-.text-danger {
-  color: #dc3545;
+.box-number {
+  font-size: 1.4rem;
+  font-weight: 800;
+  display: block;
+}
+
+/* --- DANH SÁCH SƠ LƯỢC SIDEBAR --- */
+.detail-section {
+  margin-top: 15px;
+}
+
+.detail-section h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.data-list-box {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #f8fafc;
+  padding: 5px;
+}
+
+.data-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 0.8rem;
+}
+
+/* --- BẢNG DỮ LIỆU ĐIỆN TỬ (DATATABLE) CO GIÃN THÔNG MINH --- */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 10px;
+}
+
+th {
+  background-color: #f8fafc !important;
+  color: var(--primary-color) !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #cbd5e1 !important;
+}
+
+th,
+td {
+  padding: 12px 14px !important;
+  border: 1px solid #e2e8f0;
+}
+
+tr:nth-child(even) {
+  background-color: #fdfdfd;
+}
+
+tr:hover {
+  background-color: #f1f5f9;
+}
+/* --- TRẠNG THÁI ẨN HIỆN CỦA TAB NỘI DUNG (SỬA LỖI ĐỔI TAB) --- */
+.tab-content {
+  display: none !important; /* Mặc định ẩn tất cả các tab nội dung */
+}
+
+.tab-content.active {
+  display: block !important; /* Chỉ hiển thị tab nào có class active */
+}
+/* --- ICON ẨN/HIỆN MẬT KHẨU --- */
+#toggle-password:hover {
+  color: #003366 !important; /* Đổi sang màu xanh hành chính khi di chuột vào */
 }

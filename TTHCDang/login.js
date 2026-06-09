@@ -14,7 +14,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyBQf87uHhZkcnyVLCxMYSetDoeqjfUVphY",
   authDomain: "tthcdang.firebaseapp.com",
   databaseURL:
-    "https://tthcdang-default-rtdb.asia-southeast1.firebasedatabase.app/", // <-- Anh đã tự thêm dòng này vào đây
+    "https://tthcdang-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "tthcdang",
   storageBucket: "tthcdang.firebasestorage.app",
   messagingSenderId: "362559187523",
@@ -25,52 +25,97 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 
-document.getElementById("form-login").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const email = document.getElementById("login-email").value;
-  const password = document.getElementById("login-password").value;
-  const errorDiv = document.getElementById("login-error");
+// --- TÍNH NĂNG ĐĂNG NHẬP CHUẨN HOÁ & BẪY LỖI SAI MẬT KHẨU ---
+const loginForm = document.getElementById("form-login");
+if (loginForm) {
+  loginForm.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  errorDiv.style.display = "none";
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("password").value;
 
-  signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      const uid = userCredential.user.uid;
-      // Kiểm tra phân quyền từ Database
-      get(ref(database, "users/" + uid)).then((snapshot) => {
-        if (snapshot.exists()) {
-          const userData = snapshot.val();
-          // Lưu vai trò vào sessionStorage tạm thời để tối ưu hóa điều hướng
-          sessionStorage.setItem("userRole", userData.role);
-          sessionStorage.setItem("userEmail", userData.email);
-          window.location.href = "index.html";
-        } else {
-          errorDiv.innerText =
-            "Tài khoản chưa được cấu hình phân quyền trên hệ thống.";
-          errorDiv.style.display = "block";
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+
+        // Đọc phân quyền tài khoản từ Database
+        get(ref(database, "users/" + user.uid))
+          .then((snapshot) => {
+            if (snapshot.exists()) {
+              const userData = snapshot.val();
+              sessionStorage.setItem("userRole", userData.role || "user");
+            } else {
+              // Nếu chưa được phân quyền trong Database, mặc định cấp quyền user thường
+              sessionStorage.setItem("userRole", "user");
+            }
+
+            // Thông báo đăng nhập thành công mượt mà
+            Swal.fire({
+              icon: "success",
+              title: "ĐĂNG NHẬP THÀNH CÔNG",
+              text: "Hệ thống đang chuyển hướng vào trang quản trị...",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+
+            setTimeout(() => {
+              window.location.href = "index.html";
+            }, 1500);
+          })
+          .catch((err) => {
+            console.error(err);
+            window.location.href = "index.html";
+          });
+      })
+      .catch((error) => {
+        console.error("Mã lỗi xác thực từ Firebase Auth:", error.code);
+
+        // Chuẩn hóa câu thông báo lỗi sang Tiếng Việt hành chính
+        let msg = "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản!";
+        if (
+          error.code === "auth/invalid-credential" ||
+          error.code === "auth/wrong-password" ||
+          error.code === "auth/user-not-found"
+        ) {
+          msg = "Mật khẩu hoặc tài khoản không chính xác. Vui lòng thử lại!";
+        } else if (error.code === "auth/invalid-email") {
+          msg = "Địa chỉ Email nhập vào không đúng định dạng!";
+        } else if (error.code === "auth/too-many-requests") {
+          msg =
+            "Tài khoản bị tạm khóa do nhập sai quá nhiều lần. Vui lòng thử lại sau ít phút!";
         }
+
+        // Hiện hộp thoại rung lắc cảnh báo lỗi của SweetAlert2
+        Swal.fire({
+          icon: "error",
+          title: "LỖI ĐĂNG NHẬP",
+          text: msg,
+          confirmButtonColor: "#003366",
+          confirmButtonText: "Thử lại",
+        });
       });
-    })
-    .catch((error) => {
-      // Gọi hàm hiển thị thông báo lỗi mượt mà của SweetAlert2
-      showToast("Email hoặc mật khẩu không chính xác!", "error");
-      console.error(error);
-    });
-});
-// --- CẤU HÌNH HÀM THÔNG BÁO CHUYÊN NGHIỆP BẰNG THƯ VIỆN SWEETALERT2 ---
-// icon gồm các loại: 'success' (thành công), 'error' (lỗi), 'warning' (cảnh báo), 'info' (thông tin)
-window.showToast = function (message, iconType = "success") {
-  Swal.fire({
-    toast: true, // Chuyển sang chế độ hộp nổi nhỏ (Toast) thay vì hiện giữa màn hình
-    position: "top-end", // Hiển thị ở góc trên bên phải màn hình
-    icon: iconType, // Loại icon hiển thị (màu sắc tự thay đổi theo loại)
-    title: message, // Nội dung thông báo
-    showConfirmButton: false, // Ẩn nút "OK" của hệ thống
-    timer: 3000, // Tự động ẩn sau 3 giây (3000ms)
-    timerProgressBar: true, // Hiển thị thanh chạy thời gian đếm ngược phía dưới hộp thoại
-    didOpen: (toast) => {
-      toast.addEventListener("mouseenter", Swal.stopTimer);
-      toast.addEventListener("mouseleave", Swal.resumeTimer);
-    },
   });
-};
+}
+
+// --- TÍNH NĂNG ẨN / HIỆN MẬT KHẨU (BỌC TRONG ĐIỀU KIỆN DOM ĐỂ CHỐNG LỖI TREO TRANG) ---
+document.addEventListener("DOMContentLoaded", () => {
+  const passwordInput = document.getElementById("password");
+  const togglePasswordIcon = document.getElementById("toggle-password");
+
+  if (togglePasswordIcon && passwordInput) {
+    togglePasswordIcon.addEventListener("click", function () {
+      const type =
+        passwordInput.getAttribute("type") === "password" ? "text" : "password";
+      passwordInput.setAttribute("type", type);
+
+      // Thay đổi hình dáng icon con mắt
+      if (type === "text") {
+        this.classList.remove("fa-eye");
+        this.classList.add("fa-eye-slash");
+      } else {
+        this.classList.remove("fa-eye-slash");
+        this.classList.add("fa-eye");
+      }
+    });
+  }
+});

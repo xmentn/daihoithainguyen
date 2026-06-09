@@ -4,7 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Đăng nhập - Hệ thống Quản lý TTHC Đảng</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
       body {
         display: flex;
@@ -12,6 +17,7 @@
         align-items: center;
         background-color: #f4f6f9;
         height: 100vh;
+        margin: 0;
       }
       .login-card {
         background: #fff;
@@ -30,21 +36,44 @@
         font-weight: bold;
         line-height: 1.4;
       }
-      .error-msg {
-        color: #dc3545;
-        font-size: 0.85rem;
-        margin-bottom: 12px;
-        display: none;
-        font-style: italic;
+      .form-group {
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #333;
+        font-size: 0.9rem;
+      }
+      input[type="email"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+      }
+      input:focus {
+        outline: none;
+        border-color: #003366;
+        box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.15);
+      }
+      #toggle-password:hover {
+        color: #003366 !important;
       }
     </style>
   </head>
   <body>
     <div class="login-card">
-      <h2>HỆ THỐNG QUẢN LÝ TTHC CỦA ĐẢNG<br />ĐĂNG NHẬP HỆ THỐNG</h2>
-      <div id="login-error" class="error-msg">
-        Tài khoản hoặc mật khẩu không chính xác!
-      </div>
+      <h2>
+        HỆ THỐNG QUẢN LÝ TTHC ĐẢNG<br />
+        <span style="font-size: 0.95rem; font-weight: normal; color: #666"
+          >Đăng nhập hệ thống</span
+        >
+      </h2>
+
       <form id="form-login">
         <div class="form-group">
           <label for="login-email">Tài khoản (Email):</label>
@@ -53,31 +82,40 @@
             id="login-email"
             required
             placeholder="example@cdsthainguyen.vn"
-            style="
-              width: 100%;
-              padding: 10px;
-              border: 1px solid #ced4da;
-              border-radius: 4px;
-            "
           />
         </div>
+
         <div class="form-group">
-          <label for="login-password">Mật khẩu:</label>
-          <input
-            type="password"
-            id="login-password"
-            required
-            placeholder="••••••••"
-            style="
-              width: 100%;
-              padding: 10px;
-              border: 1px solid #ced4da;
-              border-radius: 4px;
-            "
-          />
+          <label for="password">Mật khẩu:</label>
+          <div style="position: relative; display: flex; align-items: center">
+            <input
+              type="password"
+              id="password"
+              required
+              style="padding-right: 40px"
+              placeholder="Nhập mật khẩu của bạn..."
+            />
+            <i
+              class="fa-solid fa-eye"
+              id="toggle-password"
+              style="
+                position: absolute;
+                right: 12px;
+                cursor: pointer;
+                color: #64748b;
+                font-size: 0.95rem;
+                transition: color 0.2s;
+              "
+            ></i>
+          </div>
         </div>
-        <button type="submit" class="btn-submit" style="margin-top: 15px">
-          ĐĂNG NHẬP
+
+        <button
+          type="submit"
+          class="btn-submit"
+          style="margin-top: 10px; width: 100%; justify-content: center"
+        >
+          <i class="fa-solid fa-right-to-bracket"></i> ĐĂNG NHẬP
         </button>
       </form>
     </div>
