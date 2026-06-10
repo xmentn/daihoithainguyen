@@ -1,169 +1,201 @@
 /* ==========================================================================
-   HỆ THỐNG GIAO DIỆN HÀNH CHÍNH ĐIỆN TỬ CAO CẤP (FULL-WIDTH FLAT DESIGN)
+   HỆ THỐNG GIAO DIỆN HÀNH CHÍNH ĐIỆN TỬ - VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN
    ========================================================================== */
 
 :root {
-  --primary-color: #003366; /* Xanh hành chính đậm đà, sang trọng */
-  --secondary-color: #0056b3; /* Xanh hoàng gia nổi bật */
-  --success-color: #10b981; /* Xanh ngọc bảo bảo (Emerald) cho thành công */
-  --danger-color: #ef4444; /* Đỏ rực rỡ cảnh báo */
-  --warning-color: #f59e0b; /* Vàng hổ phách phân quyền */
-  --background-gray: #f1f5f9; /* Xám nền dịu mắt */
-  --card-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --primary-color: #b71c1c;
+  /* Đỏ cờ đặc trưng khối cơ quan Đảng */
+  --dark-blue: #002855;
+  /* Xanh thẫm đại hội sang trọng, trang nghiêm */
+  --secondary-blue: #1565c0;
+  /* Xanh biển sâu nổi bật cho liên kết, hover */
+  --success-color: #2e7d32;
+  /* Xanh lá cây sẫm cho trạng thái hoàn thành */
+  --danger-color: #c62828;
+  /* Đỏ cảnh báo chậm tiến độ */
+  --bg-gray: #f4f6f9;
+  /* Nền xám nhạt phẳng, dịu mắt */
+  --border-color: #cbd5e1;
+  /* Màu đường viền flat */
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family:
-    "Segoe UI",
-    -apple-system,
-    BlinkMacSystemFont,
-    Roboto,
-    sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 body {
-  background-color: var(--background-gray);
-  color: #1e293b;
+  background-color: var(--bg-gray);
+  color: #334155;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* --- THANH TRẠNG THÁI TÀI KHOẢN --- */
+/* --- THANH TRẠNG THÁI TÀI KHOẢN (TOP BAR) --- */
 .user-status-bar {
   background: #ffffff !important;
   border-bottom: 1px solid #e2e8f0;
   padding: 10px 24px !important;
   font-size: 0.85rem !important;
-  font-weight: 500;
-  color: #64748b;
+  font-weight: 600;
+  color: #475569;
 }
 
-/* --- TIÊU ĐỀ CHÍNH (HEADER TRÀN TRANG) --- */
+/* --- TIÊU ĐỀ CHÍNH (HEADER KHỐI CƠ QUAN ĐẢNG TRÀN BIÊN) --- */
 .main-header {
-  background: linear-gradient(135deg, #002244 0%, #003366 100%);
-  padding: 24px 30px;
+  background: linear-gradient(135deg, #880e4f 0%, #b71c1c 50%, #7f0000 100%);
+  padding: 28px 30px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: relative;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+  border-bottom: 4px solid #ffd700;
+  /* Đường chỉ vàng tôn vinh vị thế trang nghiêm */
 }
 
 .main-header h1 {
   color: #ffffff;
-  font-size: 1.5rem;
+  font-size: 1.55rem;
   font-weight: 700;
-  letter-spacing: 0.5px;
-  line-height: 1.4;
+  letter-spacing: 0.8px;
+  line-height: 1.5;
   text-transform: uppercase;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* --- KHUNG CHỨA TOÀN TRANG (ÉP CHIẾM 100% CHIỀU NGANG MÀN HÌNH) --- */
+/* --- CẤU TRÚC PHÂN CHIA TỶ LỆ KHUNG HÌNH VÀNG MỚI (TRÀN MÀN HÌNH CHUẨN) --- */
 .container {
   display: flex;
-  gap: 24px; /* Tăng khoảng cách giữa 2 khung lên một chút cho thoáng */
+  gap: 24px;
+  /* Khoảng cách giữa 2 panel thông thoáng */
   padding: 24px;
   width: 100% !important;
+  /* Ép tràn 100% chiều ngang màn hình */
   max-width: 100% !important;
+  /* Loại bỏ khoảng trắng bó hẹp 2 bên */
   flex: 1;
 }
 
+/* Khung bên trái (Dashboard Thống kê & Biểu đồ): Đã được mở rộng bề thế */
 .left-panel {
-  flex: 0 0 25%; /* Cố định chiếm chính xác 25% chiều ngang màn hình */
-  min-width: 360px; /* Giới hạn chiều rộng tối thiểu để không bị quá hẹp trên màn hình nhỏ */
+  flex: 0 0 30%;
+  /* Chiếm chính xác 30% chiều ngang màn hình máy tính */
+  min-width: 400px;
+  /* Khóa chiều rộng tối thiểu 400px để biểu đồ và ô số luôn đẹp */
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
-/* --- PANEL BÊN PHẢI (CHI TIẾT NỘI DUNG TABS - ĐÃ NÂNG CẤP TỶ LỆ) --- */
+/* Khung bên phải (Tabs nội dung và bảng dữ liệu lớn) */
 .right-panel {
-  flex: 0 0 75%; /* Chiếm 75% chiều ngang màn hình để cân đối hoàn hảo */
+  flex: 1;
+  /* Tự động chiếm trọn 70% không gian bao la còn lại */
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
-/* --- CẤU TRÚC THẺ CARD CHUYÊN NGHIỆP --- */
+/* --- HỆ THỐNG THẺ CARD PHẲNG (FLAT PANELS) --- */
 .panel-card {
   background: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  border-top: 3px solid var(--dark-blue);
+  /* Chỉ xanh thẫm đại hội tinh tế */
   padding: 20px;
   box-shadow: var(--card-shadow);
 }
 
+/* Riêng Dashboard của Tập huấn đổi sang chỉ Đỏ cờ để phân tách trực quan */
+#sidebar-dashboard-taphuan.panel-card {
+  border-top: 3px solid var(--primary-color);
+}
+
 .panel-title {
-  font-size: 1rem;
-  color: var(--primary-color);
+  font-size: 0.95rem;
+  color: var(--dark-blue);
   font-weight: 700;
-  border-bottom: 2px solid #cbd5e1;
-  padding-bottom: 10px;
-  margin-bottom: 15px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
   gap: 8px;
+  text-transform: uppercase;
 }
 
-/* --- HỆ THỐNG MENU TABS PHONG CÁCH HIỆN ĐẠI --- */
+/* --- HỆ THỐNG ĐIỀU HƯỚNG TABS ĐẢNG BỘ CHUYÊN NGHIỆP --- */
 .tabs-nav {
   display: flex;
-  gap: 5px;
-  border-bottom: 2px solid var(--primary-color);
+  gap: 4px;
+  border-bottom: 3px solid var(--dark-blue);
+  /* Thanh chặn dưới màu xanh thẫm trang nghiêm */
   padding-bottom: 0;
 }
 
 .tab-btn {
   background: #e2e8f0;
   border: none;
-  padding: 12px 24px;
+  padding: 12px 22px;
   font-size: 0.85rem;
   font-weight: 700;
-  color: #475569;
+  color: #334155;
   cursor: pointer;
-  border-radius: 6px 6px 0 0;
+  border-radius: 4px 4px 0 0;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   gap: 8px;
+  border: 1px solid #cbd5e1;
+  border-bottom: none;
 }
 
 .tab-btn:hover {
   background: #cbd5e1;
-  color: var(--primary-color);
+  color: var(--dark-blue);
 }
 
+/* Khi Tab hoạt động: Bật sáng tông màu xanh thẫm quyền lực cực kỳ đẹp */
 .tab-btn.active {
-  background: var(--primary-color);
+  background: var(--dark-blue) !important;
   color: #ffffff !important;
+  border-color: var(--dark-blue);
 }
 
-/* --- KHUNG CHỨA NỘI DUNG FORM --- */
+/* --- KHUNG CHỨA RUỘT NỘI DUNG TABS (GIỮ NGUYÊN HOẠT ĐỘNG GỐC CHUẨN) --- */
 .tab-content-container {
   background: #ffffff;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dee2e6;
   border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 6px 6px;
   padding: 24px;
   box-shadow: var(--card-shadow);
-  min-height: 500px;
+  min-height: 520px;
 }
 
-/* --- ĐỊNH DẠNG FORM & Ô NHẬP LIỆU PHẲNG --- */
+/* KHÔI PHỤC HOÀN TOÀN CƠ CHẾ ẨN/HIỆN GỐC KHÔNG LO LỖI TAB */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* --- ĐỊNH DẠNG FORM & Ô NHẬP LIỆU HÀNH CHÍNH PHẲNG --- */
 .form-group {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .form-group label {
   display: block;
   font-size: 0.85rem;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 6px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 8px;
 }
 
 input[type="text"],
@@ -171,10 +203,10 @@ input[type="number"],
 input[type="date"],
 select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.88rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
   color: #0f172a;
   background-color: #fff;
   transition: all 0.2s;
@@ -183,19 +215,19 @@ select {
 input:focus,
 select:focus {
   outline: none;
-  border-color: var(--secondary-color);
-  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+  border-color: var(--secondary-blue);
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.15);
 }
 
-/* --- NÚT BẤM (BUTTON) CHUẨN FLAT --- */
+/* --- HỆ THỐNG NÚT BẤM (BUTTON SUBMIT) CHUẨN MỰC --- */
 .btn-submit {
-  background-color: var(--primary-color);
+  background-color: var(--dark-blue);
   color: white;
   border: none;
   padding: 10px 24px;
   font-size: 0.88rem;
-  font-weight: 600;
-  border-radius: 6px;
+  font-weight: 700;
+  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
   display: inline-flex;
@@ -204,54 +236,60 @@ select:focus {
 }
 
 .btn-submit:hover {
-  background-color: var(--secondary-color);
+  background-color: var(--secondary-blue);
 }
 
+/* --- KHUNG Ô SỐ THỐNG KÊ SIDEBAR (GRID CHI ĐÔI) --- */
 .summary-boxes {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* Chia thành 2 cột đều nhau */
-  gap: 16px; /* Tăng khoảng cách giữa các ô */
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
   margin-bottom: 20px;
 }
 
 .box {
-  padding: 18px 14px; /* Tăng độ dày bên trong ô số nhìn sẽ sang trọng hơn */
-  border-radius: 8px;
+  padding: 16px 12px;
+  border-radius: 6px;
   text-align: center;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+  border: 1px solid transparent;
 }
+
 .box-success {
-  background-color: #ecfdf5;
-  color: #065f46;
+  background-color: #f0fdf4;
+  color: var(--success-color);
+  border-color: #bbf7d0;
 }
+
 .box-danger {
   background-color: #fef2f2;
-  color: #991b1b;
+  color: var(--danger-color);
+  border-color: #fecaca;
 }
 
 .box-label {
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   text-transform: uppercase;
 }
+
 .box-number {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 800;
   display: block;
 }
 
 /* --- DANH SÁCH SƠ LƯỢC SIDEBAR --- */
 .detail-section {
-  margin-top: 15px;
+  margin-top: 18px;
 }
 
 .detail-section h3 {
   font-size: 0.8rem;
   text-transform: uppercase;
-  color: #64748b;
-  margin-bottom: 8px;
+  color: #475569;
+  margin-bottom: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -259,27 +297,27 @@ select:focus {
 }
 
 .data-list-box {
-  max-height: 160px;
+  max-height: 180px;
   overflow-y: auto;
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 4px;
   background: #f8fafc;
-  padding: 5px;
+  padding: 6px;
 }
 
 .data-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 4px;
-  margin-bottom: 4px;
-  font-size: 0.8rem;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
 }
 
-/* --- BẢNG DỮ LIỆU ĐIỆN TỬ (DATATABLE) CO GIÃN THÔNG MINH --- */
+/* --- BẢNG DỮ LIỆU ĐIỆN TỬ (DATATABLE) CO GIÃN PHẲNG SANG TRỌNG --- */
 table {
   width: 100%;
   border-collapse: separate;
@@ -289,12 +327,12 @@ table {
 
 th {
   background-color: #f8fafc !important;
-  color: var(--primary-color) !important;
+  color: var(--dark-blue) !important;
   font-weight: 700 !important;
   text-transform: uppercase;
-  font-size: 0.78rem;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid #cbd5e1 !important;
+  font-size: 0.8rem;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid var(--border-color) !important;
 }
 
 th,
@@ -304,21 +342,9 @@ td {
 }
 
 tr:nth-child(even) {
-  background-color: #fdfdfd;
+  background-color: #fbfcfd;
 }
 
 tr:hover {
   background-color: #f1f5f9;
-}
-/* --- TRẠNG THÁI ẨN HIỆN CỦA TAB NỘI DUNG (SỬA LỖI ĐỔI TAB) --- */
-.tab-content {
-  display: none !important; /* Mặc định ẩn tất cả các tab nội dung */
-}
-
-.tab-content.active {
-  display: block !important; /* Chỉ hiển thị tab nào có class active */
-}
-/* --- ICON ẨN/HIỆN MẬT KHẨU --- */
-#toggle-password:hover {
-  color: #003366 !important; /* Đổi sang màu xanh hành chính khi di chuột vào */
 }

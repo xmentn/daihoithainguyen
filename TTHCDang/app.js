@@ -151,16 +151,23 @@ window.switchTab = function (evt, tabId) {
   document.getElementById(tabId).classList.add("active");
   evt.currentTarget.classList.add("active");
 
+  // --- ĐIỀU KHIỂN HOÁN ĐỔI 3 KHỐI DASHBOARD SIDEBAR THEO TỪNG TAB THỰC TẾ ---
   const dashboardKeHoach = document.getElementById("sidebar-dashboard-kehoach");
   const dashboardTapHuan = document.getElementById("sidebar-dashboard-taphuan");
+  const dashboardDangPhi = document.getElementById("sidebar-dashboard-dangphi");
 
-  if (dashboardKeHoach && dashboardTapHuan) {
+  if (dashboardKeHoach && dashboardTapHuan && dashboardDangPhi) {
+    // Ẩn tất cả trước khi mở
+    dashboardKeHoach.style.setProperty("display", "none", "important");
+    dashboardTapHuan.style.setProperty("display", "none", "important");
+    dashboardDangPhi.style.setProperty("display", "none", "important");
+
     if (tabId === "tab-tap-huan") {
-      dashboardKeHoach.style.display = "none";
-      dashboardTapHuan.style.display = "block";
+      dashboardTapHuan.style.setProperty("display", "block", "important");
+    } else if (tabId === "tab-cai-dat") { // Khi bấm vào tab Các thủ tục hành chính
+      dashboardDangPhi.style.setProperty("display", "block", "important");
     } else {
-      dashboardKeHoach.style.display = "block";
-      dashboardTapHuan.style.display = "none";
+      dashboardKeHoach.style.setProperty("display", "block", "important");
     }
   }
 };
@@ -210,6 +217,18 @@ onValue(dbRefDangBoGoc, (snapshot) => {
   // Đặt dòng này nằm dưới hàm capNhatDropdownDangBoChuaTapHuan(); ở nhánh danhmuc_dangbo gốc
   if (typeof capNhatDropdownDangBoChuaNopDangPhi === "function") {
     capNhatDropdownDangBoChuaNopDangPhi();
+  }
+  // Đổ danh sách đảng bộ gốc vào bộ tra cứu nhanh đảng phí ở sidebar trái
+  const lookupSelectDangBo = document.getElementById("lookup-dangphi-dangbo");
+  if (lookupSelectDangBo) {
+    lookupSelectDangBo.innerHTML = '<option value="">-- Chọn Đảng bộ tra cứu --</option>';
+    const dsGocSapXep = [...new Set(danhSachDangBoGoc)].sort((a, b) => a.localeCompare(b, "vi"));
+    dsGocSapXep.forEach(ten => {
+      const opt = document.createElement("option");
+      opt.value = ten;
+      opt.innerText = ten;
+      lookupSelectDangBo.appendChild(opt);
+    });
   }
 });
 
@@ -388,14 +407,13 @@ onValue(dbRefTapHuan, (snapshot) => {
         <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${item.ten_dang_bo}</strong></td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #003366; font-size: 0.95rem;">${item.so_nguoi_tham_gia}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;"><span style="${badgeStyle}">${item.trang_thai}</span></td>
-        ${
-          currentRole === "admin"
-            ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+        ${currentRole === "admin"
+        ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
             <button class="btn-edit-taphuan" data-name="${item.ten_dang_bo}" data-count="${item.so_nguoi_tham_gia}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
             <button class="btn-delete-taphuan" data-key="${safeKey}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
         </td>`
-            : ""
-        }</tr>`;
+        : ""
+      }</tr>`;
   });
 
   htmlContent += `<tr style="background-color: #e6f2ff; font-weight: bold; border-top: 2px solid #003366;">
@@ -856,6 +874,8 @@ onValue(dbRefDangPhi, (snapshot) => {
   // Đồng bộ lại Dropdown nhập liệu
   capNhatDropdownDangBoChuaNopDangPhi();
   renderTableDangPhi();
+  // Thêm dòng này vào cuối sự kiện onValue của nhánh dang_phi
+  thuThiTraCuuDangPhiSidebar();
 });
 
 // Hàm lọc xem bảng theo kỳ
@@ -864,7 +884,131 @@ if (filterKyDP) {
     renderTableDangPhi();
   });
 }
+// Khai báo biến quản lý đối tượng biểu đồ tròn ở phạm vi toàn cục (đặt trên đầu file hoặc ngay trên hàm)
+if (typeof window.myChartDangPhiTron === 'undefined') window.myChartDangPhiTron = null;
 
+// --- HÀM TÍNH TOÁN, HIỂN THỊ DỮ LIỆU & VẼ BIỂU ĐỒ TRÒN SIDEBAR TRÁI ---
+function thuThiTraCuuDangPhiSidebar() {
+  const selectDangBo = document.getElementById("lookup-dangphi-dangbo");
+  const selectKy = document.getElementById("lookup-dangphi-ky");
+  const resultContainer = document.getElementById("lookup-dangphi-result");
+  const chartHolder = document.getElementById("chart-dangphi-holder");
+
+  if (!selectDangBo || !selectKy || !resultContainer || !chartHolder) return;
+
+  const dangBoDuocChon = selectDangBo.value;
+  const kyDuocChon = selectKy.value;
+
+  // Nếu người dùng chưa chọn đơn vị
+  if (!dangBoDuocChon) {
+    resultContainer.innerHTML = `<div style="text-align: center; padding: 15px; color: #94a3b8; font-style: italic; font-size: 0.85rem;">Vui lòng chọn đơn vị để xem dữ liệu phân tích.</div>`;
+    chartHolder.style.display = "none";
+    if (window.myChartDangPhiTron) window.myChartDangPhiTron.destroy();
+    return;
+  }
+
+  // Quét cơ sở dữ liệu tìm bản ghi khớp của Đơn vị + Kỳ báo cáo
+  let banGhiKhop = null;
+  Object.keys(thongTinDangPhiHienTai).forEach(key => {
+    const item = thongTinDangPhiHienTai[key];
+    if (item && item.ten_dang_bo === dangBoDuocChon && item.ky_bao_cao === kyDuocChon) {
+      banGhiKhop = item;
+    }
+  });
+
+  // Nếu đơn vị chưa nộp số liệu trong tháng được chọn
+  if (!banGhiKhop) {
+    resultContainer.innerHTML = `
+      <div style="border-left: 4px solid #ef4444; background: #fef2f2; padding: 12px; border-radius: 4px; font-size: 0.85rem; color: #991b1b; font-weight: 500;">
+        <i class="fa-solid fa-circle-exclamation"></i> <strong>${dangBoDuocChon}</strong> chưa nạp số liệu báo cáo của <strong>${kyDuocChon}</strong>.
+      </div>`;
+    chartHolder.style.display = "none";
+    if (window.myChartDangPhiTron) window.myChartDangPhiTron.destroy();
+    return;
+  }
+
+  // TIẾN HÀNH XỬ LÝ TOÁN HỌC KHI ĐÃ CÓ DỮ LIỆU
+  const tongDV = parseInt(banGhiKhop.tong_dang_vien || 0);
+  const nopTT = parseInt(banGhiKhop.nop_truc_tuyen || 0);
+  const chuaNopTT = tongDV - nopTT;
+
+  const tyLeNopTT = tongDV > 0 ? ((nopTT / tongDV) * 100).toFixed(1) : "0.0";
+  const tyLeChuaNopTT = tongDV > 0 ? ((chuaNopTT / tongDV) * 100).toFixed(1) : "0.0";
+
+  // In thông tin dạng chữ và thanh tiến độ phẳng
+  resultContainer.innerHTML = `
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="font-size: 0.85rem; background: #e6f2ff; padding: 8px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-weight: 600; color: #002855;">
+        Đơn vị: <span style="color: #b71c1c;">${banGhiKhop.ten_dang_bo}</span>
+      </div>
+      
+      <div style="background: #ffffff; border: 1px solid #dee2e6; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; font-weight: bold; color: #475569;"><i class="fa-solid fa-users text-primary"></i> Tổng số đảng viên:</span>
+        <span style="font-size: 1rem; font-weight: 800; color: #002855;">${tongDV.toLocaleString()}</span>
+      </div>
+
+      <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #166534;">
+        <span><i class="fa-solid fa-circle-check"></i> Đã nộp trực tuyến:</span>
+        <span>${nopTT.toLocaleString()} ĐV (${tyLeNopTT}%)</span>
+      </div>
+
+      <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #991b1b;">
+        <span><i class="fa-solid fa-circle-xmark"></i> Chưa nộp trực tuyến:</span>
+        <span>${chuaNopTT.toLocaleString()} ĐV (${tyLeChuaNopTT}%)</span>
+      </div>
+    </div>
+  `;
+
+  // KHỞI CHẠY VÀ VẼ BIỂU ĐỒ HÌNH TRÒN ĐỘNG (DOUGHNUT / PIE CHART)
+  chartHolder.style.display = "block"; // Mở khung chứa canvas
+  const ctxTron = document.getElementById("chartDangPhiTron");
+
+  if (ctxTron) {
+    // Xóa biểu đồ cũ để tránh xung đột dữ liệu khi chuyển đơn vị
+    if (window.myChartDangPhiTron) window.myChartDangPhiTron.destroy();
+
+    // Tạo cấu trúc biểu đồ hình tròn mới tinh
+    window.myChartDangPhiTron = new Chart(ctxTron, {
+      type: 'doughnut', // Kiểu doughnut (bánh xe khuyết giữa) nhìn sẽ hiện đại và thoáng hơn pie truyền thống
+      data: {
+        labels: ['Đã nộp trực tuyến (%)', 'Chưa nộp trực tuyến (%)'],
+        datasets: [{
+          data: [tyLeNopTT, tyLeChuaNopTT],
+          backgroundColor: [
+            '#2e7d32', // Màu xanh lá cây sẫm (Đã nộp)
+            '#c62828'  // Màu đỏ cờ hành chính (Chưa nộp)
+          ],
+          borderColor: '#ffffff',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom', // Đẩy chú thích chú giải xuống dưới biểu đồ
+            labels: {
+              boxWidth: 12,
+              font: { size: 11, weight: 'bold' },
+              padding: 10
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return ` Tỉ lệ: ${context.raw}%`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+}
+// Lắng nghe sự kiện thay đổi trên 2 dropdown tra cứu để cập nhật số liệu lập tức
+document.getElementById("lookup-dangphi-dangbo").addEventListener("change", thuThiTraCuuDangPhiSidebar);
+document.getElementById("lookup-dangphi-ky").addEventListener("change", thuThiTraCuuDangPhiSidebar);
 function renderTableDangPhi() {
   const tableBody = document.getElementById("table-dangphi-body");
   const filterValue = document.getElementById("filter-dangphi-ky").value;
@@ -903,14 +1047,13 @@ function renderTableDangPhi() {
           <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; white-space: nowrap;">${tong.toLocaleString()}</td>
           <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #28a745; white-space: nowrap;">${trucTuyen.toLocaleString()}</td>
           <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #dc3545; white-space: nowrap;">${tyLe}%</td>
-          ${
-            currentRole === "admin"
-              ? `
+          ${currentRole === "admin"
+          ? `
           <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; white-space: nowrap;">
               <button class="btn-delete-dangphi" data-key="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
           </td>`
-              : ""
-          }
+          : ""
+        }
         </tr>
       `;
     }
