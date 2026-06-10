@@ -17,7 +17,8 @@ import {
 const firebaseConfig = {
   apiKey: "AIzaSyBQf87uHhZkcnyVLCxMYSetDoeqjfUVphY",
   authDomain: "tthcdang.firebaseapp.com",
-  databaseURL: "https://tthcdang-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  databaseURL:
+    "https://tthcdang-default-rtdb.asia-southeast1.firebasedatabase.app/",
   projectId: "tthcdang",
   storageBucket: "tthcdang.firebasestorage.app",
   messagingSenderId: "362559187523",
@@ -49,7 +50,8 @@ let thongTinDangPhiHienTai = {};
 
 if (typeof window.myChartHigh === "undefined") window.myChartHigh = null;
 if (typeof window.myChartLow === "undefined") window.myChartLow = null;
-if (typeof window.myChartDangPhiTron === "undefined") window.myChartDangPhiTron = null;
+if (typeof window.myChartDangPhiTron === "undefined")
+  window.myChartDangPhiTron = null;
 
 // ========================================================
 // --- TỰ ĐỘNG SINH KỲ BÁO CÁO ĐỘNG THEO THỜI GIAN THỰC ---
@@ -124,22 +126,30 @@ onAuthStateChanged(auth, (user) => {
     }
     currentRole = sessionStorage.getItem("userRole") || "user";
 
-    const navQuanTriBtn = document.querySelector(".tab-btn[onclick*='tab-quan-tri']") || document.getElementById("nav-admin-only");
+    const navQuanTriBtn =
+      document.querySelector(".tab-btn[onclick*='tab-quan-tri']") ||
+      document.getElementById("nav-admin-only");
 
     if (currentRole === "admin") {
       if (document.getElementById("current-role")) {
         document.getElementById("current-role").innerText = "Quản trị viên";
       }
-      if (navQuanTriBtn) navQuanTriBtn.style.setProperty("display", "block", "important");
+      if (navQuanTriBtn)
+        navQuanTriBtn.style.setProperty("display", "block", "important");
       if (document.getElementById("upload-taphuan-container"))
-        document.getElementById("upload-taphuan-container").style.setProperty("display", "block", "important");
+        document
+          .getElementById("upload-taphuan-container")
+          .style.setProperty("display", "block", "important");
     } else {
       if (document.getElementById("current-role")) {
         document.getElementById("current-role").innerText = "Đơn vị cơ sở";
       }
-      if (navQuanTriBtn) navQuanTriBtn.style.setProperty("display", "none", "important");
+      if (navQuanTriBtn)
+        navQuanTriBtn.style.setProperty("display", "none", "important");
       if (document.getElementById("upload-taphuan-container"))
-        document.getElementById("upload-taphuan-container").style.setProperty("display", "none", "important");
+        document
+          .getElementById("upload-taphuan-container")
+          .style.setProperty("display", "none", "important");
     }
 
     const selDangBo = document.getElementById("kehoach-ten-dang-bo");
@@ -152,11 +162,21 @@ onAuthStateChanged(auth, (user) => {
     }
 
     capNhatThoiGianTuongTacCuoi();
-    const cacSuKien = ["click", "mousemove", "mousedown", "keypress", "scroll", "touchstart"];
+    const cacSuKien = [
+      "click",
+      "mousemove",
+      "mousedown",
+      "keypress",
+      "scroll",
+      "touchstart",
+    ];
     cacSuKien.forEach((suKien) => {
-      window.addEventListener(suKien, capNhatThoiGianTuongTacCuoi, { passive: true });
+      window.addEventListener(suKien, capNhatThoiGianTuongTacCuoi, {
+        passive: true,
+      });
     });
-    if (window.intervalKiemTraPhiens) clearInterval(window.intervalKiemTraPhiens);
+    if (window.intervalKiemTraPhiens)
+      clearInterval(window.intervalKiemTraPhiens);
     window.intervalKiemTraPhiens = setInterval(kiemTraThoiGianBaoQuen, 30000);
   }
 });
@@ -198,17 +218,21 @@ window.switchTab = function (evt, tabId) {
 
   const dashboardTapHuan = document.getElementById("sidebar-dashboard-taphuan");
   const dashboardDangPhi = document.getElementById("sidebar-dashboard-dangphi");
-  const firstLeftCard = document.querySelector(".left-panel .panel-card:first-child");
+  const firstLeftCard = document.querySelector(
+    ".left-panel .panel-card:first-child",
+  );
 
   if (tabId === "tab-tap-huan") {
-    if (dashboardTapHuan) dashboardTapHuan.style.setProperty("display", "block", "important");
+    if (dashboardTapHuan)
+      dashboardTapHuan.style.setProperty("display", "block", "important");
   } else if (tabId === "tab-cai-dat") {
     if (dashboardDangPhi) {
       dashboardDangPhi.style.setProperty("display", "block", "important");
       thuThiTraCuuDangPhiSidebar();
     }
   } else {
-    if (firstLeftCard) firstLeftCard.style.setProperty("display", "block", "important");
+    if (firstLeftCard)
+      firstLeftCard.style.setProperty("display", "block", "important");
   }
 };
 
@@ -219,7 +243,9 @@ onValue(dbRefDangBoGoc, (snapshot) => {
   const selectDangBo = document.getElementById("ten-dang-bo");
   const adminDangBoList = document.getElementById("admin-dangbo-list");
 
-  if (selectDangBo) selectDangBo.innerHTML = '<option value="">-- Chọn đảng bộ trực thuộc --</option>';
+  if (selectDangBo)
+    selectDangBo.innerHTML =
+      '<option value="">-- Chọn đảng bộ trực thuộc --</option>';
   if (adminDangBoList) adminDangBoList.innerHTML = "";
 
   const data = snapshot.val();
@@ -239,7 +265,8 @@ onValue(dbRefDangBoGoc, (snapshot) => {
         if (adminDangBoList) {
           const itemDiv = document.createElement("div");
           itemDiv.className = "data-item";
-          itemDiv.style.cssText = "display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #eee;";
+          itemDiv.style.cssText =
+            "display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #eee;";
           itemDiv.innerHTML = `<span>${db.ten}</span>${currentRole === "admin" ? `<button class="btn-delete-dangbo" data-id="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ""}`;
           adminDangBoList.appendChild(itemDiv);
         }
@@ -296,7 +323,11 @@ if (document.getElementById("btn-import-excel")) {
       jsonData.forEach((row) => {
         let tenDonVi = "";
         for (let key in row) {
-          if (key.toLowerCase().includes("tên đơn vị") || key.toLowerCase().includes("tên đảng bộ") || key.toLowerCase().includes("dang bo")) {
+          if (
+            key.toLowerCase().includes("tên đơn vị") ||
+            key.toLowerCase().includes("tên đảng bộ") ||
+            key.toLowerCase().includes("dang bo")
+          ) {
             tenDonVi = row[key] ? row[key].toString().trim() : "";
             break;
           }
@@ -319,7 +350,9 @@ function capNhatDropdownDangBoChuaTapHuan() {
   const selectDropdown = document.getElementById("select-taphuan-dangbo");
   if (!selectDropdown) return;
 
-  const danhSachGocChuan = [...new Set(danhSachDangBoGoc)].filter((ten) => ten && ten !== "undefined");
+  const danhSachGocChuan = [...new Set(danhSachDangBoGoc)].filter(
+    (ten) => ten && ten !== "undefined",
+  );
   const danhSachTenDaTapHuan = [];
 
   Object.keys(thongTinTapHuanHienTai).forEach((key) => {
@@ -357,32 +390,38 @@ function capNhatDropdownDangBoChuaTapHuan() {
 }
 
 if (document.getElementById("form-taphuan-new")) {
-  document.getElementById("form-taphuan-new").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const selectDangBo = document.getElementById("select-taphuan-dangbo");
-    const inputSoNguoi = document.getElementById("input-taphuan-songuoi");
-    const tenDangBo = selectDangBo.value;
-    const soNguoi = parseInt(inputSoNguoi.value) || 0;
+  document
+    .getElementById("form-taphuan-new")
+    .addEventListener("submit", (e) => {
+      e.preventDefault();
+      const selectDangBo = document.getElementById("select-taphuan-dangbo");
+      const inputSoNguoi = document.getElementById("input-taphuan-songuoi");
+      const tenDangBo = selectDangBo.value;
+      const soNguoi = parseInt(inputSoNguoi.value) || 0;
 
-    if (!tenDangBo) {
-      showToast("Vui lòng chọn một Đảng bộ!", "warning");
-      return;
-    }
+      if (!tenDangBo) {
+        showToast("Vui lòng chọn một Đảng bộ!", "warning");
+        return;
+      }
 
-    const soDonViDaNhap = Object.keys(thongTinTapHuanHienTai).filter((k) => thongTinTapHuanHienTai[k].ten_dang_bo && thongTinTapHuanHienTai[k].ten_dang_bo !== "undefined").length;
-    const safeKey = cleanFirebaseKey(tenDangBo);
+      const soDonViDaNhap = Object.keys(thongTinTapHuanHienTai).filter(
+        (k) =>
+          thongTinTapHuanHienTai[k].ten_dang_bo &&
+          thongTinTapHuanHienTai[k].ten_dang_bo !== "undefined",
+      ).length;
+      const safeKey = cleanFirebaseKey(tenDangBo);
 
-    set(ref(database, "tap_huan/" + safeKey), {
-      stt: soDonViDaNhap + 1,
-      ten_dang_bo: tenDangBo,
-      so_nguoi_tham_gia: soNguoi,
-      trang_thai: soNguoi > 0 ? "Đã tập huấn" : "Chưa tập huấn",
-      ngay_cap_nhat: new Date().toISOString(),
-    }).then(() => {
-      showToast(`Đã lưu thành công cho ${tenDangBo}!`, "success");
-      inputSoNguoi.value = "";
+      set(ref(database, "tap_huan/" + safeKey), {
+        stt: soDonViDaNhap + 1,
+        ten_dang_bo: tenDangBo,
+        so_nguoi_tham_gia: soNguoi,
+        trang_thai: soNguoi > 0 ? "Đã tập huấn" : "Chưa tập huấn",
+        ngay_cap_nhat: new Date().toISOString(),
+      }).then(() => {
+        showToast(`Đã lưu thành công cho ${tenDangBo}!`, "success");
+        inputSoNguoi.value = "";
+      });
     });
-  });
 }
 
 // --- 5. LẮNG NGHE NHÁNH TẬP HUÂN VÀ VẼ BIỂU ĐỒ BAR CHART REALTIME ---
@@ -394,7 +433,8 @@ onValue(dbRefTapHuan, (snapshot) => {
   capNhatDropdownDangBoChuaTapHuan();
 
   if (!snapshot.exists()) {
-    if (tableBody) tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px; color: #999;">Chưa có dữ liệu tập huấn.</td></tr>`;
+    if (tableBody)
+      tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 15px; color: #999;">Chưa có dữ liệu tập huấn.</td></tr>`;
     return;
   }
 
@@ -417,22 +457,30 @@ onValue(dbRefTapHuan, (snapshot) => {
   sortedList.sort((a, b) => (a.stt || 0) - (b.stt || 0));
 
   const thActions = document.getElementById("th-taphuan-actions");
-  if (thActions) thActions.style.display = currentRole === "admin" ? "table-cell" : "none";
+  if (thActions)
+    thActions.style.display = currentRole === "admin" ? "table-cell" : "none";
 
   let htmlContent = "";
   sortedList.forEach((item, index) => {
     const safeKey = cleanFirebaseKey(item.ten_dang_bo);
-    const badgeStyle = item.so_nguoi_tham_gia > 0 ? "background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;" : "background-color: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;";
+    const badgeStyle =
+      item.so_nguoi_tham_gia > 0
+        ? "background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;"
+        : "background-color: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;";
 
     htmlContent += `<tr style="border-bottom: 1px solid #dee2e6;">
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; color: #666;">${index + 1}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${item.ten_dang_bo}</strong></td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #003366; font-size: 0.95rem;">${item.so_nguoi_tham_gia}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;"><span style="${badgeStyle}">${item.trang_thai}</span></td>
-        ${currentRole === "admin" ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+        ${
+          currentRole === "admin"
+            ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
             <button class="btn-edit-taphuan" data-name="${item.ten_dang_bo}" data-count="${item.so_nguoi_tham_gia}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
             <button class="btn-delete-taphuan" data-key="${safeKey}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
-        </td>` : ""}</tr>`;
+        </td>`
+            : ""
+        }</tr>`;
   });
 
   if (htmlContent && tableBody) {
@@ -444,7 +492,9 @@ onValue(dbRefTapHuan, (snapshot) => {
     tableBody.innerHTML = htmlContent;
   }
 
-  const dsCaoNhat = [...listDashboard].sort((a, b) => b.soNguoi - a.soNguoi).slice(0, 5);
+  const dsCaoNhat = [...listDashboard]
+    .sort((a, b) => b.soNguoi - a.soNguoi)
+    .slice(0, 5);
   const ctxHigh = document.getElementById("chartTopHigh");
   if (ctxHigh && dsCaoNhat.length > 0) {
     if (window.myChartHigh) window.myChartHigh.destroy();
@@ -452,13 +502,29 @@ onValue(dbRefTapHuan, (snapshot) => {
       type: "bar",
       data: {
         labels: dsCaoNhat.map((i) => i.ten),
-        datasets: [{ data: dsCaoNhat.map((i) => i.soNguoi), backgroundColor: "rgba(40, 167, 69, 0.2)", borderColor: "#28a745", borderWidth: 1.5, borderRadius: 4 }],
+        datasets: [
+          {
+            data: dsCaoNhat.map((i) => i.soNguoi),
+            backgroundColor: "rgba(40, 167, 69, 0.2)",
+            borderColor: "#28a745",
+            borderWidth: 1.5,
+            borderRadius: 4,
+          },
+        ],
       },
-      options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } } },
+      },
     });
   }
 
-  const dsThapNhat = [...listDashboard].sort((a, b) => a.soNguoi - b.soNguoi).slice(0, 5);
+  const dsThapNhat = [...listDashboard]
+    .sort((a, b) => a.soNguoi - b.soNguoi)
+    .slice(0, 5);
   const ctxLow = document.getElementById("chartTopLow");
   if (ctxLow && dsThapNhat.length > 0) {
     if (window.myChartLow) window.myChartLow.destroy();
@@ -466,84 +532,122 @@ onValue(dbRefTapHuan, (snapshot) => {
       type: "bar",
       data: {
         labels: dsThapNhat.map((i) => i.ten),
-        datasets: [{ data: dsThapNhat.map((i) => i.soNguoi), backgroundColor: "rgba(220, 53, 69, 0.2)", borderColor: "#dc3545", borderWidth: 1.5, borderRadius: 4 }],
+        datasets: [
+          {
+            data: dsThapNhat.map((i) => i.soNguoi),
+            backgroundColor: "rgba(220, 53, 69, 0.2)",
+            borderColor: "#dc3545",
+            borderWidth: 1.5,
+            borderRadius: 4,
+          },
+        ],
       },
-      options: { indexAxis: "y", responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } } } },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } } },
+      },
     });
   }
 });
 
 if (document.getElementById("btn-import-taphuan")) {
-  document.getElementById("btn-import-taphuan").addEventListener("click", () => {
-    if (currentRole !== "admin") return;
-    const fileInput = document.getElementById("excel-taphuan-input");
-    const file = fileInput.files[0];
-    if (!file) {
-      showToast("Vui lòng chọn file Excel trước!", "warning");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = function (e) {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: "array" });
-      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-      const jsonData = XLSX.utils.sheet_to_json(worksheet);
-      let importCount = 0;
-      jsonData.forEach((row, index) => {
-        let tenDangBo = "", soNguoi = 0, stt = index + 1;
-        for (let key in row) {
-          const lowerKey = key.toLowerCase().trim();
-          if (lowerKey.includes("stt")) stt = row[key] ? parseInt(row[key]) : stt;
-          else if (lowerKey.includes("đảng bộ") || lowerKey.includes("dang bo")) tenDangBo = row[key] ? row[key].toString().trim() : "";
-          else if (lowerKey.includes("số người") || lowerKey.includes("so nguoi") || lowerKey.includes("tham gia")) soNguoi = row[key] ? parseInt(row[key]) : 0;
-        }
-        if (tenDangBo && tenDangBo !== "undefined") {
-          const databaseKey = cleanFirebaseKey(tenDangBo);
-          set(ref(database, "tap_huan/" + databaseKey), {
-            stt: stt,
-            ten_dang_bo: tenDangBo,
-            so_nguoi_tham_gia: soNguoi,
-            trang_thai: soNguoi > 0 ? "Đã tập huấn" : "Chưa tập huấn",
-            ngay_cap_nhat: new Date().toISOString(),
-          });
-          importCount++;
-        }
-      });
-      showToast(`Đã nạp thành công ${importCount} đơn vị từ Excel!`, "success");
-      fileInput.value = "";
-    };
-    reader.readAsArrayBuffer(file);
-  });
+  document
+    .getElementById("btn-import-taphuan")
+    .addEventListener("click", () => {
+      if (currentRole !== "admin") return;
+      const fileInput = document.getElementById("excel-taphuan-input");
+      const file = fileInput.files[0];
+      if (!file) {
+        showToast("Vui lòng chọn file Excel trước!", "warning");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        let importCount = 0;
+        jsonData.forEach((row, index) => {
+          let tenDangBo = "",
+            soNguoi = 0,
+            stt = index + 1;
+          for (let key in row) {
+            const lowerKey = key.toLowerCase().trim();
+            if (lowerKey.includes("stt"))
+              stt = row[key] ? parseInt(row[key]) : stt;
+            else if (
+              lowerKey.includes("đảng bộ") ||
+              lowerKey.includes("dang bo")
+            )
+              tenDangBo = row[key] ? row[key].toString().trim() : "";
+            else if (
+              lowerKey.includes("số người") ||
+              lowerKey.includes("so nguoi") ||
+              lowerKey.includes("tham gia")
+            )
+              soNguoi = row[key] ? parseInt(row[key]) : 0;
+          }
+          if (tenDangBo && tenDangBo !== "undefined") {
+            const databaseKey = cleanFirebaseKey(tenDangBo);
+            set(ref(database, "tap_huan/" + databaseKey), {
+              stt: stt,
+              ten_dang_bo: tenDangBo,
+              so_nguoi_tham_gia: soNguoi,
+              trang_thai: soNguoi > 0 ? "Đã tập huấn" : "Chưa tập huấn",
+              ngay_cap_nhat: new Date().toISOString(),
+            });
+            importCount++;
+          }
+        });
+        showToast(
+          `Đã nạp thành công ${importCount} đơn vị từ Excel!`,
+          "success",
+        );
+        fileInput.value = "";
+      };
+      reader.readAsArrayBuffer(file);
+    });
 }
 
 if (document.getElementById("btn-cancel-edit-taphuan")) {
-  document.getElementById("btn-cancel-edit-taphuan").addEventListener("click", () => {
-    document.getElementById("form-edit-taphuan-container").style.display = "none";
-  });
+  document
+    .getElementById("btn-cancel-edit-taphuan")
+    .addEventListener("click", () => {
+      document.getElementById("form-edit-taphuan-container").style.display =
+        "none";
+    });
 }
 
 if (document.getElementById("btn-save-edit-taphuan")) {
-  document.getElementById("btn-save-edit-taphuan").addEventListener("click", () => {
-    if (currentRole !== "admin") return;
-    const tenDangBo = document.getElementById("edit-taphuan-name").value;
-    const soNguoiMoi = parseInt(document.getElementById("edit-taphuan-count").value) || 0;
-    if (!tenDangBo) return;
+  document
+    .getElementById("btn-save-edit-taphuan")
+    .addEventListener("click", () => {
+      if (currentRole !== "admin") return;
+      const tenDangBo = document.getElementById("edit-taphuan-name").value;
+      const soNguoiMoi =
+        parseInt(document.getElementById("edit-taphuan-count").value) || 0;
+      if (!tenDangBo) return;
 
-    const dbKey = cleanFirebaseKey(tenDangBo);
-    get(ref(database, "tap_huan/" + dbKey + "/stt")).then((snapshot) => {
-      const sttHienTai = snapshot.exists() ? snapshot.val() : 1;
-      set(ref(database, "tap_huan/" + dbKey), {
-        stt: sttHienTai,
-        ten_dang_bo: tenDangBo,
-        so_nguoi_tham_gia: soNguoiMoi,
-        trang_thai: soNguoiMoi > 0 ? "Đã tập huấn" : "Chưa tập huấn",
-        ngay_cap_nhat: new Date().toISOString(),
-      }).then(() => {
-        showToast("Đã cập nhật số liệu thành công!", "success");
-        document.getElementById("form-edit-taphuan-container").style.display = "none";
+      const dbKey = cleanFirebaseKey(tenDangBo);
+      get(ref(database, "tap_huan/" + dbKey + "/stt")).then((snapshot) => {
+        const sttHienTai = snapshot.exists() ? snapshot.val() : 1;
+        set(ref(database, "tap_huan/" + dbKey), {
+          stt: sttHienTai,
+          ten_dang_bo: tenDangBo,
+          so_nguoi_tham_gia: soNguoiMoi,
+          trang_thai: soNguoiMoi > 0 ? "Đã tập huấn" : "Chưa tập huấn",
+          ngay_cap_nhat: new Date().toISOString(),
+        }).then(() => {
+          showToast("Đã cập nhật số liệu thành công!", "success");
+          document.getElementById("form-edit-taphuan-container").style.display =
+            "none";
+        });
       });
     });
-  });
 }
 
 // --- 6. QUẢN LÝ TIẾN ĐỘ BAN HÀNH KẾ HOẠCH CÔNG TÁC ---
@@ -553,33 +657,44 @@ if (formKeHoach) {
     e.preventDefault();
     const tenDangBo = document.getElementById("kehoach-ten-dang-bo").value;
     const trangThaiKH = document.getElementById("kehoach-trang-thai").value;
-    const soHieu = document.getElementById("kehoach-so-ky-hieu").value || "Không có";
-    const ngayBanHanh = document.getElementById("kehoach-ngay-ban-hanh").value || "Chưa nhập";
+    const soHieu =
+      document.getElementById("kehoach-so-ky-hieu").value || "Không có";
+    const ngayBanHanh =
+      document.getElementById("kehoach-ngay-ban-hanh").value || "Chưa nhập";
 
     if (!tenDangBo) {
       showToast("Vui lòng chọn Tên Đảng bộ trước khi lưu!", "warning");
       return;
     }
 
-    set(ref(database, "ke_hoach/" + btoa(unescape(encodeURIComponent(tenDangBo)))), {
-      ten_dang_bo: tenDangBo,
-      trang_thai: trangThaiKH === "Có ban hành" ? "co" : "khong",
-      so_hieu: soHieu,
-      ngay_ban_hanh: ngayBanHanh,
-      thoi_gian_cap_nhat: new Date().toISOString(),
-    }).then(() => {
+    set(
+      ref(
+        database,
+        "ke_hoach/" + btoa(unescape(encodeURIComponent(tenDangBo))),
+      ),
+      {
+        ten_dang_bo: tenDangBo,
+        trang_thai: trangThaiKH === "Có ban hành" ? "co" : "khong",
+        so_hieu: soHieu,
+        ngay_ban_hanh: ngayBanHanh,
+        thoi_gian_cap_nhat: new Date().toISOString(),
+      },
+    ).then(() => {
       showToast("Cập nhật dữ liệu kế hoạch thành công!", "success");
       formKeHoach.reset();
-      if (typeof window.handleTrangThaiKeHoachChange === "function") window.handleTrangThaiKeHoachChange();
+      if (typeof window.handleTrangThaiKeHoachChange === "function")
+        window.handleTrangThaiKeHoachChange();
     });
   });
 }
 
 function tinhToanThongKeKeHoach() {
   let countDaBanHanh = 0;
-  let htmlDaBanHanh = "", htmlChuaBanHanh = "";
+  let htmlDaBanHanh = "",
+    htmlChuaBanHanh = "";
 
-  const tongSoDonViGoc = danhSachDangBoGoc.length > 0 ? danhSachDangBoGoc.length : 94;
+  const tongSoDonViGoc =
+    danhSachDangBoGoc.length > 0 ? danhSachDangBoGoc.length : 94;
 
   if (thongTinKeHoachHienTai) {
     Object.keys(thongTinKeHoachHienTai).forEach((key) => {
@@ -594,19 +709,26 @@ function tinhToanThongKeKeHoach() {
   const countChuaBanHanh = Math.max(0, tongSoDonViGoc - countDaBanHanh);
 
   const danhSachTenDaBanHanh = Object.keys(thongTinKeHoachHienTai)
-    .map(k => thongTinKeHoachHienTai[k]?.ten_dang_bo?.trim().toLowerCase())
+    .map((k) => thongTinKeHoachHienTai[k]?.ten_dang_bo?.trim().toLowerCase())
     .filter(Boolean);
 
-  danhSachDangBoGoc.forEach(ten => {
+  danhSachDangBoGoc.forEach((ten) => {
     if (!danhSachTenDaBanHanh.includes(ten.trim().toLowerCase())) {
       htmlChuaBanHanh += `<div class="data-item"><span><strong>${ten}</strong></span><span class="text-danger">Chưa ban hành</span></div>`;
     }
   });
 
-  if (document.getElementById("count-da-ban-hanh")) document.getElementById("count-da-ban-hanh").innerText = countDaBanHanh;
-  if (document.getElementById("count-chua-ban-hanh")) document.getElementById("count-chua-ban-hanh").innerText = countChuaBanHanh;
-  if (document.getElementById("list-da-ban-hanh")) document.getElementById("list-da-ban-hanh").innerHTML = htmlDaBanHanh || '<span class="loading-text">Chưa có dữ liệu.</span>';
-  if (document.getElementById("list-chua-ban-hanh")) document.getElementById("list-chua-ban-hanh").innerHTML = htmlChuaBanHanh || '<span class="loading-text">Tất cả đơn vị đã ban hành.</span>';
+  if (document.getElementById("count-da-ban-hanh"))
+    document.getElementById("count-da-ban-hanh").innerText = countDaBanHanh;
+  if (document.getElementById("count-chua-ban-hanh"))
+    document.getElementById("count-chua-ban-hanh").innerText = countChuaBanHanh;
+  if (document.getElementById("list-da-ban-hanh"))
+    document.getElementById("list-da-ban-hanh").innerHTML =
+      htmlDaBanHanh || '<span class="loading-text">Chưa có dữ liệu.</span>';
+  if (document.getElementById("list-chua-ban-hanh"))
+    document.getElementById("list-chua-ban-hanh").innerHTML =
+      htmlChuaBanHanh ||
+      '<span class="loading-text">Tất cả đơn vị đã ban hành.</span>';
 }
 
 const dbRefKeHoach = ref(database, "ke_hoach");
@@ -622,22 +744,32 @@ function capNhatDropdownDangBoTabKeHoach() {
 
   const danhSachDaNopKeHoach = [];
   if (thongTinKeHoachHienTai) {
-    Object.keys(thongTinKeHoachHienTai).forEach(key => {
-      if (thongTinKeHoachHienTai[key] && thongTinKeHoachHienTai[key].ten_dang_bo) {
-        danhSachDaNopKeHoach.push(thongTinKeHoachHienTai[key].ten_dang_bo.trim().toLowerCase());
+    Object.keys(thongTinKeHoachHienTai).forEach((key) => {
+      if (
+        thongTinKeHoachHienTai[key] &&
+        thongTinKeHoachHienTai[key].ten_dang_bo
+      ) {
+        danhSachDaNopKeHoach.push(
+          thongTinKeHoachHienTai[key].ten_dang_bo.trim().toLowerCase(),
+        );
       }
     });
   }
 
-  const dsChuaNop = danhSachDangBoGoc.filter(tenDonVi => !danhSachDaNopKeHoach.includes(tenDonVi.trim().toLowerCase()));
+  const dsChuaNop = danhSachDangBoGoc.filter(
+    (tenDonVi) => !danhSachDaNopKeHoach.includes(tenDonVi.trim().toLowerCase()),
+  );
 
-  selectKeHoachDangBo.innerHTML = '<option value="">-- Chọn Đảng bộ / Đơn vị --</option>';
-  dsChuaNop.sort((a, b) => a.localeCompare(b, "vi")).forEach(ten => {
-    const opt = document.createElement("option");
-    opt.value = ten;
-    opt.innerText = ten;
-    selectKeHoachDangBo.appendChild(opt);
-  });
+  selectKeHoachDangBo.innerHTML =
+    '<option value="">-- Chọn Đảng bộ / Đơn vị --</option>';
+  dsChuaNop
+    .sort((a, b) => a.localeCompare(b, "vi"))
+    .forEach((ten) => {
+      const opt = document.createElement("option");
+      opt.value = ten;
+      opt.innerText = ten;
+      selectKeHoachDangBo.appendChild(opt);
+    });
 }
 
 window.handleTrangThaiKeHoachChange = function () {
@@ -692,8 +824,12 @@ onValue(dbRefUsers, (snapshot) => {
       const u = data[uid];
       const itemDiv = document.createElement("div");
       itemDiv.className = "data-item";
-      itemDiv.style.cssText = "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee; align-items:center;";
-      const roleBadge = u.role === "admin" ? '<span style="background:#fff3cd; color:#856404; padding:2px 6px; border-radius:3px; font-size:0.75rem; font-weight:bold;">Admin</span>' : '<span style="background:#e2e3e5; color:#383d41; padding:2px 6px; border-radius:3px; font-size:0.75rem;">User</span>';
+      itemDiv.style.cssText =
+        "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee; align-items:center;";
+      const roleBadge =
+        u.role === "admin"
+          ? '<span style="background:#fff3cd; color:#856404; padding:2px 6px; border-radius:3px; font-size:0.75rem; font-weight:bold;">Admin</span>'
+          : '<span style="background:#e2e3e5; color:#383d41; padding:2px 6px; border-radius:3px; font-size:0.75rem;">User</span>';
       itemDiv.innerHTML = `<div><strong>${u.role === "admin" ? "Quản trị viên" : "Đơn vị cơ sở"}: ${u.email}</strong><br><small style="color:#6c757d; font-size:0.75rem;">UID: ${uid}</small></div>
         <div><button class="btn-edit-user" data-uid="${uid}" data-email="${u.email}" data-role="${u.role}" style="background:none; border:none; color:#003366; cursor:pointer; margin-right:10px;"><i class="fa-solid fa-user-pen"></i> Sửa</button>
         <button class="btn-delete-user" data-uid="${uid}" style="background:none; border:none; color:#dc3545; cursor:pointer;"><i class="fa-solid fa-user-minus"></i> Xóa</button></div>`;
@@ -703,49 +839,65 @@ onValue(dbRefUsers, (snapshot) => {
     document.querySelectorAll(".btn-edit-user").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const b = e.currentTarget;
-        document.getElementById("user-uid-input").value = b.getAttribute("data-uid");
+        document.getElementById("user-uid-input").value =
+          b.getAttribute("data-uid");
         document.getElementById("user-uid-input").disabled = true;
-        document.getElementById("user-email-input").value = b.getAttribute("data-email");
-        document.getElementById("user-role-input").value = b.getAttribute("data-role");
-        document.getElementById("btn-cancel-user-edit").style.display = "inline-block";
-        document.getElementById("btn-submit-user").innerHTML = '<i class="fa-solid fa-user-check"></i> Cập Nhật';
+        document.getElementById("user-email-input").value =
+          b.getAttribute("data-email");
+        document.getElementById("user-role-input").value =
+          b.getAttribute("data-role");
+        document.getElementById("btn-cancel-user-edit").style.display =
+          "inline-block";
+        document.getElementById("btn-submit-user").innerHTML =
+          '<i class="fa-solid fa-user-check"></i> Cập Nhật';
       });
     });
 
     document.querySelectorAll(".btn-delete-user").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const uidXoa = e.currentTarget.getAttribute("data-uid");
-        if (confirm("Xác nhận gỡ quyền tài khoản này?")) remove(ref(database, "users/" + uidXoa));
+        if (confirm("Xác nhận gỡ quyền tài khoản này?"))
+          remove(ref(database, "users/" + uidXoa));
       });
     });
   }
 });
 
 if (document.getElementById("btn-cancel-user-edit")) {
-  document.getElementById("btn-cancel-user-edit").addEventListener("click", () => {
-    document.getElementById("form-manage-user").reset();
-    document.getElementById("user-uid-input").disabled = false;
-    document.getElementById("btn-cancel-user-edit").style.display = "none";
-    document.getElementById("btn-submit-user").innerHTML = '<i class="fa-solid fa-user-plus"></i> Lưu Tài Khoản';
-  });
+  document
+    .getElementById("btn-cancel-user-edit")
+    .addEventListener("click", () => {
+      document.getElementById("form-manage-user").reset();
+      document.getElementById("user-uid-input").disabled = false;
+      document.getElementById("btn-cancel-user-edit").style.display = "none";
+      document.getElementById("btn-submit-user").innerHTML =
+        '<i class="fa-solid fa-user-plus"></i> Lưu Tài Khoản';
+    });
 }
 
 if (document.getElementById("form-manage-user")) {
-  document.getElementById("form-manage-user").addEventListener("submit", (e) => {
-    e.preventDefault();
-    if (currentRole !== "admin") return;
-    const uid = document.getElementById("user-uid-input").value.trim();
-    const email = document.getElementById("user-email-input").value.trim();
-    const role = document.getElementById("user-role-input").value;
-    if (!uid || !email) return;
-    set(ref(database, "users/" + uid), { email: email, role: role }).then(() => {
-      showToast("Cập nhật quyền tài khoản thành công!", "success");
-      document.getElementById("form-manage-user").reset();
-      document.getElementById("user-uid-input").disabled = false;
-      if (document.getElementById("btn-cancel-user-edit")) document.getElementById("btn-cancel-user-edit").style.display = "none";
-      document.getElementById("btn-submit-user").innerHTML = '<i class="fa-solid fa-user-plus"></i> Lưu Tài Khoản';
+  document
+    .getElementById("form-manage-user")
+    .addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (currentRole !== "admin") return;
+      const uid = document.getElementById("user-uid-input").value.trim();
+      const email = document.getElementById("user-email-input").value.trim();
+      const role = document.getElementById("user-role-input").value;
+      if (!uid || !email) return;
+      set(ref(database, "users/" + uid), { email: email, role: role }).then(
+        () => {
+          showToast("Cập nhật quyền tài khoản thành công!", "success");
+          document.getElementById("form-manage-user").reset();
+          document.getElementById("user-uid-input").disabled = false;
+          if (document.getElementById("btn-cancel-user-edit"))
+            document.getElementById("btn-cancel-user-edit").style.display =
+              "none";
+          document.getElementById("btn-submit-user").innerHTML =
+            '<i class="fa-solid fa-user-plus"></i> Lưu Tài Khoản';
+        },
+      );
     });
-  });
 }
 
 // ========================================================
@@ -757,7 +909,9 @@ function capNhatDropdownDangBoChuaNopDangPhi() {
   if (!selectDangBoDP || !selectKyDP) return;
 
   const kyDuocChon = selectKyDP.value;
-  const danhSachGocChuan = [...new Set(danhSachDangBoGoc)].filter((ten) => ten && ten !== "undefined");
+  const danhSachGocChuan = [...new Set(danhSachDangBoGoc)].filter(
+    (ten) => ten && ten !== "undefined",
+  );
 
   const danhSachTenDaNopKyNay = [];
   Object.keys(thongTinDangPhiHienTai).forEach((key) => {
@@ -795,47 +949,57 @@ function capNhatDropdownDangBoChuaNopDangPhi() {
 }
 
 if (document.getElementById("select-dangphi-ky")) {
-  document.getElementById("select-dangphi-ky").addEventListener("change", () => {
-    capNhatDropdownDangBoChuaNopDangPhi();
-  });
+  document
+    .getElementById("select-dangphi-ky")
+    .addEventListener("change", () => {
+      capNhatDropdownDangBoChuaNopDangPhi();
+    });
 }
 
 if (document.getElementById("form-dangphi-new")) {
-  document.getElementById("form-dangphi-new").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const selectKy = document.getElementById("select-dangphi-ky");
-    const selectDangBo = document.getElementById("select-dangphi-dangbo");
-    const inputTong = document.getElementById("input-dangphi-tong");
-    const inputTrucTuyen = document.getElementById("input-dangphi-tructuyen");
+  document
+    .getElementById("form-dangphi-new")
+    .addEventListener("submit", (e) => {
+      e.preventDefault();
+      const selectKy = document.getElementById("select-dangphi-ky");
+      const selectDangBo = document.getElementById("select-dangphi-dangbo");
+      const inputTong = document.getElementById("input-dangphi-tong");
+      const inputTrucTuyen = document.getElementById("input-dangphi-tructuyen");
 
-    const kyBaoCao = selectKy.value;
-    const tenDangBo = selectDangBo.value;
-    const tongDV = parseInt(inputTong.value) || 0;
-    const trucTuyenDV = parseInt(inputTrucTuyen.value) || 0;
+      const kyBaoCao = selectKy.value;
+      const tenDangBo = selectDangBo.value;
+      const tongDV = parseInt(inputTong.value) || 0;
+      const trucTuyenDV = parseInt(inputTrucTuyen.value) || 0;
 
-    if (!tenDangBo) {
-      showToast("Vui lòng chọn Đảng bộ đơn vị cần báo cáo!", "warning");
-      return;
-    }
-    if (trucTuyenDV > tongDV) {
-      showToast("Số đảng viên nộp trực tuyến không thể lớn hơn Tổng số đảng viên!", "warning");
-      return;
-    }
+      if (!tenDangBo) {
+        showToast("Vui lòng chọn Đảng bộ đơn vị cần báo cáo!", "warning");
+        return;
+      }
+      if (trucTuyenDV > tongDV) {
+        showToast(
+          "Số đảng viên nộp trực tuyến không thể lớn hơn Tổng số đảng viên!",
+          "warning",
+        );
+        return;
+      }
 
-    const dbKey = cleanFirebaseKey(`${tenDangBo}_${kyBaoCao}`);
+      const dbKey = cleanFirebaseKey(`${tenDangBo}_${kyBaoCao}`);
 
-    set(ref(database, "dang_phi/" + dbKey), {
-      ky_bao_cao: kyBaoCao,
-      ten_dang_bo: tenDangBo,
-      tong_dang_vien: tongDV,
-      nop_truc_tuyen: trucTuyenDV,
-      ngay_nop: new Date().toISOString()
-    }).then(() => {
-      showToast(`Đã lưu báo cáo đảng phí ${kyBaoCao} cho ${tenDangBo}!`, "success");
-      inputTong.value = "";
-      inputTrucTuyen.value = "";
+      set(ref(database, "dang_phi/" + dbKey), {
+        ky_bao_cao: kyBaoCao,
+        ten_dang_bo: tenDangBo,
+        tong_dang_vien: tongDV,
+        nop_truc_tuyen: trucTuyenDV,
+        ngay_nop: new Date().toISOString(),
+      }).then(() => {
+        showToast(
+          `Đã lưu báo cáo đảng phí ${kyBaoCao} cho ${tenDangBo}!`,
+          "success",
+        );
+        inputTong.value = "";
+        inputTrucTuyen.value = "";
+      });
     });
-  });
 }
 
 const dbRefDangPhi = ref(database, "dang_phi");
@@ -847,7 +1011,9 @@ onValue(dbRefDangPhi, (snapshot) => {
 });
 
 if (document.getElementById("filter-dangphi-ky")) {
-  document.getElementById("filter-dangphi-ky").addEventListener("change", renderTableDangPhi);
+  document
+    .getElementById("filter-dangphi-ky")
+    .addEventListener("change", renderTableDangPhi);
 }
 
 function renderTableDangPhi() {
@@ -862,7 +1028,8 @@ function renderTableDangPhi() {
   }
 
   const thActions = document.getElementById("th-dangphi-actions");
-  if (thActions) thActions.style.setProperty("display", "table-cell", "important");
+  if (thActions)
+    thActions.style.setProperty("display", "table-cell", "important");
 
   let htmlContent = "";
   let indexSTT = 1;
@@ -876,9 +1043,10 @@ function renderTableDangPhi() {
       const trucTuyen = parseInt(item.nop_truc_tuyen || 0);
       const tyLe = tong > 0 ? ((trucTuyen / tong) * 100).toFixed(1) : "0.0";
 
-      const colHanhDong = currentRole === "admin"
-        ? `<button class="btn-delete-dangphi" data-key="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>`
-        : `<span style="color:#64748b; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-circle-check text-success"></i> Đã ghi sổ</span>`;
+      const colHanhDong =
+        currentRole === "admin"
+          ? `<button class="btn-delete-dangphi" data-key="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>`
+          : `<span style="color:#64748b; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-circle-check text-success"></i> Đã ghi sổ</span>`;
 
       htmlContent += `<tr style="border-bottom: 1px solid #dee2e6;">
           <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; color: #666; white-space: nowrap;">${indexSTT++}</td>
@@ -892,7 +1060,9 @@ function renderTableDangPhi() {
     }
   });
 
-  tableBody.innerHTML = htmlContent || `<tr><td colspan="7" style="text-align: center; padding: 15px; color: #999;">Không có dữ liệu cho kỳ báo cáo này.</td></tr>`;
+  tableBody.innerHTML =
+    htmlContent ||
+    `<tr><td colspan="7" style="text-align: center; padding: 15px; color: #999;">Không có dữ liệu cho kỳ báo cáo này.</td></tr>`;
 
   if (currentRole === "admin") {
     document.querySelectorAll(".btn-delete-dangphi").forEach((btn) => {
@@ -916,9 +1086,12 @@ function renderTableDangPhi() {
 function napDanhSachLookupSidebarTraCuu() {
   const lookupSelectDangBo = document.getElementById("lookup-dangphi-dangbo");
   if (lookupSelectDangBo) {
-    lookupSelectDangBo.innerHTML = '<option value="">-- Chọn Đảng bộ tra cứu --</option>';
-    const dsGocSapXep = [...new Set(danhSachDangBoGoc)].sort((a, b) => a.localeCompare(b, "vi"));
-    dsGocSapXep.forEach(ten => {
+    lookupSelectDangBo.innerHTML =
+      '<option value="">-- Chọn Đảng bộ tra cứu --</option>';
+    const dsGocSapXep = [...new Set(danhSachDangBoGoc)].sort((a, b) =>
+      a.localeCompare(b, "vi"),
+    );
+    dsGocSapXep.forEach((ten) => {
       const opt = document.createElement("option");
       opt.value = ten;
       opt.innerText = ten;
@@ -946,15 +1119,19 @@ function thuThiTraCuuDangPhiSidebar() {
   }
 
   let banGhiKhop = null;
-  Object.keys(thongTinDangPhiHienTai).forEach(key => {
+  Object.keys(thongTinDangPhiHienTai).forEach((key) => {
     const item = thongTinDangPhiHienTai[key];
-    if (item && item.ten_dang_bo === dangBoDuocChon && item.ky_bao_cao === kyDuocChon) {
+    if (
+      item &&
+      item.ten_dang_bo === dangBoDuocChon &&
+      item.ky_bao_cao === kyDuocChon
+    ) {
       banGhiKhop = item;
     }
   });
 
   if (!banGhiKhop) {
-    resultContainer.innerHTML = `<div style="border-left: 4px solid #ef4444; background: #fef2f2; padding: 12px; border-radius: 4px; font-size: 0.85rem; color: #991b1b; font-weight: 500;"><i class="fa-solid fa-circle-exclamation"></i> <strong>${dangBoDuocChon}</strong> chưa nạp số liệu báo cáo của <strong>${kyDuocChon}</strong>.</div>`;
+    resultContainer.innerHTML = `<div style="border-left: 4px solid #ef4444; background: #fef2f2; padding: 12px; border-radius: 4px; font-size: 0.85rem; color: #991b1b; font-weight: 500;"><i class="fa-solid fa-circle-exclamation"></i> <strong>${dangBoDuocChon}</strong> chưa nhập số liệu báo cáo của <strong>${kyDuocChon}</strong>.</div>`;
     chartHolder.style.display = "none";
     if (window.myChartDangPhiTron) window.myChartDangPhiTron.destroy();
     return;
@@ -965,7 +1142,8 @@ function thuThiTraCuuDangPhiSidebar() {
   const chuaNopTT = tongDV - nopTT;
 
   const tyLeNopTT = tongDV > 0 ? ((nopTT / tongDV) * 100).toFixed(1) : "0.0";
-  const tyLeChuaNopTT = tongDV > 0 ? ((chuaNopTT / tongDV) * 100).toFixed(1) : "0.0";
+  const tyLeChuaNopTT =
+    tongDV > 0 ? ((chuaNopTT / tongDV) * 100).toFixed(1) : "0.0";
 
   resultContainer.innerHTML = `<div style="display: flex; flex-direction: column; gap: 10px;">
       <div style="font-size: 0.85rem; background: #e6f2ff; padding: 8px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-weight: 600; color: #002855;">Đơn vị: <span style="color: #b71c1c;">${banGhiKhop.ten_dang_bo}</span></div>
@@ -982,9 +1160,29 @@ function thuThiTraCuuDangPhiSidebar() {
       type: "doughnut",
       data: {
         labels: ["Đã nộp trực tuyến (%)", "Chưa nộp trực tuyến (%)"],
-        datasets: [{ data: [tyLeNopTT, tyLeChuaNopTT], backgroundColor: ["#2e7d32", "#c62828"], borderColor: "#ffffff", borderWidth: 2 }]
+        datasets: [
+          {
+            data: [tyLeNopTT, tyLeChuaNopTT],
+            backgroundColor: ["#2e7d32", "#c62828"],
+            borderColor: "#ffffff",
+            borderWidth: 2,
+          },
+        ],
       },
-      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11, weight: "bold" }, padding: 10 } } } }
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: {
+              boxWidth: 12,
+              font: { size: 11, weight: "bold" },
+              padding: 10,
+            },
+          },
+        },
+      },
     });
   }
 }
