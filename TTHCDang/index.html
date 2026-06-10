@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="images/Codang.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tình hình triển khai TTHC của Đảng</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -12,38 +13,43 @@
 </head>
 
 <body>
-  <div class="user-status-bar" style="
-        background: #f8f9fa;
-        padding: 8px 20px;
-        border-bottom: 1px solid #dee2e6;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.9rem;
-      ">
-    <div>
-      <i class="fa-solid fa-user-shield"></i> Quyền:
-      <span id="current-role" style="font-weight: bold; color: #003366">Đang kiểm tra...</span>
-      (<span id="current-user">...</span>)
+  <header
+    style="background: #b71c1c; color: #ffffff; padding: 25px 24px; display: flex; justify-content: center; align-items: center; width: 100%; position: relative; min-height: 110px; box-sizing: border-box;">
+
+    <div
+      style="position: absolute; top: 12px; left: 24px; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #ffffff;">
+      TỈNH ỦY THÁI NGUYÊN
     </div>
-    <button id="btn-logout" style="
-          background: none;
-          border: none;
-          color: #dc3545;
-          cursor: pointer;
-          font-weight: bold;
-        ">
-      <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
-    </button>
-  </div>
 
-  <header class="main-header">
-    <h1>
-      TÌNH HÌNH TRIỂN KHAI<br />THỦ TỤC HÀNH CHÍNH CỦA ĐẢNG TRÊN MÔI TRƯỜNG
-      ĐIỆN TỬ
-    </h1>
+    <div style="text-align: center; width: 100%; max-width: 75%; margin-top: 10px;">
+      <h1
+        style="margin: 0; font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4;">
+        HỆ THỐNG TỔNG HỢP TÌNH HÌNH, KẾT QUẢ TRIỂN KHAI
+      </h1>
+      <h2
+        style="margin: 6px 0 0 0; font-size: 1.35rem; font-weight: 700; text-transform: uppercase; color: #ffc107; letter-spacing: 0.5px; line-height: 1.4;">
+        CÁC THỦ TỤC HÀNH CHÍNH CỦA ĐẢNG TRÊN MÔI TRƯỜNG ĐIỆN TỬ
+      </h2>
+    </div>
+
+    <div id="btn-logout" class="user-header-block" title="Nhấn vào đây để Đăng xuất tài khoản"
+      style="position: absolute; bottom: 12px; right: 24px; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s ease; user-select: none;">
+      <i class="fa-solid fa-circle-user" style="font-size: 1.05rem; color: #ffc107;"></i>
+      <span id="current-role" style="font-weight: bold; color: #ffc107;">Đang kiểm tra...</span>:
+      <strong id="current-user" style="color: #ffffff; font-weight: 600;">...</strong>
+      <i class="fa-solid fa-right-from-bracket"
+        style="font-size: 0.8rem; color: #ffeb3b; margin-left: 4px; opacity: 0.7;"></i>
+    </div>
+
+    <style>
+      .user-header-block:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-color: rgba(255, 255, 255, 0.4) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      }
+    </style>
+
   </header>
-
   <main class="container">
     <section class="left-panel">
       <div id="sidebar-dashboard-kehoach" class="panel-card">
@@ -130,11 +136,7 @@
             <label
               style="font-size: 0.78rem; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">Chọn Kỳ
               báo cáo:</label>
-            <select id="lookup-dangphi-ky"
-              style="padding: 6px; font-size: 0.82rem; font-weight: bold; background: #fff3cd;">
-              <option value="Tháng 4/2026">Tháng 4/2026</option>
-              <option value="Tháng 5/2026">Tháng 5/2026</option>
-              <option value="Tháng 6/2026">Tháng 6/2026</option>
+            <select id="lookup-dangphi-ky" style="width: 100%;">
             </select>
           </div>
         </div>
@@ -173,35 +175,35 @@
         <div id="tab-ke-hoach" class="tab-content active">
           <form id="form-ke-hoach">
             <div class="form-group">
-              <label for="ten-dang-bo">Tên đảng bộ:</label>
-              <select id="ten-dang-bo" required>
-                <option value="">-- Chọn đảng bộ trực thuộc --</option>
+              <label for="kehoach-ten-dang-bo"><i class="fa-solid fa-landmark"></i> Tên Đảng bộ:</label>
+              <select id="kehoach-ten-dang-bo" required>
+                <option value="">-- Chọn Đảng bộ / Đơn vị --</option>
               </select>
             </div>
 
             <div class="form-group">
-              <label>Ban hành Kế hoạch:</label>
-              <div class="radio-group">
-                <label class="radio-label"><input type="radio" name="trang-thai-kh" value="co" required />
-                  Có ban hành</label>
-                <label class="radio-label"><input type="radio" name="trang-thai-kh" value="khong" />
-                  Không ban hành</label>
-              </div>
+              <label for="kehoach-trang-thai"><i class="fa-solid fa-toggle-on"></i> Ban hành Kế hoạch:</label>
+              <select id="kehoach-trang-thai" required onchange="handleTrangThaiKeHoachChange()">
+                <option value="Có ban hành">Có ban hành</option>
+                <option value="Không ban hành">Không ban hành</option>
+              </select>
             </div>
 
             <div class="form-group">
-              <label for="so-hieu">Số hiệu văn bản:</label>
-              <input type="text" id="so-hieu" placeholder="Nhập số hiệu kế hoạch..." />
+              <label for="kehoach-so-ky-hieu">Số, ký hiệu văn bản:</label>
+              <input type="text" id="kehoach-so-ky-hieu" placeholder="Ví dụ: 123-KH/TU" required />
             </div>
 
             <div class="form-group">
-              <label for="ngay-ban-hanh">Ngày văn bản:</label>
-              <input type="date" id="ngay-ban-hanh" />
+              <label for="kehoach-ngay-ban-hanh">Ngày ban hành:</label>
+              <input type="date" id="kehoach-ngay-ban-hanh" required />
             </div>
 
-            <button type="submit" id="btn-save-kehoach" class="btn-submit">
-              <i class="fa-solid fa-floppy-disk"></i> LƯU DỮ LIỆU
-            </button>
+            <div class="form-actions" id="kehoach-btn-holder" style="margin-top: 20px;">
+              <button type="submit" class="btn-submit">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu báo cáo Kế hoạch
+              </button>
+            </div>
           </form>
         </div>
 
@@ -500,102 +502,38 @@
               <i class="fa-solid fa-file-invoice-dollar"></i> KHAI BÁO BÁO CÁO
               THU NỘP ĐẢNG PHÍ
             </h4>
+            <form id="form-dangphi-new" style="display: flex; flex-direction: column; gap: 15px;">
+              <div class="form-row-flex" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                  <label for="select-dangphi-ky">Kỳ báo cáo:</label>
+                  <select id="select-dangphi-ky" style="width: 100%;" required>
+                  </select>
+                </div>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                  <label for="select-dangphi-dangbo">Tên đảng bộ / Đơn vị:</label>
+                  <select id="select-dangphi-dangbo" style="width: 100%;" required>
+                    <option value="">-- Chọn đảng bộ trực thuộc --</option>
+                  </select>
+                </div>
+              </div>
 
-            <form id="form-dangphi-new">
-              <div style="
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-                    gap: 15px;
-                    margin-bottom: 15px;
-                  ">
-                <div>
-                  <label style="
-                        display: block;
-                        font-size: 0.8rem;
-                        font-weight: bold;
-                        margin-bottom: 4px;
-                        color: #555;
-                      ">Kỳ báo cáo (*):</label>
-                  <select id="select-dangphi-ky" required style="
-                        width: 100%;
-                        padding: 8px;
-                        border: 1px solid #ced4da;
-                        border-radius: 4px;
-                        font-size: 0.85rem;
-                        font-weight: bold;
-                        background: #fff3cd;
-                      ">
-                    <option value="Tháng 4/2026">Tháng 4/2026</option>
-                    <option value="Tháng 5/2026">Tháng 5/2026</option>
-                    <option value="Tháng 6/2026">Tháng 6/2026</option>
-                  </select>
+              <div class="form-row-flex" style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                  <label for="input-dangphi-tong">Tổng số đảng viên của đảng bộ:</label>
+                  <input type="number" id="input-dangphi-tong" min="0" required placeholder="Nhập tổng số ĐV"
+                    style="width: 100%;">
                 </div>
-                <div>
-                  <label style="
-                        display: block;
-                        font-size: 0.8rem;
-                        font-weight: bold;
-                        margin-bottom: 4px;
-                        color: #555;
-                      "></label>Tên Đảng bộ (Chưa báo cáo kỳ này):
-                  <select id="select-dangphi-dangbo" required style="
-                        width: 100%;
-                        padding: 8px;
-                        border: 1px solid #ced4da;
-                        border-radius: 4px;
-                        font-size: 0.85rem;
-                      ">
-                    <option value="">
-                      -- Đang tính toán danh sách... --
-                    </option>
-                  </select>
-                </div>
-                <div>
-                  <label style="
-                        display: block;
-                        font-size: 0.8rem;
-                        font-weight: bold;
-                        margin-bottom: 4px;
-                        color: #555;
-                      ">Tổng số đảng viên của Đảng bộ:</label>
-                  <input type="number" id="input-dangphi-tong" min="0" required placeholder="Nhập tổng số đảng viên..."
-                    style="
-                        width: 100%;
-                        padding: 8px;
-                        border: 1px solid #ced4da;
-                        border-radius: 4px;
-                        font-size: 0.85rem;
-                      " />
-                </div>
-                <div>
-                  <label style="
-                        display: block;
-                        font-size: 0.8rem;
-                        font-weight: bold;
-                        margin-bottom: 4px;
-                        color: #555;
-                      ">Số đảng viên nộp trực tuyến:</label>
+                <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                  <label for="input-dangphi-tructuyen">Tổng số đảng viên nộp trực tuyến:</label>
                   <input type="number" id="input-dangphi-tructuyen" min="0" required
-                    placeholder="Nhập số nộp trực tuyến..." style="
-                        width: 100%;
-                        padding: 8px;
-                        border: 1px solid #ced4da;
-                        border-radius: 4px;
-                        font-size: 0.85rem;
-                      " />
+                    placeholder="Nhập số ĐV nộp trực tuyến" style="width: 100%;">
                 </div>
               </div>
-              <div style="text-align: right">
-                <button type="submit" class="btn-submit" style="
-                      width: auto;
-                      margin: 0;
-                      padding: 8px 25px;
-                      background-color: #003366;
-                      font-size: 0.85rem;
-                    ">
-                  <i class="fa-solid fa-cloud-arrow-up"></i> Gửi Báo Cáo
-                </button>
-              </div>
+
+              <button type="submit" class="btn-submit" style="margin-top: 5px; width: 100%;">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Ghi sổ số liệu Đảng phí
+              </button>
+            </form>
             </form>
           </div>
 
@@ -616,17 +554,8 @@
                 DANH SÁCH CHI TIẾT ĐƠN VỊ
                 ĐÃ BÁO CÁO</span>
               <div>
-                <label style="font-size: 0.8rem; font-weight: bold; color: #555">Lọc xem theo Kỳ:</label>
-                <select id="filter-dangphi-ky" style="
-                      padding: 4px 8px;
-                      border: 1px solid #ced4da;
-                      border-radius: 4px;
-                      font-size: 0.8rem;
-                      font-weight: bold;
-                    ">
-                  <option value="Tháng 4/2026">Tháng 4/2026</option>
-                  <option value="Tháng 5/2026">Tháng 5/2026</option>
-                  <option value="Tháng 6/2026">Tháng 6/2026</option>
+                <label style="font-size: 0.8rem; font-weight: bold; color: #555">Lọc xem theo kỳ:</label>
+                <select id="filter-dangphi-ky" style="width: auto;">
                 </select>
               </div>
             </div>

@@ -65,37 +65,32 @@ body {
   text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* --- CẤU TRÚC PHÂN CHIA TỶ LỆ KHUNG HÌNH VÀNG MỚI (TRÀN MÀN HÌNH CHUẨN) --- */
+/* --- GIỮ NGUYÊN KHUNG CHA FULL CHIỀU NGANG --- */
 .container {
   display: flex;
   gap: 24px;
-  /* Khoảng cách giữa 2 panel thông thoáng */
   padding: 24px;
   width: 100% !important;
-  /* Ép tràn 100% chiều ngang màn hình */
   max-width: 100% !important;
-  /* Loại bỏ khoảng trắng bó hẹp 2 bên */
   flex: 1;
 }
 
-/* Khung bên trái (Dashboard Thống kê & Biểu đồ): Đã được mở rộng bề thế */
+/* --- ĐIỀU CHỈNH TỶ LỆ 35% CHO KHUNG BÊN TRÁI --- */
 .left-panel {
-  flex: 0 0 30%;
-  /* Chiếm chính xác 30% chiều ngang màn hình máy tính */
-  min-width: 400px;
-  /* Khóa chiều rộng tối thiểu 400px để biểu đồ và ô số luôn đẹp */
+  flex: 0 0 35%;
+  /* Không cho co, không cho giãn, ép cố định tỷ lệ 35% */
+  max-width: 35%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
-/* Khung bên phải (Tabs nội dung và bảng dữ liệu lớn) */
+/* --- ĐIỀU CHỈNH TỶ LỆ 65% CHO KHUNG BÊN PHẢI --- */
 .right-panel {
-  flex: 1;
-  /* Tự động chiếm trọn 70% không gian bao la còn lại */
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+  flex: 0 0 65%;
+  /* Không cho co, không cho giãn, ép cố định tỷ lệ 65% */
+  max-width: 65%;
+  /* Các thuộc tính style css khác bên trong anh cứ giữ nguyên nhé */
 }
 
 /* --- HỆ THỐNG THẺ CARD PHẲNG (FLAT PANELS) --- */
