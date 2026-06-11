@@ -10,6 +10,75 @@
   <link rel="stylesheet" href="style.css?v=1.1" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* CSS nhúng bổ trợ bộ lọc Dropdown có ô tìm kiếm động */
+    .searchable-dropdown {
+      position: relative;
+      width: 100%;
+    }
+
+    .dropdown-select-box {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    .dropdown-menu-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: #fff;
+      border: 1px solid #dee2e6;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      box-sizing: border-box;
+    }
+
+    .dropdown-search-input {
+      width: calc(100% - 16px);
+      margin: 8px;
+      padding: 8px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    .dropdown-options-container {
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .dropdown-item-option {
+      padding: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #f8f9fa;
+      color: #333;
+      text-align: left;
+    }
+
+    .dropdown-item-option:hover {
+      background: #f8f9fa;
+      color: #b71c1c;
+      font-weight: bold;
+    }
+  </style>
 </head>
 
 <body>
@@ -35,11 +104,12 @@
     <div id="btn-logout" class="user-header-block" title="Nhấn vào đây để Đăng xuất tài khoản"
       style="position: absolute; bottom: 12px; right: 24px; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s ease; user-select: none;">
       <i class="fa-solid fa-circle-user" style="font-size: 1.05rem; color: #ffc107;"></i>
-      <span id="current-role" style="font-weight: bold; color: #ffc107;">Đang kiểm tra...</span>:
       <strong id="current-user" style="color: #ffffff; font-weight: 600;">...</strong>
       <i class="fa-solid fa-right-from-bracket"
         style="font-size: 0.8rem; color: #ffeb3b; margin-left: 4px; opacity: 0.7;"></i>
     </div>
+
+    <span id="current-role" style="display: none !important;"></span>
 
     <style>
       .user-header-block:hover {
@@ -79,8 +149,7 @@
 
         <div class="detail-section">
           <h3>
-            <i class="fa-solid fa-circle-exclamation text-danger"></i> Chưa
-            ban hành / Chưa báo cáo
+            <i class="fa-solid fa-circle-exclamation text-danger"></i> Chưa ban hành / Chưa báo cáo
           </h3>
           <div id="list-chua-ban-hanh" class="data-list-box">
             <span class="loading-text">Đang tải dữ liệu...</span>
@@ -100,8 +169,7 @@
                 color: #28a745;
                 margin-bottom: 8px;
               ">
-            <i class="fa-solid fa-arrow-trend-up"></i> 5 đơn vị dẫn đầu (Số
-            người)
+            <i class="fa-solid fa-arrow-trend-up"></i> 5 đơn vị dẫn đầu (Số người)
           </p>
           <canvas id="chartTopHigh"></canvas>
         </div>
@@ -113,8 +181,7 @@
                 color: #dc3545;
                 margin-bottom: 8px;
               ">
-            <i class="fa-solid fa-arrow-trend-down"></i> 5 đơn vị thấp nhất
-            (Số người)
+            <i class="fa-solid fa-arrow-trend-down"></i> 5 đơn vị thấp nhất (Số người)
           </p>
           <canvas id="chartTopLow"></canvas>
         </div>
@@ -174,11 +241,10 @@
       <div class="tab-content-container">
         <div id="tab-ke-hoach" class="tab-content active">
           <form id="form-ke-hoach">
-            <div class="form-group">
-              <label for="kehoach-ten-dang-bo"><i class="fa-solid fa-landmark"></i> Tên Đảng bộ:</label>
-              <select id="kehoach-ten-dang-bo" required>
-                <option value="">-- Chọn Đảng bộ / Đơn vị --</option>
-              </select>
+            <div class="form-group" style="position: relative;">
+              <label><i class="fa-solid fa-landmark"></i> Tên Đảng bộ:</label>
+              <div class="searchable-dropdown" id="dropdown-kehoach-box"></div>
+              <input type="hidden" id="kehoach-ten-dang-bo">
             </div>
 
             <div class="form-group">
@@ -509,11 +575,10 @@
                   <select id="select-dangphi-ky" style="width: 100%;" required>
                   </select>
                 </div>
-                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                  <label for="select-dangphi-dangbo">Tên đảng bộ / Đơn vị:</label>
-                  <select id="select-dangphi-dangbo" style="width: 100%;" required>
-                    <option value="">-- Chọn đảng bộ trực thuộc --</option>
-                  </select>
+                <div class="form-group" style="flex: 1; margin-bottom: 0; position: relative;">
+                  <label>Tên đảng bộ / Đơn vị:</label>
+                  <div class="searchable-dropdown" id="dropdown-dangphi-box"></div>
+                  <input type="hidden" id="select-dangphi-dangbo">
                 </div>
               </div>
 
@@ -534,7 +599,6 @@
                 <i class="fa-solid fa-cloud-arrow-up"></i> Ghi sổ số liệu Đảng phí
               </button>
             </form>
-            </form>
           </div>
 
           <div style="
@@ -552,7 +616,7 @@
                 ">
               <span style="font-weight: bold; color: #003366; font-size: 0.85rem"><i class="fa-solid fa-list-ol"></i>
                 DANH SÁCH CHI TIẾT ĐƠN VỊ
-                ĐÃ BÁO CÁO</span>
+                ĐÃ BÁO CÁO</span>
               <div>
                 <label style="font-size: 0.8rem; font-weight: bold; color: #555">Lọc xem theo kỳ:</label>
                 <select id="filter-dangphi-ky" style="width: auto;">
@@ -660,7 +724,7 @@
                   color: #003366;
                   font-weight: bold;
                 ">
-              <i class="fa-solid fa-sitemap"></i> QUẢN LÝ DANH MỤC ĐẢNG BỘ ĐƠW
+              <i class="fa-solid fa-sitemap"></i> QUẢN LÝ DANH MỤC ĐẢNG BỘ ĐƠN
               VỊ
             </h3>
 

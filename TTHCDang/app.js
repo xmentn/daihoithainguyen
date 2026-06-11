@@ -54,6 +54,91 @@ if (typeof window.myChartDangPhiTron === "undefined")
   window.myChartDangPhiTron = null;
 
 // ========================================================
+// --- BỘ LỌC SEARCHABLE DROPDOWN ĐỘNG THỜI GIAN THỰC ---
+// ========================================================
+function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsList) {
+  const container = document.getElementById(containerId);
+  const hiddenInput = document.getElementById(hiddenInputId);
+  if (!container || !hiddenInput) return;
+
+  container.innerHTML = `
+    <div class="dropdown-select-box">
+      <span class="selected-text" style="color: #666;">${hiddenInput.value || placeholder}</span>
+      <i class="fa-solid fa-chevron-down" style="font-size:0.8rem; color:#999;"></i>
+    </div>
+    <div class="dropdown-menu-list">
+      <input type="text" class="dropdown-search-input" placeholder="Gõ từ khóa để tìm kiếm nhanh...">
+      <div class="dropdown-options-container"></div>
+    </div>
+  `;
+
+  const selectBox = container.querySelector(".dropdown-select-box");
+  const menuList = container.querySelector(".dropdown-menu-list");
+  const searchInput = container.querySelector(".dropdown-search-input");
+  const optionsContainer = container.querySelector(".dropdown-options-container");
+  const selectedText = container.querySelector(".selected-text");
+
+  if (hiddenInput.value) {
+    selectedText.style.color = "#333";
+    selectedText.style.fontWeight = "600";
+  }
+
+  function renderOptions(filteredItems) {
+    optionsContainer.innerHTML = "";
+    if (filteredItems.length === 0) {
+      optionsContainer.innerHTML = `<div class="dropdown-item-option no-result" style="padding: 10px; color: #999; font-style: italic; text-align: center;">Không tìm thấy đơn vị phù hợp</div>`;
+      return;
+    }
+    filteredItems.forEach(item => {
+      const optionDiv = document.createElement("div");
+      optionDiv.className = "dropdown-item-option";
+      optionDiv.innerText = item;
+
+      optionDiv.addEventListener("click", (e) => {
+        e.stopPropagation();
+        selectedText.innerText = item;
+        selectedText.style.color = "#333";
+        selectedText.style.fontWeight = "600";
+        hiddenInput.value = item;
+        menuList.style.display = "none";
+        hiddenInput.dispatchEvent(new Event("change"));
+      });
+      optionsContainer.appendChild(optionDiv);
+    });
+  }
+
+  renderOptions(itemsList);
+
+  selectBox.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isVisible = menuList.style.display === "block";
+    document.querySelectorAll(".dropdown-menu-list").forEach(el => el.style.display = "none");
+    menuList.style.display = isVisible ? "none" : "block";
+    if (!isVisible) {
+      searchInput.value = "";
+      renderOptions(itemsList);
+      setTimeout(() => searchInput.focus(), 50);
+    }
+  });
+
+  searchInput.addEventListener("click", (e) => e.stopPropagation());
+
+  searchInput.addEventListener("input", () => {
+    const keyword = searchInput.value.toLowerCase().trim();
+    const filtered = itemsList.filter(item => {
+      const cleanItem = item.toLowerCase().normalize("NCD").replace(/[\u0300-\u036f]/g, "");
+      const cleanKeyword = keyword.normalize("NCD").replace(/[\u0300-\u036f]/g, "");
+      return item.toLowerCase().includes(keyword) || cleanItem.includes(cleanKeyword);
+    });
+    renderOptions(filtered);
+  });
+}
+
+document.addEventListener("click", () => {
+  document.querySelectorAll(".dropdown-menu-list").forEach(el => el.style.display = "none");
+});
+
+// ========================================================
 // --- TỰ ĐỘNG SINH KỲ BÁO CÁO ĐỘNG THEO THỜI GIAN THỰC ---
 // ========================================================
 function khoiTaoKyBaoCaoTuDong() {
@@ -115,15 +200,16 @@ function kiemTraThoiGianBaoQuen() {
   }
 }
 
-// --- 1. XÁC THỰC TRẠNG THÁI & PHÂN QUYỀN ĐĂNG NHẬP ---
+// --- 1. XÁC THỰC TRẠNG THÁI & PHÂN QUYỀN ĐĂNG NHẬP (SỬA LỖI HIỂN THỊ ACCOUNT) ---
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";
   } else {
-    // Đổ thông tin Email vào thẻ ID bám trên Header đỏ mới
     if (document.getElementById("current-user")) {
       document.getElementById("current-user").innerText = user.email;
     }
+
+    // Đọc chính xác vai trò từ hệ thống phiên
     currentRole = sessionStorage.getItem("userRole") || "user";
 
     const navQuanTriBtn =
@@ -132,7 +218,7 @@ onAuthStateChanged(auth, (user) => {
 
     if (currentRole === "admin") {
       if (document.getElementById("current-role")) {
-        document.getElementById("current-role").innerText = "Quản trị viên";
+        document.getElementById("current-role").innerText = "admin";
       }
       if (navQuanTriBtn)
         navQuanTriBtn.style.setProperty("display", "block", "important");
@@ -142,7 +228,7 @@ onAuthStateChanged(auth, (user) => {
           .style.setProperty("display", "block", "important");
     } else {
       if (document.getElementById("current-role")) {
-        document.getElementById("current-role").innerText = "Đơn vị cơ sở";
+        document.getElementById("current-role").innerText = "user";
       }
       if (navQuanTriBtn)
         navQuanTriBtn.style.setProperty("display", "none", "important");
@@ -152,9 +238,7 @@ onAuthStateChanged(auth, (user) => {
           .style.setProperty("display", "none", "important");
     }
 
-    const selDangBo = document.getElementById("kehoach-ten-dang-bo");
     const selTrangThai = document.getElementById("kehoach-trang-thai");
-    if (selDangBo) selDangBo.disabled = false;
     if (selTrangThai) selTrangThai.disabled = false;
 
     if (typeof window.handleTrangThaiKeHoachChange === "function") {
@@ -181,7 +265,6 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-// Gán sự kiện cho ID nút đăng xuất nằm gọn trên Header đỏ
 if (document.getElementById("btn-logout")) {
   document.getElementById("btn-logout").addEventListener("click", () => {
     signOut(auth).then(() => {
@@ -191,7 +274,7 @@ if (document.getElementById("btn-logout")) {
   });
 }
 
-// --- 2. LUỒNG ĐIỀU HƯỚNG TABS & HOÁN ĐỔI SIDEBAR DASHBOARD ---
+// --- 2. LUỒNG ĐIỀU HƯỚNG TABS (SỬA LỖI LIỆT CHUYỂN TAB) ---
 window.switchTab = function (evt, tabId) {
   const tabContents = document.getElementsByClassName("tab-content");
   for (let content of tabContents) {
@@ -211,17 +294,16 @@ window.switchTab = function (evt, tabId) {
     evt.currentTarget.classList.add("active");
   }
 
-  const allLeftCards = document.querySelectorAll(".left-panel .panel-card");
-  allLeftCards.forEach((card) => {
-    card.style.setProperty("display", "none", "important");
-  });
-
+  // Ẩn tất cả các Sidebar Dashboard trước
+  const dashboardKeHoach = document.getElementById("sidebar-dashboard-kehoach");
   const dashboardTapHuan = document.getElementById("sidebar-dashboard-taphuan");
   const dashboardDangPhi = document.getElementById("sidebar-dashboard-dangphi");
-  const firstLeftCard = document.querySelector(
-    ".left-panel .panel-card:first-child",
-  );
 
+  if (dashboardKeHoach) dashboardKeHoach.style.setProperty("display", "none", "important");
+  if (dashboardTapHuan) dashboardTapHuan.style.setProperty("display", "none", "important");
+  if (dashboardDangPhi) dashboardDangPhi.style.setProperty("display", "none", "important");
+
+  // Hiển thị Sidebar tương ứng với Tab được chọn công tác
   if (tabId === "tab-tap-huan") {
     if (dashboardTapHuan)
       dashboardTapHuan.style.setProperty("display", "block", "important");
@@ -231,8 +313,8 @@ window.switchTab = function (evt, tabId) {
       thuThiTraCuuDangPhiSidebar();
     }
   } else {
-    if (firstLeftCard)
-      firstLeftCard.style.setProperty("display", "block", "important");
+    if (dashboardKeHoach)
+      dashboardKeHoach.style.setProperty("display", "block", "important");
   }
 };
 
@@ -240,12 +322,8 @@ window.switchTab = function (evt, tabId) {
 const dbRefDangBoGoc = ref(database, "danhmuc_dangbo");
 onValue(dbRefDangBoGoc, (snapshot) => {
   danhSachDangBoGoc = [];
-  const selectDangBo = document.getElementById("ten-dang-bo");
   const adminDangBoList = document.getElementById("admin-dangbo-list");
 
-  if (selectDangBo)
-    selectDangBo.innerHTML =
-      '<option value="">-- Chọn đảng bộ trực thuộc --</option>';
   if (adminDangBoList) adminDangBoList.innerHTML = "";
 
   const data = snapshot.val();
@@ -255,18 +333,11 @@ onValue(dbRefDangBoGoc, (snapshot) => {
       if (db.ten && db.ten !== "undefined" && db.ten.trim() !== "") {
         danhSachDangBoGoc.push(db.ten.trim());
 
-        if (selectDangBo) {
-          const option = document.createElement("option");
-          option.value = db.ten;
-          option.innerText = db.ten;
-          selectDangBo.appendChild(option);
-        }
-
         if (adminDangBoList) {
           const itemDiv = document.createElement("div");
           itemDiv.className = "data-item";
           itemDiv.style.cssText =
-            "display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #eee;";
+            "display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #eee; align-items:center;";
           itemDiv.innerHTML = `<span>${db.ten}</span>${currentRole === "admin" ? `<button class="btn-delete-dangbo" data-id="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer;"><i class="fa-solid fa-trash-can"></i> Xóa</button>` : ""}`;
           adminDangBoList.appendChild(itemDiv);
         }
@@ -283,6 +354,9 @@ onValue(dbRefDangBoGoc, (snapshot) => {
     });
   }
 
+  danhSachDangBoGoc.sort((a, b) => a.localeCompare(b, "vi"));
+
+  // Khởi chạy đồng bộ hóa dữ liệu danh mục lên các hộp tìm kiếm động
   tinhToanThongKeKeHoach();
   capNhatDropdownDangBoChuaTapHuan();
   capNhatDropdownDangBoTabKeHoach();
@@ -345,7 +419,7 @@ if (document.getElementById("btn-import-excel")) {
   });
 }
 
-// --- 4. HÀM LỌC DROPDOWN ĐẢNG BỘ CHƯA TẬP HUÂN ---
+// --- 4. HÀM LỌC DROPDOWN ĐẢNG BỘ CHƯA TẬP HUÂN (GIỮ LÀM DROPDOWN CHUẨN) ---
 function capNhatDropdownDangBoChuaTapHuan() {
   const selectDropdown = document.getElementById("select-taphuan-dangbo");
   if (!selectDropdown) return;
@@ -473,14 +547,13 @@ onValue(dbRefTapHuan, (snapshot) => {
         <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${item.ten_dang_bo}</strong></td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #003366; font-size: 0.95rem;">${item.so_nguoi_tham_gia}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;"><span style="${badgeStyle}">${item.trang_thai}</span></td>
-        ${
-          currentRole === "admin"
-            ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
+        ${currentRole === "admin"
+        ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
             <button class="btn-edit-taphuan" data-name="${item.ten_dang_bo}" data-count="${item.so_nguoi_tham_gia}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
             <button class="btn-delete-taphuan" data-key="${safeKey}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
         </td>`
-            : ""
-        }</tr>`;
+        : ""
+      }</tr>`;
   });
 
   if (htmlContent && tableBody) {
@@ -491,6 +564,17 @@ onValue(dbRefTapHuan, (snapshot) => {
       </tr>`;
     tableBody.innerHTML = htmlContent;
   }
+
+  // Gán bộ lắng nghe click cho tính năng Sửa nhanh của Admin
+  document.querySelectorAll(".btn-edit-taphuan").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const name = e.currentTarget.getAttribute("data-name");
+      const count = e.currentTarget.getAttribute("data-count");
+      document.getElementById("edit-taphuan-name").value = name;
+      document.getElementById("edit-taphuan-count").value = count;
+      document.getElementById("form-edit-taphuan-container").style.display = "block";
+    });
+  });
 
   const dsCaoNhat = [...listDashboard]
     .sort((a, b) => b.soNguoi - a.soNguoi)
@@ -552,6 +636,24 @@ onValue(dbRefTapHuan, (snapshot) => {
     });
   }
 });
+
+if (currentRole === "admin") {
+  document.body.addEventListener("click", (e) => {
+    if (e.target.classList.contains("btn-delete-taphuan")) {
+      const keyXoa = e.target.getAttribute("data-key");
+      Swal.fire({
+        title: "Xác nhận xóa?",
+        text: "Số liệu tập huấn đơn vị này sẽ bị gỡ bỏ!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc3545",
+        confirmButtonText: "Xóa"
+      }).then((result) => {
+        if (result.isConfirmed) remove(ref(database, "tap_huan/" + keyXoa));
+      });
+    }
+  });
+}
 
 if (document.getElementById("btn-import-taphuan")) {
   document
@@ -650,7 +752,31 @@ if (document.getElementById("btn-save-edit-taphuan")) {
     });
 }
 
-// --- 6. QUẢN LÝ TIẾN ĐỘ BAN HÀNH KẾ HOẠCH CÔNG TÁC ---
+// --- 6. QUẢN LÝ TIẾN ĐỘ BAN HÀNH KẾ HOẠCH CÔNG TÁC (TÌM KIẾM ĐỘNG CHUẨN XÁC) ---
+function capNhatDropdownDangBoTabKeHoach() {
+  const danhSachDaNopKeHoach = [];
+  if (thongTinKeHoachHienTai) {
+    Object.keys(thongTinKeHoachHienTai).forEach((key) => {
+      if (
+        thongTinKeHoachHienTai[key] &&
+        thongTinKeHoachHienTai[key].ten_dang_bo
+      ) {
+        danhSachDaNopKeHoach.push(
+          thongTinKeHoachHienTai[key].ten_dang_bo.trim().toLowerCase(),
+        );
+      }
+    });
+  }
+
+  const dsChuaNop = danhSachDangBoGoc.filter(
+    (tenDonVi) => !danhSachDaNopKeHoach.includes(tenDonVi.trim().toLowerCase()),
+  );
+  dsChuaNop.sort((a, b) => a.localeCompare(b, "vi"));
+
+  // Đổ mảng dữ liệu hành chính vào ô tìm kiếm động của Tab Kế hoạch
+  initSearchableDropdown("dropdown-kehoach-box", "kehoach-ten-dang-bo", "-- Gõ từ khóa để tìm Đảng bộ ban hành kế hoạch --", dsChuaNop);
+}
+
 const formKeHoach = document.getElementById("form-ke-hoach");
 if (formKeHoach) {
   formKeHoach.addEventListener("submit", (e) => {
@@ -663,7 +789,7 @@ if (formKeHoach) {
       document.getElementById("kehoach-ngay-ban-hanh").value || "Chưa nhập";
 
     if (!tenDangBo) {
-      showToast("Vui lòng chọn Tên Đảng bộ trước khi lưu!", "warning");
+      showToast("Vui lòng tra cứu chọn Tên Đảng bộ trước khi lưu!", "warning");
       return;
     }
 
@@ -682,6 +808,8 @@ if (formKeHoach) {
     ).then(() => {
       showToast("Cập nhật dữ liệu kế hoạch thành công!", "success");
       formKeHoach.reset();
+      document.getElementById("kehoach-ten-dang-bo").value = "";
+      capNhatDropdownDangBoTabKeHoach();
       if (typeof window.handleTrangThaiKeHoachChange === "function")
         window.handleTrangThaiKeHoachChange();
     });
@@ -738,40 +866,6 @@ onValue(dbRefKeHoach, (snapshot) => {
   capNhatDropdownDangBoTabKeHoach();
 });
 
-function capNhatDropdownDangBoTabKeHoach() {
-  const selectKeHoachDangBo = document.getElementById("kehoach-ten-dang-bo");
-  if (!selectKeHoachDangBo) return;
-
-  const danhSachDaNopKeHoach = [];
-  if (thongTinKeHoachHienTai) {
-    Object.keys(thongTinKeHoachHienTai).forEach((key) => {
-      if (
-        thongTinKeHoachHienTai[key] &&
-        thongTinKeHoachHienTai[key].ten_dang_bo
-      ) {
-        danhSachDaNopKeHoach.push(
-          thongTinKeHoachHienTai[key].ten_dang_bo.trim().toLowerCase(),
-        );
-      }
-    });
-  }
-
-  const dsChuaNop = danhSachDangBoGoc.filter(
-    (tenDonVi) => !danhSachDaNopKeHoach.includes(tenDonVi.trim().toLowerCase()),
-  );
-
-  selectKeHoachDangBo.innerHTML =
-    '<option value="">-- Chọn Đảng bộ / Đơn vị --</option>';
-  dsChuaNop
-    .sort((a, b) => a.localeCompare(b, "vi"))
-    .forEach((ten) => {
-      const opt = document.createElement("option");
-      opt.value = ten;
-      opt.innerText = ten;
-      selectKeHoachDangBo.appendChild(opt);
-    });
-}
-
 window.handleTrangThaiKeHoachChange = function () {
   const trangThai = document.getElementById("kehoach-trang-thai").value;
   const inputSoKyHieu = document.getElementById("kehoach-so-ky-hieu");
@@ -826,10 +920,6 @@ onValue(dbRefUsers, (snapshot) => {
       itemDiv.className = "data-item";
       itemDiv.style.cssText =
         "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee; align-items:center;";
-      const roleBadge =
-        u.role === "admin"
-          ? '<span style="background:#fff3cd; color:#856404; padding:2px 6px; border-radius:3px; font-size:0.75rem; font-weight:bold;">Admin</span>'
-          : '<span style="background:#e2e3e5; color:#383d41; padding:2px 6px; border-radius:3px; font-size:0.75rem;">User</span>';
       itemDiv.innerHTML = `<div><strong>${u.role === "admin" ? "Quản trị viên" : "Đơn vị cơ sở"}: ${u.email}</strong><br><small style="color:#6c757d; font-size:0.75rem;">UID: ${uid}</small></div>
         <div><button class="btn-edit-user" data-uid="${uid}" data-email="${u.email}" data-role="${u.role}" style="background:none; border:none; color:#003366; cursor:pointer; margin-right:10px;"><i class="fa-solid fa-user-pen"></i> Sửa</button>
         <button class="btn-delete-user" data-uid="${uid}" style="background:none; border:none; color:#dc3545; cursor:pointer;"><i class="fa-solid fa-user-minus"></i> Xóa</button></div>`;
@@ -901,12 +991,11 @@ if (document.getElementById("form-manage-user")) {
 }
 
 // ========================================================
-// --- 8. QUẢN LÝ THỦ TỤC: THU NỘP ĐẢNG PHÍ TRỰC TUYẾN ---
+// --- 8. QUẢN LÝ THỦ TỤC: THU NỘP ĐẢNG PHÍ TRỰC TUYẾN (TÌM KIẾM ĐỘNG CHUẨN XÁC) ---
 // ========================================================
 function capNhatDropdownDangBoChuaNopDangPhi() {
-  const selectDangBoDP = document.getElementById("select-dangphi-dangbo");
   const selectKyDP = document.getElementById("select-dangphi-ky");
-  if (!selectDangBoDP || !selectKyDP) return;
+  if (!selectKyDP) return;
 
   const kyDuocChon = selectKyDP.value;
   const danhSachGocChuan = [...new Set(danhSachDangBoGoc)].filter(
@@ -924,28 +1013,10 @@ function capNhatDropdownDangBoChuaNopDangPhi() {
   const danhSachChuaNop = danhSachGocChuan.filter((tenDonVi) => {
     return !danhSachTenDaNopKyNay.includes(tenDonVi.trim().toLowerCase());
   });
-
   danhSachChuaNop.sort((a, b) => a.localeCompare(b, "vi"));
-  selectDangBoDP.innerHTML = "";
 
-  if (danhSachChuaNop.length === 0) {
-    const option = document.createElement("option");
-    option.value = "";
-    option.innerText = `-- Tất cả đơn vị đã nạp báo cáo ${kyDuocChon} --`;
-    selectDangBoDP.appendChild(option);
-  } else {
-    const defaultOption = document.createElement("option");
-    defaultOption.value = "";
-    defaultOption.innerText = `-- Chọn đơn vị (${danhSachChuaNop.length} đơn vị chưa nộp ${kyDuocChon}) --`;
-    selectDangBoDP.appendChild(defaultOption);
-
-    danhSachChuaNop.forEach((tenDonVi) => {
-      const option = document.createElement("option");
-      option.value = tenDonVi;
-      option.innerText = tenDonVi;
-      selectDangBoDP.appendChild(option);
-    });
-  }
+  // Đổ mảng dữ liệu hành chính vào ô tìm kiếm động của Tab Đảng phí
+  initSearchableDropdown("dropdown-dangphi-box", "select-dangphi-dangbo", "-- Gõ từ khóa để tìm đơn vị nộp đảng phí --", danhSachChuaNop);
 }
 
 if (document.getElementById("select-dangphi-ky")) {
@@ -972,7 +1043,7 @@ if (document.getElementById("form-dangphi-new")) {
       const trucTuyenDV = parseInt(inputTrucTuyen.value) || 0;
 
       if (!tenDangBo) {
-        showToast("Vui lòng chọn Đảng bộ đơn vị cần báo cáo!", "warning");
+        showToast("Vui lòng tra cứu chọn Đảng bộ đơn vị cần báo cáo!", "warning");
         return;
       }
       if (trucTuyenDV > tongDV) {
@@ -998,6 +1069,8 @@ if (document.getElementById("form-dangphi-new")) {
         );
         inputTong.value = "";
         inputTrucTuyen.value = "";
+        document.getElementById("select-dangphi-dangbo").value = "";
+        capNhatDropdownDangBoChuaNopDangPhi();
       });
     });
 }
@@ -1147,7 +1220,7 @@ function thuThiTraCuuDangPhiSidebar() {
 
   resultContainer.innerHTML = `<div style="display: flex; flex-direction: column; gap: 10px;">
       <div style="font-size: 0.85rem; background: #e6f2ff; padding: 8px 10px; border-radius: 4px; border: 1px solid #cbd5e1; font-weight: 600; color: #002855;">Đơn vị: <span style="color: #b71c1c;">${banGhiKhop.ten_dang_bo}</span></div>
-      <div style="background: #ffffff; border: 1px solid #dee2e6; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 0.8rem; font-weight: bold; color: #475569;"><i class="fa-solid fa-users text-primary"></i> Tổng số đảng viên:</span><span style="font-size: 1rem; font-weight: 800; color: #002855;">${tongDV.toLocaleString()}</span></div>
+      <div style="background: #ffffff; border: 1px solid #dee2e6; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;"><span style="font-size: 0.8rem; font-weight: bold; color: #475569;"><i class="fa-users fa-solid text-primary"></i> Tổng số đảng viên:</span><span style="font-size: 1rem; font-weight: 800; color: #002855;">${tongDV.toLocaleString()}</span></div>
       <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #166534;"><span><i class="fa-solid fa-circle-check"></i> Đã nộp trực tuyến:</span><span>${nopTT.toLocaleString()} ĐV (${tyLeNopTT}%)</span></div>
       <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 8px 10px; border-radius: 4px; display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; color: #991b1b;"><span><i class="fa-solid fa-circle-xmark"></i> Chưa nộp trực tuyến:</span><span>${chuaNopTT.toLocaleString()} ĐV (${tyLeChuaNopTT}%)</span></div>
     </div>`;
