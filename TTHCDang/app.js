@@ -1163,7 +1163,6 @@ onValue(dbRefDangPhi, (snapshot) => {
   capNhatDropdownDangBoChuaNopDangPhi();
   renderTableDangPhi();
 
-  // LUÔN LUÔN CHẠY LUỒNG TÍNH TOÁN VÀ VẼ BIỂU ĐỒ BẤT KỂ CÓ TRA CỨU HAY KHÔNG
   tinhToanVaVeDashboardTongQuan();
   thuThiTraCuuDangPhiSidebar();
 });
@@ -1311,15 +1310,14 @@ function xuLyKhiThayDoiKyDashboard() {
   thuThiTraCuuDangPhiSidebar();
 }
 
-// --- ÉP ĐỒNG BỘ HIỂN THỊ KHUNG VÀ VẼ BIỂU ĐỒ TRÒN TOÀN TỈNH ---
+// --- HÀM TÍNH TOÁN DASHBOARD TỔNG QUAN TOÀN TỈNH & TÍCH HỢP NÚT XEM ĐƠN VỊ CHƯA BÁO CÁO ---
 function tinhToanVaVeDashboardTongQuan() {
   const kyDuocChon = document.getElementById("lookup-dangphi-ky")?.value;
   const statsContainer = document.getElementById("tongquan-dangphi-stats");
-  const chartHolder = document.getElementById("chart-dangphi-holder"); // Khung chứa canvas biểu đồ tròn
+  const chartHolder = document.getElementById("chart-dangphi-holder");
 
   if (!kyDuocChon || !thongTinDangPhiHienTai) return;
 
-  // Giải phóng cưỡng bức thuộc tính display của khung chứa để Chart.js tính được kích thước DOM
   if (chartHolder) {
     chartHolder.style.setProperty("display", "block", "important");
   }
@@ -1327,12 +1325,17 @@ function tinhToanVaVeDashboardTongQuan() {
   let tongDangVienToanTinh = 0;
   let tongNopTrucTuyenToanTinh = 0;
   let soDonViDaNhapLieu = 0;
+  const danhSachTenDaBaoCao = [];
 
   Object.keys(thongTinDangPhiHienTai).forEach((key) => {
     const item = thongTinDangPhiHienTai[key];
     if (item && item.ky_bao_cao === kyDuocChon) {
       const dv = parseInt(item.tong_dang_vien || 0);
       const nop = parseInt(item.nop_truc_tuyen || 0);
+
+      if (item.ten_dang_bo) {
+        danhSachTenDaBaoCao.push(item.ten_dang_bo.trim().toLowerCase());
+      }
 
       if (dv > 0) {
         tongDangVienToanTinh += dv;
@@ -1341,6 +1344,12 @@ function tinhToanVaVeDashboardTongQuan() {
       }
     }
   });
+
+  // TÌM RA CÁC ĐƠN VỊ CÒN LẠI HOÀN TOÀN CHƯA NHẬP BÁO CÁO TRONG KỲ
+  const danhSachChuaBaoCaoKyNay = danhSachDangBoGoc.filter((tenDonVi) => {
+    return !danhSachTenDaBaoCao.includes(tenDonVi.trim().toLowerCase());
+  });
+  danhSachChuaBaoCaoKyNay.sort((a, b) => a.localeCompare(b, "vi"));
 
   const tongChuaNopToanTinh = tongDangVienToanTinh - tongNopTrucTuyenToanTinh;
   const tyLeNop =
@@ -1356,14 +1365,60 @@ function tinhToanVaVeDashboardTongQuan() {
         )
       : 0;
 
+  // THÊM NÚT "XEM ĐV CHƯA BÁO CÁO" NGAY DƯỚI ĐOẠN LIỆT KÊ CHỮ
   if (statsContainer) {
     statsContainer.innerHTML = `
       <div style="margin-bottom:4px;">Kỳ báo cáo: <strong style="color:#b71c1c;">${kyDuocChon}</strong></div>
       <div style="margin-bottom:4px;">Số đảng bộ đã nhập dữ liệu: <strong>${soDonViDaNhapLieu} Đơn vị</strong></div>
       <div style="margin-bottom:4px;">Tổng số đảng viên: <strong style="color:#0f172a;">${tongDangVienToanTinh.toLocaleString()}</strong></div>
       <div style="margin-bottom:4px; color:#16a34a;">Đã nộp trực tuyến: <strong>${tongNopTrucTuyenToanTinh.toLocaleString()} (${tyLeNop}%)</strong></div>
-      <div style="color:#dc2626;">Chưa nộp trực tuyến: <strong>${tongChuaNopToanTinh.toLocaleString()} (${tyLeChua}%)</strong></div>
+      <div style="margin-bottom:8px; color:#dc2626;">Chưa nộp trực tuyến: <strong>${tongChuaNopToanTinh.toLocaleString()} (${tyLeChua}%)</strong></div>
+      
+      <button id="btn-show-unreported-dangphi" style="width:100%; padding:8px 10px; background-color:#b71c1c; color:#ffffff; border:none; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1); margin-top:8px;">
+        <i class="fa-solid fa-clipboard-list"></i> 📋 Xem ĐV chưa báo cáo trong kỳ (${danhSachChuaBaoCaoKyNay.length})
+      </button>
     `;
+
+    // GẮN SỰ KIỆN CLICK BẬT MODAL SWAL CHỨA DANH SÁCH CHI TIẾT
+    const btnShowUnreported = document.getElementById(
+      "btn-show-unreported-dangphi",
+    );
+    if (btnShowUnreported) {
+      btnShowUnreported.addEventListener("click", () => {
+        if (danhSachChuaBaoCaoKyNay.length === 0) {
+          Swal.fire({
+            title: "HOÀN THÀNH BÁO CÁO",
+            text: `Tất cả ${danhSachDangBoGoc.length} đơn vị cơ sở đã nộp đủ báo cáo đảng phí trong ${kyDuocChon}!`,
+            icon: "success",
+            confirmButtonColor: "#003366",
+            confirmButtonText: "Đóng",
+          });
+          return;
+        }
+
+        // Tạo chuỗi HTML dạng bảng danh sách có số thứ tự thụt lề chuyên nghiệp
+        let listHtml = `<div style="max-height: 350px; overflow-y: auto; text-align: left; padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background-color: #fafafa;">`;
+        danhSachChuaBaoCaoKyNay.forEach((ten, idx) => {
+          listHtml += `<div style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.9rem; color: #334155;">
+            <strong>${idx + 1}.</strong> ${ten}
+          </div>`;
+        });
+        listHtml += `</div>`;
+
+        Swal.fire({
+          title: `<span style="font-size:1.15rem; color:#b71c1c; font-weight:800; text-transform:uppercase;">Đơn Vị Chưa Báo Cáo ${kyDuocChon}</span>`,
+          html: `
+            <div style="font-size:0.85rem; color:#475569; margin-bottom:10px; text-align:left;">
+              Phát hiện <strong>${danhSachChuaBaoCaoKyNay.length} / ${danhSachDangBoGoc.length}</strong> đơn vị chưa ghi sổ số liệu:
+            </div>
+            ${listHtml}
+          `,
+          confirmButtonColor: "#003366",
+          confirmButtonText: "Đóng",
+          allowOutsideClick: true,
+        });
+      });
+    }
   }
 
   const ctxTron = document.getElementById("chartDangPhiTron");
@@ -1413,7 +1468,6 @@ function tinhToanVaVeDashboardTongQuan() {
   }
 }
 
-// CHỈ ĐIỀU KHIỂN NỘI DUNG VĂN BẢN KẾT QUẢ TRA CỨU ĐƠN VỊ CHI TIẾT
 function thuThiTraCuuDangPhiSidebar() {
   const selectDangBo = document.getElementById("lookup-dangphi-dangbo");
   const selectKy = document.getElementById("lookup-dangphi-ky");
