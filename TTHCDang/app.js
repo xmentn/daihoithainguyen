@@ -126,8 +126,8 @@ function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsLi
   searchInput.addEventListener("input", () => {
     const keyword = searchInput.value.toLowerCase().trim();
     const filtered = itemsList.filter(item => {
-      const cleanItem = item.toLowerCase().normalize("NCD").replace(/[\u0300-\u036f]/g, "");
-      const cleanKeyword = keyword.normalize("NCD").replace(/[\u0300-\u036f]/g, "");
+      const cleanItem = item.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       return item.toLowerCase().includes(keyword) || cleanItem.includes(cleanKeyword);
     });
     renderOptions(filtered);
@@ -1155,21 +1155,25 @@ function renderTableDangPhi() {
     });
   }
 }
-
+// TÌM VÀ THAY THẾ HOÀN TOÀN HÀM NÀY TRONG APP.JS
 function napDanhSachLookupSidebarTraCuu() {
-  const lookupSelectDangBo = document.getElementById("lookup-dangphi-dangbo");
-  if (lookupSelectDangBo) {
-    lookupSelectDangBo.innerHTML =
-      '<option value="">-- Chọn Đảng bộ tra cứu --</option>';
-    const dsGocSapXep = [...new Set(danhSachDangBoGoc)].sort((a, b) =>
-      a.localeCompare(b, "vi"),
-    );
-    dsGocSapXep.forEach((ten) => {
-      const opt = document.createElement("option");
-      opt.value = ten;
-      opt.innerText = ten;
-      lookupSelectDangBo.appendChild(opt);
-    });
+  const dsGocSapXep = [...new Set(danhSachDangBoGoc)].sort((a, b) =>
+    a.localeCompare(b, "vi"),
+  );
+
+  // Gọi hàm khởi tạo hộp tìm kiếm động cho Sidebar Tra cứu
+  initSearchableDropdown(
+    "dropdown-lookup-sidebar-box",
+    "lookup-dangphi-dangbo",
+    "-- Gõ từ khóa tìm đơn vị... --",
+    dsGocSapXep
+  );
+
+  // Bắt sự kiện thay đổi giá trị ẩn để chạy hàm phân tích và vẽ biểu đồ tròn
+  const hiddenInputSidebar = document.getElementById("lookup-dangphi-dangbo");
+  if (hiddenInputSidebar) {
+    hiddenInputSidebar.removeEventListener("change", thuThiTraCuuDangPhiSidebar);
+    hiddenInputSidebar.addEventListener("change", thuThiTraCuuDangPhiSidebar);
   }
 }
 

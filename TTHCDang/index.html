@@ -193,18 +193,18 @@
 
         <div
           style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-          <div>
+          <div style="position: relative;">
             <label
               style="font-size: 0.78rem; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">Chọn
               Đảng bộ:</label>
-            <select id="lookup-dangphi-dangbo" style="padding: 6px; font-size: 0.82rem; font-weight: bold;"></select>
+            <div class="searchable-dropdown" id="dropdown-lookup-sidebar-box"></div>
+            <input type="hidden" id="lookup-dangphi-dangbo">
           </div>
           <div>
             <label
               style="font-size: 0.78rem; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">Chọn Kỳ
               báo cáo:</label>
-            <select id="lookup-dangphi-ky" style="width: 100%;">
-            </select>
+            <select id="lookup-dangphi-ky" style="width: 100%;"></select>
           </div>
         </div>
 
