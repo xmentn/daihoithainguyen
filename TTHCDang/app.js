@@ -42,7 +42,7 @@ function formatDate(dateString) {
   return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
 }
 
-let currentRole = "user";
+let currentRole = "user"; // Hỗ trợ 3 vai trò: admin, edit, user
 let danhSachDangBoGoc = [];
 let thongTinTapHuanHienTai = {};
 let thongTinKeHoachHienTai = {};
@@ -56,7 +56,12 @@ if (typeof window.myChartDangPhiTron === "undefined")
 // ========================================================
 // --- BỘ LỌC SEARCHABLE DROPDOWN ĐỘNG THỜI GIAN THỰC ---
 // ========================================================
-function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsList) {
+function initSearchableDropdown(
+  containerId,
+  hiddenInputId,
+  placeholder,
+  itemsList,
+) {
   const container = document.getElementById(containerId);
   const hiddenInput = document.getElementById(hiddenInputId);
   if (!container || !hiddenInput) return;
@@ -75,7 +80,9 @@ function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsLi
   const selectBox = container.querySelector(".dropdown-select-box");
   const menuList = container.querySelector(".dropdown-menu-list");
   const searchInput = container.querySelector(".dropdown-search-input");
-  const optionsContainer = container.querySelector(".dropdown-options-container");
+  const optionsContainer = container.querySelector(
+    ".dropdown-options-container",
+  );
   const selectedText = container.querySelector(".selected-text");
 
   if (hiddenInput.value) {
@@ -89,7 +96,7 @@ function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsLi
       optionsContainer.innerHTML = `<div class="dropdown-item-option no-result" style="padding: 10px; color: #999; font-style: italic; text-align: center;">Không tìm thấy đơn vị phù hợp</div>`;
       return;
     }
-    filteredItems.forEach(item => {
+    filteredItems.forEach((item) => {
       const optionDiv = document.createElement("div");
       optionDiv.className = "dropdown-item-option";
       optionDiv.innerText = item;
@@ -112,7 +119,9 @@ function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsLi
   selectBox.addEventListener("click", (e) => {
     e.stopPropagation();
     const isVisible = menuList.style.display === "block";
-    document.querySelectorAll(".dropdown-menu-list").forEach(el => el.style.display = "none");
+    document
+      .querySelectorAll(".dropdown-menu-list")
+      .forEach((el) => (el.style.display = "none"));
     menuList.style.display = isVisible ? "none" : "block";
     if (!isVisible) {
       searchInput.value = "";
@@ -125,17 +134,26 @@ function initSearchableDropdown(containerId, hiddenInputId, placeholder, itemsLi
 
   searchInput.addEventListener("input", () => {
     const keyword = searchInput.value.toLowerCase().trim();
-    const filtered = itemsList.filter(item => {
-      const cleanItem = item.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      const cleanKeyword = keyword.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      return item.toLowerCase().includes(keyword) || cleanItem.includes(cleanKeyword);
+    const filtered = itemsList.filter((item) => {
+      const cleanItem = item
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      const cleanKeyword = keyword
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      return (
+        item.toLowerCase().includes(keyword) || cleanItem.includes(cleanKeyword)
+      );
     });
     renderOptions(filtered);
   });
 }
 
 document.addEventListener("click", () => {
-  document.querySelectorAll(".dropdown-menu-list").forEach(el => el.style.display = "none");
+  document
+    .querySelectorAll(".dropdown-menu-list")
+    .forEach((el) => (el.style.display = "none"));
 });
 
 // ========================================================
@@ -200,7 +218,7 @@ function kiemTraThoiGianBaoQuen() {
   }
 }
 
-// --- 1. XÁC THỰC TRẠNG THÁI & PHÂN QUYỀN ĐĂNG NHẬP (SỬA LỖI HIỂN THỊ ACCOUNT) ---
+// --- 1. XÁC THỰC TRẠNG THÁI & PHÂN QUYỀN ĐĂNG NHẬP ---
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     window.location.href = "login.html";
@@ -209,61 +227,83 @@ onAuthStateChanged(auth, (user) => {
       document.getElementById("current-user").innerText = user.email;
     }
 
-    // Đọc chính xác vai trò từ hệ thống phiên
-    currentRole = sessionStorage.getItem("userRole") || "user";
+    let savedRole = sessionStorage.getItem("userRole") || "user";
+    currentRole = savedRole.trim().toLowerCase();
 
-    const navQuanTriBtn =
-      document.querySelector(".tab-btn[onclick*='tab-quan-tri']") ||
-      document.getElementById("nav-admin-only");
-
-    if (currentRole === "admin") {
-      if (document.getElementById("current-role")) {
-        document.getElementById("current-role").innerText = "admin";
-      }
-      if (navQuanTriBtn)
-        navQuanTriBtn.style.setProperty("display", "block", "important");
-      if (document.getElementById("upload-taphuan-container"))
-        document
-          .getElementById("upload-taphuan-container")
-          .style.setProperty("display", "block", "important");
-    } else {
-      if (document.getElementById("current-role")) {
-        document.getElementById("current-role").innerText = "user";
-      }
-      if (navQuanTriBtn)
-        navQuanTriBtn.style.setProperty("display", "none", "important");
-      if (document.getElementById("upload-taphuan-container"))
-        document
-          .getElementById("upload-taphuan-container")
-          .style.setProperty("display", "none", "important");
-    }
-
-    const selTrangThai = document.getElementById("kehoach-trang-thai");
-    if (selTrangThai) selTrangThai.disabled = false;
-
-    if (typeof window.handleTrangThaiKeHoachChange === "function") {
-      window.handleTrangThaiKeHoachChange();
-    }
-
-    capNhatThoiGianTuongTacCuoi();
-    const cacSuKien = [
-      "click",
-      "mousemove",
-      "mousedown",
-      "keypress",
-      "scroll",
-      "touchstart",
-    ];
-    cacSuKien.forEach((suKien) => {
-      window.addEventListener(suKien, capNhatThoiGianTuongTacCuoi, {
-        passive: true,
+    get(ref(database, "users/" + user.uid))
+      .then((snapshot) => {
+        if (snapshot.exists()) {
+          const uData = snapshot.val();
+          if (uData && uData.role) {
+            currentRole = uData.role.trim().toLowerCase();
+            sessionStorage.setItem("userRole", currentRole);
+          }
+        }
+        capNhatHienThiTabTheoQuyen();
+      })
+      .catch(() => {
+        capNhatHienThiTabTheoQuyen();
       });
-    });
-    if (window.intervalKiemTraPhiens)
-      clearInterval(window.intervalKiemTraPhiens);
-    window.intervalKiemTraPhiens = setInterval(kiemTraThoiGianBaoQuen, 30000);
   }
 });
+
+function capNhatHienThiTabTheoQuyen() {
+  const navQuanTriBtn =
+    document.querySelector(".tab-btn[onclick*='tab-quan-tri']") ||
+    document.getElementById("nav-admin-only");
+
+  if (document.getElementById("current-role")) {
+    if (currentRole === "admin") {
+      document.getElementById("current-role").innerText = "admin";
+    } else if (currentRole === "edit") {
+      document.getElementById("current-role").innerText = "edit";
+    } else {
+      document.getElementById("current-role").innerText = "user";
+    }
+  }
+
+  if (currentRole === "admin") {
+    if (navQuanTriBtn)
+      navQuanTriBtn.style.setProperty("display", "block", "important");
+    if (document.getElementById("upload-taphuan-container"))
+      document
+        .getElementById("upload-taphuan-container")
+        .style.setProperty("display", "block", "important");
+  } else {
+    if (navQuanTriBtn)
+      navQuanTriBtn.style.setProperty("display", "none", "important");
+    if (document.getElementById("upload-taphuan-container"))
+      document
+        .getElementById("upload-taphuan-container")
+        .style.setProperty("display", "none", "important");
+  }
+
+  const selTrangThai = document.getElementById("kehoach-trang-thai");
+  if (selTrangThai) selTrangThai.disabled = false;
+
+  if (typeof window.handleTrangThaiKeHoachChange === "function") {
+    window.handleTrangThaiKeHoachChange();
+  }
+
+  renderTableDangPhi();
+
+  capNhatThoiGianTuongTacCuoi();
+  const cacSuKien = [
+    "click",
+    "mousemove",
+    "mousedown",
+    "keypress",
+    "scroll",
+    "touchstart",
+  ];
+  cacSuKien.forEach((suKien) => {
+    window.addEventListener(suKien, capNhatThoiGianTuongTacCuoi, {
+      passive: true,
+    });
+  });
+  if (window.intervalKiemTraPhiens) clearInterval(window.intervalKiemTraPhiens);
+  window.intervalKiemTraPhiens = setInterval(kiemTraThoiGianBaoQuen, 30000);
+}
 
 if (document.getElementById("btn-logout")) {
   document.getElementById("btn-logout").addEventListener("click", () => {
@@ -274,7 +314,7 @@ if (document.getElementById("btn-logout")) {
   });
 }
 
-// --- 2. LUỒNG ĐIỀU HƯỚNG TABS (SỬA LỖI LIỆT CHUYỂN TAB) ---
+// --- 2. LUỒNG ĐIỀU HƯỚNG TABS ---
 window.switchTab = function (evt, tabId) {
   const tabContents = document.getElementsByClassName("tab-content");
   for (let content of tabContents) {
@@ -294,16 +334,17 @@ window.switchTab = function (evt, tabId) {
     evt.currentTarget.classList.add("active");
   }
 
-  // Ẩn tất cả các Sidebar Dashboard trước
   const dashboardKeHoach = document.getElementById("sidebar-dashboard-kehoach");
   const dashboardTapHuan = document.getElementById("sidebar-dashboard-taphuan");
   const dashboardDangPhi = document.getElementById("sidebar-dashboard-dangphi");
 
-  if (dashboardKeHoach) dashboardKeHoach.style.setProperty("display", "none", "important");
-  if (dashboardTapHuan) dashboardTapHuan.style.setProperty("display", "none", "important");
-  if (dashboardDangPhi) dashboardDangPhi.style.setProperty("display", "none", "important");
+  if (dashboardKeHoach)
+    dashboardKeHoach.style.setProperty("display", "none", "important");
+  if (dashboardTapHuan)
+    dashboardTapHuan.style.setProperty("display", "none", "important");
+  if (dashboardDangPhi)
+    dashboardDangPhi.style.setProperty("display", "none", "important");
 
-  // Hiển thị Sidebar tương ứng với Tab được chọn công tác
   if (tabId === "tab-tap-huan") {
     if (dashboardTapHuan)
       dashboardTapHuan.style.setProperty("display", "block", "important");
@@ -356,7 +397,6 @@ onValue(dbRefDangBoGoc, (snapshot) => {
 
   danhSachDangBoGoc.sort((a, b) => a.localeCompare(b, "vi"));
 
-  // Khởi chạy đồng bộ hóa dữ liệu danh mục lên các hộp tìm kiếm động
   tinhToanThongKeKeHoach();
   capNhatDropdownDangBoChuaTapHuan();
   capNhatDropdownDangBoTabKeHoach();
@@ -419,7 +459,7 @@ if (document.getElementById("btn-import-excel")) {
   });
 }
 
-// --- 4. HÀM LỌC DROPDOWN ĐẢNG BỘ CHƯA TẬP HUÂN (GIỮ LÀM DROPDOWN CHUẨN) ---
+// --- 4. HÀM LỌC DROPDOWN ĐẢNG BỘ CHƯA TẬP HUÂN ---
 function capNhatDropdownDangBoChuaTapHuan() {
   const selectDropdown = document.getElementById("select-taphuan-dangbo");
   if (!selectDropdown) return;
@@ -531,8 +571,10 @@ onValue(dbRefTapHuan, (snapshot) => {
   sortedList.sort((a, b) => (a.stt || 0) - (b.stt || 0));
 
   const thActions = document.getElementById("th-taphuan-actions");
-  if (thActions)
-    thActions.style.display = currentRole === "admin" ? "table-cell" : "none";
+  if (thActions) {
+    thActions.style.display =
+      currentRole === "admin" || currentRole === "edit" ? "table-cell" : "none";
+  }
 
   let htmlContent = "";
   sortedList.forEach((item, index) => {
@@ -542,37 +584,47 @@ onValue(dbRefTapHuan, (snapshot) => {
         ? "background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;"
         : "background-color: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;";
 
+    let nutBamHanhDong = "";
+    if (currentRole === "admin") {
+      nutBamHanhDong = `
+        <button class="btn-edit-taphuan" data-name="${item.ten_dang_bo}" data-count="${item.so_nguoi_tham_gia}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+        <button class="btn-delete-taphuan" data-key="${safeKey}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
+      `;
+    } else if (currentRole === "edit") {
+      nutBamHanhDong = `
+        <button class="btn-edit-taphuan" data-name="${item.ten_dang_bo}" data-count="${item.so_nguoi_tham_gia}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+      `;
+    }
+
     htmlContent += `<tr style="border-bottom: 1px solid #dee2e6;">
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; color: #666;">${index + 1}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${item.ten_dang_bo}</strong></td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #003366; font-size: 0.95rem;">${item.so_nguoi_tham_gia}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;"><span style="${badgeStyle}">${item.trang_thai}</span></td>
-        ${currentRole === "admin"
-        ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">
-            <button class="btn-edit-taphuan" data-name="${item.ten_dang_bo}" data-count="${item.so_nguoi_tham_gia}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
-            <button class="btn-delete-taphuan" data-key="${safeKey}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
-        </td>`
-        : ""
-      }</tr>`;
+        ${
+          currentRole === "admin" || currentRole === "edit"
+            ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">${nutBamHanhDong}</td>`
+            : ""
+        }</tr>`;
   });
 
   if (htmlContent && tableBody) {
     htmlContent += `<tr style="background-color: #e6f2ff; font-weight: bold; border-top: 2px solid #003366;">
           <td colspan="2" style="padding: 12px; border: 1px solid #dee2e6; text-align: right; color: #003366; font-size: 0.95rem;">TỔNG SỐ NGƯỜI THAM GIA TẬP HUẤN TOÀN TỈNH:</td>
           <td style="padding: 12px; border: 1px solid #dee2e6; text-align: center; color: #dc3545; font-size: 1.1rem; font-weight: bold;">${tongSoNguoi.toLocaleString()}</td>
-          <td colspan="${currentRole === "admin" ? 2 : 1}" style="border: 1px solid #dee2e6; background-color: #e6f2ff;"></td>
+          <td colspan="${currentRole === "admin" || currentRole === "edit" ? 2 : 1}" style="border: 1px solid #dee2e6; background-color: #e6f2ff;"></td>
       </tr>`;
     tableBody.innerHTML = htmlContent;
   }
 
-  // Gán bộ lắng nghe click cho tính năng Sửa nhanh của Admin
   document.querySelectorAll(".btn-edit-taphuan").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       const name = e.currentTarget.getAttribute("data-name");
       const count = e.currentTarget.getAttribute("data-count");
       document.getElementById("edit-taphuan-name").value = name;
       document.getElementById("edit-taphuan-count").value = count;
-      document.getElementById("form-edit-taphuan-container").style.display = "block";
+      document.getElementById("form-edit-taphuan-container").style.display =
+        "block";
     });
   });
 
@@ -637,23 +689,22 @@ onValue(dbRefTapHuan, (snapshot) => {
   }
 });
 
-if (currentRole === "admin") {
-  document.body.addEventListener("click", (e) => {
-    if (e.target.classList.contains("btn-delete-taphuan")) {
-      const keyXoa = e.target.getAttribute("data-key");
-      Swal.fire({
-        title: "Xác nhận xóa?",
-        text: "Số liệu tập huấn đơn vị này sẽ bị gỡ bỏ!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#dc3545",
-        confirmButtonText: "Xóa"
-      }).then((result) => {
-        if (result.isConfirmed) remove(ref(database, "tap_huan/" + keyXoa));
-      });
-    }
-  });
-}
+document.body.addEventListener("click", (e) => {
+  if (e.target.classList.contains("btn-delete-taphuan")) {
+    if (currentRole !== "admin") return;
+    const keyXoa = e.target.getAttribute("data-key");
+    Swal.fire({
+      title: "Xác nhận xóa?",
+      text: "Số liệu tập huấn đơn vị này sẽ bị gỡ bỏ!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      confirmButtonText: "Xóa",
+    }).then((result) => {
+      if (result.isConfirmed) remove(ref(database, "tap_huan/" + keyXoa));
+    });
+  }
+});
 
 if (document.getElementById("btn-import-taphuan")) {
   document
@@ -728,7 +779,7 @@ if (document.getElementById("btn-save-edit-taphuan")) {
   document
     .getElementById("btn-save-edit-taphuan")
     .addEventListener("click", () => {
-      if (currentRole !== "admin") return;
+      if (currentRole !== "admin" && currentRole !== "edit") return;
       const tenDangBo = document.getElementById("edit-taphuan-name").value;
       const soNguoiMoi =
         parseInt(document.getElementById("edit-taphuan-count").value) || 0;
@@ -752,7 +803,7 @@ if (document.getElementById("btn-save-edit-taphuan")) {
     });
 }
 
-// --- 6. QUẢN LÝ TIẾN ĐỘ BAN HÀNH KẾ HOẠCH CÔNG TÁC (TÌM KIẾM ĐỘNG CHUẨN XÁC) ---
+// --- 6. QUẢN LÝ TIẾN ĐỘ BAN HÀNH KẾ HOẠCH CÔNG TÁC ---
 function capNhatDropdownDangBoTabKeHoach() {
   const danhSachDaNopKeHoach = [];
   if (thongTinKeHoachHienTai) {
@@ -773,8 +824,12 @@ function capNhatDropdownDangBoTabKeHoach() {
   );
   dsChuaNop.sort((a, b) => a.localeCompare(b, "vi"));
 
-  // Đổ mảng dữ liệu hành chính vào ô tìm kiếm động của Tab Kế hoạch
-  initSearchableDropdown("dropdown-kehoach-box", "kehoach-ten-dang-bo", "-- Gõ từ khóa để tìm Đảng bộ ban hành kế hoạch --", dsChuaNop);
+  initSearchableDropdown(
+    "dropdown-kehoach-box",
+    "kehoach-ten-dang-bo",
+    "-- Gõ từ khóa để tìm Đảng bộ ban hành kế hoạch --",
+    dsChuaNop,
+  );
 }
 
 const formKeHoach = document.getElementById("form-ke-hoach");
@@ -920,7 +975,12 @@ onValue(dbRefUsers, (snapshot) => {
       itemDiv.className = "data-item";
       itemDiv.style.cssText =
         "display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #eee; align-items:center;";
-      itemDiv.innerHTML = `<div><strong>${u.role === "admin" ? "Quản trị viên" : "Đơn vị cơ sở"}: ${u.email}</strong><br><small style="color:#6c757d; font-size:0.75rem;">UID: ${uid}</small></div>
+
+      let hiểnThịVaiTrò = "Đơn vị cơ sở";
+      if (u.role === "admin") hiểnThịVaiTrò = "Quản trị viên";
+      if (u.role === "edit") hiểnThịVaiTrò = "Người biên tập (Edit)";
+
+      itemDiv.innerHTML = `<div><strong>${hiểnThịVaiTrò}: ${u.email}</strong><br><small style="color:#6c757d; font-size:0.75rem;">UID: ${uid}</small></div>
         <div><button class="btn-edit-user" data-uid="${uid}" data-email="${u.email}" data-role="${u.role}" style="background:none; border:none; color:#003366; cursor:pointer; margin-right:10px;"><i class="fa-solid fa-user-pen"></i> Sửa</button>
         <button class="btn-delete-user" data-uid="${uid}" style="background:none; border:none; color:#dc3545; cursor:pointer;"><i class="fa-solid fa-user-minus"></i> Xóa</button></div>`;
       adminUserList.appendChild(itemDiv);
@@ -991,7 +1051,7 @@ if (document.getElementById("form-manage-user")) {
 }
 
 // ========================================================
-// --- 8. QUẢN LÝ THỦ TỤC: THU NỘP ĐẢNG PHÍ TRỰC TUYẾN (TÌM KIẾM ĐỘNG CHUẨN XÁC) ---
+// --- 8. QUẢN LÝ THỦ TỤC: THU NỘP ĐẢNG PHÍ TRỰC TUYẾN ---
 // ========================================================
 function capNhatDropdownDangBoChuaNopDangPhi() {
   const selectKyDP = document.getElementById("select-dangphi-ky");
@@ -1015,8 +1075,12 @@ function capNhatDropdownDangBoChuaNopDangPhi() {
   });
   danhSachChuaNop.sort((a, b) => a.localeCompare(b, "vi"));
 
-  // Đổ mảng dữ liệu hành chính vào ô tìm kiếm động của Tab Đảng phí
-  initSearchableDropdown("dropdown-dangphi-box", "select-dangphi-dangbo", "-- Gõ từ khóa để tìm đơn vị nộp đảng phí --", danhSachChuaNop);
+  initSearchableDropdown(
+    "dropdown-dangphi-box",
+    "select-dangphi-dangbo",
+    "-- Gõ từ khóa để tìm đơn vị nộp đảng phí --",
+    danhSachChuaNop,
+  );
 }
 
 if (document.getElementById("select-dangphi-ky")) {
@@ -1043,7 +1107,10 @@ if (document.getElementById("form-dangphi-new")) {
       const trucTuyenDV = parseInt(inputTrucTuyen.value) || 0;
 
       if (!tenDangBo) {
-        showToast("Vui lòng tra cứu chọn Đảng bộ đơn vị cần báo cáo!", "warning");
+        showToast(
+          "Vui lòng tra cứu chọn Đảng bộ đơn vị cần báo cáo!",
+          "warning",
+        );
         return;
       }
       if (trucTuyenDV > tongDV) {
@@ -1069,6 +1136,20 @@ if (document.getElementById("form-dangphi-new")) {
         );
         inputTong.value = "";
         inputTrucTuyen.value = "";
+
+        const containerDropdown = document.getElementById(
+          "dropdown-dangphi-box",
+        );
+        if (containerDropdown) {
+          const selectedText =
+            containerDropdown.querySelector(".selected-text");
+          if (selectedText) {
+            selectedText.innerText =
+              "-- Gõ từ khóa để tìm đơn vị nộp đảng phí --";
+            selectedText.style.color = "#666";
+            selectedText.style.fontWeight = "normal";
+          }
+        }
         document.getElementById("select-dangphi-dangbo").value = "";
         capNhatDropdownDangBoChuaNopDangPhi();
       });
@@ -1116,10 +1197,23 @@ function renderTableDangPhi() {
       const trucTuyen = parseInt(item.nop_truc_tuyen || 0);
       const tyLe = tong > 0 ? ((trucTuyen / tong) * 100).toFixed(1) : "0.0";
 
-      const colHanhDong =
-        currentRole === "admin"
-          ? `<button class="btn-delete-dangphi" data-key="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>`
-          : `<span style="color:#64748b; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-circle-check text-success"></i> Đã ghi sổ</span>`;
+      // CHUẨN HOÁ GIAO DIỆN NÚT BẤM SỬA CHO QUYỀN EDIT (GIỐNG HỆT ADMIN)
+      let colHanhDong = "";
+      if (currentRole === "admin") {
+        colHanhDong = `
+          <button class="btn-edit-dangphi" data-name="${item.ten_dang_bo}" data-tong="${tong}" data-tructuyen="${trucTuyen}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+          <button class="btn-delete-dangphi" data-key="${key}" style="background:none; border:none; color:#dc3545; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-trash"></i> Xóa</button>
+        `;
+      } else if (currentRole === "edit" || currentRole === "user") {
+        // Edit thấy nút sửa như admin và không thấy nút xóa, User thường không thấy gì cả
+        if (currentRole === "edit") {
+          colHanhDong = `
+            <button class="btn-edit-dangphi" data-name="${item.ten_dang_bo}" data-tong="${tong}" data-tructuyen="${trucTuyen}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+          `;
+        } else {
+          colHanhDong = `<span style="color:#64748b; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-circle-check text-success"></i> Đã ghi sổ</span>`;
+        }
+      }
 
       htmlContent += `<tr style="border-bottom: 1px solid #dee2e6;">
           <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; color: #666; white-space: nowrap;">${indexSTT++}</td>
@@ -1136,6 +1230,34 @@ function renderTableDangPhi() {
   tableBody.innerHTML =
     htmlContent ||
     `<tr><td colspan="7" style="text-align: center; padding: 15px; color: #999;">Không có dữ liệu cho kỳ báo cáo này.</td></tr>`;
+
+  // BỘ LẮNG NGHE ĐIỀU HƯỚNG DỮ LIỆU ĐÃ LOẠI BỎ THÔNG BÁO RƯỜM RÀ
+  document.querySelectorAll(".btn-edit-dangphi").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const tenDonVi = e.currentTarget.getAttribute("data-name");
+      const tongDV = e.currentTarget.getAttribute("data-tong");
+      const trucTuyenDV = e.currentTarget.getAttribute("data-tructuyen");
+
+      const containerDropdown = document.getElementById("dropdown-dangphi-box");
+      if (containerDropdown) {
+        const selectedText = containerDropdown.querySelector(".selected-text");
+        if (selectedText) {
+          selectedText.innerText = tenDonVi;
+          selectedText.style.color = "#333";
+          selectedText.style.fontWeight = "600";
+        }
+      }
+
+      document.getElementById("select-dangphi-dangbo").value = tenDonVi;
+      document.getElementById("input-dangphi-tong").value = tongDV;
+      document.getElementById("input-dangphi-tructuyen").value = trucTuyenDV;
+
+      // Cuộn mượt lên form nhập liệu để gõ luôn
+      document
+        .getElementById("form-dangphi-new")
+        .scrollIntoView({ behavior: "smooth" });
+    });
+  });
 
   if (currentRole === "admin") {
     document.querySelectorAll(".btn-delete-dangphi").forEach((btn) => {
@@ -1155,24 +1277,25 @@ function renderTableDangPhi() {
     });
   }
 }
-// TÌM VÀ THAY THẾ HOÀN TOÀN HÀM NÀY TRONG APP.JS
+
 function napDanhSachLookupSidebarTraCuu() {
   const dsGocSapXep = [...new Set(danhSachDangBoGoc)].sort((a, b) =>
     a.localeCompare(b, "vi"),
   );
 
-  // Gọi hàm khởi tạo hộp tìm kiếm động cho Sidebar Tra cứu
   initSearchableDropdown(
     "dropdown-lookup-sidebar-box",
     "lookup-dangphi-dangbo",
     "-- Gõ từ khóa tìm đơn vị... --",
-    dsGocSapXep
+    dsGocSapXep,
   );
 
-  // Bắt sự kiện thay đổi giá trị ẩn để chạy hàm phân tích và vẽ biểu đồ tròn
   const hiddenInputSidebar = document.getElementById("lookup-dangphi-dangbo");
   if (hiddenInputSidebar) {
-    hiddenInputSidebar.removeEventListener("change", thuThiTraCuuDangPhiSidebar);
+    hiddenInputSidebar.removeEventListener(
+      "change",
+      thuThiTraCuuDangPhiSidebar,
+    );
     hiddenInputSidebar.addEventListener("change", thuThiTraCuuDangPhiSidebar);
   }
 }

@@ -1,298 +1,531 @@
 <!doctype html>
 <html lang="vi">
-
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="images/Codang.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tình hình triển khai TTHC của Đảng</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="style.css?v=1.1" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    /* CSS nhúng bổ trợ bộ lọc Dropdown có ô tìm kiếm động */
-    .searchable-dropdown {
-      position: relative;
-      width: 100%;
-    }
-
-    .dropdown-select-box {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
-      background: #fff;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.95rem;
-      box-sizing: border-box;
-      user-select: none;
-    }
-
-    .dropdown-menu-list {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      width: 100%;
-      background: #fff;
-      border: 1px solid #dee2e6;
-      border-top: none;
-      border-radius: 0 0 4px 4px;
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 9999;
-      display: none;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      box-sizing: border-box;
-    }
-
-    .dropdown-search-input {
-      width: calc(100% - 16px);
-      margin: 8px;
-      padding: 8px;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      box-sizing: border-box;
-    }
-
-    .dropdown-options-container {
-      max-height: 140px;
-      overflow-y: auto;
-    }
-
-    .dropdown-item-option {
-      padding: 10px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      border-bottom: 1px solid #f8f9fa;
-      color: #333;
-      text-align: left;
-    }
-
-    .dropdown-item-option:hover {
-      background: #f8f9fa;
-      color: #b71c1c;
-      font-weight: bold;
-    }
-  </style>
-</head>
-
-<body>
-  <header
-    style="background: #b71c1c; color: #ffffff; padding: 25px 24px; display: flex; justify-content: center; align-items: center; width: 100%; position: relative; min-height: 110px; box-sizing: border-box;">
-
-    <div
-      style="position: absolute; top: 12px; left: 24px; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; color: #ffffff;">
-      TỈNH ỦY THÁI NGUYÊN
-    </div>
-
-    <div style="text-align: center; width: 100%; max-width: 75%; margin-top: 10px;">
-      <h1
-        style="margin: 0; font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.4;">
-        HỆ THỐNG TỔNG HỢP TÌNH HÌNH, KẾT QUẢ TRIỂN KHAI
-      </h1>
-      <h2
-        style="margin: 6px 0 0 0; font-size: 1.35rem; font-weight: 700; text-transform: uppercase; color: #ffc107; letter-spacing: 0.5px; line-height: 1.4;">
-        CÁC THỦ TỤC HÀNH CHÍNH CỦA ĐẢNG TRÊN MÔI TRƯỜNG ĐIỆN TỬ
-      </h2>
-    </div>
-
-    <div id="btn-logout" class="user-header-block" title="Nhấn vào đây để Đăng xuất tài khoản"
-      style="position: absolute; bottom: 12px; right: 24px; display: flex; align-items: center; gap: 6px; font-size: 0.9rem; cursor: pointer; padding: 6px 10px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); transition: all 0.2s ease; user-select: none;">
-      <i class="fa-solid fa-circle-user" style="font-size: 1.05rem; color: #ffc107;"></i>
-      <strong id="current-user" style="color: #ffffff; font-weight: 600;">...</strong>
-      <i class="fa-solid fa-right-from-bracket"
-        style="font-size: 0.8rem; color: #ffeb3b; margin-left: 4px; opacity: 0.7;"></i>
-    </div>
-
-    <span id="current-role" style="display: none !important;"></span>
-
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="images/Codang.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tình hình triển khai TTHC của Đảng</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css?v=1.1" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-      .user-header-block:hover {
-        background: rgba(255, 255, 255, 0.2) !important;
-        border-color: rgba(255, 255, 255, 0.4) !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      /* CSS nhúng bổ trợ bộ lọc Dropdown có ô tìm kiếm động */
+      .searchable-dropdown {
+        position: relative;
+        width: 100%;
+      }
+
+      .dropdown-select-box {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        background: #fff;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+        box-sizing: border-box;
+        user-select: none;
+      }
+
+      .dropdown-menu-list {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 4px 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 9999;
+        display: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-sizing: border-box;
+      }
+
+      .dropdown-search-input {
+        width: calc(100% - 16px);
+        margin: 8px;
+        padding: 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+      }
+
+      .dropdown-options-container {
+        max-height: 140px;
+        overflow-y: auto;
+      }
+
+      .dropdown-item-option {
+        padding: 10px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f8f9fa;
+        color: #333;
+        text-align: left;
+      }
+
+      .dropdown-item-option:hover {
+        background: #f8f9fa;
+        color: #b71c1c;
+        font-weight: bold;
       }
     </style>
+  </head>
 
-  </header>
-  <main class="container">
-    <section class="left-panel">
-      <div id="sidebar-dashboard-kehoach" class="panel-card">
-        <h2 class="panel-title">
-          <i class="fa-solid fa-list-check"></i> TỔNG HỢP BAN HÀNH KẾ HOẠCH
-        </h2>
-
-        <div class="summary-boxes">
-          <div class="box box-success">
-            <span class="box-label">Đã ban hành</span>
-            <span id="count-da-ban-hanh" class="box-number">0</span>
-          </div>
-          <div class="box box-danger">
-            <span class="box-label">Chưa ban hành</span>
-            <span id="count-chua-ban-hanh" class="box-number">0</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h3>
-            <i class="fa-solid fa-circle-check text-success"></i> Đã ban hành
-          </h3>
-          <div id="list-da-ban-hanh" class="data-list-box">
-            <span class="loading-text">Đang tải dữ liệu...</span>
-          </div>
-        </div>
-
-        <div class="detail-section">
-          <h3>
-            <i class="fa-solid fa-circle-exclamation text-danger"></i> Chưa ban hành / Chưa báo cáo
-          </h3>
-          <div id="list-chua-ban-hanh" class="data-list-box">
-            <span class="loading-text">Đang tải dữ liệu...</span>
-          </div>
-        </div>
+  <body>
+    <header
+      style="
+        background: #b71c1c;
+        color: #ffffff;
+        padding: 25px 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        min-height: 110px;
+        box-sizing: border-box;
+      "
+    >
+      <div
+        style="
+          position: absolute;
+          top: 12px;
+          left: 24px;
+          font-size: 1.1rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          color: #ffffff;
+        "
+      >
+        TỈNH ỦY THÁI NGUYÊN
       </div>
 
-      <div id="sidebar-dashboard-taphuan" class="panel-card" style="display: none">
-        <h2 class="panel-title">
-          <i class="fa-solid fa-chart-bar"></i> BIỂU ĐỒ TOP TẬP HUẤN
+      <div
+        style="
+          text-align: center;
+          width: 100%;
+          max-width: 75%;
+          margin-top: 10px;
+        "
+      >
+        <h1
+          style="
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+          "
+        >
+          HỆ THỐNG TỔNG HỢP TÌNH HÌNH, KẾT QUẢ TRIỂN KHAI
+        </h1>
+        <h2
+          style="
+            margin: 6px 0 0 0;
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #ffc107;
+            letter-spacing: 0.5px;
+            line-height: 1.4;
+          "
+        >
+          CÁC THỦ TỤC HÀNH CHÍNH CỦA ĐẢNG TRÊN MÔI TRƯỜNG ĐIỆN TỬ
         </h2>
+      </div>
 
-        <div style="margin-bottom: 25px; position: relative; height: 240px">
-          <p style="
+      <div
+        id="btn-logout"
+        class="user-header-block"
+        title="Nhấn vào đây để Đăng xuất tài khoản"
+        style="
+          position: absolute;
+          bottom: 12px;
+          right: 24px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.9rem;
+          cursor: pointer;
+          padding: 6px 10px;
+          border-radius: 4px;
+          background: rgba(255, 255, 255, 0.08);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          transition: all 0.2s ease;
+          user-select: none;
+        "
+      >
+        <i
+          class="fa-solid fa-circle-user"
+          style="font-size: 1.05rem; color: #ffc107"
+        ></i>
+        <strong id="current-user" style="color: #ffffff; font-weight: 600"
+          >...</strong
+        >
+        <i
+          class="fa-solid fa-right-from-bracket"
+          style="
+            font-size: 0.8rem;
+            color: #ffeb3b;
+            margin-left: 4px;
+            opacity: 0.7;
+          "
+        ></i>
+      </div>
+
+      <span id="current-role" style="display: none !important"></span>
+
+      <style>
+        .user-header-block:hover {
+          background: rgba(255, 255, 255, 0.2) !important;
+          border-color: rgba(255, 255, 255, 0.4) !important;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        }
+      </style>
+    </header>
+    <main class="container">
+      <section class="left-panel">
+        <div id="sidebar-dashboard-kehoach" class="panel-card">
+          <h2 class="panel-title">
+            <i class="fa-solid fa-list-check"></i> TỔNG HỢP BAN HÀNH KẾ HOẠCH
+          </h2>
+
+          <div class="summary-boxes">
+            <div class="box box-success">
+              <span class="box-label">Đã ban hành</span>
+              <span id="count-da-ban-hanh" class="box-number">0</span>
+            </div>
+            <div class="box box-danger">
+              <span class="box-label">Chưa ban hành</span>
+              <span id="count-chua-ban-hanh" class="box-number">0</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>
+              <i class="fa-solid fa-circle-check text-success"></i> Đã ban hành
+            </h3>
+            <div id="list-da-ban-hanh" class="data-list-box">
+              <span class="loading-text">Đang tải dữ liệu...</span>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h3>
+              <i class="fa-solid fa-circle-exclamation text-danger"></i> Chưa
+              ban hành / Chưa báo cáo
+            </h3>
+            <div id="list-chua-ban-hanh" class="data-list-box">
+              <span class="loading-text">Đang tải dữ liệu...</span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="sidebar-dashboard-taphuan"
+          class="panel-card"
+          style="display: none"
+        >
+          <h2 class="panel-title">
+            <i class="fa-solid fa-chart-bar"></i> BIỂU ĐỒ TOP TẬP HUẤN
+          </h2>
+
+          <div style="margin-bottom: 25px; position: relative; height: 240px">
+            <p
+              style="
                 font-size: 0.8rem;
                 font-weight: bold;
                 color: #28a745;
                 margin-bottom: 8px;
-              ">
-            <i class="fa-solid fa-arrow-trend-up"></i> 5 đơn vị dẫn đầu (Số người)
-          </p>
-          <canvas id="chartTopHigh"></canvas>
-        </div>
+              "
+            >
+              <i class="fa-solid fa-arrow-trend-up"></i> 5 đơn vị dẫn đầu (Số
+              người)
+            </p>
+            <canvas id="chartTopHigh"></canvas>
+          </div>
 
-        <div style="position: relative; height: 240px">
-          <p style="
+          <div style="position: relative; height: 240px">
+            <p
+              style="
                 font-size: 0.8rem;
                 font-weight: bold;
                 color: #dc3545;
                 margin-bottom: 8px;
-              ">
-            <i class="fa-solid fa-arrow-trend-down"></i> 5 đơn vị thấp nhất (Số người)
-          </p>
-          <canvas id="chartTopLow"></canvas>
+              "
+            >
+              <i class="fa-solid fa-arrow-trend-down"></i> 5 đơn vị thấp nhất
+              (Số người)
+            </p>
+            <canvas id="chartTopLow"></canvas>
+          </div>
         </div>
-      </div>
-      <div id="sidebar-dashboard-dangphi" class="panel-card" style="display: none;">
-        <h2 class="panel-title">
-          <i class="fa-solid fa-square-poll-horizontal"></i> TRA CỨU ĐẢNG PHÍ ĐƠN VỊ
-        </h2>
-
         <div
-          style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0;">
-          <div style="position: relative;">
+          id="sidebar-dashboard-dangphi"
+          class="panel-card"
+          style="display: none; padding: 15px"
+        >
+          <h2
+            class="panel-title"
+            style="
+              margin-bottom: 12px;
+              font-size: 1rem;
+              color: #b71c1c;
+              border-bottom: 2px solid #b71c1c;
+              padding-bottom: 5px;
+            "
+          >
+            <i class="fa-solid fa-chart-pie"></i> DASHBOARD ĐẢNG PHÍ
+          </h2>
+
+          <div
+            style="
+              margin-bottom: 15px;
+              background: #fff4f4;
+              padding: 10px;
+              border-radius: 6px;
+              border: 1px solid #ffcbd1;
+            "
+          >
             <label
-              style="font-size: 0.78rem; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">Chọn
-              Đảng bộ:</label>
-            <div class="searchable-dropdown" id="dropdown-lookup-sidebar-box"></div>
-            <input type="hidden" id="lookup-dangphi-dangbo">
+              style="
+                font-size: 0.8rem;
+                font-weight: bold;
+                color: #991b1b;
+                display: block;
+                margin-bottom: 4px;
+              "
+              >Chọn Kỳ báo cáo:</label
+            >
+            <select
+              id="lookup-dangphi-ky"
+              style="
+                width: 100%;
+                padding: 6px;
+                border: 1px solid #cbd5e1;
+                border-radius: 4px;
+                font-weight: 600;
+              "
+            ></select>
           </div>
-          <div>
-            <label
-              style="font-size: 0.78rem; font-weight: bold; color: #475569; display: block; margin-bottom: 4px;">Chọn Kỳ
-              báo cáo:</label>
-            <select id="lookup-dangphi-ky" style="width: 100%;"></select>
+
+          <div
+            style="
+              background: #f8fafc;
+              padding: 12px;
+              border-radius: 6px;
+              border: 1px solid #e2e8f0;
+              margin-bottom: 15px;
+            "
+          >
+            <h3
+              style="
+                font-size: 0.8rem;
+                color: #1e293b;
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+              "
+            >
+              <i class="fa-solid fa-globe" style="color: #0284c7"></i> Tổng quan
+              toàn tỉnh
+            </h3>
+            <div
+              id="tongquan-dangphi-stats"
+              style="font-size: 0.85rem; line-height: 1.5; color: #334155"
+            ></div>
+
+            <div
+              id="chart-dangphi-holder"
+              style="
+                margin-top: 10px;
+                position: relative;
+                height: 180px;
+                width: 100%;
+              "
+            >
+              <canvas id="chartDangPhiTron"></canvas>
+            </div>
+          </div>
+          <div
+            style="
+              background: #ffffff;
+              padding: 12px;
+              border-radius: 6px;
+              border: 1px solid #e2e8f0;
+            "
+          >
+            <h3
+              style="
+                font-size: 0.8rem;
+                color: #1e293b;
+                margin: 0 0 8px 0;
+                text-transform: uppercase;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+              "
+            >
+              <i
+                class="fa-solid fa-magnifying-glass-chart"
+                style="color: #4f46e5"
+              ></i>
+              Xem cụ thể đơn vị
+            </h3>
+            <div style="position: relative; margin-bottom: 10px">
+              <div
+                class="searchable-dropdown"
+                id="dropdown-lookup-sidebar-box"
+              ></div>
+              <input type="hidden" id="lookup-dangphi-dangbo" />
+            </div>
+
+            <div
+              id="lookup-dangphi-result"
+              style="
+                font-size: 0.85rem;
+                border-top: 1px dashed #cbd5e1;
+                padding-top: 8px;
+                color: #64748b;
+                font-style: italic;
+              "
+            >
+              Chưa chọn đơn vị cụ thể.
+            </div>
+
+            <div
+              id="chart-dangphi-donvi-holder"
+              style="
+                display: none;
+                margin-top: 15px;
+                position: relative;
+                height: 160px;
+                width: 100%;
+              "
+            >
+              <canvas id="chartDangPhiDonViChiTiet"></canvas>
+            </div>
           </div>
         </div>
+      </section>
 
-        <div id="lookup-dangphi-result">
-          <div style="text-align: center; padding: 15px; color: #94a3b8; font-style: italic; font-size: 0.85rem;">
-            Vui lòng chọn đơn vị để xem dữ liệu phân tích.
+      <section class="right-panel">
+        <div class="tabs-nav">
+          <button
+            class="tab-btn active"
+            onclick="switchTab(event, 'tab-ke-hoach')"
+          >
+            <i class="fa-solid fa-file-signature"></i> 1. KẾ HOẠCH
+          </button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-tap-huan')">
+            <i class="fa-solid fa-graduation-cap"></i> 2. TẬP HUẤN
+          </button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-cai-dat')">
+            <i class="fa-solid fa-wallet"></i> 3. CÁC THỦ TỤC HÀNH CHÍNH
+          </button>
+          <button
+            class="tab-btn"
+            id="nav-admin-only"
+            onclick="switchTab(event, 'tab-quan-tri')"
+            style="display: none; background: #fef3c7; color: #d97706"
+          >
+            <i class="fa-solid fa-gears"></i> 4. QUẢN TRỊ HỆ THỐNG
+          </button>
+        </div>
+
+        <div class="tab-content-container">
+          <div id="tab-ke-hoach" class="tab-content active">
+            <form id="form-ke-hoach">
+              <div class="form-group" style="position: relative">
+                <label><i class="fa-solid fa-landmark"></i> Tên Đảng bộ:</label>
+                <div
+                  class="searchable-dropdown"
+                  id="dropdown-kehoach-box"
+                ></div>
+                <input type="hidden" id="kehoach-ten-dang-bo" />
+              </div>
+
+              <div class="form-group">
+                <label for="kehoach-trang-thai"
+                  ><i class="fa-solid fa-toggle-on"></i> Ban hành Kế
+                  hoạch:</label
+                >
+                <select
+                  id="kehoach-trang-thai"
+                  required
+                  onchange="handleTrangThaiKeHoachChange()"
+                >
+                  <option value="Có ban hành">Có ban hành</option>
+                  <option value="Không ban hành">Không ban hành</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="kehoach-so-ky-hieu">Số, ký hiệu văn bản:</label>
+                <input
+                  type="text"
+                  id="kehoach-so-ky-hieu"
+                  placeholder="Ví dụ: 123-KH/TU"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="kehoach-ngay-ban-hanh">Ngày ban hành:</label>
+                <input type="date" id="kehoach-ngay-ban-hanh" required />
+              </div>
+
+              <div
+                class="form-actions"
+                id="kehoach-btn-holder"
+                style="margin-top: 20px"
+              >
+                <button type="submit" class="btn-submit">
+                  <i class="fa-solid fa-floppy-disk"></i> Lưu báo cáo Kế hoạch
+                </button>
+              </div>
+            </form>
           </div>
-        </div>
 
-        <div id="chart-dangphi-holder"
-          style="display: none; margin-top: 20px; position: relative; height: 220px; width: 100%;">
-          <canvas id="chartDangPhiTron"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <section class="right-panel">
-      <div class="tabs-nav">
-        <button class="tab-btn active" onclick="switchTab(event, 'tab-ke-hoach')">
-          <i class="fa-solid fa-file-signature"></i> 1. KẾ HOẠCH
-        </button>
-        <button class="tab-btn" onclick="switchTab(event, 'tab-tap-huan')">
-          <i class="fa-solid fa-graduation-cap"></i> 2. TẬP HUẤN
-        </button>
-        <button class="tab-btn" onclick="switchTab(event, 'tab-cai-dat')">
-          <i class="fa-solid fa-wallet"></i> 3. CÁC THỦ TỤC HÀNH CHÍNH
-        </button>
-        <button class="tab-btn" id="nav-admin-only" onclick="switchTab(event, 'tab-quan-tri')"
-          style="display: none; background: #fef3c7; color: #d97706">
-          <i class="fa-solid fa-gears"></i> 4. QUẢN TRỊ HỆ THỐNG
-        </button>
-      </div>
-
-      <div class="tab-content-container">
-        <div id="tab-ke-hoach" class="tab-content active">
-          <form id="form-ke-hoach">
-            <div class="form-group" style="position: relative;">
-              <label><i class="fa-solid fa-landmark"></i> Tên Đảng bộ:</label>
-              <div class="searchable-dropdown" id="dropdown-kehoach-box"></div>
-              <input type="hidden" id="kehoach-ten-dang-bo">
-            </div>
-
-            <div class="form-group">
-              <label for="kehoach-trang-thai"><i class="fa-solid fa-toggle-on"></i> Ban hành Kế hoạch:</label>
-              <select id="kehoach-trang-thai" required onchange="handleTrangThaiKeHoachChange()">
-                <option value="Có ban hành">Có ban hành</option>
-                <option value="Không ban hành">Không ban hành</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="kehoach-so-ky-hieu">Số, ký hiệu văn bản:</label>
-              <input type="text" id="kehoach-so-ky-hieu" placeholder="Ví dụ: 123-KH/TU" required />
-            </div>
-
-            <div class="form-group">
-              <label for="kehoach-ngay-ban-hanh">Ngày ban hành:</label>
-              <input type="date" id="kehoach-ngay-ban-hanh" required />
-            </div>
-
-            <div class="form-actions" id="kehoach-btn-holder" style="margin-top: 20px;">
-              <button type="submit" class="btn-submit">
-                <i class="fa-solid fa-floppy-disk"></i> Lưu báo cáo Kế hoạch
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <div id="tab-tap-huan" class="tab-content">
-          <h3 style="
+          <div id="tab-tap-huan" class="tab-content">
+            <h3
+              style="
                 font-size: 1.05rem;
                 border-left: 4px solid #003366;
                 padding-left: 8px;
                 margin-bottom: 15px;
                 color: #003366;
                 font-weight: bold;
-              ">
-            <i class="fa-solid fa-graduation-cap"></i> THEO DÕI TÌNH HÌNH TẬP
-            HUẤN
-          </h3>
+              "
+            >
+              <i class="fa-solid fa-graduation-cap"></i> THEO DÕI TÌNH HÌNH TẬP
+              HUẤN
+            </h3>
 
-          <div style="
+            <div
+              style="
                 display: flex;
                 gap: 20px;
                 flex-wrap: wrap;
                 margin-bottom: 20px;
-              ">
-            <div id="form-input-taphuan-container" style="
+              "
+            >
+              <div
+                id="form-input-taphuan-container"
+                style="
                   flex: 1;
                   min-width: 320px;
                   background: #ffffff;
@@ -300,163 +533,236 @@
                   border: 1px solid #003366;
                   border-radius: 4px;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-                ">
-              <h4 style="
+                "
+              >
+                <h4
+                  style="
                     font-size: 0.9rem;
                     margin-bottom: 12px;
                     color: #003366;
                     font-weight: bold;
-                  ">
-                <i class="fa-solid fa-pen-to-square"></i> CẬP NHẬT SỐ LIỆU TẬP
-                HUẤN
-              </h4>
-              <form id="form-taphuan-new" style="display: flex; flex-direction: column; gap: 10px">
-                <div>
-                  <label style="
+                  "
+                >
+                  <i class="fa-solid fa-pen-to-square"></i> CẬP NHẬT SỐ LIỆU TẬP
+                  HUẤN
+                </h4>
+                <form
+                  id="form-taphuan-new"
+                  style="display: flex; flex-direction: column; gap: 10px"
+                >
+                  <div>
+                    <label
+                      style="
                         display: block;
                         font-size: 0.8rem;
                         font-weight: bold;
                         margin-bottom: 4px;
                         color: #555;
-                      ">Đảng bộ đơn vị (Chưa có dữ liệu):</label>
-                  <select id="select-taphuan-dangbo" required style="
+                      "
+                      >Đảng bộ đơn vị (Chưa có dữ liệu):</label
+                    >
+                    <select
+                      id="select-taphuan-dangbo"
+                      required
+                      style="
                         width: 100%;
                         padding: 8px;
                         border: 1px solid #ced4da;
                         border-radius: 4px;
                         font-size: 0.85rem;
-                      ">
-                    <option value="">-- Chọn đơn vị --</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="
+                      "
+                    >
+                      <option value="">-- Chọn đơn vị --</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label
+                      style="
                         display: block;
                         font-size: 0.8rem;
                         font-weight: bold;
                         margin-bottom: 4px;
                         color: #555;
-                      ">Số người tham gia tập huấn:</label>
-                  <input type="number" id="input-taphuan-songuoi" min="0" required placeholder="Nhập số lượng..." style="
+                      "
+                      >Số người tham gia tập huấn:</label
+                    >
+                    <input
+                      type="number"
+                      id="input-taphuan-songuoi"
+                      min="0"
+                      required
+                      placeholder="Nhập số lượng..."
+                      style="
                         width: 100%;
                         padding: 8px;
                         border: 1px solid #ced4da;
                         border-radius: 4px;
                         font-size: 0.85rem;
-                      " />
-                </div>
-                <div style="text-align: right">
-                  <button type="submit" class="btn-submit" style="
+                      "
+                    />
+                  </div>
+                  <div style="text-align: right">
+                    <button
+                      type="submit"
+                      class="btn-submit"
+                      style="
                         width: auto;
                         margin: 0;
                         padding: 8px 20px;
                         background-color: #28a745;
                         font-size: 0.85rem;
-                      ">
-                    <i class="fa-solid fa-floppy-disk"></i> Lưu Số Liệu
-                  </button>
-                </div>
-              </form>
-            </div>
+                      "
+                    >
+                      <i class="fa-solid fa-floppy-disk"></i> Lưu Số Liệu
+                    </button>
+                  </div>
+                </form>
+              </div>
 
-            <div class="excel-upload-box" id="upload-taphuan-container" style="
+              <div
+                class="excel-upload-box"
+                id="upload-taphuan-container"
+                style="
                   flex: 1;
                   min-width: 320px;
                   background: #f8f9fa;
                   border: 1px dashed #003366;
                   padding: 15px;
                   border-radius: 4px;
-                ">
-              <label style="
+                "
+              >
+                <label
+                  style="
                     display: block;
                     font-size: 0.85rem;
                     font-weight: bold;
                     margin-bottom: 8px;
                     color: #555;
-                  ">
-                <i class="fa-solid fa-file-excel text-success"></i> Nạp dữ
-                liệu hàng loạt từ file Excel:
-              </label>
-              <div style="display: flex; gap: 10px; flex-direction: column">
-                <input type="file" id="excel-taphuan-input" accept=".xlsx, .xls"
-                  style="font-size: 0.85rem; padding: 4px 0" />
-                <button type="button" id="btn-import-taphuan" class="btn-submit" style="
+                  "
+                >
+                  <i class="fa-solid fa-file-excel text-success"></i> Nạp dữ
+                  liệu hàng loạt từ file Excel:
+                </label>
+                <div style="display: flex; gap: 10px; flex-direction: column">
+                  <input
+                    type="file"
+                    id="excel-taphuan-input"
+                    accept=".xlsx, .xls"
+                    style="font-size: 0.85rem; padding: 4px 0"
+                  />
+                  <button
+                    type="button"
+                    id="btn-import-taphuan"
+                    class="btn-submit"
+                    style="
                       width: 100%;
                       margin: 0;
                       padding: 8px 16px;
                       background-color: #003366;
                       font-size: 0.85rem;
-                    ">
-                  <i class="fa-solid fa-cloud-arrow-up"></i> Tải Lên Hệ Thống
-                </button>
+                    "
+                  >
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Tải Lên Hệ Thống
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div id="form-edit-taphuan-container" style="
+            <div
+              id="form-edit-taphuan-container"
+              style="
                 display: none;
                 background: #e9ecef;
                 padding: 15px;
                 border-radius: 4px;
                 margin-bottom: 20px;
                 border-left: 5px solid #003366;
-              ">
-            <h4 style="
+              "
+            >
+              <h4
+                style="
                   font-size: 0.9rem;
                   margin-bottom: 10px;
                   color: #003366;
                   font-weight: bold;
-                ">
-              <i class="fa-solid fa-user-pen"></i> ADMIN: ĐIỀU CHỈNH NHANH SỐ
-              LIỆU
-            </h4>
-            <div style="
+                "
+              >
+                <i class="fa-solid fa-user-pen"></i> ADMIN: ĐIỀU CHỈNH NHANH SỐ
+                LIỆU
+              </h4>
+              <div
+                style="
                   display: flex;
                   gap: 15px;
                   align-items: center;
                   flex-wrap: wrap;
-                ">
-              <div style="flex: 1; min-width: 200px">
-                <span style="
+                "
+              >
+                <div style="flex: 1; min-width: 200px">
+                  <span
+                    style="
                       font-size: 0.85rem;
                       font-weight: bold;
                       display: block;
                       margin-bottom: 4px;
-                    ">Đảng bộ đơn vị:</span>
-                <input type="text" id="edit-taphuan-name" disabled style="
+                    "
+                    >Đảng bộ đơn vị:</span
+                  >
+                  <input
+                    type="text"
+                    id="edit-taphuan-name"
+                    disabled
+                    style="
                       width: 100%;
                       padding: 6px;
                       background: #dee2e6;
                       border: 1px solid #ced4da;
                       border-radius: 4px;
                       font-weight: bold;
-                    " />
-              </div>
-              <div style="width: 150px">
-                <span style="
+                    "
+                  />
+                </div>
+                <div style="width: 150px">
+                  <span
+                    style="
                       font-size: 0.85rem;
                       font-weight: bold;
                       display: block;
                       margin-bottom: 4px;
-                    ">Số người tham gia:</span>
-                <input type="number" id="edit-taphuan-count" min="0" style="
+                    "
+                    >Số người tham gia:</span
+                  >
+                  <input
+                    type="number"
+                    id="edit-taphuan-count"
+                    min="0"
+                    style="
                       width: 100%;
                       padding: 6px;
                       border: 1px solid #ced4da;
                       border-radius: 4px;
-                    " />
-              </div>
-              <div style="margin-top: 20px; display: flex; gap: 10px">
-                <button type="button" id="btn-save-edit-taphuan" class="btn-submit" style="
+                    "
+                  />
+                </div>
+                <div style="margin-top: 20px; display: flex; gap: 10px">
+                  <button
+                    type="button"
+                    id="btn-save-edit-taphuan"
+                    class="btn-submit"
+                    style="
                       width: auto;
                       margin: 0;
                       padding: 6px 15px;
                       background: #28a745;
                       font-size: 0.85rem;
-                    ">
-                  Cập nhật
-                </button>
-                <button type="button" id="btn-cancel-edit-taphuan" style="
+                    "
+                  >
+                    Cập nhật
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-cancel-edit-taphuan"
+                    style="
                       padding: 6px 12px;
                       background: #6c757d;
                       color: white;
@@ -464,320 +770,443 @@
                       border-radius: 4px;
                       cursor: pointer;
                       font-size: 0.85rem;
-                    ">
-                  Hủy
-                </button>
+                    "
+                  >
+                    Hủy
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div style="
+            <div
+              style="
                 overflow-x: auto;
                 background: #fff;
                 border: 1px solid #dee2e6;
                 border-radius: 4px;
                 padding: 10px;
-              ">
-            <table style="
+              "
+            >
+              <table
+                style="
                   width: 100%;
                   border-collapse: collapse;
                   font-size: 0.85rem;
                   text-align: left;
-                ">
-              <thead>
-                <tr style="
+                "
+              >
+                <thead>
+                  <tr
+                    style="
                       background-color: #f1f3f5;
                       border-bottom: 2px solid #dee2e6;
                       color: #003366;
-                    ">
-                  <th style="
+                    "
+                  >
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         width: 50px;
                         text-align: center;
-                      ">
-                    STT
-                  </th>
-                  <th style="padding: 8px; border: 1px solid #dee2e6">
-                    Tên Đảng bộ
-                  </th>
-                  <th style="
+                      "
+                    >
+                      STT
+                    </th>
+                    <th style="padding: 8px; border: 1px solid #dee2e6">
+                      Tên Đảng bộ
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 140px;
-                      ">
-                    Số người tham gia
-                  </th>
-                  <th style="
+                      "
+                    >
+                      Số người tham gia
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 130px;
-                      ">
-                    Trạng thái
-                  </th>
-                  <th id="th-taphuan-actions" style="
+                      "
+                    >
+                      Trạng thái
+                    </th>
+                    <th
+                      id="th-taphuan-actions"
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 120px;
-                      ">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="table-taphuan-body">
-                <tr>
-                  <td colspan="5" style="text-align: center; padding: 15px; color: #999">
-                    Chưa có dữ liệu tập huấn được nạp.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      "
+                    >
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="table-taphuan-body">
+                  <tr>
+                    <td
+                      colspan="5"
+                      style="text-align: center; padding: 15px; color: #999"
+                    >
+                      Chưa có dữ liệu tập huấn được nạp.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        <div id="tab-cai-dat" class="tab-content">
-          <h3 style="
+          <div id="tab-cai-dat" class="tab-content">
+            <h3
+              style="
                 font-size: 1.05rem;
                 border-left: 4px solid #003366;
                 padding-left: 8px;
                 margin-bottom: 15px;
                 color: #003366;
                 font-weight: bold;
-              ">
-            <i class="fa-solid fa-folder-open"></i> THỦ TỤC: THU NỘP ĐẢNG PHÍ
-            TRỰC TUYẾN
-          </h3>
+              "
+            >
+              <i class="fa-solid fa-folder-open"></i> THỦ TỤC: THU NỘP ĐẢNG PHÍ
+              TRỰC TUYẾN
+            </h3>
 
-          <div style="
+            <div
+              style="
                 background: #ffffff;
                 padding: 15px;
                 border: 1px solid #003366;
                 border-radius: 4px;
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                 margin-bottom: 20px;
-              ">
-            <h4 style="
+              "
+            >
+              <h4
+                style="
                   font-size: 0.9rem;
                   margin-bottom: 12px;
                   color: #003366;
                   font-weight: bold;
-                ">
-              <i class="fa-solid fa-file-invoice-dollar"></i> KHAI BÁO BÁO CÁO
-              THU NỘP ĐẢNG PHÍ
-            </h4>
-            <form id="form-dangphi-new" style="display: flex; flex-direction: column; gap: 15px;">
-              <div class="form-row-flex" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                  <label for="select-dangphi-ky">Kỳ báo cáo:</label>
-                  <select id="select-dangphi-ky" style="width: 100%;" required>
-                  </select>
+                "
+              >
+                <i class="fa-solid fa-file-invoice-dollar"></i> KHAI BÁO BÁO CÁO
+                THU NỘP ĐẢNG PHÍ
+              </h4>
+              <form
+                id="form-dangphi-new"
+                style="display: flex; flex-direction: column; gap: 15px"
+              >
+                <div class="form-row-flex" style="display: flex; gap: 15px">
+                  <div class="form-group" style="flex: 1; margin-bottom: 0">
+                    <label for="select-dangphi-ky">Kỳ báo cáo:</label>
+                    <select
+                      id="select-dangphi-ky"
+                      style="width: 100%"
+                      required
+                    ></select>
+                  </div>
+                  <div
+                    class="form-group"
+                    style="flex: 1; margin-bottom: 0; position: relative"
+                  >
+                    <label>Tên đảng bộ / Đơn vị:</label>
+                    <div
+                      class="searchable-dropdown"
+                      id="dropdown-dangphi-box"
+                    ></div>
+                    <input type="hidden" id="select-dangphi-dangbo" />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1; margin-bottom: 0; position: relative;">
-                  <label>Tên đảng bộ / Đơn vị:</label>
-                  <div class="searchable-dropdown" id="dropdown-dangphi-box"></div>
-                  <input type="hidden" id="select-dangphi-dangbo">
-                </div>
-              </div>
 
-              <div class="form-row-flex" style="display: flex; gap: 15px;">
-                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                  <label for="input-dangphi-tong">Tổng số đảng viên của đảng bộ:</label>
-                  <input type="number" id="input-dangphi-tong" min="0" required placeholder="Nhập tổng số ĐV"
-                    style="width: 100%;">
+                <div class="form-row-flex" style="display: flex; gap: 15px">
+                  <div class="form-group" style="flex: 1; margin-bottom: 0">
+                    <label for="input-dangphi-tong"
+                      >Tổng số đảng viên của đảng bộ:</label
+                    >
+                    <input
+                      type="number"
+                      id="input-dangphi-tong"
+                      min="0"
+                      required
+                      placeholder="Nhập tổng số ĐV"
+                      style="width: 100%"
+                    />
+                  </div>
+                  <div class="form-group" style="flex: 1; margin-bottom: 0">
+                    <label for="input-dangphi-tructuyen"
+                      >Tổng số đảng viên nộp trực tuyến:</label
+                    >
+                    <input
+                      type="number"
+                      id="input-dangphi-tructuyen"
+                      min="0"
+                      required
+                      placeholder="Nhập số ĐV nộp trực tuyến"
+                      style="width: 100%"
+                    />
+                  </div>
                 </div>
-                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                  <label for="input-dangphi-tructuyen">Tổng số đảng viên nộp trực tuyến:</label>
-                  <input type="number" id="input-dangphi-tructuyen" min="0" required
-                    placeholder="Nhập số ĐV nộp trực tuyến" style="width: 100%;">
-                </div>
-              </div>
 
-              <button type="submit" class="btn-submit" style="margin-top: 5px; width: 100%;">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Ghi sổ số liệu Đảng phí
-              </button>
-            </form>
-          </div>
+                <button
+                  type="submit"
+                  class="btn-submit"
+                  style="margin-top: 5px; width: 100%"
+                >
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Ghi sổ số liệu Đảng
+                  phí
+                </button>
+              </form>
+            </div>
 
-          <div style="
+            <div
+              style="
                 overflow-x: auto;
                 background: #fff;
                 border: 1px solid #dee2e6;
                 border-radius: 4px;
                 padding: 10px;
-              ">
-            <div style="
+              "
+            >
+              <div
+                style="
                   display: flex;
                   justify-content: space-between;
                   align-items: center;
                   margin-bottom: 10px;
-                ">
-              <span style="font-weight: bold; color: #003366; font-size: 0.85rem"><i class="fa-solid fa-list-ol"></i>
-                DANH SÁCH CHI TIẾT ĐƠN VỊ
-                ĐÃ BÁO CÁO</span>
-              <div>
-                <label style="font-size: 0.8rem; font-weight: bold; color: #555">Lọc xem theo kỳ:</label>
-                <select id="filter-dangphi-ky" style="width: auto;">
-                </select>
+                "
+              >
+                <span
+                  style="font-weight: bold; color: #003366; font-size: 0.85rem"
+                  ><i class="fa-solid fa-list-ol"></i> DANH SÁCH CHI TIẾT ĐƠN VỊ
+                  ĐÃ BÁO CÁO</span
+                >
+                <div>
+                  <label
+                    style="font-size: 0.8rem; font-weight: bold; color: #555"
+                    >Lọc xem theo kỳ:</label
+                  >
+                  <select id="filter-dangphi-ky" style="width: auto"></select>
+                </div>
               </div>
-            </div>
-            <table style="
+              <table
+                style="
                   width: 100%;
                   border-collapse: collapse;
                   font-size: 0.85rem;
                   text-align: left;
-                ">
-              <thead>
-                <tr style="
+                "
+              >
+                <thead>
+                  <tr
+                    style="
                       background-color: #f1f3f5;
                       border-bottom: 2px solid #dee2e6;
                       color: #003366;
-                    ">
-                  <th style="
+                    "
+                  >
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         width: 40px;
                         text-align: center;
                         white-space: nowrap;
-                      ">
-                    STT
-                  </th>
-                  <th style="
+                      "
+                    >
+                      STT
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         width: 90px;
                         text-align: center;
                         white-space: nowrap;
-                      ">
-                    Kỳ báo cáo
-                  </th>
-                  <th style="
+                      "
+                    >
+                      Kỳ báo cáo
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: left;
                         width: 100%;
-                      ">
-                    Tên Đảng bộ
-                  </th>
-                  <th style="
+                      "
+                    >
+                      Tên Đảng bộ
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 95px;
                         white-space: nowrap;
-                      ">
-                    Tổng số DV
-                  </th>
-                  <th style="
+                      "
+                    >
+                      Tổng số DV
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 95px;
                         white-space: nowrap;
-                      ">
-                    Nộp trực tuyến
-                  </th>
-                  <th style="
+                      "
+                    >
+                      Nộp trực tuyến
+                    </th>
+                    <th
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 70px;
                         white-space: nowrap;
-                      ">
-                    Tỷ lệ
-                  </th>
-                  <th id="th-dangphi-actions" style="
+                      "
+                    >
+                      Tỷ lệ
+                    </th>
+                    <th
+                      id="th-dangphi-actions"
+                      style="
                         padding: 8px;
                         border: 1px solid #dee2e6;
                         text-align: center;
                         width: 70px;
                         white-space: nowrap;
-                      ">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody id="table-dangphi-body">
-                <tr>
-                  <td colspan="7" style="text-align: center; padding: 15px; color: #999">
-                    Chưa có dữ liệu báo cáo đảng phí.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                      "
+                    >
+                      Thao tác
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="table-dangphi-body">
+                  <tr>
+                    <td
+                      colspan="7"
+                      style="text-align: center; padding: 15px; color: #999"
+                    >
+                      Chưa có dữ liệu báo cáo đảng phí.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
 
-        <div id="tab-quan-tri" class="tab-content">
-          <div class="admin-section" style="
+          <div id="tab-quan-tri" class="tab-content">
+            <div
+              class="admin-section"
+              style="
                 margin-bottom: 30px;
                 border-bottom: 2px dashed #dee2e6;
                 padding-bottom: 20px;
-              ">
-            <h3 style="
+              "
+            >
+              <h3
+                style="
                   font-size: 1.05rem;
                   border-left: 4px solid #003366;
                   padding-left: 8px;
                   margin-bottom: 15px;
                   color: #003366;
                   font-weight: bold;
-                ">
-              <i class="fa-solid fa-sitemap"></i> QUẢN LÝ DANH MỤC ĐẢNG BỘ ĐƠN
-              VỊ
-            </h3>
+                "
+              >
+                <i class="fa-solid fa-sitemap"></i> QUẢN LÝ DANH MỤC ĐẢNG BỘ ĐƠN
+                VỊ
+              </h3>
 
-            <form id="form-add-dangbo" style="display: flex; gap: 10px; margin-bottom: 12px">
-              <input type="text" id="input-new-dangbo" required placeholder="Nhập tên Đảng bộ mới..." style="
+              <form
+                id="form-add-dangbo"
+                style="display: flex; gap: 10px; margin-bottom: 12px"
+              >
+                <input
+                  type="text"
+                  id="input-new-dangbo"
+                  required
+                  placeholder="Nhập tên Đảng bộ mới..."
+                  style="
                     flex: 1;
                     padding: 8px;
                     border: 1px solid #ced4da;
                     border-radius: 4px;
                     font-size: 0.9rem;
-                  " />
-              <button type="submit" class="btn-submit" style="
+                  "
+                />
+                <button
+                  type="submit"
+                  class="btn-submit"
+                  style="
                     width: auto;
                     margin: 0;
                     padding: 0 15px;
                     font-size: 0.9rem;
-                  ">
-                <i class="fa-solid fa-plus"></i> Thêm
-              </button>
-            </form>
+                  "
+                >
+                  <i class="fa-solid fa-plus"></i> Thêm
+                </button>
+              </form>
 
-            <div class="excel-upload-box" style="
+              <div
+                class="excel-upload-box"
+                style="
                   background: #f8f9fa;
                   border: 1px dashed #003366;
                   padding: 12px;
                   border-radius: 4px;
                   margin-bottom: 15px;
-                ">
-              <label style="
+                "
+              >
+                <label
+                  style="
                     display: block;
                     font-size: 0.85rem;
                     font-weight: bold;
                     margin-bottom: 6px;
                     color: #555;
-                  ">
-                <i class="fa-solid fa-file-excel text-success"></i> Nhập danh
-                mục gốc từ File Excel (Cột: STT, Tên đơn vị):
-              </label>
-              <div style="display: flex; gap: 10px; align-items: center">
-                <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="font-size: 0.85rem; flex: 1" />
-                <button type="button" id="btn-import-excel" class="btn-submit" style="
+                  "
+                >
+                  <i class="fa-solid fa-file-excel text-success"></i> Nhập danh
+                  mục gốc từ File Excel (Cột: STT, Tên đơn vị):
+                </label>
+                <div style="display: flex; gap: 10px; align-items: center">
+                  <input
+                    type="file"
+                    id="excel-file-input"
+                    accept=".xlsx, .xls"
+                    style="font-size: 0.85rem; flex: 1"
+                  />
+                  <button
+                    type="button"
+                    id="btn-import-excel"
+                    class="btn-submit"
+                    style="
                       width: auto;
                       margin: 0;
                       padding: 6px 12px;
                       background-color: #28a745;
                       font-size: 0.85rem;
-                    ">
-                  <i class="fa-solid fa-file-import"></i> Tải Dữ Liệu
-                </button>
+                    "
+                  >
+                    <i class="fa-solid fa-file-import"></i> Tải Dữ Liệu
+                  </button>
+                </div>
               </div>
-            </div>
 
-            <div id="admin-dangbo-list" style="
+              <div
+                id="admin-dangbo-list"
+                style="
                   max-height: 180px;
                   overflow-y: auto;
                   border: 1px solid #dee2e6;
@@ -785,87 +1214,124 @@
                   border-radius: 4px;
                   background: #fff;
                   font-size: 0.9rem;
-                "></div>
-          </div>
+                "
+              ></div>
+            </div>
 
-          <div class="admin-section">
-            <h3 style="
+            <div class="admin-section">
+              <h3
+                style="
                   font-size: 1.05rem;
                   border-left: 4px solid #003366;
                   padding-left: 8px;
                   margin-bottom: 15px;
                   color: #003366;
                   font-weight: bold;
-                ">
-              <i class="fa-solid fa-users-gear"></i> QUẢN LÝ TÀI KHOẢN NGƯỜI
-              DÙNG
-            </h3>
+                "
+              >
+                <i class="fa-solid fa-users-gear"></i> QUẢN LÝ TÀI KHOẢN NGƯỜI
+                DÙNG
+              </h3>
 
-            <form id="form-manage-user" style="
+              <form
+                id="form-manage-user"
+                style="
                   background: #f8f9fa;
                   padding: 15px;
                   border-radius: 4px;
                   border: 1px solid #dee2e6;
                   margin-bottom: 15px;
-                ">
-              <input type="hidden" id="user-uid-hidden" />
-              <div style="
+                "
+              >
+                <input type="hidden" id="user-uid-hidden" />
+                <div
+                  style="
                     display: grid;
                     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
                     gap: 10px;
                     margin-bottom: 10px;
-                  ">
-                <div>
-                  <label style="
+                  "
+                >
+                  <div>
+                    <label
+                      style="
                         font-size: 0.8rem;
                         font-weight: bold;
                         display: block;
                         margin-bottom: 4px;
-                      ">Mã UID Tài khoản (*):</label>
-                  <input type="text" id="user-uid-input" required placeholder="Dán UID..." style="
+                      "
+                      >Mã UID Tài khoản (*):</label
+                    >
+                    <input
+                      type="text"
+                      id="user-uid-input"
+                      required
+                      placeholder="Dán UID..."
+                      style="
                         width: 100%;
                         padding: 6px;
                         border: 1px solid #ced4da;
                         border-radius: 4px;
                         font-size: 0.85rem;
-                      " />
-                </div>
-                <div>
-                  <label style="
+                      "
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style="
                         font-size: 0.8rem;
                         font-weight: bold;
                         display: block;
                         margin-bottom: 4px;
-                      ">Email tài khoản:</label>
-                  <input type="email" id="user-email-input" required placeholder="user@cdsthainguyen.vn" style="
+                      "
+                      >Email tài khoản:</label
+                    >
+                    <input
+                      type="email"
+                      id="user-email-input"
+                      required
+                      placeholder="user@cdsthainguyen.vn"
+                      style="
                         width: 100%;
                         padding: 6px;
                         border: 1px solid #ced4da;
                         border-radius: 4px;
                         font-size: 0.85rem;
-                      " />
-                </div>
-                <div>
-                  <label style="
+                      "
+                    />
+                  </div>
+                  <div>
+                    <label
+                      style="
                         font-size: 0.8rem;
                         font-weight: bold;
                         display: block;
                         margin-bottom: 4px;
-                      ">Vai trò quyền:</label>
-                  <select id="user-role-input" style="
+                      "
+                      >Vai trò quyền:</label
+                    >
+                    <select
+                      id="user-role-input"
+                      style="
                         width: 100%;
                         padding: 6px;
-                        border: 1px solid #ced4da;
+                        border: 1px solid #cbd5e1;
                         border-radius: 4px;
-                        font-size: 0.85rem;
-                      ">
-                    <option value="user">Người dùng (Chỉ xem)</option>
-                    <option value="admin">Quản trị viên (Admin)</option>
-                  </select>
+                      "
+                    >
+                      <option value="user">Đơn vị cơ sở (User)</option>
+                      <option value="edit">Người biên tập (Edit)</option>
+                      <option value="admin">Quản trị viên (Admin)</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
-              <div style="display: flex; gap: 10px; justify-content: flex-end">
-                <button type="button" id="btn-cancel-user-edit" style="
+                <div
+                  style="display: flex; gap: 10px; justify-content: flex-end"
+                >
+                  <button
+                    type="button"
+                    id="btn-cancel-user-edit"
+                    style="
                       display: none;
                       background: #6c757d;
                       color: #fff;
@@ -874,20 +1340,28 @@
                       cursor: pointer;
                       font-size: 0.85rem;
                       padding: 6px 12px;
-                    ">
-                  Hủy
-                </button>
-                <button type="submit" id="btn-submit-user" class="btn-submit" style="
+                    "
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    type="submit"
+                    id="btn-submit-user"
+                    class="btn-submit"
+                    style="
                       width: auto;
                       margin: 0;
                       padding: 6px 15px;
                       font-size: 0.85rem;
-                    ">
-                  <i class="fa-solid fa-user-plus"></i> Lưu Tài Khoản
-                </button>
-              </div>
-            </form>
-            <div id="admin-user-list" style="
+                    "
+                  >
+                    <i class="fa-solid fa-user-plus"></i> Lưu Tài Khoản
+                  </button>
+                </div>
+              </form>
+              <div
+                id="admin-user-list"
+                style="
                   max-height: 200px;
                   overflow-y: auto;
                   border: 1px solid #dee2e6;
@@ -895,14 +1369,50 @@
                   border-radius: 4px;
                   background: #fff;
                   font-size: 0.9rem;
-                "></div>
+                "
+              ></div>
+            </div>
           </div>
+          <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
         </div>
-        <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-      </div>
-    </section>
-  </main>
-  <script type="module" src="app.js"></script>
-</body>
+      </section>
+    </main>
+    <script type="module" src="app.js"></script>
+    <footer
+      style="
+        background: #b71c1c;
+        color: #ffffff;
+        border-top: 4px solid #ffc107;
+        padding: 15px 24px;
+        margin-top: 30px;
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 0.9rem;
+      "
+    >
+      <div
+        style="
+          max-width: 1200px;
+          margin: 0 auto;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+          font-weight: 500;
+        "
+      >
+        <div>
+          <i class="fa-solid fa-building-shield" style="color: #ffc107"></i>
+          <strong>VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN</strong>
+        </div>
 
+        <div>
+          <i class="fa-solid fa-phone-volume" style="color: #ffc107"></i>
+          Liên hệ hỗ trợ: <strong>Mr. Nguyễn Quang Huy</strong> - SĐT:
+          <strong>0915373585; Mr. Nguyễn Trung Lâm - SĐT: 0973132798</strong>
+        </div>
+      </div>
+    </footer>
+  </body>
 </html>
