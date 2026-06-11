@@ -1375,7 +1375,7 @@ function tinhToanVaVeDashboardTongQuan() {
       <div style="margin-bottom:8px; color:#dc2626;">Chưa nộp trực tuyến: <strong>${tongChuaNopToanTinh.toLocaleString()} (${tyLeChua}%)</strong></div>
       
       <button id="btn-show-unreported-dangphi" style="width:100%; padding:8px 10px; background-color:#b71c1c; color:#ffffff; border:none; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 2px 4px rgba(0,0,0,0.1); margin-top:8px;">
-        <i class="fa-solid fa-clipboard-list"></i> 📋 Xem ĐV chưa báo cáo trong kỳ (${danhSachChuaBaoCaoKyNay.length})
+        <i class="fa-solid fa-clipboard-list"></i> 📋 Các đơn vị chưa báo cáo trong kỳ (${danhSachChuaBaoCaoKyNay.length})
       </button>
     `;
 
