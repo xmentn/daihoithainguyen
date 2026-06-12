@@ -3,7 +3,8 @@ import {
     getFirestore, collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc, getDoc
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 import {
-    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+    setPersistence, browserSessionPersistence // Nhập thêm hàm cấu hình phiên của Firebase
 } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js";
 
 // =========================================================================
@@ -21,6 +22,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+setPersistence(auth, browserSessionPersistence)
+    .then(() => {
+        console.log("Đã cấu hình tự hủy phiên đăng nhập khi đóng trình duyệt thành công.");
+    })
+    .catch((error) => {
+        console.error("Lỗi cấu hình phiên:", error);
+    });
 
 // Tham chiếu các bộ sưu tập dữ liệu (Collections) trên Firestore
 const docsCollectionRef = collection(db, "documents");
@@ -727,3 +735,10 @@ function formatDateView(dateStr) {
 // Khởi chạy tính năng lịch thông minh cho 2 ô nhập liệu của phân hệ Admin ban đầu
 setupSmartDateInput("doc-date");
 setupSmartDateInput("task-deadline");
+setPersistence(auth, browserSessionPersistence)
+    .then(() => {
+        console.log("Đã cấu hình tự hủy phiên đăng nhập khi đóng trình duyệt thành công.");
+    })
+    .catch((error) => {
+        console.error("Lỗi cấu hình phiên:", error);
+    });
