@@ -134,7 +134,10 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="doc-date">Ngày văn bản <span class="required">*</span></label>
-                                        <input type="date" id="doc-date" required>
+                                        <div class="date-input-wrapper">
+                                            <input type="date" id="doc-date" placeholder="dd/mm/yyyy" required>
+                                            <i class="fa-regular fa-calendar-days"></i>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="doc-summary">Trích yếu văn bản <span
@@ -238,11 +241,13 @@
                                             <option value="">-- Chọn văn bản từ danh mục --</option>
                                         </select>
                                     </div>
-
                                     <div class="form-group">
                                         <label for="task-deadline">Ngày phải hoàn thành <span
                                                 class="required">*</span></label>
-                                        <input type="date" id="task-deadline" required>
+                                        <div class="date-input-wrapper">
+                                            <input type="date" id="task-deadline" placeholder="dd/mm/yyyy" required>
+                                            <i class="fa-regular fa-calendar-days"></i>
+                                        </div>
                                     </div>
 
                                     <div class="form-group">

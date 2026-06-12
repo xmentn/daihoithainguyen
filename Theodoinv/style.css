@@ -658,3 +658,62 @@ tr:hover {
         box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
     }
 }
+
+/* Định dạng lại toàn bộ các ô nhập ngày tháng theo chuẩn dd/mm/yyyy */
+input[type="date"] {
+    position: relative;
+    padding: 10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    color: #1e293b;
+    cursor: pointer;
+}
+
+/* Tạo chuỗi gợi ý dd/mm/yyyy khi ô nhập trống */
+input[type="date"]::before {
+    content: attr(placeholder);
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    background-color: white;
+    width: 80%;
+    display: block;
+}
+
+/* Khi ô được chọn hoặc đã có dữ liệu thì ẩn chuỗi gợi ý đi để hiển thị ngày đã chọn */
+input[type="date"]:focus::before,
+input[type="date"]:valid::before {
+    content: "";
+    display: none;
+}
+
+/* Tùy chỉnh nút bấm mở hộp lịch (Calendar Icon) phẳng đẹp lịch sự */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    background: transparent;
+    color: transparent;
+    cursor: pointer;
+    height: 100%;
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+/* Thiết kế một icon lịch giả bằng FontAwesome ở góc phải để tạo điểm nhấn chuyên nghiệp */
+.date-input-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.date-input-wrapper i {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    pointer-events: none;
+    z-index: 2;
+}
