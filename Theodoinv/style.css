@@ -1,0 +1,660 @@
+:root {
+    --primary-color: #a8232a;
+    --secondary-color: #1e3d59;
+    --bg-color: #f4f6f9;
+    --card-bg: #ffffff;
+    --text-color: #333333;
+    --border-color: #e0e0e0;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Header & Profile */
+.app-header {
+    background: linear-gradient(135deg, var(--primary-color) 0%, #781419 100%);
+    color: white;
+    padding: 15px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.app-logo {
+    font-size: 2.2rem;
+    color: #ffca28;
+}
+
+.title-area h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.title-area h2 {
+    font-size: 0.95rem;
+    color: #ffcdcf;
+}
+
+.user-profile-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+#btn-logout {
+    background: none;
+    border: none;
+    color: #ffcdcf;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color 0.2s;
+}
+
+#btn-logout:hover {
+    color: white;
+}
+
+/* Tabs Navigation */
+.tab-navigation {
+    display: flex;
+    justify-content: center;
+    background-color: var(--secondary-color);
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    color: #b0c4de;
+    padding: 15px 25px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: #ffffff;
+    background-color: var(--primary-color);
+    border-bottom: 3px solid #ffca28;
+}
+
+/* Main Content & Tables */
+.main-content {
+    max-width: 1200px;
+    margin: 25px auto;
+    padding: 0 20px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.section-header {
+    margin-bottom: 20px;
+    border-left: 5px solid var(--primary-color);
+    padding-left: 10px;
+}
+
+.section-header h3 {
+    color: var(--secondary-color);
+    font-size: 1.15rem;
+}
+
+.table-container {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #f8fafc;
+    color: var(--secondary-color);
+    padding: 12px 14px;
+    font-weight: 600;
+    border-bottom: 2px solid var(--border-color);
+    font-size: 0.9rem;
+    /* Thêm đường kẻ dọc bên phải của mỗi ô tiêu đề (trừ ô cuối cùng nếu muốn) */
+    border-right: 1px solid var(--border-color);
+}
+
+td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.95rem;
+    /* Thêm đường kẻ dọc bên phải của mỗi ô nội dung */
+    border-right: 1px solid var(--border-color);
+}
+
+th:last-child,
+td:last-child {
+    border-right: none;
+}
+
+tr:hover {
+    background-color: #fdfdfd;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background-color: #f1f5f9;
+    color: #475569;
+}
+
+/* Admin Grid & Cards */
+.admin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 25px;
+}
+
+.admin-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+}
+
+.card-header {
+    background-color: #fafafa;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border-color);
+    border-radius: 8px 8px 0 0;
+}
+
+.card-header h3 {
+    font-size: 0.95rem;
+    color: var(--secondary-color);
+}
+
+.admin-form {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.85rem;
+}
+
+.required {
+    color: red;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: var(--primary-color);
+}
+
+/* Buttons & Actions */
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-submit {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 11px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    flex: 1;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.btn-submit:hover {
+    background-color: #8b1c21;
+}
+
+.btn-submit.btn-update-mode {
+    background-color: var(--warning-color);
+}
+
+.btn-submit.btn-update-mode:hover {
+    background-color: #d97706;
+}
+
+.btn-cancel {
+    background-color: #64748b;
+    color: white;
+    border: none;
+    padding: 11px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-cancel:hover {
+    background-color: #475569;
+}
+
+.action-buttons-cell {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.btn-table-edit {
+    background: none;
+    border: none;
+    color: var(--warning-color);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-table-edit:hover {
+    color: #d97706;
+}
+
+.btn-table-delete {
+    background: none;
+    border: none;
+    color: var(--danger-color);
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-table-delete:hover {
+    color: #dc2626;
+}
+
+/* Giao diện Đăng nhập (Auth Modal) */
+.auth-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1e293b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.auth-card {
+    background: white;
+    padding: 35px;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auth-logo {
+    font-size: 3rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.auth-header h2 {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+    font-weight: 700;
+}
+
+.auth-header h3 {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-top: 3px;
+    font-weight: 400;
+}
+
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon-wrapper i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+}
+
+.input-icon-wrapper input {
+    padding-left: 35px;
+}
+
+.btn-auth {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+.btn-auth:hover {
+    background: #8b1c21;
+}
+
+/* HỆ THỐNG THÔNG BÁO TOAST CHUYÊN NGHIỆP */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    color: #334155;
+    padding: 14px 20px;
+    border-radius: 6px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    border-left: 5px solid #cbd5e1;
+    min-width: 300px;
+    max-width: 400px;
+    animation: slideIn 0.3s ease-out forwards;
+    transition: all 0.3s ease;
+}
+
+.toast.success {
+    border-left-color: var(--success-color);
+}
+
+.toast.success i {
+    color: var(--success-color);
+}
+
+.toast.warning {
+    border-left-color: var(--warning-color);
+}
+
+.toast.warning i {
+    color: var(--warning-color);
+}
+
+.toast.error {
+    border-left-color: var(--danger-color);
+}
+
+.toast.error i {
+    color: var(--danger-color);
+}
+
+.toast-message {
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex: 1;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.toast-close:hover {
+    color: #475569;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(110%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Thêm bổ sung các thuộc tính dưới đây vào cuối file style.css hiện tại của bạn */
+
+/* Hệ thống Menu con Quản trị (Admin Sub-menu) */
+.admin-sub-menu {
+    display: flex;
+    gap: 5px;
+    background-color: #e2e8f0;
+    padding: 6px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.sub-tab-btn {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sub-tab-btn:hover {
+    color: var(--secondary-color);
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.sub-tab-btn.active {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Nội dung bộ Menu con */
+.sub-tab-content {
+    display: none;
+}
+
+.sub-tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Cấu hình đặc thù cho thẻ Select chọn văn bản */
+.admin-form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    outline: none;
+    background-color: white;
+    cursor: pointer;
+}
+
+.admin-form select:focus {
+    border-color: var(--primary-color);
+}
+
+/* Badge màu tiến độ công việc */
+.status-badge.waiting {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+/* Khu vực bộ lọc tìm kiếm */
+.filter-container {
+    background-color: var(--card-bg);
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-start;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: var(--secondary-color);
+    font-size: 0.95rem;
+}
+
+.filter-group select {
+    padding: 8px 15px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    outline: none;
+    min-width: 250px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.filter-group select:focus {
+    border-color: var(--primary-color);
+}
+
+/* Badge Trạng thái Cảnh báo Sắp đến hạn (Màu vàng đậm rõ ràng) */
+.status-badge.near-deadline {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+    animation: pulseGlow 2s infinite;
+    /* Hiệu ứng mạch đập nhẹ để thu hút sự chú ý */
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.2);
+    }
+
+    70% {
+        box-shadow: 0 0 0 6px rgba(217, 119, 6, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(217, 119, 6, 0);
+    }
+}

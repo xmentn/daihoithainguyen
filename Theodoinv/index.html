@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Theo dõi Nhiệm vụ - Tỉnh ủy Thái Nguyên</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div id="toast-container"></div>
+
+    <div id="login-modal" class="auth-modal">
+        <div class="auth-card">
+            <div class="auth-header">
+                <i class="fa-solid fa-shield-halved auth-logo"></i>
+                <h2>HỆ THỐNG THEO DÕI NHIỆM VỤ</h2>
+                <h3>VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN</h3>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Tài khoản (Email) <span class="required">*</span></label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-envelope"></i>
+                        <input type="email" id="login-email" placeholder="nhapemail@thainguyen.gov.vn" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Mật khẩu <span class="required">*</span></label>
+                    <div class="input-icon-wrapper">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="login-password" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-auth">Đăng nhập hệ thống</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden">
+        <header class="app-header">
+            <div class="header-container">
+                <div class="logo-area">
+                    <i class="fa-solid fa-shield-halved app-logo"></i>
+                    <div class="title-area">
+                        <h1>HỆ THỐNG THEO DÕI TIẾN ĐỘ THỰC HIỆN NHIỆM VỤ</h1>
+                        <h2>VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN</h2>
+                    </div>
+                </div>
+                <div class="user-profile-status">
+                    <span id="user-display-info"><i class="fa-solid fa-user-tie"></i> Đang tải...</span>
+                    <button id="btn-logout" title="Đăng xuất"><i class="fa-solid fa-right-from-bracket"></i></button>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tab-navigation">
+            <button class="tab-btn active" data-tab="progress-tab">
+                <i class="fa-solid fa-chart-line"></i> Theo dõi tiến độ
+            </button>
+            <button class="tab-btn hidden" id="tab-admin-btn" data-tab="admin-tab">
+                <i class="fa-solid fa-gear"></i> Quản trị hệ thống
+            </button>
+        </nav>
+
+        <main class="main-content">
+
+            <section id="progress-tab" class="tab-content active">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-list-check"></i> DANH SÁCH TIẾN ĐỘ NHIỆM VỤ CHI TIẾT</h3>
+                </div>
+
+                <div class="filter-container">
+                    <div class="filter-group">
+                        <label for="filter-dept"><i class="fa-solid fa-filter"></i> Lọc theo Đơn vị thực hiện:</label>
+                        <select id="filter-dept">
+                            <option value="">-- Tất cả đơn vị --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table id="progress-table">
+                        <thead>
+                            <tr>
+                                <th width="5%" style="text-align: center;">STT</th>
+                                <th width="35%">Nội dung nhiệm vụ giao</th>
+                                <th width="15%">Văn bản giao việc</th>
+                                <th width="15%">Hạn hoàn thành</th>
+                                <th width="15%">Đơn vị/Cá nhân</th>
+                                <th width="15%" style="text-align: center;">Tiến độ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="progress-list">
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="admin-tab" class="tab-content">
+
+                <div class="admin-sub-menu">
+                    <button class="sub-tab-btn active" data-subtab="sub-doc-manager">
+                        <i class="fa-solid fa-file-invoice"></i> Hệ thống văn bản
+                    </button>
+                    <button class="sub-tab-btn" data-subtab="sub-dept-manager">
+                        <i class="fa-solid fa-building-shield"></i> Danh mục đơn vị
+                    </button>
+                    <button class="sub-tab-btn" data-subtab="sub-task-manager">
+                        <i class="fa-solid fa-tasks"></i> Giao nhiệm vụ
+                    </button>
+                    <button class="sub-tab-btn" data-subtab="sub-user-manager">
+                        <i class="fa-solid fa-users-gear"></i> Quản trị người dùng
+                    </button>
+                </div>
+
+                <div class="sub-tab-content-container">
+
+                    <div id="sub-doc-manager" class="sub-tab-content active">
+                        <div class="admin-grid">
+                            <div class="admin-card">
+                                <div class="card-header">
+                                    <h3 id="form-title"><i class="fa-solid fa-file-pen"></i> Cập nhật Danh mục văn bản
+                                    </h3>
+                                </div>
+                                <form id="document-form" class="admin-form">
+                                    <input type="hidden" id="doc-id">
+                                    <div class="form-group">
+                                        <label for="doc-number">Số hiệu văn bản <span class="required">*</span></label>
+                                        <input type="text" id="doc-number" placeholder="Ví dụ: 123-NQ/TU" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="doc-date">Ngày văn bản <span class="required">*</span></label>
+                                        <input type="date" id="doc-date" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="doc-summary">Trích yếu văn bản <span
+                                                class="required">*</span></label>
+                                        <textarea id="doc-summary" rows="4" placeholder="Trích yếu, tóm tắt nội dung..."
+                                            required></textarea>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" id="btn-submit-form" class="btn-submit"><i
+                                                class="fa-solid fa-plus"></i> Thêm văn bản</button>
+                                        <button type="button" id="btn-cancel-edit" class="btn-cancel hidden">Hủy
+                                            sửa</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="admin-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-folder-open"></i> Văn bản đã ban hành</h3>
+                                </div>
+                                <div class="table-container minimal">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th width="10%" style="text-align: center;">STT</th>
+                                                <th width="30%">Số hiệu</th>
+                                                <th width="45%">Trích yếu</th>
+                                                <th width="15%" style="text-align: center;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-doc-list"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sub-dept-manager" class="sub-tab-content">
+                        <div class="admin-grid">
+                            <div class="admin-card">
+                                <div class="card-header">
+                                    <h3 id="dept-form-title"><i class="fa-solid fa-folder-plus"></i> Cập nhật Đơn vị
+                                        phòng ban</h3>
+                                </div>
+                                <form id="department-form" class="admin-form">
+                                    <input type="hidden" id="dept-id">
+                                    <div class="form-group">
+                                        <label for="dept-name">Tên cơ quan, đơn vị <span
+                                                class="required">*</span></label>
+                                        <input type="text" id="dept-name"
+                                            placeholder="Ví dụ: Ban Tổ chức Tỉnh ủy, Sở Tài chính..." required>
+                                    </div>
+                                    <div class="form-actions">
+                                        <button type="submit" id="btn-submit-dept" class="btn-submit"><i
+                                                class="fa-solid fa-plus"></i> Thêm đơn vị</button>
+                                        <button type="button" id="btn-cancel-dept-edit" class="btn-cancel hidden">Hủy
+                                            sửa</button>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="admin-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-building"></i> Danh sách đơn vị trong hệ thống</h3>
+                                </div>
+                                <div class="table-container minimal">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th width="15%" style="text-align: center;">STT</th>
+                                                <th width="65%">Tên cơ quan, đơn vịn</th>
+                                                <th width="20%" style="text-align: center;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-dept-list"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sub-task-manager" class="sub-tab-content">
+                        <div class="admin-grid">
+                            <div class="admin-card">
+                                <div class="card-header">
+                                    <h3 id="task-form-title"><i class="fa-solid fa-thumbtack"></i> Khởi tạo Nhiệm vụ mới
+                                    </h3>
+                                </div>
+                                <form id="task-form" class="admin-form">
+                                    <input type="hidden" id="task-id">
+
+                                    <div class="form-group">
+                                        <label for="task-content">Nội dung nhiệm vụ giao <span
+                                                class="required">*</span></label>
+                                        <textarea id="task-content" rows="3"
+                                            placeholder="Nhập chi tiết nội dung công việc..." required></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="task-doc-select">Văn bản giao nhiệm vụ <span
+                                                class="required">*</span></label>
+                                        <select id="task-doc-select" required>
+                                            <option value="">-- Chọn văn bản từ danh mục --</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="task-deadline">Ngày phải hoàn thành <span
+                                                class="required">*</span></label>
+                                        <input type="date" id="task-deadline" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="task-dept-select">Cá nhân/Đơn vị chủ trì thực hiện <span
+                                                class="required">*</span></label>
+                                        <select id="task-dept-select" required>
+                                            <option value="">-- Chọn đơn vị nhận việc --</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="submit" id="btn-submit-task" class="btn-submit"><i
+                                                class="fa-solid fa-paper-plane"></i> Giao nhiệm vụ</button>
+                                        <button type="button" id="btn-cancel-task-edit"
+                                            class="btn-cancel hidden">Hủy</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="admin-card">
+                                <div class="card-header">
+                                    <h3><i class="fa-solid fa-list-ol"></i> Danh sách nhiệm vụ đã phân công</h3>
+                                </div>
+                                <div class="table-container minimal">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th width="10%" style="text-align: center;">STT</th>
+                                                <th width="50%">Nội dung công việc</th>
+                                                <th width="25%">Đơn vị</th>
+                                                <th width="15%" style="text-align: center;">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="admin-task-list"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="sub-user-manager" class="sub-tab-content">
+                        <div class="admin-card" style="padding: 30px; text-align: center; color: #64748b;">
+                            <i class="fa-solid fa-users-gear"
+                                style="font-size: 3rem; margin-bottom: 15px; color: var(--secondary-color);"></i>
+                            <p>Tính năng Quản lý danh sách tài khoản cán bộ đang được xây dựng ở bước tiếp theo.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
