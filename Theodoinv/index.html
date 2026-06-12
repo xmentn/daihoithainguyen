@@ -62,6 +62,9 @@
             <button class="tab-btn active" data-tab="progress-tab">
                 <i class="fa-solid fa-chart-line"></i> Theo dõi tiến độ
             </button>
+            <button class="tab-btn hidden" id="tab-staff-btn" data-tab="staff-input-tab">
+                <i class="fa-solid fa-pen-to-square"></i> Nhập liệu báo cáo
+            </button>
             <button class="tab-btn hidden" id="tab-admin-btn" data-tab="admin-tab">
                 <i class="fa-solid fa-gear"></i> Quản trị hệ thống
             </button>
@@ -87,16 +90,42 @@
                     <table id="progress-table">
                         <thead>
                             <tr>
-                                <th width="5%" style="text-align: center;">STT</th>
-                                <th width="35%">Nội dung nhiệm vụ giao</th>
-                                <th width="15%">Văn bản giao việc</th>
-                                <th width="15%">Hạn hoàn thành</th>
+                                <th width="4%" style="text-align: center;">STT</th>
+                                <th width="24%">Nội dung nhiệm vụ giao</th>
+                                <th width="12%">Văn bản giao việc</th>
+                                <th width="10%">Hạn hoàn thành</th>
                                 <th width="15%">Đơn vị/Cá nhân</th>
-                                <th width="15%" style="text-align: center;">Tiến độ</th>
+                                <th width="12%" style="text-align: center;">Tình hình</th>
+                                <th width="15%">Kết quả thực hiện</th>
+                                <th width="8%" style="text-align: center;">Ngày xong</th>
                             </tr>
                         </thead>
-                        <tbody id="progress-list">
-                        </tbody>
+                        <tbody id="progress-list"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="staff-input-tab" class="tab-content">
+                <div class="section-header">
+                    <h3><i class="fa-solid fa-file-signature"></i> CẬP NHẬT TÌNH HÌNH & KẾT QUẢ THỰC HIỆN</h3>
+                    <p id="staff-dept-name"
+                        style="color: var(--primary-color); font-weight: bold; margin-top: 5px; font-size: 1.05rem;">
+                    </p>
+                </div>
+
+                <div class="table-container">
+                    <table id="staff-input-table-el">
+                        <thead>
+                            <tr>
+                                <th width="4%" style="text-align: center;">STT</th>
+                                <th width="26%">Nhiệm vụ được giao</th>
+                                <th width="15%" style="text-align: center;">Tình hình thực hiện</th>
+                                <th width="35%">Kết quả thực hiện (Mô tả, số liệu...)</th>
+                                <th width="12%" style="text-align: center;">Thời gian hoàn thành</th>
+                                <th width="8%" style="text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-task-list"></tbody>
                     </table>
                 </div>
             </section>
@@ -136,7 +165,8 @@
                                     <div class="form-group">
                                         <label for="doc-date">Ngày văn bản <span class="required">*</span></label>
                                         <div class="date-input-wrapper">
-                                            <input type="date" id="doc-date" placeholder="dd/mm/yyyy" required>
+                                            <input type="text" id="doc-date" placeholder="dd/mm/yyyy" required
+                                                autocomplete="off">
                                             <i class="fa-regular fa-calendar-days"></i>
                                         </div>
                                     </div>
@@ -207,7 +237,7 @@
                                         <thead>
                                             <tr>
                                                 <th width="15%" style="text-align: center;">STT</th>
-                                                <th width="65%">Tên cơ quan, đơn vịn</th>
+                                                <th width="65%">Tên cơ quan, đơn vị</th>
                                                 <th width="20%" style="text-align: center;">Thao tác</th>
                                             </tr>
                                         </thead>
@@ -246,7 +276,8 @@
                                         <label for="task-deadline">Ngày phải hoàn thành <span
                                                 class="required">*</span></label>
                                         <div class="date-input-wrapper">
-                                            <input type="date" id="task-deadline" placeholder="dd/mm/yyyy" required>
+                                            <input type="text" id="task-deadline" placeholder="dd/mm/yyyy" required
+                                                autocomplete="off">
                                             <i class="fa-regular fa-calendar-days"></i>
                                         </div>
                                     </div>

@@ -717,3 +717,108 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     pointer-events: none;
     z-index: 2;
 }
+
+/* Màu sắc cho các trạng thái tình hình */
+.status-select {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #cbd5e1;
+    width: 100%;
+}
+
+.status-text {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.status-not-started {
+    color: #64748b;
+}
+
+.status-doing {
+    color: #3b82f6;
+}
+
+.status-done {
+    color: #10b981;
+}
+
+/* Bảng nhập liệu cho Staff */
+.input-table textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    resize: vertical;
+    font-size: 0.9rem;
+}
+
+.btn-save-inline {
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-save-inline:hover {
+    background-color: #059669;
+}
+
+/* Hiệu ứng mờ ô ngày nếu chưa chọn Đã hoàn thành */
+input:disabled {
+    background-color: #f1f5f9;
+    cursor: not-allowed;
+    color: #94a3b8;
+}
+
+/* =========================================================================
+   ĐIỀU CHỈNH Ô NHẬP LIỆU KHÍT VỚI ĐỘ RỘNG CỘT BẢNG (TAB NHẬP LIỆU)
+   ========================================================================= */
+
+/* Ép tất cả các phần tử nhập liệu bên trong bảng dãn tối đa 100% độ rộng của ô chứa */
+#staff-input-table-el select,
+#staff-input-table-el textarea,
+#staff-input-table-el input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+    /* Đảm bảo padding không làm tràn ô */
+    font-size: 0.93rem;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+/* Hiệu ứng đổi màu viền nhẹ nhàng khi cán bộ click chọn ô để nhập */
+#staff-input-table-el select:focus,
+#staff-input-table-el textarea:focus,
+#staff-input-table-el input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(168, 35, 42, 0.1);
+    /* Tạo viền mờ màu đỏ đô thương hiệu */
+}
+
+/* Định cấu hình riêng cho ô nhập kết quả (textarea) tự động căn chỉnh */
+#staff-input-table-el textarea {
+    resize: vertical;
+    /* Chỉ cho phép kéo dãn chiều cao, không làm lệch chiều rộng cột */
+    min-height: 45px;
+    display: block;
+}
+
+/* Đảm bảo khung bọc lịch thông minh cũng lấp đầy diện tích cột */
+#staff-input-table-el .date-input-wrapper {
+    width: 100% !important;
+    display: block;
+}
+
+/* Căn chỉnh lại các ô canh giữa cho cân đối */
+#staff-input-table-el td {
+    vertical-align: middle;
+    /* Căn nội dung luôn nằm giữa dòng theo chiều dọc */
+}
