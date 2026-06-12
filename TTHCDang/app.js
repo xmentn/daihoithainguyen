@@ -47,6 +47,7 @@ let danhSachDangBoGoc = [];
 let thongTinTapHuanHienTai = {};
 let thongTinKeHoachHienTai = {};
 let thongTinDangPhiHienTai = {};
+let filterXValue = null; // Biến toàn cục lưu trữ ngưỡng tỷ lệ x% phục vụ bộ lọc nâng cao
 
 if (typeof window.myChartHigh === "undefined") window.myChartHigh = null;
 if (typeof window.myChartLow === "undefined") window.myChartLow = null;
@@ -285,6 +286,8 @@ function capNhatHienThiTabTheoQuyen() {
     window.handleTrangThaiKeHoachChange();
   }
 
+  // KHỞI TẠO KHUNG GIAO DIỆN LỌC PHẦN TRĂM TRƯỚC ĐỂ TRÁNH LỖI PHỤ THUỘC ĐỒNG BỘ DOM
+  khoiTaoKhungBoLocThongKeX();
   renderTableDangPhi();
 
   capNhatThoiGianTuongTacCuoi();
@@ -539,7 +542,7 @@ if (document.getElementById("form-taphuan-new")) {
     });
 }
 
-// --- 5. LẮNG NGHE NHÁNH TẬP HUÂN VÀ VẼ BIỂU ĐỒ BAR CHART REALTIME ---
+// --- 5. LẮNG NGHE NHÁNH TẬP HUÂN VÀ VẼ BIỂU ĐỒ BAR CHART REALTIME (BẢO TOÀN TẬP HUÂN 100%) ---
 const dbRefTapHuan = ref(database, "tap_huan");
 onValue(dbRefTapHuan, (snapshot) => {
   const tableBody = document.getElementById("table-taphuan-body");
@@ -602,11 +605,10 @@ onValue(dbRefTapHuan, (snapshot) => {
         <td style="padding: 10px; border: 1px solid #dee2e6;"><strong>${item.ten_dang_bo}</strong></td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold; color: #003366; font-size: 0.95rem;">${item.so_nguoi_tham_gia}</td>
         <td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;"><span style="${badgeStyle}">${item.trang_thai}</span></td>
-        ${
-          currentRole === "admin" || currentRole === "edit"
-            ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">${nutBamHanhDong}</td>`
-            : ""
-        }</tr>`;
+        ${currentRole === "admin" || currentRole === "edit"
+        ? `<td style="padding: 10px; border: 1px solid #dee2e6; text-align: center;">${nutBamHanhDong}</td>`
+        : ""
+      }</tr>`;
   });
 
   if (htmlContent && tableBody) {
@@ -1051,9 +1053,73 @@ if (document.getElementById("form-manage-user")) {
     });
 }
 
-// ==========================================================================
-// --- 8. QUẢN LÝ THỦ TỤC: THU NỘP ĐẢNG PHÍ & BỘ ĐIỀU HÀNH DASHBOARD 2 TẦNG ---
-// ==========================================================================
+// =======================================================================================
+// --- 8. PHÂN HỆ: THU NỘP ĐẢNG PHÍ TRỰC TUYẾN & BỘ THỐNG KÊ NÂNG CAO DƯỚI X% XUẤT PDF ---
+// =======================================================================================
+
+// Hàm tự động tạo thanh điều khiển nhập số x% ngay trên bảng dữ liệu Đảng phí công tác
+function khoiTaoKhungBoLocThongKeX() {
+  const tableContainer = document.getElementById("table-dangphi-body")?.closest(".table-responsive") || document.querySelector(".table-responsive");
+  if (!tableContainer || document.getElementById("container-filter-x-dangphi")) return;
+
+  const wrapperFilterX = document.createElement("div");
+  wrapperFilterX.id = "container-filter-x-dangphi";
+  wrapperFilterX.style.cssText = "background:#f8fafc; border:1px solid #e2e8f0; padding:12px 15px; border-radius:6px; margin-bottom:15px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;";
+
+  wrapperFilterX.innerHTML = `
+    <div style="font-size:0.9rem; font-weight:700; color:#334155; display:flex; align-items:center; gap:6px;">
+      <i class="fa-solid fa-chart-line" style="color:#b71c1c;"></i> Thống kê nâng cao:
+    </div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span style="font-size:0.85rem; color:#475569;">Đơn vị nộp trực tuyến dưới:</span>
+      <input type="text" id="input-filter-x-percent" placeholder="Nhập số..." style="width:80px; padding:6px 8px; border:1px solid #cbd5e1; border-radius:4px; text-align:center; font-weight:700; color:#b71c1c;">
+      <span style="font-size:0.85rem; font-weight:700; color:#475569;">%</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button id="btn-trigger-filter-x" style="padding:6px 14px; background-color:#003366; color:#ffffff; border:none; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:4px;">
+        <i class="fa-solid fa-filter"></i> Lọc dữ liệu
+      </button>
+      <button id="btn-reset-filter-x" style="padding:6px 12px; background-color:#64748b; color:#ffffff; border:none; border-radius:4px; font-weight:600; cursor:pointer; font-size:0.8rem;">
+        Hủy lọc
+      </button>
+      <button id="btn-export-pdf-filter-x" style="padding:6px 14px; background-color:#b71c1c; color:#ffffff; border:none; border-radius:4px; font-weight:700; cursor:pointer; font-size:0.8rem; display:flex; align-items:center; gap:4px;">
+        <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+      </button>
+    </div>
+  `;
+
+  tableContainer.parentNode.insertBefore(wrapperFilterX, tableContainer);
+
+  const txtInputX = document.getElementById("input-filter-x-percent");
+  if (txtInputX) {
+    txtInputX.addEventListener("input", function () {
+      this.value = this.value.replace(/[^0-9]/g, "");
+      if (this.value !== "" && parseInt(this.value) > 100) this.value = "100";
+    });
+  }
+
+  document.getElementById("btn-trigger-filter-x").addEventListener("click", () => {
+    const txtInput = document.getElementById("input-filter-x-percent");
+    const val = txtInput ? txtInput.value.trim() : "";
+    if (val === "") {
+      showToast("Vui lòng nhập tỷ lệ số phần trăm x cần lọc!", "warning");
+      return;
+    }
+    filterXValue = parseInt(val);
+    renderTableDangPhi();
+    showToast(`Đã lọc danh sách đơn vị có tỷ lệ dưới ${filterXValue}%`, "success");
+  });
+
+  document.getElementById("btn-reset-filter-x").addEventListener("click", () => {
+    const txtInput = document.getElementById("input-filter-x-percent");
+    if (txtInput) txtInput.value = "";
+    filterXValue = null;
+    renderTableDangPhi();
+  });
+
+  document.getElementById("btn-export-pdf-filter-x").addEventListener("click", xuLyXuatPdfTheoNguongX);
+}
+
 function capNhatDropdownDangBoChuaNopDangPhi() {
   const selectKyDP = document.getElementById("select-dangphi-ky");
   if (!selectKyDP) return;
@@ -1198,7 +1264,10 @@ function renderTableDangPhi() {
 
       const tong = parseInt(item.tong_dang_vien || 0);
       const trucTuyen = parseInt(item.nop_truc_tuyen || 0);
-      const tyLe = tong > 0 ? ((trucTuyen / tong) * 100).toFixed(1) : "0.0";
+      const tyLe = tong > 0 ? parseFloat(((trucTuyen / tong) * 100).toFixed(1)) : 0;
+
+      // THỰC THI BỘ LỌC ĐỘNG X% NẾU CÓ DỮ LIỆU ĐẦU VÀO
+      if (filterXValue !== null && tyLe >= filterXValue) return;
 
       let colHanhDong = "";
       if (currentRole === "admin") {
@@ -1209,7 +1278,7 @@ function renderTableDangPhi() {
       } else if (currentRole === "edit" || currentRole === "user") {
         if (currentRole === "edit") {
           colHanhDong = `
-            <button class="btn-edit-dangphi" data-name="${item.ten_dang_bo}" data-tong="${tong}" data-tructuyen="${trucTuyen}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
+            <button class="btn-edit-dangphi" data-name="${item.ten_dang_bo}" data-tong="${tong}" data-tructuyen="${trucTuyen}" style="background:none; border:none; color:#003366; cursor:pointer; font-weight:bold; margin-right:8px;"><i class="fa-solid fa-pen-to-square"></i> Sửa</button>
           `;
         } else {
           colHanhDong = `<span style="color:#64748b; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-circle-check text-success"></i> Đã ghi sổ</span>`;
@@ -1230,7 +1299,7 @@ function renderTableDangPhi() {
 
   tableBody.innerHTML =
     htmlContent ||
-    `<tr><td colspan="7" style="text-align: center; padding: 15px; color: #999;">Không có dữ liệu cho kỳ báo cáo này.</td></tr>`;
+    `<tr><td colspan="7" style="text-align: center; padding: 15px; color: #999;">Không có đơn vị nào có tiến độ dưới ngưỡng thiết lập.</td></tr>`;
 
   document.querySelectorAll(".btn-edit-dangphi").forEach((btn) => {
     btn.addEventListener("click", (e) => {
@@ -1257,24 +1326,96 @@ function renderTableDangPhi() {
         .scrollIntoView({ behavior: "smooth" });
     });
   });
+}
 
-  if (currentRole === "admin") {
-    document.querySelectorAll(".btn-delete-dangphi").forEach((btn) => {
-      btn.addEventListener("click", (e) => {
-        const keyXoa = e.currentTarget.getAttribute("data-key");
-        Swal.fire({
-          title: "Xác nhận xóa?",
-          text: "Báo cáo nộp đảng phí của đơn vị này trong kỳ sẽ bị gỡ bỏ!",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#003366",
-          confirmButtonText: "Xóa",
-        }).then((result) => {
-          if (result.isConfirmed) remove(ref(database, "dang_phi/" + keyXoa));
-        });
-      });
-    });
+// Hàm kết xuất tệp PDF hành chính danh sách đơn vị yếu kém dưới x%
+function xuLyXuatPdfTheoNguongX() {
+  const kyBaoCao = document.getElementById("filter-dangphi-ky")?.value || "Toàn kỳ";
+  const txtInputX = document.getElementById("input-filter-x-percent")?.value;
+
+  if (!txtInputX) {
+    showToast("Vui lòng nhập số % cần lọc trước khi bấm xuất PDF!", "warning");
+    return;
   }
+
+  const nguongX = parseInt(txtInputX);
+  const danhSachYeuKem = [];
+
+  Object.keys(thongTinDangPhiHienTai).forEach((key) => {
+    const item = thongTinDangPhiHienTai[key];
+    if (item && item.ky_bao_cao === kyBaoCao && item.ten_dang_bo) {
+      const tong = parseInt(item.tong_dang_vien || 0);
+      const trucTuyen = parseInt(item.nop_truc_tuyen || 0);
+      const tyLe = tong > 0 ? parseFloat(((trucTuyen / tong) * 100).toFixed(1)) : 0;
+
+      if (tyLe < nguongX) {
+        danhSachYeuKem.push([
+          danhSachYeuKem.length + 1,
+          item.ten_dang_bo,
+          tong.toLocaleString(),
+          trucTuyen.toLocaleString(),
+          `${tyLe}%`
+        ]);
+      }
+    }
+  });
+
+  if (danhSachYeuKem.length === 0) {
+    Swal.fire("THÔNG BÁO", `Không tìm thấy đơn vị nào có tiến độ nộp trực tuyến dưới ${nguongX}% trong ${kyBaoCao}.`, "info");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("p", "mm", "a4");
+
+  doc.addFont("https://cdnjs.cloudflare.com/ajax/libs/dejavu-sans/2.37/DejaVuSans.ttf", "DejaVuSans", "normal");
+  doc.addFont("https://cdnjs.cloudflare.com/ajax/libs/dejavu-sans/2.37/DejaVuSans-Bold.ttf", "DejaVuSans", "bold");
+  doc.setFont("DejaVuSans", "normal");
+
+  doc.setFontSize(10);
+  doc.text("ĐẢNG CỘNG SẢN VIỆT NAM", 15, 15);
+  doc.setFont("DejaVuSans", "bold");
+  doc.setFontSize(11);
+  doc.text("VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN", 15, 21);
+
+  doc.setFont("DejaVuSans", "normal");
+  doc.setFontSize(10);
+  doc.text("Thái Nguyên, ngày " + new Date().getDate() + " tháng " + (new Date().getMonth() + 1) + " năm " + new Date().getFullYear(), 132, 21);
+
+  doc.line(15, 24, 85, 24);
+
+  doc.setFont("DejaVuSans", "bold");
+  doc.setFontSize(14);
+  doc.text("BÁO CÁO THỐNG KÊ RÀ SOÁT", 105, 38, { align: "center" });
+  doc.setFontSize(11.5);
+  doc.text(`CÁC ĐƠN VỊ CÓ TỶ LỆ NỘP ĐẢNG PHÍ TRỰC TUYẾN DƯỚI ${nguongX}%`, 105, 45, { align: "center" });
+  doc.setFont("DejaVuSans", "normal");
+  doc.setFontSize(11);
+  doc.text(`Kỳ báo cáo tổng hợp: ${kyBaoCao}`, 105, 51, { align: "center" });
+
+  doc.autoTable({
+    startY: 58,
+    head: [["STT", "Tên Đảng bộ đơn vị cơ sở", "Tổng số ĐV", "Nộp trực tuyến", "Tỷ lệ %"]],
+    body: danhSachYeuKem,
+    styles: { font: "DejaVuSans", fontSize: 9.5, cellPadding: 3 },
+    headStyles: { font: "DejaVuSans", fontStyle: "bold", fillColor: [183, 28, 28], textColor: [255, 255, 255], halign: "center" },
+    columnStyles: {
+      0: { halign: "center", width: 12 },
+      1: { halign: "left" },
+      2: { halign: "center", width: 25 },
+      3: { halign: "center", width: 30 },
+      4: { halign: "center", fontStyle: "bold", textColor: [183, 28, 28], width: 22 }
+    }
+  });
+
+  const ySign = doc.lastAutoTable.finalY + 15;
+  doc.setFont("DejaVuSans", "bold");
+  doc.text("NGƯỜI TỔNG HỢP BÁO CÁO", 135, ySign);
+  doc.setFont("DejaVuSans", "normal");
+  doc.text("(Ký và ghi rõ họ tên)", 141, ySign + 5);
+
+  doc.save(`Danh_sach_nop_dang_phi_duoi_${nguongX}_phan_tram.pdf`);
+  showToast("Đã trích xuất và tải file báo cáo PDF thành công!", "success");
 }
 
 function napDanhSachLookupSidebarTraCuu() {
@@ -1294,15 +1435,6 @@ function napDanhSachLookupSidebarTraCuu() {
     selectKy.removeEventListener("change", xuLyKhiThayDoiKyDashboard);
     selectKy.addEventListener("change", xuLyKhiThayDoiKyDashboard);
   }
-
-  const hiddenInputSidebar = document.getElementById("lookup-dangphi-dangbo");
-  if (hiddenInputSidebar) {
-    hiddenInputSidebar.removeEventListener(
-      "change",
-      thuThiTraCuuDangPhiSidebar,
-    );
-    hiddenInputSidebar.addEventListener("change", thuThiTraCuuDangPhiSidebar);
-  }
 }
 
 function xuLyKhiThayDoiKyDashboard() {
@@ -1310,7 +1442,6 @@ function xuLyKhiThayDoiKyDashboard() {
   thuThiTraCuuDangPhiSidebar();
 }
 
-// --- HÀM TÍNH TOÁN DASHBOARD TỔNG QUAN TOÀN TỈNH & TÍCH HỢP NÚT XEM ĐƠN VỊ CHƯA BÁO CÁO ---
 function tinhToanVaVeDashboardTongQuan() {
   const kyDuocChon = document.getElementById("lookup-dangphi-ky")?.value;
   const statsContainer = document.getElementById("tongquan-dangphi-stats");
@@ -1345,7 +1476,6 @@ function tinhToanVaVeDashboardTongQuan() {
     }
   });
 
-  // TÌM RA CÁC ĐƠN VỊ CÒN LẠI HOÀN TOÀN CHƯA NHẬP BÁO CÁO TRONG KỲ
   const danhSachChuaBaoCaoKyNay = danhSachDangBoGoc.filter((tenDonVi) => {
     return !danhSachTenDaBaoCao.includes(tenDonVi.trim().toLowerCase());
   });
@@ -1355,17 +1485,16 @@ function tinhToanVaVeDashboardTongQuan() {
   const tyLeNop =
     tongDangVienToanTinh > 0
       ? parseFloat(
-          ((tongNopTrucTuyenToanTinh / tongDangVienToanTinh) * 100).toFixed(1),
-        )
+        ((tongNopTrucTuyenToanTinh / tongDangVienToanTinh) * 100).toFixed(1),
+      )
       : 0;
   const tyLeChua =
     tongDangVienToanTinh > 0
       ? parseFloat(
-          ((tongChuaNopToanTinh / tongDangVienToanTinh) * 100).toFixed(1),
-        )
+        ((tongChuaNopToanTinh / tongDangVienToanTinh) * 100).toFixed(1),
+      )
       : 0;
 
-  // THÊM NÚT "XEM ĐV CHƯA BÁO CÁO" NGAY DƯỚI ĐOẠN LIỆT KÊ CHỮ
   if (statsContainer) {
     statsContainer.innerHTML = `
       <div style="margin-bottom:4px;">Kỳ báo cáo: <strong style="color:#b71c1c;">${kyDuocChon}</strong></div>
@@ -1379,7 +1508,6 @@ function tinhToanVaVeDashboardTongQuan() {
       </button>
     `;
 
-    // GẮN SỰ KIỆN CLICK BẬT MODAL SWAL CHỨA DANH SÁCH CHI TIẾT
     const btnShowUnreported = document.getElementById(
       "btn-show-unreported-dangphi",
     );
@@ -1396,7 +1524,6 @@ function tinhToanVaVeDashboardTongQuan() {
           return;
         }
 
-        // Tạo chuỗi HTML dạng bảng danh sách có số thứ tự thụt lề chuyên nghiệp
         let listHtml = `<div style="max-height: 350px; overflow-y: auto; text-align: left; padding: 5px 10px; border: 1px solid #cbd5e1; border-radius: 4px; background-color: #fafafa;">`;
         danhSachChuaBaoCaoKyNay.forEach((ten, idx) => {
           listHtml += `<div style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0; font-size: 0.9rem; color: #334155;">
@@ -1416,6 +1543,9 @@ function tinhToanVaVeDashboardTongQuan() {
           confirmButtonColor: "#003366",
           confirmButtonText: "Đóng",
           allowOutsideClick: true,
+          didOpen: () => {
+            if (typeof capNhatThoiGianTuongTacCuoi === "function") capNhatThoiGianTuongTacCuoi();
+          }
         });
       });
     }
