@@ -1660,8 +1660,6 @@ window.xuLyXuatPdfTheoNguongX = async function () {
     doc.setFont("Roboto", "normal");
 
     // Thể thức hành chính
-    doc.setFontSize(10);
-    doc.text("ĐẢNG CỘNG SẢN VIỆT NAM", 15, 15);
     doc.setFont("Roboto", "bold");
     doc.setFontSize(11);
     doc.text("VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN", 15, 21);
@@ -1705,12 +1703,6 @@ window.xuLyXuatPdfTheoNguongX = async function () {
       doc.autoTable(tableOptions);
     }
 
-    // Chữ ký
-    const ySign = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 15 : 120;
-    doc.setFont("Roboto", "bold");
-    doc.text("NGƯỜI TỔNG HỢP BÁO CÁO", 135, ySign);
-    doc.setFont("Roboto", "normal");
-    doc.text("(Ký và ghi rõ họ tên)", 141, ySign + 5);
 
     // Tắt thông báo Loading và tải file
     Swal.close();
@@ -1777,8 +1769,6 @@ window.xuLyXuatPdfDonViChuaBaoCao = async function (kyBaoCao, danhSachChuaBaoCao
     doc.setFont("Roboto", "normal");
 
     // Tiêu đề hành chính
-    doc.setFontSize(10);
-    doc.text("ĐẢNG CỘNG SẢN VIỆT NAM", 15, 15);
     doc.setFont("Roboto", "bold");
     doc.setFontSize(11);
     doc.text("VĂN PHÒNG TỈNH ỦY THÁI NGUYÊN", 15, 21);
@@ -1820,12 +1810,6 @@ window.xuLyXuatPdfDonViChuaBaoCao = async function (kyBaoCao, danhSachChuaBaoCao
       doc.autoTable(tableOptions);
     }
 
-    // Chữ ký
-    const ySign = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 15 : 120;
-    doc.setFont("Roboto", "bold");
-    doc.text("NGƯỜI TỔNG HỢP TIẾN ĐỘ", 135, ySign);
-    doc.setFont("Roboto", "normal");
-    doc.text("(Ký và ghi rõ họ tên)", 141, ySign + 5);
 
     Swal.close();
     doc.save(`Danh_sach_chua_bao_cao_dang_phi_${kyBaoCao.replace("/", "_")}.pdf`);
