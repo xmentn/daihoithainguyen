@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hệ Thống Tách và Đổi Giấy chứng nhận QSDĐ Tự Động Online</title>
+    <title>HỆ THỐNG TÁCH VÀ ĐỔI TÊN GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -37,6 +37,42 @@
         border: 1px solid #e2e8f0;
         border-radius: 8px;
         margin-bottom: 25px;
+      }
+      .guide-box {
+        background: #fdf6ec;
+        border: 1px solid #fadeb1;
+        border-radius: 8px;
+        margin-bottom: 25px;
+        overflow: hidden;
+      }
+      .guide-header {
+        background: #e6a23c;
+        color: white;
+        padding: 12px 20px;
+        font-weight: bold;
+        font-size: 15px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+      .guide-content {
+        padding: 15px 20px;
+        font-size: 14px;
+        color: #606266;
+        line-height: 1.6;
+        display: block;
+      }
+      .guide-content ol {
+        margin: 0;
+        padding-left: 20px;
+      }
+      .guide-content li {
+        margin-bottom: 8px;
+      }
+      .guide-content strong {
+        color: #2c3e50;
       }
       h3 {
         margin-top: 0;
@@ -108,6 +144,45 @@
       An toàn - Bảo mật dữ liệu nội bộ (Xử lý trực tiếp trên trình duyệt)
     </div>
 
+    <div class="guide-box">
+      <div class="guide-header" onclick="toggleGuide()">
+        <span>📌 HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN</span>
+        <span id="guideArrow">▲</span>
+      </div>
+      <div class="guide-content" id="guideContent">
+        <ol>
+          <li>
+            <strong>Bước 1:</strong> Bấm vào nút
+            <strong>"1. Chọn File Tổng & Tách Ngay"</strong> và tải lên file PDF
+            lớn (gồm nhiều sổ gộp chung). Hệ thống sẽ bẻ nhỏ tệp thành các sổ
+            độc lập (mỗi sổ gồm 2 trang bìa và sơ đồ) và tự động tải xuống file
+            nén <code>Cac_File_Da_Tach.zip</code>.
+          </li>
+          <li>
+            <strong>Giải nén:</strong> Hãy tìm tệp
+            <code>Cac_File_Da_Tach.zip</code> vừa tải về máy tính, thực hiện
+            click chuột phải và chọn <strong>"Extract Here"</strong> (hoặc Giải
+            nén tại đây) để bung ra các file PDF nhỏ (đặt tên tạm thời từ So_1,
+            So_2,...).
+          </li>
+          <li>
+            <strong>Bước 2:</strong> Bấm vào nút
+            <strong>"2. Chọn Các File Nhỏ & Quét OCR Đổi Tên"</strong>. Khi cửa
+            sổ chọn file của máy tính hiện ra, hãy vào thư mục vừa giải nén,
+            nhấn tổ hợp phím <code>Ctrl + A</code> trên bàn phím để chọn toàn bộ
+            các file nhỏ này và nhấn <strong>Open</strong>.
+          </li>
+          <li>
+            <strong>Kết quả:</strong> Hệ thống kích hoạt "mắt thần" OCR để nhận
+            dạng chính xác mã số Seri đỏ in ở trang 1 của từng sổ, đóng gói và
+            tải xuống tệp <code>Ket_Qua_Doi_Ten_Seri_Thanh_Pham.zip</code> chứa
+            toàn bộ các sổ đỏ đã được đổi tên chuẩn theo số seri (Ví dụ:
+            <code>AA 02465674.pdf</code>).
+          </li>
+        </ol>
+      </div>
+    </div>
+
     <div class="section-box">
       <h3>BƯỚC 1: Tách nhỏ file PDF tổng</h3>
       <p style="font-size: 13px; color: #64748b; margin-bottom: 15px">
@@ -170,8 +245,21 @@
     <canvas id="pdfCanvas"></canvas>
 
     <script>
+      // Đồng bộ đường dẫn worker cho thư viện PDF.js từ nguồn Cloudflare ổn định
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
+
+      function toggleGuide() {
+        const content = document.getElementById("guideContent");
+        const arrow = document.getElementById("guideArrow");
+        if (content.style.display === "none") {
+          content.style.display = "block";
+          arrow.innerText = "▲";
+        } else {
+          content.style.display = "none";
+          arrow.innerText = "▼";
+        }
+      }
 
       function addLog(boxId, message, isError = false) {
         const logBox = document.getElementById(boxId);
@@ -243,7 +331,6 @@
         reader.readAsArrayBuffer(file);
       }
 
-      // ĐÃ SỬA LỖI: Đồng bộ biến tiếng Anh chuẩn, sửa hoàn toàn lỗi "转型 is not defined"
       function readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -269,7 +356,10 @@
         let validFileCount = 0;
 
         try {
-          const worker = await Tesseract.createWorker("eng");
+          // TỐI ƯU TUYỆT ĐỐI: Khởi tạo worker tự động và ép không lưu cache để vượt qua bộ lọc Tracking Prevention trực tuyến
+          const worker = await Tesseract.createWorker("eng", 1, {
+            cacheMethod: "none",
+          });
 
           for (let i = 0; i < totalFiles; i++) {
             const file = fileInput.files[i];
@@ -289,7 +379,6 @@
                 data: arrayBufferForPDFJS,
               }).promise;
 
-              // TỐI ƯU HÓA: Chỉ nạp đúng duy nhất trang 1 (Trang bìa chứa số seri) để OCR
               const page = await pdfjsDoc.getPage(1);
 
               const viewport = page.getViewport({ scale: 2.0 });
