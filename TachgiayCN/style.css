@@ -42,8 +42,44 @@ body {
 .header-section {
     text-align: center;
     margin-bottom: 35px;
-    border-bottom: 2px dashed #e2e8f0;
-    padding-bottom: 25px;
+    background: linear-gradient(135deg, #1e3a8a 0%, #111827 100%);
+    /* Nền khối chuyển màu từ xanh đại dương sang tối sang trọng */
+    padding: 30px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.header-title-main {
+    color: #ffffff;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: block;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Dòng 2: Nội dung còn lại phụ thuộc */
+.header-title-sub {
+    color: #93c5fd;
+    /* Màu xanh thanh lịch nhẹ nhàng */
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: block;
+    line-height: 1.4;
+}
+
+.header-info-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 15px;
+    font-size: 13.5px;
+    color: var(--text-muted);
 }
 
 h2 {
@@ -67,7 +103,7 @@ h2 {
 .badge-security {
     background-color: #dcfce7;
     color: #15803d;
-    padding: 2px 8px;
+    padding: 3px 10px;
     border-radius: 9999px;
     font-size: 11px;
     font-weight: 600;

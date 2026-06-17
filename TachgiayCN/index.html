@@ -3,6 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="images/Quochuy.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HỆ THỐNG TÁCH VÀ ĐỔI TÊN GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT</title>
   <link rel="stylesheet" href="style.css">
@@ -16,11 +17,13 @@
 <body>
   <div class="container">
     <div class="header-section">
-      <h2>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</h2>
-      <div class="subtitle">
-        <span>Ứng dụng xử lý dữ liệu nội bộ trực tiếp trên trình duyệt</span>
-        <span class="badge-security">🔒 Bảo mật an toàn</span>
-      </div>
+      <span class="header-title-main">HỆ THỐNG</span>
+      <span class="header-title-sub">TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</span>
+    </div>
+
+    <div class="header-info-bar">
+      <span>Ứng dụng xử lý dữ liệu nội bộ trực tiếp trên trình duyệt</span>
+      <span class="badge-security">🔒 Bảo mật an toàn</span>
     </div>
 
     <div class="timeline-steps">
@@ -52,7 +55,8 @@
             nhỏ.
           </li>
           <li><strong>Bước 2 (Quét mã đổi tên):</strong> Click vào ô màu xanh lá cây, ấn tổ hợp phím
-            <code>Ctrl + A</code> để chọn toàn bộ các file nhỏ vừa giải nén. Hệ thống sẽ OCR quét số Seri đỏ và trả về
+            <code>Ctrl + A</code> để chọn toàn bộ các file nhỏ vừa giải nén. Hệ thống sẽ OCR quét vùng số Seri đỏ ở góc
+            dưới và trả về
             file ZIP chứa sản phẩm hoàn thiện.
           </li>
         </ol>
@@ -76,7 +80,7 @@
     </div>
 
     <div class="section-box">
-      <h3>🔍 BƯỚC 2: Nhận diện Số Seri & Lưu tên file theo số hiệu GCN</h3>
+      <h3>🔍 BƯỚC 2: Nhận diện Số hiệu Giấy chứng nhận và đồng bộ tên file theo Số hiệu</h3>
       <div class="section-desc">Nạp các file nhỏ sau giải nén để quét mã số Seri màu đỏ ở góc dưới trang bìa để đổi tên
         tự động.</div>
 
@@ -93,7 +97,7 @@
     </div>
   </div>
 
-  <canvas id="pdfCanvas"></canvas>
+  <canvas id="pdfCanvas" style="display:none;"></canvas>
 
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
@@ -222,14 +226,33 @@
             const page = await pdfjsDoc.getPage(1);
 
             const viewport = page.getViewport({ scale: 2.0 });
-            const canvas = document.getElementById("pdfCanvas");
-            const context = canvas.getContext("2d");
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
 
-            await page.render({ canvasContext: context, viewport: viewport }).promise;
-            const dataUrl = canvas.toDataURL("image/png");
+            // Tạo một canvas tạm ngầm để hứng toàn bộ hình ảnh trang bìa lớn ban đầu
+            const tempCanvas = document.createElement("canvas");
+            const tempContext = tempCanvas.getContext("2d");
+            tempCanvas.height = viewport.height;
+            tempCanvas.width = viewport.width;
 
+            await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
+
+            // CHIẾN THUẬT CẮT ẢNH: Trích xuất chính xác 1/3 góc dưới của trang bìa (Nơi chứa Seri và Tên người ký)
+            const mainCanvas = document.getElementById("pdfCanvas");
+            const mainContext = mainCanvas.getContext("2d");
+
+            // Tính toán vùng cắt: Lấy toàn bộ chiều rộng, chiều cao chỉ lấy 35% tính từ đáy trang lên
+            const cropWidth = viewport.width;
+            const cropHeight = Math.floor(viewport.height * 0.35);
+            const cropX = 0;
+            const cropY = viewport.height - cropHeight; // Bắt đầu cắt từ vị trí 65% của trang đổ xuống đáy
+
+            mainCanvas.width = cropWidth;
+            mainCanvas.height = cropHeight;
+
+            // Tiến hành xén ảnh từ canvas tạm sang canvas chính thức
+            mainContext.drawImage(tempCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            const dataUrl = mainCanvas.toDataURL("image/png");
+
+            // Ép lõi OCR chỉ quét bức ảnh nhỏ đã được xén vuông vắn này
             const ret = await worker.recognize(dataUrl);
             const rawText = ret.data.text.toUpperCase();
 
