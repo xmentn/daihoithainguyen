@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận Diện Mã Số Sổ Đỏ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #3498db;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background-color: #ecf0f1;
+        }
+
+        button {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #27ae60;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-left: 5px solid #2ecc71;
+            display: none;
+        }
+
+        .result-item {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .highlight {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Trích Xuất Mã Số Sổ Đỏ Tự Động</h2>
+
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <p>Click hoặc kéo thả file PDF sổ đỏ vào đây</p>
+        <input type="file" id="fileInput" accept=".pdf" style="display: none;" onchange="showFileName()">
+        <div id="fileName" style="margin-top: 10px; color: #34495e; font-weight: bold;"></div>
+    </div>
+
+    <button onclick="uploadFile()">Tiến hành nhận diện</button>
+    <div class="result-box" id="resultBox">
+        <h3>Kết quả nhận diện:</h3>
+        <div class="result-item">Mã số sổ đỏ (Seri): <span class="highlight" id="resMaSo">--</span></div>
+    </div>
+
+    <script>
+        function showFileName() {
+            const input = document.getElementById('fileInput');
+            const nameDiv = document.getElementById('fileName');
+            if (input.files.length > 0) {
+                nameDiv.innerText = "Đã chọn: " + input.files[0].name;
+            }
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert("Vui lòng chọn một file PDF trước!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                // Gọi tới API Python chạy ở localhost cổng 8000
+                const response = await fetch("http://127.0.0.1:8000/upload-pdf/", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.status === "success") {
+                    // SỬA TẠI ĐÂY: Ép nhận đúng biến 'ma_so_do' mà Python trả về
+                    document.getElementById('resMaSo').innerText = result.data.ma_so_do;
+                    document.getElementById('resultBox').style.display = "block";
+                } else {
+                    alert("Có lỗi xảy ra từ máy chủ: " + result.message);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("Không thể kết nối đến Backend Python. Hãy chắc chắn bạn đã chạy app.py!");
+            }
+        }
+    </script>
+</body>
+
+</html>
