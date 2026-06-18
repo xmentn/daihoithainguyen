@@ -5,15 +5,19 @@
     <link rel="icon" type="image/png" href="images/Codang.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tình hình triển khai TTHC của Đảng</title>
+
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <link rel="stylesheet" href="style.css?v=1.2" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script type="module" src="app.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <style>
       /* CSS nhúng bổ trợ bộ lọc Dropdown có ô tìm kiếm động */
       .searchable-dropdown {
@@ -21,7 +25,6 @@
         width: 100%;
       }
 
-<<<<<<< HEAD
       .dropdown-select-box {
         width: 100%;
         padding: 10px;
@@ -36,27 +39,6 @@
         box-sizing: border-box;
         user-select: none;
       }
-=======
-<head>
-  <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="images/Codang.png" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tình hình triển khai TTHC của Đảng</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <link rel="stylesheet" href="style.css?v=1.2" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
-  <style>
-    /* CSS nhúng bổ trợ bộ lọc Dropdown có ô tìm kiếm động */
-    .searchable-dropdown {
-      position: relative;
-      width: 100%;
-    }
->>>>>>> a7ad611e912ad063964f7c3eb5503aa600550d6d
 
       .dropdown-menu-list {
         position: absolute;
@@ -220,6 +202,7 @@
         }
       </style>
     </header>
+
     <main class="container">
       <section class="left-panel">
         <div id="sidebar-dashboard-kehoach" class="panel-card">
@@ -277,7 +260,7 @@
               "
             >
               <i class="fa-solid fa-arrow-trend-up"></i> 5 đơn vị dẫn đầu (Số
-              nguôi)
+              người)
             </p>
             <canvas id="chartTopHigh"></canvas>
           </div>
@@ -297,6 +280,7 @@
             <canvas id="chartTopLow"></canvas>
           </div>
         </div>
+
         <div
           id="sidebar-dashboard-dangphi"
           class="panel-card"
@@ -385,6 +369,7 @@
               <canvas id="chartDangPhiTron"></canvas>
             </div>
           </div>
+
           <div
             style="
               background: #ffffff;
@@ -574,6 +559,33 @@
                   id="form-taphuan-new"
                   style="display: flex; flex-direction: column; gap: 10px"
                 >
+                  <div>
+                    <label
+                      style="
+                        display: block;
+                        font-size: 0.8rem;
+                        font-weight: bold;
+                        margin-bottom: 4px;
+                        color: #555;
+                      "
+                      >Đợt tập huấn:</label
+                    >
+                    <select
+                      id="select-taphuan-dot"
+                      style="
+                        width: 100%;
+                        padding: 8px;
+                        border: 1px solid #ced4da;
+                        border-radius: 4px;
+                        font-size: 0.85rem;
+                        font-weight: bold;
+                        color: #b71c1c;
+                      "
+                    >
+                      <option value="dot_2">Tập huấn Đợt 2 (Đang mở)</option>
+                      <option value="dot_1">Tập huấn Đợt 1 (Đã khóa)</option>
+                    </select>
+                  </div>
                   <div>
                     <label
                       style="
@@ -1009,9 +1021,10 @@
               >
                 <span
                   style="font-weight: bold; color: #003366; font-size: 0.85rem"
-                  ><i class="fa-solid fa-list-ol"></i> DANH SÁCH CHI TIẾT ĐƠN VỊ
-                  ĐÃ BÁO CÁO</span
                 >
+                  <i class="fa-solid fa-list-ol"></i> DANH SÁCH CHI TIẾT ĐƠN VỊ
+                  ĐÃ BÁO CÁO
+                </span>
                 <div>
                   <label
                     style="font-size: 0.8rem; font-weight: bold; color: #555"
@@ -1020,6 +1033,7 @@
                   <select id="filter-dangphi-ky" style="width: auto"></select>
                 </div>
               </div>
+
               <table
                 style="
                   width: 100%;
@@ -1398,19 +1412,16 @@
               ></div>
             </div>
           </div>
+
           <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
         </div>
       </section>
     </main>
 
-<<<<<<< HEAD
+    <script type="module" src="app.js"></script>
+
     <footer
       style="
-=======
-  <script type="module" src="app.js"></script>
-
-  <footer style="
->>>>>>> a7ad611e912ad063964f7c3eb5503aa600550d6d
         background: #b71c1c;
         color: #ffffff;
         border-top: 4px solid #ffc107;
