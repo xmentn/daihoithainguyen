@@ -8,13 +8,17 @@
 
   <style>
     :root {
-      --primary-color: #1e3a8a;
-      --primary-hover: #1e40af;
+      /* Cải tiến bộ màu tươi sáng, trang nhã và có độ tương phản tốt hơn */
+      --primary-color: #2563eb;
+      /* Xanh Cobalt sáng công nghệ */
+      --primary-hover: #1d4ed8;
       --secondary-color: #0d9488;
       --secondary-hover: #0f766e;
-      --bg-body: #f1f5f9;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
+      --bg-body: #f8fafc;
+      /* Nền xám xanh nhạt dịu mắt */
+      --text-main: #0f172a;
+      /* Chữ đậm hơn để nhìn rõ nét */
+      --text-muted: #475569;
       --accent-orange: #ea580c;
       --bg-card: #ffffff;
       --border-color: #cbd5e1;
@@ -43,34 +47,39 @@
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
     }
 
+    /* --- THIẾT KẾ PHỐI MÀU LẠI BANNER TIÊU ĐỀ HÀNH CHÍNH --- */
     .header-section {
       text-align: center;
       margin-bottom: 35px;
-      background: linear-gradient(135deg, #1e3a8a 0%, #111827 100%);
-      padding: 30px 20px;
+      /* Chuyển sang dải màu xanh Cobalt sáng hoàng gia, bớt tối sẫm */
+      background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+      padding: 32px 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
     }
 
     .header-title-main {
       color: #ffffff;
-      font-size: 32px;
+      /* Chữ trắng tinh khôi nổi bật */
+      font-size: 34px;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       display: block;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     .header-title-sub {
-      color: #93c5fd;
+      color: #fef08a;
+      /* Thay bằng màu vàng nhạt ánh kim để tăng tối đa độ tương phản trực quan */
       font-size: 18px;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       display: block;
       line-height: 1.4;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .header-info-bar {
@@ -82,6 +91,7 @@
       font-size: 13.5px;
       color: var(--text-muted);
       margin-bottom: 25px;
+      font-weight: 500;
     }
 
     .tabs-container {
@@ -105,12 +115,12 @@
     }
 
     .tab-button:hover {
-      color: #1e3a8a;
+      color: var(--primary-color);
       background-color: #f1f5f9;
     }
 
     .tab-button.active {
-      color: #1e3a8a;
+      color: var(--primary-color);
       background-color: #fff;
     }
 
@@ -121,7 +131,7 @@
       left: 0;
       right: 0;
       height: 3px;
-      background-color: #1e3a8a;
+      background-color: var(--primary-color);
       border-radius: 999px;
     }
 
@@ -147,7 +157,7 @@
     }
 
     h3 {
-      color: #334155;
+      color: #1e293b;
       font-size: 16px;
       margin-bottom: 6px;
       display: flex;
@@ -191,7 +201,7 @@
     .drop-text {
       font-size: 14px;
       font-weight: 600;
-      color: #475569;
+      color: #334155;
     }
 
     .drop-subtext {
@@ -676,13 +686,11 @@
             let cropX = 0, cropY = 0, cropWidth = 0, cropHeight = 0;
 
             if (type === 'A4') {
-              // --- CẤU HÌNH A4: Góc dưới bên TRÁI ---
               cropWidth = Math.floor(viewport.width * 0.35);
               cropHeight = Math.floor(viewport.height * 0.20);
               cropX = 0;
               cropY = viewport.height - cropHeight;
             } else {
-              // --- CẤU HÌNH A3: Góc dưới bên PHẢI ---
               cropWidth = Math.floor(viewport.width * 0.35);
               cropHeight = Math.floor(viewport.height * 0.25);
               cropX = viewport.width - cropWidth;
