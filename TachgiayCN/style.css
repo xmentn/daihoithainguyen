@@ -42,7 +42,7 @@ body {
 .header-section {
     text-align: center;
     margin-bottom: 35px;
-    background: linear-gradient(135deg, #1e3a8a 0%, #111827 100%);
+    background: linear-gradient(135deg, #065f46 0%, #022c22 100%);
     /* Nền khối chuyển màu từ xanh đại dương sang tối sang trọng */
     padding: 30px 20px;
     border-radius: 12px;
@@ -50,7 +50,7 @@ body {
 }
 
 .header-title-main {
-    color: #ffffff;
+    color: #fef08a;
     font-size: 32px;
     font-weight: 800;
     letter-spacing: 1px;
@@ -62,7 +62,7 @@ body {
 
 /* Dòng 2: Nội dung còn lại phụ thuộc */
 .header-title-sub {
-    color: #93c5fd;
+    color: #a7f3d0;
     /* Màu xanh thanh lịch nhẹ nhàng */
     font-size: 18px;
     font-weight: 600;
@@ -381,4 +381,69 @@ canvas {
         text-shadow: 0 0 18px rgba(74, 222, 128, 0.9);
         color: #22c55e;
     }
+}
+
+/* --- HỆ THỐNG TAB CHUYỂN ĐỔI (TAB NAVIGATION) --- */
+.tabs-container {
+    display: flex;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 25px;
+    gap: 10px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    border-radius: 8px 8px 0 0;
+}
+
+.tab-button:hover {
+    color: #1e3a8a;
+    background-color: #f1f5f9;
+}
+
+/* Thẻ tab đang được chọn */
+.tab-button.active {
+    color: #1e3a8a;
+    background-color: #fff;
+}
+
+.tab-button.active::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: #1e3a8a;
+    /* Thanh vạch ngang màu xanh đại dương */
+    border-radius: 999px;
+}
+
+/* Khối nội dung của Tab */
+.tab-content {
+    display: none;
+    /* Mặc định ẩn hết */
+}
+
+.tab-content.active {
+    display: block;
+    /* Chỉ hiện tab đang active */
+}
+
+/* Khối thông báo chờ của Tab 2 */
+.waiting-box {
+    text-align: center;
+    padding: 40px 20px;
+    color: #94a3b8;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
 }
