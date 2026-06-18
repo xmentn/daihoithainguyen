@@ -1,474 +1,342 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HỆ THỐNG TÁCH VÀ ĐỔI TÊN GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        max-width: 700px;
-        margin: 40px auto;
-        padding: 25px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        border-radius: 12px;
-        background-color: #ffffff;
-        color: #2c3e50;
-      }
-      h2 {
-        color: #2c3e50;
-        text-align: center;
-        margin-bottom: 5px;
-        font-size: 24px;
-      }
-      .subtitle {
-        text-align: center;
-        color: #7f8c8d;
-        font-size: 14px;
-        margin-bottom: 30px;
-      }
-      .section-box {
-        background: #f8fafc;
-        padding: 20px;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        margin-bottom: 25px;
-      }
-      .guide-box {
-        background: #fdf6ec;
-        border: 1px solid #fadeb1;
-        border-radius: 8px;
-        margin-bottom: 25px;
-        overflow: hidden;
-      }
-      .guide-header {
-        background: #e6a23c;
-        color: white;
-        padding: 12px 20px;
-        font-weight: bold;
-        font-size: 15px;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        user-select: none;
-      }
-      .guide-content {
-        padding: 15px 20px;
-        font-size: 14px;
-        color: #606266;
-        line-height: 1.6;
-        display: block;
-      }
-      .guide-content ol {
-        margin: 0;
-        padding-left: 20px;
-      }
-      .guide-content li {
-        margin-bottom: 8px;
-      }
-      .guide-content strong {
-        color: #2c3e50;
-      }
-      h3 {
-        margin-top: 0;
-        color: #34495e;
-        border-bottom: 2px solid #e2e8f0;
-        padding-bottom: 8px;
-        font-size: 16px;
-      }
-      .upload-btn-wrapper {
-        position: relative;
-        overflow: hidden;
-        display: inline-block;
-        width: 100%;
-      }
-      .btn-action {
-        background-color: #3498db;
-        color: white;
-        padding: 14px;
-        font-size: 15px;
-        font-weight: bold;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        width: 100%;
-        transition: 0.2s;
-        text-align: center;
-      }
-      .btn-action:hover {
-        background-color: #2980b9;
-      }
-      .btn-green {
-        background-color: #2ecc71;
-      }
-      .btn-green:hover {
-        background-color: #27ae60;
-      }
-      .status-msg {
-        margin-top: 12px;
-        font-style: italic;
-        font-weight: bold;
-        color: #2c3e50;
-        text-align: center;
-        font-size: 14px;
-      }
-      .log-container {
-        background-color: #1e293b;
-        color: #38bdf8;
-        padding: 15px;
-        border-radius: 6px;
-        font-family: "Courier New", Courier, monospace;
-        font-size: 13px;
-        max-height: 220px;
-        overflow-y: auto;
-        margin-top: 15px;
-        display: none;
-        border: 1px solid #334155;
-      }
-      .log-line {
-        margin: 4px 0;
-      }
-      canvas {
-        display: none;
-      }
-    </style>
-  </head>
-  <body>
-    <h2>Hệ Thống Tách & Đổi Tên Sổ Đỏ Tự Động</h2>
-    <div class="subtitle">
-      An toàn - Bảo mật dữ liệu nội bộ (Xử lý trực tiếp trên trình duyệt)
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="images/Quochuy.png" <meta name="viewport"
+    content="width=device-width, initial-scale=1.0" />
+  <title>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</title>
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header-section">
+      <span class="header-title-main">HỆ THỐNG</span>
+      <span class="header-title-sub">TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</span>
+    </div>
+
+    <div class="header-info-bar">
+      <span>Ứng dụng xử lý dữ liệu nội bộ trực tiếp trên trình duyệt</span>
+      <span class="badge-security">🔒 Bảo mật an toàn</span>
+    </div>
+
+    <div class="timeline-steps">
+      <div class="step-item active" id="step1Marker">
+        <div class="step-num">1</div>
+        <div class="step-text">Tách File Tổng</div>
+      </div>
+      <div class="step-item" id="stepExtractMarker">
+        <div class="step-num">2</div>
+        <div class="step-text">Giải Nén File ZIP</div>
+      </div>
+      <div class="step-item" id="step2Marker">
+        <div class="step-num">3</div>
+        <div class="step-text">Quét OCR Đổi Tên</div>
+      </div>
     </div>
 
     <div class="guide-box">
       <div class="guide-header" onclick="toggleGuide()">
-        <span>📌 HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN</span>
+        <span>📌 XEM HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN</span>
         <span id="guideArrow">▲</span>
       </div>
       <div class="guide-content" id="guideContent">
         <ol>
-          <li>
-            <strong>Bước 1:</strong> Bấm vào nút
-            <strong>"1. Chọn File Tổng & Tách Ngay"</strong> và tải lên file PDF
-            lớn (gồm nhiều sổ gộp chung). Hệ thống sẽ bẻ nhỏ tệp thành các sổ
-            độc lập (mỗi sổ gồm 2 trang bìa và sơ đồ) và tự động tải xuống file
-            nén <code>Cac_File_Da_Tach.zip</code>.
+          <li><strong>Bước 1 (Tách file):</strong> Thả hoặc chọn tệp PDF gộp lớn vào ô màu xanh dương. Hệ thống tự động
+            bẻ thành từng sổ riêng (2 trang/sổ) và tải về tệp <code>Cac_File_Da_Tach.zip</code>.</li>
+          <li><strong>Giải nén:</strong> Vào thư mục Tải xuống, Click chuột phải vào tệp
+            <code>Cac_File_Da_Tach.zip</code> vừa tải về và chọn <strong>"Extract Here"</strong> để giải nén ra các file
+            nhỏ.
           </li>
-          <li>
-            <strong>Giải nén:</strong> Hãy tìm tệp
-            <code>Cac_File_Da_Tach.zip</code> vừa tải về máy tính, thực hiện
-            click chuột phải và chọn <strong>"Extract Here"</strong> (hoặc Giải
-            nén tại đây) để bung ra các file PDF nhỏ (đặt tên tạm thời từ So_1,
-            So_2,...).
-          </li>
-          <li>
-            <strong>Bước 2:</strong> Bấm vào nút
-            <strong>"2. Chọn Các File Nhỏ & Quét OCR Đổi Tên"</strong>. Khi cửa
-            sổ chọn file của máy tính hiện ra, hãy vào thư mục vừa giải nén,
-            nhấn tổ hợp phím <code>Ctrl + A</code> trên bàn phím để chọn toàn bộ
-            các file nhỏ này và nhấn <strong>Open</strong>.
-          </li>
-          <li>
-            <strong>Kết quả:</strong> Hệ thống kích hoạt "mắt thần" OCR để nhận
-            dạng chính xác mã số Seri đỏ in ở trang 1 của từng sổ, đóng gói và
-            tải xuống tệp <code>Ket_Qua_Doi_Ten_Seri_Thanh_Pham.zip</code> chứa
-            toàn bộ các sổ đỏ đã được đổi tên chuẩn theo số seri (Ví dụ:
-            <code>AA 02465674.pdf</code>).
+          <li><strong>Bước 2 (Quét mã đổi tên):</strong> Click vào ô màu xanh lá cây, ấn tổ hợp phím
+            <code>Ctrl + A</code> để chọn toàn bộ các file nhỏ vừa giải nén. Hệ thống sẽ nhận diện số hiệu Giấy chứng
+            nhận và trả file ZIP chứa sản phẩm hoàn thiện.
           </li>
         </ol>
       </div>
     </div>
 
     <div class="section-box">
-      <h3>BƯỚC 1: Tách nhỏ file PDF tổng</h3>
-      <p style="font-size: 13px; color: #64748b; margin-bottom: 15px">
-        Chọn file PDF tổng gồm nhiều sổ để bẻ nhỏ thành các file mảnh 2 trang
-        dạng ZIP tạm thời.
-      </p>
-      <div class="upload-btn-wrapper">
-        <button class="btn-action">1. Chọn File Tổng & Tách Ngay</button>
-        <input
-          type="file"
-          id="fileInputTổng"
-          accept=".pdf"
-          style="
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-          "
-          onchange="processSplitPdf()"
-        />
+      <h3>📂 BƯỚC 1: Tách nhỏ tệp PDF tổng hợp</h3>
+      <div class="section-desc">Hệ thống bẻ nhỏ tệp gộp lớn thành các mảnh sổ độc lập (gồm trang bìa và sơ đồ thửa đất).
       </div>
-      <div id="statusStep1" class="status-msg"></div>
+
+      <div class="drop-zone drop-zone-blue">
+        <span class="drop-icon">📥</span>
+        <span class="drop-text">Kéo & thả file PDF tổng vào đây hoặc bấm để chọn file</span>
+        <span class="drop-subtext">Hỗ trợ định dạng: .pdf</span>
+        <input type="file" id="fileInputTổng" accept=".pdf" class="hidden-input" onchange="processSplitPdf()" />
+      </div>
+
+      <div id="statusStep1" class="status-msg" style="display:none;"></div>
       <div id="logStep1" class="log-container"></div>
     </div>
 
     <div class="section-box">
-      <h3>BƯỚC 2: Nhận dạng số Seri bằng OCR & Đổi tên thành phẩm</h3>
-      <p style="font-size: 13px; color: #64748b; margin-bottom: 15px">
-        Giải nén file ZIP ở Bước 1, bấm nút dưới đây và ấn Ctrl+A chọn toàn bộ
-        các file .pdf nhỏ để quét đổi tên nhanh.
-      </p>
-      <div class="upload-btn-wrapper">
-        <button class="btn-action btn-green">
-          2. Chọn Các File Nhỏ & Quét OCR Đổi Tên
-        </button>
-        <input
-          type="file"
-          id="fileInputNhỏ"
-          accept=".pdf"
-          multiple
-          style="
-            position: absolute;
-            left: 0;
-            top: 0;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
-          "
-          onchange="processRenameAndZipOCR()"
-        />
+      <h3>🔍 BƯỚC 2: Nhận diện Số hiệu Giấy chứng nhận và đồng bộ tên file theo Số hiệu</h3>
+      <div class="section-desc">Nạp các file đã được tách sau giải nén để xử lý quét số hiệu GCN để đổi tên
+        tự động.</div>
+
+      <div class="drop-zone" style="border-color: #a7f3d0; background: #f0fdf4;">
+        <span class="drop-icon" style="color: var(--secondary-color);">⚡</span>
+        <span class="drop-text" style="color: #065f46;">Bấm vào đây, ấn Ctrl + A chọn toàn bộ các file sổ nhỏ</span>
+        <span class="drop-subtext">Hỗ trợ chọn nhiều tệp PDF cùng lúc</span>
+        <input type="file" id="fileInputNhỏ" accept=".pdf" multiple class="hidden-input"
+          onchange="processRenameAndZipOCR()" />
       </div>
-      <div id="statusStep2" class="status-msg"></div>
+
+      <div class="timer-display-card" id="timerCard">
+        <span class="timer-label" id="timerLabel">⏱️ Thời gian thực thi:</span>
+        <span class="timer-digits" id="timerDigits">00.00s</span>
+      </div>
+
+      <div id="statusStep2" class="status-msg" style="display:none;"></div>
       <div id="logStep2" class="log-container"></div>
     </div>
+  </div>
 
-    <canvas id="pdfCanvas"></canvas>
+  <canvas id="pdfCanvas" style="display:none;"></canvas>
 
-    <script>
-      // Đồng bộ đường dẫn worker cho thư viện PDF.js từ nguồn Cloudflare ổn định
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
 
-      function toggleGuide() {
-        const content = document.getElementById("guideContent");
-        const arrow = document.getElementById("guideArrow");
-        if (content.style.display === "none") {
-          content.style.display = "block";
-          arrow.innerText = "▲";
-        } else {
-          content.style.display = "none";
-          arrow.innerText = "▼";
-        }
+    let timerInterval = null;
+
+    function toggleGuide() {
+      const content = document.getElementById("guideContent");
+      const arrow = document.getElementById("guideArrow");
+      if (content.style.display === "none") {
+        content.style.display = "block";
+        arrow.innerText = "▲";
+      } else {
+        content.style.display = "none";
+        arrow.innerText = "▼";
       }
+    }
 
-      function addLog(boxId, message, isError = false) {
-        const logBox = document.getElementById(boxId);
-        logBox.style.display = "block";
-        const line = document.createElement("div");
-        line.className = "log-line";
-        if (isError) line.style.color = "#f87171";
-        line.innerText = message;
-        logBox.appendChild(line);
-        logBox.scrollTop = logBox.scrollHeight;
-      }
+    function addLog(boxId, message, isError = false) {
+      const logBox = document.getElementById(boxId);
+      logBox.style.display = "block";
+      const line = document.createElement("div");
+      line.className = "log-line";
+      if (isError) line.style.color = "#f87171";
+      line.innerText = message;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
 
-      async function processSplitPdf() {
-        const fileInput = document.getElementById("fileInputTổng");
-        const statusDiv = document.getElementById("statusStep1");
-        const logBox = document.getElementById("logStep1");
-        if (fileInput.files.length === 0) return;
+    function updateStatus(elementId, text, type) {
+      const el = document.getElementById(elementId);
+      el.style.display = "block";
+      el.innerText = text;
+      el.className = "status-msg " + (type === "loading" ? "status-loading" : "status-success");
+    }
 
-        statusDiv.innerText = "Đang tách trang và đóng gói...";
-        logBox.innerHTML = "";
+    async function processSplitPdf() {
+      const fileInput = document.getElementById("fileInputTổng");
+      const statusDiv = document.getElementById("statusStep1");
+      const logBox = document.getElementById("logStep1");
+      if (fileInput.files.length === 0) return;
 
-        const file = fileInput.files[0];
-        const reader = new FileReader();
+      updateStatus("statusStep1", "⏳ Hệ thống đang tiến hành bẻ tách dữ liệu tệp PDF tổng...", "loading");
+      logBox.innerHTML = "";
 
-        reader.onload = async function () {
-          try {
-            const srcPdfDoc = await PDFLib.PDFDocument.load(this.result);
-            const totalPages = srcPdfDoc.getPageCount();
-            const totalBooks = Math.floor(totalPages / 2);
+      const file = fileInput.files[0];
+      const reader = new FileReader();
 
-            addLog(
-              "logStep1",
-              `--> Đã nạp file tổng: ${file.name} (${totalPages} trang)`,
-            );
-            const zip = new JSZip();
-
-            for (let i = 0; i < totalBooks; i++) {
-              const p1Idx = i * 2;
-              const p2Idx = p1Idx + 1;
-
-              const newPdfDoc = await PDFLib.PDFDocument.create();
-              const [p1, p2] = await newPdfDoc.copyPages(srcPdfDoc, [
-                p1Idx,
-                p2Idx,
-              ]);
-              newPdfDoc.addPage(p1);
-              newPdfDoc.addPage(p2);
-
-              const pdfBytes = await newPdfDoc.save();
-              zip.file(`So_${i + 1}.pdf`, pdfBytes);
-              addLog(
-                "logStep1",
-                `[Thành công] Đã tách mảnh sổ thứ ${i + 1} (Trang ${p1Idx + 1}-${p2Idx + 1})`,
-              );
-            }
-
-            const content = await zip.generateAsync({ type: "blob" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(content);
-            link.download = "Cac_File_Da_Tach.zip";
-            link.click();
-
-            statusDiv.innerText =
-              "Tách thành công! Hãy GIẢI NÉN file 'Cac_File_Da_Tach.zip' ra máy và chuyển sang Bước 2.";
-          } catch (error) {
-            addLog("logStep1", "Lỗi tách file: " + error.message, true);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-      }
-
-      function readFileAsArrayBuffer(file) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.onerror = () => reject(reader.error);
-          reader.readAsArrayBuffer(file);
-        });
-      }
-
-      async function processRenameAndZipOCR() {
-        const fileInput = document.getElementById("fileInputNhỏ");
-        const statusDiv = document.getElementById("statusStep2");
-        const logBox = document.getElementById("logStep2");
-
-        const totalFiles = fileInput.files.length;
-        if (totalFiles === 0) return;
-
-        statusDiv.innerText = "Đang khởi động lõi nhận diện OCR...";
-        logBox.innerHTML = "";
-        addLog("logStep2", `--> Đã nhận danh sách đầu vào.`);
-
-        const zip = new JSZip();
-        let validFileCount = 0;
-
+      reader.onload = async function () {
         try {
-          // TỐI ƯU TUYỆT ĐỐI: Khởi tạo worker tự động và ép không lưu cache để vượt qua bộ lọc Tracking Prevention trực tuyến
-          const worker = await Tesseract.createWorker("eng", 1, {
-            cacheMethod: "none",
-          });
+          const srcPdfDoc = await PDFLib.PDFDocument.load(this.result);
+          const totalPages = srcPdfDoc.getPageCount();
+          const totalBooks = Math.floor(totalPages / 2);
 
-          for (let i = 0; i < totalFiles; i++) {
-            const file = fileInput.files[i];
+          addLog("logStep1", `--> Tệp nguồn: ${file.name} (${totalPages} trang)`);
+          const zip = new JSZip();
 
-            if (!file.name.toLowerCase().endsWith(".pdf")) {
-              continue;
-            }
+          for (let i = 0; i < totalBooks; i++) {
+            const p1Idx = i * 2;
+            const p2Idx = p1Idx + 1;
 
-            validFileCount++;
-            statusDiv.innerText = `Đang xử lý file [${validFileCount}/${totalFiles}]: ${file.name}...`;
+            const newPdfDoc = await PDFLib.PDFDocument.create();
+            const [p1, p2] = await newPdfDoc.copyPages(srcPdfDoc, [p1Idx, p2Idx]);
+            newPdfDoc.addPage(p1);
+            newPdfDoc.addPage(p2);
 
-            try {
-              const arrayBufferForPDFJS = await readFileAsArrayBuffer(file);
-              const arrayBufferForZip = await readFileAsArrayBuffer(file);
-
-              const pdfjsDoc = await pdfjsLib.getDocument({
-                data: arrayBufferForPDFJS,
-              }).promise;
-
-              const page = await pdfjsDoc.getPage(1);
-
-              const viewport = page.getViewport({ scale: 2.0 });
-              const canvas = document.getElementById("pdfCanvas");
-              const context = canvas.getContext("2d");
-              canvas.height = viewport.height;
-              canvas.width = viewport.width;
-
-              await page.render({ canvasContext: context, viewport: viewport })
-                .promise;
-              const dataUrl = canvas.toDataURL("image/png");
-
-              const ret = await worker.recognize(dataUrl);
-              const rawText = ret.data.text.toUpperCase();
-
-              const textNoSpaces = rawText.replace(/\s+/g, "");
-              const match = textNoSpaces.match(/([A-Z]{2})(\d{7,8})/);
-              let finalFileName = "";
-
-              if (match) {
-                finalFileName = match[1] + " " + match[2];
-                addLog(
-                  "logStep2",
-                  `[Thành công] ${file.name} -> Số Seri: ${finalFileName}`,
-                );
-              } else {
-                const backupMatch = textNoSpaces.match(/[A-Z0-9]{9,10}/);
-                if (backupMatch && isNaN(backupMatch[0])) {
-                  let code = backupMatch[0];
-                  finalFileName =
-                    code.substring(0, 2) + " " + code.substring(2);
-                  addLog(
-                    "logStep2",
-                    `[Dự phòng] ${file.name} -> Số Seri: ${finalFileName}`,
-                  );
-                } else {
-                  finalFileName = file.name.replace(".pdf", "") + "_LoiSeri";
-                  addLog(
-                    "logStep2",
-                    `[Cảnh báo] Không tìm thấy Seri trên file: ${file.name}`,
-                    true,
-                  );
-                }
-              }
-
-              zip.file(`${finalFileName}.pdf`, arrayBufferForZip);
-            } catch (fileError) {
-              addLog(
-                "logStep2",
-                `Lỗi xử lý file ${file.name}: ${fileError.message}`,
-                true,
-              );
-              const fallbackBuffer = await readFileAsArrayBuffer(file);
-              zip.file(
-                `${file.name.replace(".pdf", "")}_LoiHeThong.pdf`,
-                fallbackBuffer,
-              );
-            }
+            const pdfBytes = await newPdfDoc.save();
+            zip.file(`So_${i + 1}.pdf`, pdfBytes);
+            addLog("logStep1", `✓ Đã trích xuất thành công: Sổ thứ ${i + 1} (Trang ${p1Idx + 1}-${p2Idx + 1})`);
           }
 
-          await worker.terminate();
-
-          if (validFileCount === 0) {
-            statusDiv.innerText = "Không có file PDF hợp lệ!";
-            return;
-          }
-
-          statusDiv.innerText = "Đang đóng gói file ZIP thành phẩm...";
           const content = await zip.generateAsync({ type: "blob" });
-
           const link = document.createElement("a");
           link.href = URL.createObjectURL(content);
-          link.download = "Ket_Qua_Doi_Ten_Seri_Thanh_Pham.zip";
+          link.download = "Cac_File_Da_Tach.zip";
           link.click();
 
-          statusDiv.innerText =
-            "HOÀN THÀNH XUẤT SẮC! Hệ thống đã tải xuống file ZIP đổi tên hàng loạt thành công.";
-          addLog(
-            "logStep2",
-            "====================================================",
-          );
-          addLog(
-            "logStep2",
-            `--> THÀNH CÔNG! Đã đóng gói xong ${validFileCount} file.`,
-          );
+          document.getElementById("step1Marker").className = "step-item success";
+          document.getElementById("stepExtractMarker").className = "step-item active";
+
+          updateStatus("statusStep1", "🎉 Tách thành công! Tệp ZIP đã được lưu về máy. Hãy GIẢI NÉN ra thư mục và làm tiếp Bước 2.", "success");
         } catch (error) {
-          addLog("logStep2", "Lỗi nghiêm trọng: " + error.message, true);
-          statusDiv.innerText = "Quy trình quét đổi tên thất bại.";
+          addLog("logStep1", "❌ Lỗi hệ thống khi bẻ trang: " + error.message, true);
         }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function readFileAsArrayBuffer(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsArrayBuffer(file);
+      });
+    }
+
+    async function processRenameAndZipOCR() {
+      const fileInput = document.getElementById("fileInputNhỏ");
+      const statusDiv = document.getElementById("statusStep2");
+      const logBox = document.getElementById("logStep2");
+      const timerCard = document.getElementById("timerCard");
+      const timerDigits = document.getElementById("timerDigits");
+      const timerLabel = document.getElementById("timerLabel");
+
+      const totalFiles = fileInput.files.length;
+      if (totalFiles === 0) return;
+
+      // --- KHỞI ĐỘNG ĐỒNG HỒ ĐẾM CHÍNH XÁC CAO (CẢ PHẦN TRĂM GIÂY) ---
+      clearInterval(timerInterval);
+      timerCard.style.display = "flex"; // Hiển thị khung đồng hồ
+      timerDigits.className = "timer-digits"; // Đặt lại class gốc
+      timerLabel.innerText = "⏱️ Thời gian thực thi:";
+
+      let startTime = Date.now();
+
+      timerInterval = setInterval(() => {
+        let elapsedTime = Date.now() - startTime;
+        let seconds = (elapsedTime / 1000).toFixed(2); // Định dạng kiểu số thập phân 00.00s trực quan
+        timerDigits.innerText = seconds + "s";
+      }, 40); // Cập nhật liên tục mỗi 40ms để số nhảy mượt mà
+
+      updateStatus("statusStep2", "⏳ Đang khởi tạo môi trường thông minh OCR (Chạy trên RAM)...", "loading");
+      logBox.innerHTML = "";
+      addLog("logStep2", `--> Đã nạp thành công ${totalFiles} tệp tin đầu vào vào bộ nhớ tạm.`);
+
+      const zip = new JSZip();
+      let validFileCount = 0;
+
+      try {
+        const worker = await Tesseract.createWorker("eng", 1, { cacheMethod: 'none' });
+
+        for (let i = 0; i < totalFiles; i++) {
+          const file = fileInput.files[i];
+          if (!file.name.toLowerCase().endsWith(".pdf")) continue;
+
+          validFileCount++;
+          updateStatus("statusStep2", `⏳ Tiến độ phân tích: Đang xử lý sổ [${validFileCount}/${totalFiles}] -> ${file.name}`, "loading");
+
+          try {
+            const arrayBufferForPDFJS = await readFileAsArrayBuffer(file);
+            const arrayBufferForZip = await readFileAsArrayBuffer(file);
+
+            const pdfjsDoc = await pdfjsLib.getDocument({ data: arrayBufferForPDFJS }).promise;
+            const page = await pdfjsDoc.getPage(1);
+
+            const viewport = page.getViewport({ scale: 2.0 });
+
+            const tempCanvas = document.createElement("canvas");
+            const tempContext = tempCanvas.getContext("2d");
+            tempCanvas.height = viewport.height;
+            tempCanvas.width = viewport.width;
+
+            await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
+
+            const mainCanvas = document.getElementById("pdfCanvas");
+            const mainContext = mainCanvas.getContext("2d");
+
+            const cropWidth = viewport.width;
+            const cropHeight = Math.floor(viewport.height * 0.35);
+            const cropX = 0;
+            const cropY = viewport.height - cropHeight;
+
+            mainCanvas.width = cropWidth;
+            mainCanvas.height = cropHeight;
+
+            mainContext.drawImage(tempCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            const dataUrl = mainCanvas.toDataURL("image/png");
+
+            const ret = await worker.recognize(dataUrl);
+            const rawText = ret.data.text.toUpperCase();
+
+            const textNoSpaces = rawText.replace(/\s+/g, "");
+            const match = textNoSpaces.match(/([A-Z]{2})(\d{7,8})/);
+            let finalFileName = "";
+
+            if (match) {
+              finalFileName = match[1] + " " + match[2];
+              addLog("logStep2", `✓ Thành công | ${file.name} --> Khớp Số Seri: ${finalFileName}`);
+            } else {
+              const backupMatch = textNoSpaces.match(/[A-Z0-9]{9,10}/);
+              if (backupMatch && isNaN(backupMatch[0])) {
+                let code = backupMatch[0];
+                finalFileName = code.substring(0, 2) + " " + code.substring(2);
+                addLog("logStep2", `⚠ Phục hồi nghi vấn | ${file.name} --> Đọc được: ${finalFileName}`);
+              } else {
+                finalFileName = file.name.replace(".pdf", "") + "_KhôngRõMãSeri";
+                addLog("logStep2", `❌ Không thể tìm thấy mã Seri trên bề mặt file: ${file.name}`, true);
+              }
+            }
+
+            zip.file(`${finalFileName}.pdf`, arrayBufferForZip);
+          } catch (fileError) {
+            addLog("logStep2", `💥 Lỗi tệp dữ liệu ${file.name}: ${fileError.message}`, true);
+            const fallbackBuffer = await readFileAsArrayBuffer(file);
+            zip.file(`${file.name.replace(".pdf", "")}_LoiDocFile.pdf`, fallbackBuffer);
+          }
+        }
+
+        await worker.terminate();
+
+        if (validFileCount === 0) {
+          clearInterval(timerInterval);
+          updateStatus("statusStep2", "Không tìm thấy tệp tin PDF hợp lệ nào để thực hiện quét.", "success");
+          return;
+        }
+
+        updateStatus("statusStep2", "⏳ Định dạng và nén gói sản phẩm thành phẩm...", "loading");
+        const content = await zip.generateAsync({ type: "blob" });
+
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(content);
+        link.download = "Ket_Qua_Doi_Ten_Seri_Thanh_Pham.zip";
+        link.click();
+
+        // --- DỪNG ĐỒNG HỒ VÀ KÍCH HOẠT HIỆU ỨNG NHẤP NHÁY THÀNH CÔNG ---
+        clearInterval(timerInterval);
+        let finalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+        timerDigits.innerText = finalDuration + "s";
+        timerDigits.className = "timer-digits timer-pulse"; // Kích hoạt hiệu ứng nhấp nháy LED lung linh
+        timerLabel.innerText = "🏁 Tổng thời gian xử lý:";
+
+        document.getElementById("stepExtractMarker").className = "step-item success";
+        document.getElementById("step2Marker").className = "step-item success";
+
+        updateStatus("statusStep2", `🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG! Đã đóng gói xong ${validFileCount} file.`, "success");
+        addLog("logStep2", "====================================================");
+        addLog("logStep2", `➔ HOÀN THÀNH: Quá trình bóc tách kết thúc xuất sắc sau ${finalDuration} giây.`);
+      } catch (error) {
+        clearInterval(timerInterval);
+        addLog("logStep2", "🚨 Lỗi hệ thống OCR nghiêm trọng: " + error.message, true);
+        updateStatus("statusStep2", "Quá trình quét và nhận diện OCR thất bại.", "loading");
       }
-    </script>
-  </body>
+    }
+  </script>
+</body>
+
 </html>
