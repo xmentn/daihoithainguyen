@@ -3,9 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/png" href="images/Quochuy.png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HỆ THỐNG TÁCH VÀ ĐỔI TÊN GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT</title>
+  <title>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</title>
   <link rel="stylesheet" href="style.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -43,7 +42,7 @@
 
     <div class="guide-box">
       <div class="guide-header" onclick="toggleGuide()">
-        <span>📌 HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN</span>
+        <span>📌 XEM HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN</span>
         <span id="guideArrow">▲</span>
       </div>
       <div class="guide-content" id="guideContent">
@@ -80,7 +79,7 @@
 
     <div class="section-box">
       <h3>🔍 BƯỚC 2: Nhận diện Số hiệu Giấy chứng nhận và đồng bộ tên file theo Số hiệu</h3>
-      <div class="section-desc">Nạp các file nhỏ sau giải nén để quét mã số Seri màu đỏ ở góc dưới trang bìa để đổi tên
+      <div class="section-desc">Nạp các file đã được tách sau giải nén để xử lý quét số hiệu GCN để đổi tên
         tự động.</div>
 
       <div class="drop-zone" style="border-color: #a7f3d0; background: #f0fdf4;">
@@ -89,6 +88,11 @@
         <span class="drop-subtext">Hỗ trợ chọn nhiều tệp PDF cùng lúc</span>
         <input type="file" id="fileInputNhỏ" accept=".pdf" multiple class="hidden-input"
           onchange="processRenameAndZipOCR()" />
+      </div>
+
+      <div class="timer-display-card" id="timerCard">
+        <span class="timer-label" id="timerLabel">⏱️ Thời gian thực thi:</span>
+        <span class="timer-digits" id="timerDigits">00.00s</span>
       </div>
 
       <div id="statusStep2" class="status-msg" style="display:none;"></div>
@@ -100,6 +104,8 @@
 
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
+
+    let timerInterval = null;
 
     function toggleGuide() {
       const content = document.getElementById("guideContent");
@@ -196,9 +202,26 @@
       const fileInput = document.getElementById("fileInputNhỏ");
       const statusDiv = document.getElementById("statusStep2");
       const logBox = document.getElementById("logStep2");
+      const timerCard = document.getElementById("timerCard");
+      const timerDigits = document.getElementById("timerDigits");
+      const timerLabel = document.getElementById("timerLabel");
 
       const totalFiles = fileInput.files.length;
       if (totalFiles === 0) return;
+
+      // --- KHỞI ĐỘNG ĐỒNG HỒ ĐẾM CHÍNH XÁC CAO (CẢ PHẦN TRĂM GIÂY) ---
+      clearInterval(timerInterval);
+      timerCard.style.display = "flex"; // Hiển thị khung đồng hồ
+      timerDigits.className = "timer-digits"; // Đặt lại class gốc
+      timerLabel.innerText = "⏱️ Thời gian thực thi:";
+
+      let startTime = Date.now();
+
+      timerInterval = setInterval(() => {
+        let elapsedTime = Date.now() - startTime;
+        let seconds = (elapsedTime / 1000).toFixed(2); // Định dạng kiểu số thập phân 00.00s trực quan
+        timerDigits.innerText = seconds + "s";
+      }, 40); // Cập nhật liên tục mỗi 40ms để số nhảy mượt mà
 
       updateStatus("statusStep2", "⏳ Đang khởi tạo môi trường thông minh OCR (Chạy trên RAM)...", "loading");
       logBox.innerHTML = "";
@@ -226,7 +249,6 @@
 
             const viewport = page.getViewport({ scale: 2.0 });
 
-            // Tạo một canvas tạm ngầm để hứng toàn bộ hình ảnh trang bìa lớn ban đầu
             const tempCanvas = document.createElement("canvas");
             const tempContext = tempCanvas.getContext("2d");
             tempCanvas.height = viewport.height;
@@ -234,24 +256,20 @@
 
             await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
 
-            // CHIẾN THUẬT CẮT ẢNH: Trích xuất chính xác 1/3 góc dưới của trang bìa (Nơi chứa Seri và Tên người ký)
             const mainCanvas = document.getElementById("pdfCanvas");
             const mainContext = mainCanvas.getContext("2d");
 
-            // Tính toán vùng cắt: Lấy toàn bộ chiều rộng, chiều cao chỉ lấy 35% tính từ đáy trang lên
             const cropWidth = viewport.width;
             const cropHeight = Math.floor(viewport.height * 0.35);
             const cropX = 0;
-            const cropY = viewport.height - cropHeight; // Bắt đầu cắt từ vị trí 65% của trang đổ xuống đáy
+            const cropY = viewport.height - cropHeight;
 
             mainCanvas.width = cropWidth;
             mainCanvas.height = cropHeight;
 
-            // Tiến hành xén ảnh từ canvas tạm sang canvas chính thức
             mainContext.drawImage(tempCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
             const dataUrl = mainCanvas.toDataURL("image/png");
 
-            // Ép lõi OCR chỉ quét bức ảnh nhỏ đã được xén vuông vắn này
             const ret = await worker.recognize(dataUrl);
             const rawText = ret.data.text.toUpperCase();
 
@@ -285,6 +303,7 @@
         await worker.terminate();
 
         if (validFileCount === 0) {
+          clearInterval(timerInterval);
           updateStatus("statusStep2", "Không tìm thấy tệp tin PDF hợp lệ nào để thực hiện quét.", "success");
           return;
         }
@@ -297,13 +316,21 @@
         link.download = "Ket_Qua_Doi_Ten_Seri_Thanh_Pham.zip";
         link.click();
 
+        // --- DỪNG ĐỒNG HỒ VÀ KÍCH HOẠT HIỆU ỨNG NHẤP NHÁY THÀNH CÔNG ---
+        clearInterval(timerInterval);
+        let finalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
+        timerDigits.innerText = finalDuration + "s";
+        timerDigits.className = "timer-digits timer-pulse"; // Kích hoạt hiệu ứng nhấp nháy LED lung linh
+        timerLabel.innerText = "🏁 Tổng thời gian xử lý:";
+
         document.getElementById("stepExtractMarker").className = "step-item success";
         document.getElementById("step2Marker").className = "step-item success";
 
-        updateStatus("statusStep2", "🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG! Tệp ZIP chứa toàn bộ Sổ đỏ đổi tên chuẩn đã được tải xuống máy.", "success");
+        updateStatus("statusStep2", `🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG! Đã đóng gói xong ${validFileCount} file.`, "success");
         addLog("logStep2", "====================================================");
-        addLog("logStep2", `➔ HOÀN THÀNH: Hệ thống đã đóng gói thành công ${validFileCount} file.`);
+        addLog("logStep2", `➔ HOÀN THÀNH: Quá trình bóc tách kết thúc xuất sắc sau ${finalDuration} giây.`);
       } catch (error) {
+        clearInterval(timerInterval);
         addLog("logStep2", "🚨 Lỗi hệ thống OCR nghiêm trọng: " + error.message, true);
         updateStatus("statusStep2", "Quá trình quét và nhận diện OCR thất bại.", "loading");
       }
