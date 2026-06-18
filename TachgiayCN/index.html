@@ -760,7 +760,7 @@
 
         updateStatus(statusId, `🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG! Đã đóng gói xong ${validFileCount} file.`, "success");
         addLog(logId, "====================================================");
-        addLog(logId, `➔ HOÀN THÀNH: Quá trình bóc tách kết thúc xuất sắc sau ${finalDuration} giây.`);
+        addLog(logId, `➔ HOÀN THÀNH: Quá trình bóc tách kết thúc sau ${finalDuration} giây.`);
       } catch (error) {
         clearInterval(timerInterval);
         addLog(logId, "🚨 Lỗi hệ thống OCR nghiêm trọng: " + error.message, true);
