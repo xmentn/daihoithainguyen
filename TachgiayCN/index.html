@@ -5,14 +5,342 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</title>
-  <link rel="stylesheet" href="style.css">
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
   <style>
-    /* Bổ sung kiểu dáng cho dòng chữ chân trang (Footer) */
+    :root {
+      --primary-color: #1e3a8a;
+      --primary-hover: #1e40af;
+      --secondary-color: #0d9488;
+      --secondary-hover: #0f766e;
+      --bg-body: #f1f5f9;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --accent-orange: #ea580c;
+      --bg-card: #ffffff;
+      --border-color: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding: 30px 15px;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      padding: 35px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    }
+
+    .header-section {
+      text-align: center;
+      margin-bottom: 35px;
+      background: linear-gradient(135deg, #1e3a8a 0%, #111827 100%);
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    .header-title-main {
+      color: #ffffff;
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: block;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .header-title-sub {
+      color: #93c5fd;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: block;
+      line-height: 1.4;
+    }
+
+    .header-info-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 25px;
+    }
+
+    .tabs-container {
+      display: flex;
+      border-bottom: 2px solid #e2e8f0;
+      margin-bottom: 25px;
+      gap: 10px;
+    }
+
+    .tab-button {
+      background: none;
+      border: none;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .tab-button:hover {
+      color: #1e3a8a;
+      background-color: #f1f5f9;
+    }
+
+    .tab-button.active {
+      color: #1e3a8a;
+      background-color: #fff;
+    }
+
+    .tab-button.active::after {
+      content: "";
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background-color: #1e3a8a;
+      border-radius: 999px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .section-box {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 30px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .section-box:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    h3 {
+      color: #334155;
+      font-size: 16px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    .drop-zone {
+      border: 2px dashed #cbd5e1;
+      border-radius: 10px;
+      padding: 30px 20px;
+      text-align: center;
+      background: #f8fafc;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .drop-zone:hover {
+      background: #f0fdf4;
+      border-color: var(--secondary-color);
+    }
+
+    .drop-zone-blue:hover {
+      background: #eff6ff;
+      border-color: var(--primary-color);
+    }
+
+    .drop-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .drop-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: #475569;
+    }
+
+    .drop-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .guide-box {
+      background: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      overflow: hidden;
+    }
+
+    .guide-header {
+      background: #fef3c7;
+      color: #92400e;
+      padding: 14px 20px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .guide-content {
+      padding: 20px;
+      font-size: 13.5px;
+      color: #451a03;
+      line-height: 1.6;
+    }
+
+    .guide-content ol {
+      padding-left: 18px;
+    }
+
+    .guide-content li {
+      margin-bottom: 10px;
+    }
+
+    .status-msg {
+      margin-top: 14px;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-align: center;
+      background: #f1f5f9;
+    }
+
+    .status-loading {
+      background-color: #eff6ff;
+      color: var(--primary-color);
+      border-left: 4px solid var(--primary-color);
+    }
+
+    .status-success {
+      background-color: #f0fdf4;
+      color: #166534;
+      border-left: 4px solid #166534;
+    }
+
+    .log-container {
+      background-color: #0f172a;
+      color: #38bdf8;
+      padding: 14px;
+      border-radius: 8px;
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 12.5px;
+      max-height: 180px;
+      overflow-y: auto;
+      margin-top: 14px;
+      display: none;
+      border: 1px solid #1e293b;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .log-line {
+      margin: 3px 0;
+    }
+
+    .hidden-input {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .timer-display-card {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      background: #0f172a;
+      border: 2px solid #1e293b;
+      padding: 15px 25px;
+      border-radius: 10px;
+      margin: 15px 0;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .timer-label {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .timer-digits {
+      font-family: "Consolas", "Courier New", monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: #4ade80;
+      text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
+      letter-spacing: 1px;
+    }
+
+    .timer-pulse {
+      animation: timerGlow 1.5s infinite alternate;
+    }
+
+    @keyframes timerGlow {
+      from {
+        text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+      }
+
+      to {
+        text-shadow: 0 0 18px rgba(74, 222, 128, 0.9);
+        color: #22c55e;
+      }
+    }
+
+    .badge-security {
+      background-color: #dcfce7;
+      color: #15803d;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
     .site-footer {
       text-align: center;
       margin-top: 40px;
@@ -23,7 +351,16 @@
       color: #94a3b8;
       letter-spacing: 0.5px;
     }
+
+    canvas {
+      display: none;
+    }
   </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
 </head>
 
 <body>
@@ -168,7 +505,6 @@
 
     let timerInterval = null;
 
-    // Hàm đổi Tab giao diện
     function switchTab(evt, tabId) {
       const tabContents = document.getElementsByClassName("tab-content");
       for (let i = 0; i < tabContents.length; i++) {
@@ -181,7 +517,6 @@
       document.getElementById(tabId).className += " active";
       evt.currentTarget.className += " active";
 
-      // Reset trạng thái đồng hồ khi đổi Tab
       clearInterval(timerInterval);
       document.getElementById("timerCardA4").style.display = "none";
       document.getElementById("timerCardA3").style.display = "none";
@@ -226,7 +561,6 @@
       });
     }
 
-    // ================= LOGIC XỬ LÝ CHUNG BƯỚC 1: TÁCH FILE =================
     async function processSplitPdf(type) {
       const fileInput = document.getElementById(type === 'A4' ? "fileInputTổngA4" : "fileInputTổngA3");
       const statusId = type === 'A4' ? "statusStep1A4" : "statusStep1A3";
@@ -277,7 +611,6 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // ================= LOGIC XỬ LÝ CHUNG BƯỚC 2: QUÉT OCR & ĐỔI TÊN =================
     async function processRenameOCR(type) {
       const fileInput = document.getElementById(type === 'A4' ? "fileInputNhỏA4" : "fileInputNhỏA3");
       const statusId = type === 'A4' ? "statusStep2A4" : "statusStep2A3";
@@ -343,13 +676,13 @@
             let cropX = 0, cropY = 0, cropWidth = 0, cropHeight = 0;
 
             if (type === 'A4') {
-              // --- CẤU HÌNH A4: Quét góc dưới bên TRÁI ---
+              // --- CẤU HÌNH A4: Góc dưới bên TRÁI ---
               cropWidth = Math.floor(viewport.width * 0.35);
               cropHeight = Math.floor(viewport.height * 0.20);
               cropX = 0;
               cropY = viewport.height - cropHeight;
             } else {
-              // --- CẤU HÌNH A3: Quét góc dưới bên PHẢI ---
+              // --- CẤU HÌNH A3: Góc dưới bên PHẢI ---
               cropWidth = Math.floor(viewport.width * 0.35);
               cropHeight = Math.floor(viewport.height * 0.25);
               cropX = viewport.width - cropWidth;
@@ -368,7 +701,6 @@
 
             let finalFileName = "";
 
-            // Cấu hình định dạng Regex: A4 là dải 7-8 số, A3 là đúng 6 số theo phôi thực tế
             const regexPattern = (type === 'A4') ? /([A-Z]{2})(\d{7,8})/ : /([A-Z]{2})(\d{6})/;
             const match = textNoSpaces.match(regexPattern);
 
@@ -376,7 +708,6 @@
               finalFileName = match[1] + " " + match[2];
               addLog(logId, `✓ Thành công | ${file.name} --> Khớp Số hiệu GCN: ${finalFileName}`);
             } else {
-              // Dự phòng cấu hình theo số ký tự
               const backupPattern = (type === 'A4') ? /[A-Z0-9]{9,10}/ : /[A-Z0-9]{8}/;
               const backupMatch = textNoSpaces.match(backupPattern);
               if (backupMatch && isNaN(backupMatch[0])) {
