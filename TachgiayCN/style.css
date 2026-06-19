@@ -43,16 +43,22 @@ body {
 .logo-wrapper {
   width: 48px;
   height: 48px;
+  min-width: 48px; /* Ép khung không bị co lại khi thu nhỏ màn hình */
+  min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 50%;
+  overflow: hidden; /* Giữ mọi phần thừa của ảnh luôn nằm trong khung tròn */
 }
+
+/* Khống chế tuyệt đối kích thước ảnh Quốc huy */
 .logo-quochuy {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover; /* Giúp ảnh tự điền đầy khung tròn mà không bị méo tỉ lệ */
+  display: block;
 }
-
 .main-brand {
   font-size: 26px;
   font-weight: 800;
