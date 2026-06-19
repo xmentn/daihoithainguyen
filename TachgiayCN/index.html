@@ -5,475 +5,185 @@
     <link rel="icon" type="image/png" href="images/Quochuy.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</title>
-
-    <style>
-      :root {
-        --primary-color: #2563eb;
-        --primary-hover: #1d4ed8;
-        --secondary-color: #0d9488;
-        --secondary-hover: #0f766e;
-        --bg-body: #f8fafc;
-        --text-main: #0f172a;
-        --text-muted: #475569;
-        --accent-orange: #ea580c;
-        --bg-card: #ffffff;
-        --border-color: #cbd5e1;
-      }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
-      body {
-        font-family: "Segoe UI", Arial, sans-serif;
-        background-color: var(--bg-body);
-        color: var(--text-main);
-        line-height: 1.5;
-        padding: 30px 15px;
-      }
-
-      .container {
-        max-width: 950px;
-        margin: 0 auto;
-        background: var(--bg-card);
-        padding: 35px;
-        border-radius: 16px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-      }
-
-      .header-section {
-        text-align: center;
-        margin-bottom: 35px;
-        background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-        padding: 32px 20px;
-        border-radius: 12px;
-      }
-
-      .header-title-main {
-        color: #ffffff;
-        font-size: 34px;
-        font-weight: 800;
-        text-transform: uppercase;
-        display: block;
-      }
-      .header-title-sub {
-        color: #fef08a;
-        font-size: 18px;
-        font-weight: 700;
-        text-transform: uppercase;
-        display: block;
-        margin-top: 5px;
-      }
-
-      .header-info-bar {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 10px;
-        margin-top: 15px;
-        font-size: 13.5px;
-        color: var(--text-muted);
-        margin-bottom: 25px;
-        font-weight: 500;
-      }
-
-      .tabs-container {
-        display: flex;
-        border-bottom: 2px solid #e2e8f0;
-        margin-bottom: 25px;
-        gap: 10px;
-      }
-      .tab-button {
-        background: none;
-        border: none;
-        padding: 12px 24px;
-        font-size: 15px;
-        font-weight: 700;
-        color: #64748b;
-        cursor: pointer;
-        border-radius: 8px 8px 0 0;
-        transition: all 0.2s;
-      }
-      .tab-button.active {
-        color: var(--primary-color);
-        background-color: #fff;
-        border-bottom: 3px solid var(--primary-color);
-      }
-
-      .tab-content {
-        display: none;
-      }
-      .tab-content.active {
-        display: block;
-      }
-
-      .section-box {
-        background: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 30px;
-      }
-      .drop-zone {
-        border: 2px dashed #cbd5e1;
-        border-radius: 10px;
-        padding: 30px 20px;
-        text-align: center;
-        background: #f8fafc;
-        cursor: pointer;
-        position: relative;
-      }
-      .drop-zone-blue:hover {
-        background: #eff6ff;
-        border-color: var(--primary-color);
-      }
-      .drop-zone-disabled {
-        background: #f1f5f9 !important;
-        opacity: 0.6;
-        cursor: not-allowed !important;
-      }
-
-      .coord-panel {
-        background: #f1f5f9;
-        border: 1px solid #cbd5e1;
-        border-radius: 8px;
-        padding: 15px;
-        margin-top: 15px;
-      }
-      .coord-panel-title {
-        font-size: 13px;
-        font-weight: 700;
-        color: #334155;
-        margin-bottom: 12px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-
-      .btn-lock-action {
-        background-color: var(--accent-orange);
-        color: #ffffff;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        font-weight: 700;
-        cursor: pointer;
-      }
-      .btn-locked {
-        background-color: #166534 !important;
-      }
-
-      .coord-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-      }
-      .coord-field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .coord-field label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #475569;
-      }
-      .coord-field input {
-        padding: 6px;
-        border: 1px solid #cbd5e1;
-        border-radius: 4px;
-        text-align: center;
-        font-weight: bold;
-      }
-      .coord-field input:disabled {
-        background-color: #e2e8f0;
-        color: #64748b;
-      }
-
-      .interaction-area {
-        display: flex;
-        gap: 20px;
-        margin-top: 15px;
-        background: #1e293b;
-        padding: 15px;
-        border-radius: 8px;
-        align-items: flex-start;
-        justify-content: center;
-      }
-
-      .main-canvas-wrapper {
-        position: relative;
-      }
-      .preview-canvas-render {
-        border: 1px dashed #94a3b8;
-        background: #ffffff;
-        cursor: crosshair;
-        display: block;
-      }
-
-      .magnifier-wrapper {
-        width: 250px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 10px;
-      }
-      .magnifier-title {
-        color: #fef08a;
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-      }
-      .magnifier-canvas {
-        width: 250px;
-        height: 120px;
-        background: #fff;
-        border: 3px solid var(--accent-orange);
-        box-shadow: 0 0 15px rgba(234, 88, 12, 0.4);
-      }
-
-      .demo-upload-bar {
-        margin-top: 10px;
-        background: #334155;
-        padding: 10px;
-        border-radius: 6px;
-        color: white;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 12px;
-      }
-
-      .status-msg {
-        margin-top: 14px;
-        padding: 10px;
-        border-radius: 6px;
-        font-size: 13.5px;
-        font-weight: 600;
-        text-align: center;
-      }
-      .status-loading {
-        background-color: #eff6ff;
-        color: var(--primary-color);
-        border-left: 4px solid var(--primary-color);
-      }
-      .status-success {
-        background-color: #f0fdf4;
-        color: #166534;
-        border-left: 4px solid #166534;
-      }
-
-      .log-container {
-        background-color: #0f172a;
-        color: #38bdf8;
-        padding: 14px;
-        border-radius: 8px;
-        font-family: monospace;
-        font-size: 12.5px;
-        max-height: 180px;
-        overflow-y: auto;
-        margin-top: 14px;
-        display: none;
-      }
-      .log-line {
-        margin: 3px 0;
-      }
-
-      .hidden-input {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        cursor: pointer;
-      }
-      .timer-display-card {
-        display: none;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        background: #0f172a;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 15px 0;
-      }
-      .timer-digits {
-        font-family: monospace;
-        font-size: 32px;
-        font-weight: 700;
-        color: #4ade80;
-      }
-
-      .badge-security {
-        background-color: #dcfce7;
-        color: #15803d;
-        padding: 3px 10px;
-        border-radius: 9999px;
-        font-size: 11px;
-        font-weight: 600;
-      }
-      .site-footer {
-        text-align: center;
-        margin-top: 40px;
-        padding-top: 15px;
-        border-top: 1px dashed #cbd5e1;
-        font-size: 13px;
-        color: #94a3b8;
-      }
-
-      #pdfCanvas {
-        display: none;
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
   </head>
-
   <body>
-    <div class="container">
-      <div class="header-section">
-        <span class="header-title-main">HỆ THỐNG</span>
-        <span class="header-title-sub"
-          >TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</span
-        >
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-wrapper">
+          <svg
+            width="34"
+            height="40"
+            viewBox="0 0 34 40"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M20 0H4C1.79 0 0 1.79 0 4V36C0 38.21 1.79 40 4 40H30C32.21 40 34 38.21 34 36V14L20 0ZM28 36H6V4H18V16H28V36ZM10 24H24V28H10V24ZM10 16H16V20H10V16ZM10 32H24V34H10V32Z"
+              fill="white"
+            />
+          </svg>
+        </div>
+        <div class="header-titles">
+          <h1 class="main-brand">HỆ THỐNG</h1>
+          <h2 class="sub-brand">
+            TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT
+          </h2>
+        </div>
       </div>
 
-      <div class="header-info-bar">
-        <span>Ứng dụng xử lý dữ liệu nội bộ trực tiếp trên trình duyệt</span>
-        <span class="badge-security">🔒 Bảo mật an toàn</span>
+      <div class="header-right">
+        <div class="status-pill green">
+          <span class="pill-icon">✓</span>
+          <div class="pill-text">
+            <span class="p-top">Ứng dụng xử lý dữ liệu nội bộ</span>
+            <span class="p-bot">Trực tiếp trên trình duyệt máy tính</span>
+          </div>
+        </div>
+        <div class="status-pill blue-dark">
+          <span class="pill-icon">🔒</span>
+          <span class="pill-text-single">Bảo mật an toàn</span>
+        </div>
       </div>
+    </header>
 
-      <div class="tabs-container">
-        <button class="tab-button active" onclick="switchTab(event, 'tabA4')">
+    <div class="gradient-slide-line"></div>
+
+    <main class="main-container">
+      <nav class="tabs-navigation">
+        <button class="tab-btn active" onclick="switchTab(event, 'tabA4')">
           📄 Giấy Chứng Nhận A4
         </button>
-        <button class="tab-button" onclick="switchTab(event, 'tabA3')">
+        <button class="tab-btn" onclick="switchTab(event, 'tabA3')">
           📖 Giấy Chứng Nhận A3
         </button>
-      </div>
+      </nav>
 
       <div id="tabA4" class="tab-content active">
-        <div class="section-box">
-          <h3>📂 BƯỚC 1: Tách nhỏ tệp PDF tổng hợp (Mẫu A4)</h3>
-          <div class="drop-zone drop-zone-blue">
-            <span class="drop-icon">📥</span>
-            <span class="drop-text"
-              >Kéo & thả file PDF tổng vào đây hoặc bấm để chọn file</span
-            >
-            <input
-              type="file"
-              id="fileInputTổngA4"
-              accept=".pdf"
-              class="hidden-input"
-              onchange="processSplitPdf('A4')"
-            />
+        <section class="card-section">
+          <div class="step-label">1</div>
+          <div class="card-header">
+            <h3>TÁCH NHỎ FILE PDF TỔNG HỢP (MẪU A4)</h3>
           </div>
-          <div
-            id="statusStep1A4"
-            class="status-msg"
-            style="display: none"
-          ></div>
-        </div>
-
-        <div class="section-box">
-          <h3>🔍 BƯỚC 2: Nhận diện Số hiệu và đồng bộ tên file (Mẫu A4)</h3>
-
-          <div class="demo-upload-bar">
-            <strong>🖼️ NẠP FILE MẪU ĐỂ SOI (A4):</strong>
-            <input
-              type="file"
-              id="demoA4Input"
-              accept=".pdf"
-              onchange="loadDemoFile('A4', event)"
-            />
-            <span style="font-size: 10px; font-style: italic"
-              >(Nạp 1 file thực tế để căn kính lúp chuẩn xác hơn)</span
-            >
-          </div>
-
-          <div class="coord-panel">
-            <div class="coord-panel-title">
-              <span>⚙️ ĐIỀU CHỈNH KHUNG CẮT A4</span>
-              <button
-                id="lockBtnA4"
-                class="btn-lock-action"
-                onclick="toggleLockState('A4')"
-              >
-                🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ
-              </button>
-            </div>
-            <div class="coord-grid">
-              <div class="coord-field">
-                <label>Chiều rộng (%)</label
-                ><input
-                  type="number"
-                  id="a4_w"
-                  value="28"
-                  oninput="readInputsAndDraw('A4')"
-                />
-              </div>
-              <div class="coord-field">
-                <label>Chiều cao (%)</label
-                ><input
-                  type="number"
-                  id="a4_h"
-                  value="8"
-                  oninput="readInputsAndDraw('A4')"
-                />
-              </div>
-              <div class="coord-field">
-                <label>Lùi lề ngang X (%)</label
-                ><input
-                  type="number"
-                  id="a4_x"
-                  value="4"
-                  oninput="readInputsAndDraw('A4')"
-                />
-              </div>
-              <div class="coord-field">
-                <label>Lùi lề dọc Y (%)</label
-                ><input
-                  type="number"
-                  id="a4_y"
-                  value="87"
-                  oninput="readInputsAndDraw('A4')"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="interaction-area">
-            <div class="main-canvas-wrapper">
-              <canvas
-                id="interactiveCanvasA4"
-                class="preview-canvas-render"
-              ></canvas>
-            </div>
-            <div class="magnifier-wrapper">
-              <span class="magnifier-title">🔍 KÍNH LÚP SOI SÊ-RI A4:</span>
-              <canvas id="magnifierCanvasA4" class="magnifier-canvas"></canvas>
-              <p style="color: #94a3b8; font-size: 10px; text-align: center">
-                Nhìn chữ sê-ri hiện rõ nét tại đây rồi bấm Khóa
+          <div class="split-layout">
+            <div class="main-drop-box blue-theme">
+              <span class="drop-icon">📥</span>
+              <p class="drop-txt-main">
+                Kéo & thả file PDF tổng hợp mẫu A4 vào đây hoặc bấm để chọn file
               </p>
+              <input
+                type="file"
+                id="fileInputTổngA4"
+                accept=".pdf"
+                class="hidden-input"
+                onchange="processSplitPdf('A4')"
+              />
+            </div>
+          </div>
+          <div id="statusStep1A4" class="alert-box" style="display: none"></div>
+        </section>
+
+        <section class="card-section">
+          <div class="step-label">2</div>
+          <div class="card-header">
+            <h3>NHẬN DIỆN VÀ ĐỒNG BỘ TÊN FILE (MẪU A4)</h3>
+          </div>
+
+          <div class="demo-upload-strip">
+            <label class="demo-btn">
+              📂 Nạp file mẫu (A4)
+              <input
+                type="file"
+                id="demoA4Input"
+                accept=".pdf"
+                onchange="loadDemoFile('A4', event)"
+              />
+            </label>
+            <span class="demo-msg"
+              >Nạp file thực tế để soi kính lúp chính xác hơn</span
+            >
+          </div>
+
+          <div class="tool-config-bar">
+            <div class="config-inputs">
+              <span class="config-lbl">🎛️ CẤU HÌNH VÙNG QUÉT A4:</span>
+              <div class="input-row">
+                <div class="fld">
+                  <label>Rộng %</label
+                  ><input
+                    type="number"
+                    id="a4_w"
+                    value="23"
+                    oninput="readInputsAndDraw('A4')"
+                  />
+                </div>
+                <div class="fld">
+                  <label>Cao %</label
+                  ><input
+                    type="number"
+                    id="a4_h"
+                    value="7"
+                    oninput="readInputsAndDraw('A4')"
+                  />
+                </div>
+                <div class="fld">
+                  <label>X %</label
+                  ><input
+                    type="number"
+                    id="a4_x"
+                    value="3"
+                    oninput="readInputsAndDraw('A4')"
+                  />
+                </div>
+                <div class="fld">
+                  <label>Y %</label
+                  ><input
+                    type="number"
+                    id="a4_y"
+                    value="87"
+                    oninput="readInputsAndDraw('A4')"
+                  />
+                </div>
+              </div>
+            </div>
+            <button
+              id="lockBtnA4"
+              class="btn-lock"
+              onclick="toggleLockState('A4')"
+            >
+              🔒 CHẤP NHẬN VỊ TRÍ
+            </button>
+          </div>
+
+          <div class="interaction-grid">
+            <div class="view-panel">
+              <div class="view-header">MÔ PHỎNG PHÔI ĐỨNG A4</div>
+              <div class="view-body">
+                <canvas id="interactiveCanvasA4" class="main-canvas"></canvas>
+              </div>
+            </div>
+            <div class="view-panel narrow">
+              <div class="view-header">KÍNH LÚP SOI MÃ HIỆU GCN A4</div>
+              <div class="view-body magnifier-bg">
+                <canvas id="magnifierCanvasA4" class="mag-canvas"></canvas>
+              </div>
             </div>
           </div>
 
           <div
             id="dropZoneNhỏA4"
-            class="drop-zone drop-zone-disabled"
+            class="main-drop-box disabled-theme"
             style="margin-top: 20px"
           >
             <span class="drop-icon">⚡</span>
-            <span id="dropTextA4" class="drop-text"
-              >Vui lòng bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng
-              chọn file</span
-            >
+            <p id="dropTextA4" class="drop-txt-main">
+              Hãy bấm nút "CHẤP NHẬN VỊ TRÍ" trước khi nạp file
+            </p>
             <input
               type="file"
               id="fileInputNhỏA4"
@@ -484,137 +194,142 @@
               disabled
             />
           </div>
-          <div class="timer-display-card" id="timerCardA4">
-            <span class="timer-digits" id="timerDigitsA4">00.00s</span>
+
+          <div class="process-footer" id="timerCardA4" style="display: none">
+            <div class="stats">
+              Trang: <strong id="totalPageA4">0</strong> | Thành công:
+              <strong id="successOcrA4" class="c-green">0</strong> | Lỗi:
+              <strong id="failOcrA4" class="c-red">0</strong>
+            </div>
+            <div class="timer-box">
+              ⏱️ <span id="timerDigitsA4">00.00s</span>
+            </div>
           </div>
-          <div
-            id="statusStep2A4"
-            class="status-msg"
-            style="display: none"
-          ></div>
-          <div id="logStep2A4" class="log-container"></div>
-        </div>
+          <div id="statusStep2A4" class="alert-box" style="display: none"></div>
+          <div id="logStep2A4" class="console-box"></div>
+        </section>
       </div>
 
       <div id="tabA3" class="tab-content">
-        <div class="section-box">
-          <h3>📂 BƯỚC 1: Tách nhỏ file PDF tổng hợp (Mẫu A3)</h3>
-          <div class="drop-zone drop-zone-blue">
-            <span class="drop-icon">📥</span>
-            <span class="drop-text"
-              >Kéo & thả file PDF tổng mẫu A3 vào đây hoặc bấm để chọn</span
-            >
-            <input
-              type="file"
-              id="fileInputTổngA3"
-              accept=".pdf"
-              class="hidden-input"
-              onchange="processSplitPdf('A3')"
-            />
+        <section class="card-section">
+          <div class="step-label">1</div>
+          <div class="card-header">
+            <h3>TÁCH NHỎ FILE PDF TỔNG HỢP (MẪU A3)</h3>
           </div>
-          <div
-            id="statusStep1A3"
-            class="status-msg"
-            style="display: none"
-          ></div>
-        </div>
-
-        <div class="section-box">
-          <h3>
-            🔍 BƯỚC 2: Nhận diện Số hiệu Giấy chứng nhận và đổi tên file (Mẫu
-            A3)
-          </h3>
-
-          <div class="demo-upload-bar">
-            <strong>🖼️ NẠP FILE MẪU ĐỂ SOI (A3):</strong>
-            <input
-              type="file"
-              id="demoA3Input"
-              accept=".pdf"
-              onchange="loadDemoFile('A3', event)"
-            />
-            <span style="font-size: 10px; font-style: italic"
-              >(Nạp 1 file thực tế để căn kính lúp chuẩn xác hơn)</span
-            >
-          </div>
-
-          <div class="coord-panel">
-            <div class="coord-panel-title">
-              <span>⚙️ ĐIỀU CHỈNH KHUNG CẮT A3</span>
-              <button
-                id="lockBtnA3"
-                class="btn-lock-action"
-                onclick="toggleLockState('A3')"
-              >
-                🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ
-              </button>
-            </div>
-            <div class="coord-grid">
-              <div class="coord-field">
-                <label>Chiều rộng (%)</label
-                ><input
-                  type="number"
-                  id="a3_w"
-                  value="15"
-                  oninput="readInputsAndDraw('A3')"
-                />
-              </div>
-              <div class="coord-field">
-                <label>Chiều cao (%)</label
-                ><input
-                  type="number"
-                  id="a3_h"
-                  value="12"
-                  oninput="readInputsAndDraw('A3')"
-                />
-              </div>
-              <div class="coord-field">
-                <label>Lùi lề ngang X (%)</label
-                ><input
-                  type="number"
-                  id="a3_x"
-                  value="73"
-                  oninput="readInputsAndDraw('A3')"
-                />
-              </div>
-              <div class="coord-field">
-                <label>Lùi lề dọc Y (%)</label
-                ><input
-                  type="number"
-                  id="a3_y"
-                  value="73"
-                  oninput="readInputsAndDraw('A3')"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div class="interaction-area">
-            <div class="main-canvas-wrapper">
-              <canvas
-                id="interactiveCanvasA3"
-                class="preview-canvas-render"
-              ></canvas>
-            </div>
-            <div class="magnifier-wrapper">
-              <span class="magnifier-title">🔍 KÍNH LÚP SOI SÊ-RI A3:</span>
-              <canvas id="magnifierCanvasA3" class="magnifier-canvas"></canvas>
-              <p style="color: #94a3b8; font-size: 10px; text-align: center">
-                Nhìn chữ sê-ri hiện rõ nét tại đây rồi bấm Khóa
+          <div class="split-layout">
+            <div class="main-drop-box blue-theme">
+              <span class="drop-icon">📥</span>
+              <p class="drop-txt-main">
+                Kéo & thả file PDF tổng mẫu A3 vào đây hoặc bấm để chọn file
               </p>
+              <input
+                type="file"
+                id="fileInputTổngA3"
+                accept=".pdf"
+                class="hidden-input"
+                onchange="processSplitPdf('A3')"
+              />
+            </div>
+          </div>
+          <div id="statusStep1A3" class="alert-box" style="display: none"></div>
+        </section>
+
+        <section class="card-section">
+          <div class="step-label">2</div>
+          <div class="card-header">
+            <h3>NHẬN DIỆN VÀ ĐỒNG BỘ TÊN FILE (MẪU A3)</h3>
+          </div>
+
+          <div class="demo-upload-strip">
+            <label class="demo-btn">
+              📂 Nạp file mẫu (A3)
+              <input
+                type="file"
+                id="demoA3Input"
+                accept=".pdf"
+                onchange="loadDemoFile('A3', event)"
+              />
+            </label>
+            <span class="demo-msg"
+              >Nạp file thực tế để soi kính lúp chính xác hơn</span
+            >
+          </div>
+
+          <div class="tool-config-bar">
+            <div class="config-inputs">
+              <span class="config-lbl">🎛️ CẤU HÌNH VÙNG QUÉT A3:</span>
+              <div class="input-row">
+                <div class="fld">
+                  <label>Rộng %</label
+                  ><input
+                    type="number"
+                    id="a3_w"
+                    value="15"
+                    oninput="readInputsAndDraw('A3')"
+                  />
+                </div>
+                <div class="fld">
+                  <label>Cao %</label
+                  ><input
+                    type="number"
+                    id="a3_h"
+                    value="9"
+                    oninput="readInputsAndDraw('A3')"
+                  />
+                </div>
+                <div class="fld">
+                  <label>X %</label
+                  ><input
+                    type="number"
+                    id="a3_x"
+                    value="76"
+                    oninput="readInputsAndDraw('A3')"
+                  />
+                </div>
+                <div class="fld">
+                  <label>Y %</label
+                  ><input
+                    type="number"
+                    id="a3_y"
+                    value="74"
+                    oninput="readInputsAndDraw('A3')"
+                  />
+                </div>
+              </div>
+            </div>
+            <button
+              id="lockBtnA3"
+              class="btn-lock"
+              onclick="toggleLockState('A3')"
+            >
+              🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ
+            </button>
+          </div>
+
+          <div class="interaction-grid">
+            <div class="view-panel">
+              <div class="view-header">MÔ PHỎNG PHÔI NGANG A3</div>
+              <div class="view-body">
+                <canvas id="interactiveCanvasA3" class="main-canvas"></canvas>
+              </div>
+            </div>
+            <div class="view-panel narrow">
+              <div class="view-header">KÍNH LÚP SOI MÃ HIỆU GCN A3</div>
+              <div class="view-body magnifier-bg">
+                <canvas id="magnifierCanvasA3" class="mag-canvas"></canvas>
+              </div>
             </div>
           </div>
 
           <div
             id="dropZoneNhỏA3"
-            class="drop-zone drop-zone-disabled"
+            class="main-drop-box disabled-theme"
             style="margin-top: 20px"
           >
             <span class="drop-icon">⚡</span>
-            <span id="dropTextA3" class="drop-text"
-              >Vui lòng bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng
-              chọn file</span
-            >
+            <p id="dropTextA3" class="drop-txt-main">
+              Hãy bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng chọn file
+            </p>
             <input
               type="file"
               id="fileInputNhỏA3"
@@ -625,24 +340,31 @@
               disabled
             />
           </div>
-          <div class="timer-display-card" id="timerCardA3">
-            <span class="timer-digits" id="timerDigitsA3">00.00s</span>
+
+          <div class="process-footer" id="timerCardA3" style="display: none">
+            <div class="stats">
+              Trang: <strong id="totalPageA3">0</strong> | Thành công:
+              <strong id="successOcrA3" class="c-green">0</strong> | Lỗi:
+              <strong id="failOcrA3" class="c-red">0</strong>
+            </div>
+            <div class="timer-box">
+              ⏱️ <span id="timerDigitsA3">00.00s</span>
+            </div>
           </div>
-          <div
-            id="statusStep2A3"
-            class="status-msg"
-            style="display: none"
-          ></div>
-          <div id="logStep2A3" class="log-container"></div>
-        </div>
+          <div id="statusStep2A3" class="alert-box" style="display: none"></div>
+          <div id="logStep2A3" class="console-box"></div>
+        </section>
       </div>
 
-      <div class="site-footer">Văn phòng Đăng ký đất đai tỉnh Thái Nguyên</div>
-    </div>
+      <footer class="bottom-footer">
+        Văn phòng Đăng ký đất đai tỉnh Thái Nguyên
+      </footer>
+    </main>
 
     <canvas id="pdfCanvas"></canvas>
 
     <script>
+      // FIX TRIỆT ĐỂ: Hàm bổ trợ đọc Buffer bắt buộc nằm trên đầu phân vùng Script toàn cục
       function readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -658,7 +380,6 @@
       let isLockedMap = { A4: false, A3: false };
       let demoImages = { A4: null, A3: null };
       let demoOriginalSizes = { A4: null, A3: null };
-
       let dragData = {
         isDragging: false,
         isResizing: false,
@@ -679,24 +400,37 @@
         readInputsAndDraw("A3");
       };
 
+      function switchTab(evt, tabId) {
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((c) => c.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+
+        document.getElementById(tabId).classList.add("active");
+        evt.currentTarget.classList.add("active");
+
+        const activeType = tabId === "tabA4" ? "A4" : "A3";
+        setTimeout(() => {
+          readInputsAndDraw(activeType);
+        }, 40);
+      }
+
       async function loadDemoFile(type, event) {
         const file = event.target.files[0];
         if (!file) return;
-
         try {
           const arrayBuffer = await readFileAsArrayBuffer(file);
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) })
             .promise;
           const page = await pdf.getPage(1);
-
           const viewport = page.getViewport({ scale: 2.0 });
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-
           await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-
           const img = new Image();
           img.onload = function () {
             demoImages[type] = img;
@@ -715,12 +449,11 @@
       function toggleLockState(type) {
         const isLocked = !isLockedMap[type];
         isLockedMap[type] = isLocked;
-
         const btn = document.getElementById(`lockBtn${type}`);
         const dropZone = document.getElementById(`dropZoneNhỏ${type}`);
         const textLabel = document.getElementById(`dropText${type}`);
         const fileInput = document.getElementById(`fileInputNhỏ${type}`);
-        const inputs = [
+        const flds = [
           document.getElementById(type.toLowerCase() + "_w"),
           document.getElementById(type.toLowerCase() + "_h"),
           document.getElementById(type.toLowerCase() + "_x"),
@@ -728,18 +461,24 @@
         ];
 
         if (isLocked) {
-          btn.innerText = "🔓 MỞ KHÓA ĐỂ ĐIỀU CHỈNH";
-          btn.classList.add("btn-locked");
-          inputs.forEach((inp) => (inp.disabled = true));
-          dropZone.className = "drop-zone";
-          textLabel.innerText = `Bấm vào đây để chọn toàn bộ file sổ nhỏ ${type}`;
+          btn.innerText = "🔓 MỞ KHÓA VỊ TRÍ";
+          btn.classList.add("locked-style");
+          flds.forEach((i) => (i.disabled = true));
+          dropZone.className = "main-drop-box active-theme";
+          textLabel.innerText = `Kéo thả các tệp GCN ${type} cần xử lý vào đây`;
           fileInput.disabled = false;
         } else {
-          btn.innerText = "🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ";
-          btn.classList.remove("btn-locked");
-          inputs.forEach((inp) => (inp.disabled = false));
-          dropZone.className = "drop-zone drop-zone-disabled";
-          textLabel.innerText = `Vui lòng bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng chọn file`;
+          btn.innerText =
+            type === "A4"
+              ? "🔒 CHẤP NHẬN VỊ TRÍ"
+              : "🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ";
+          btn.classList.remove("locked-style");
+          flds.forEach((i) => (i.disabled = false));
+          dropZone.className = "main-drop-box disabled-theme";
+          textLabel.innerText =
+            type === "A4"
+              ? `Hãy bấm nút "CHẤP NHẬN VỊ TRÍ" trước khi nạp file`
+              : `Vui lòng bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng chọn file`;
           fileInput.disabled = true;
         }
         readInputsAndDraw(type);
@@ -747,24 +486,23 @@
 
       function readInputsAndDraw(type) {
         const canvas = document.getElementById(`interactiveCanvas${type}`);
-        if (!canvas) return;
-        drawSimulatedPreview(type, canvas);
+        if (canvas) drawSimulatedPreview(type, canvas);
       }
 
       function drawSimulatedPreview(type, canvas) {
         const ctx = canvas.getContext("2d");
         const isA4 = type === "A4";
-
-        canvas.width = isA4 ? 300 : 550;
-        canvas.height = isA4 ? 420 : 340;
+        canvas.width = isA4 ? 300 : 520;
+        canvas.height = isA4 ? 400 : 310;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         if (demoImages[type]) {
           ctx.drawImage(demoImages[type], 0, 0, canvas.width, canvas.height);
         } else {
-          ctx.fillStyle = "#fffbeb";
+          ctx.fillStyle = "#fcfcfc";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           if (!isA4) {
-            ctx.strokeStyle = "#cbd5e1";
+            ctx.strokeStyle = "#e2e8f0";
             ctx.lineWidth = 1;
             ctx.setLineDash([5, 5]);
             ctx.beginPath();
@@ -773,27 +511,25 @@
             ctx.stroke();
             ctx.setLineDash([]);
           }
-          ctx.fillStyle = "#94a3b8";
+          ctx.fillStyle = "#cbd5e1";
           ctx.font = "bold 11px sans-serif";
           ctx.fillText(
-            isA4 ? "MÔ PHỎNG PHÔI ĐỨNG A4" : "MÔ PHỎNG PHÔI NGANG A3",
+            isA4 ? "CHƯA NẠP FILE MẪU A4" : "CHƯA NẠP FILE MẪU A3",
             20,
             30,
           );
         }
 
-        const w_pct =
-          parseFloat(document.getElementById(type.toLowerCase() + "_w").value) /
-          100;
-        const h_pct =
-          parseFloat(document.getElementById(type.toLowerCase() + "_h").value) /
-          100;
-        const x_pct =
-          parseFloat(document.getElementById(type.toLowerCase() + "_x").value) /
-          100;
-        const y_pct =
-          parseFloat(document.getElementById(type.toLowerCase() + "_y").value) /
-          100;
+        const w_fld = document.getElementById(type.toLowerCase() + "_w");
+        const h_fld = document.getElementById(type.toLowerCase() + "_h");
+        const x_fld = document.getElementById(type.toLowerCase() + "_x");
+        const y_fld = document.getElementById(type.toLowerCase() + "_y");
+        if (!w_fld || !h_fld || !x_fld || !y_fld) return;
+
+        const w_pct = parseFloat(w_fld.value) / 100;
+        const h_pct = parseFloat(h_fld.value) / 100;
+        const x_pct = parseFloat(x_fld.value) / 100;
+        const y_pct = parseFloat(y_fld.value) / 100;
 
         const rx = canvas.width * x_pct;
         const ry = canvas.height * y_pct;
@@ -801,14 +537,10 @@
         const rh = canvas.height * h_pct;
 
         const isLocked = isLockedMap[type];
-        const color = isLocked
-          ? "rgba(22, 101, 52, 0.25)"
-          : isA4
-            ? "rgba(37, 99, 235, 0.22)"
-            : "rgba(220, 38, 38, 0.22)";
-        const stroke = isLocked ? "#166534" : isA4 ? "#2563eb" : "#dc2626";
-
-        ctx.fillStyle = color;
+        const stroke = isLocked ? "#16a34a" : isA4 ? "#2563eb" : "#ef4444";
+        ctx.fillStyle = isLocked
+          ? "rgba(22, 163, 74, 0.2)"
+          : "rgba(37, 99, 235, 0.15)";
         ctx.fillRect(rx, ry, rw, rh);
         ctx.strokeStyle = stroke;
         ctx.lineWidth = 2;
@@ -816,16 +548,17 @@
 
         if (!isLocked) {
           ctx.fillStyle = stroke;
-          ctx.fillRect(rx + rw - 5, ry + rh - 5, 10, 10);
+          ctx.fillRect(rx + rw - 6, ry + rh - 6, 12, 12);
         }
 
-        // XỬ LÝ KÍNH LÚP ĐỒNG BỘ CHO CẢ HAI TAB
         const magCanvas = document.getElementById(`magnifierCanvas${type}`);
         if (magCanvas) {
           const magCtx = magCanvas.getContext("2d");
+          magCanvas.width = 250;
+          magCanvas.height = 120;
+          magCtx.clearRect(0, 0, magCanvas.width, magCanvas.height);
           magCtx.fillStyle = "#ffffff";
           magCtx.fillRect(0, 0, magCanvas.width, magCanvas.height);
-
           if (demoImages[type] && demoOriginalSizes[type]) {
             const origW = demoOriginalSizes[type].width;
             const origH = demoOriginalSizes[type].height;
@@ -858,13 +591,11 @@
 
       function setupInteractiveCanvas(type) {
         const canvas = document.getElementById(`interactiveCanvas${type}`);
-
         canvas.addEventListener("mousedown", (e) => {
           if (isLockedMap[type]) return;
           const rect = canvas.getBoundingClientRect();
           const mx = e.clientX - rect.left;
           const my = e.clientY - rect.top;
-
           const w_pct =
             parseFloat(
               document.getElementById(type.toLowerCase() + "_w").value,
@@ -881,7 +612,6 @@
             parseFloat(
               document.getElementById(type.toLowerCase() + "_y").value,
             ) / 100;
-
           const rx = canvas.width * x_pct;
           const ry = canvas.height * y_pct;
           const rw = canvas.width * w_pct;
@@ -899,7 +629,6 @@
           } else {
             return;
           }
-
           dragData.currentType = type;
           dragData.startX = mx;
           dragData.startY = my;
@@ -911,8 +640,8 @@
 
         window.addEventListener("mousemove", (e) => {
           if (!dragData.currentType || dragData.currentType !== type) return;
-          const canvas = document.getElementById(`interactiveCanvas${type}`);
-          const rect = canvas.getBoundingClientRect();
+          const cv = document.getElementById(`interactiveCanvas${type}`);
+          const rect = cv.getBoundingClientRect();
           const mx = e.clientX - rect.left;
           const my = e.clientY - rect.top;
           const dx = mx - dragData.startX;
@@ -921,54 +650,38 @@
           if (dragData.isDragging) {
             let nx = Math.max(
               0,
-              Math.min(canvas.width - dragData.boxW, dragData.boxX + dx),
+              Math.min(cv.width - dragData.boxW, dragData.boxX + dx),
             );
             let ny = Math.max(
               0,
-              Math.min(canvas.height - dragData.boxH, dragData.boxY + dy),
+              Math.min(cv.height - dragData.boxH, dragData.boxY + dy),
             );
             document.getElementById(type.toLowerCase() + "_x").value =
-              Math.round((nx / canvas.width) * 100);
+              Math.round((nx / cv.width) * 100);
             document.getElementById(type.toLowerCase() + "_y").value =
-              Math.round((ny / canvas.height) * 100);
+              Math.round((ny / cv.height) * 100);
           }
           if (dragData.isResizing) {
             let nw = Math.max(
-              20,
-              Math.min(canvas.width - dragData.boxX, dragData.boxW + dx),
+              10,
+              Math.min(cv.width - dragData.boxX, dragData.boxW + dx),
             );
             let nh = Math.max(
-              10,
-              Math.min(canvas.height - dragData.boxY, dragData.boxH + dy),
+              5,
+              Math.min(cv.height - dragData.boxY, dragData.boxH + dy),
             );
             document.getElementById(type.toLowerCase() + "_w").value =
-              Math.round((nw / canvas.width) * 100);
+              Math.round((nw / cv.width) * 100);
             document.getElementById(type.toLowerCase() + "_h").value =
-              Math.round((nh / canvas.height) * 100);
+              Math.round((nh / cv.height) * 100);
           }
-          drawSimulatedPreview(type, canvas);
+          drawSimulatedPreview(type, cv);
         });
-
         window.addEventListener("mouseup", () => {
           dragData.isDragging = false;
           dragData.isResizing = false;
           dragData.currentType = null;
         });
-      }
-
-      function switchTab(evt, tabId) {
-        document
-          .querySelectorAll(".tab-content")
-          .forEach((c) => c.classList.remove("active"));
-        document
-          .querySelectorAll(".tab-button")
-          .forEach((b) => b.classList.remove("active"));
-        document.getElementById(tabId).classList.add("active");
-        evt.currentTarget.classList.add("active");
-        setTimeout(() => {
-          readInputsAndDraw("A4");
-          readInputsAndDraw("A3");
-        }, 50);
       }
 
       async function processSplitPdf(type) {
@@ -977,7 +690,7 @@
         if (!fileInput.files[0]) return;
         updateStatus(
           statusId,
-          "⏳ Hệ thống đang tiến hành bẻ tách dữ liệu tệp PDF tổng...",
+          "⏳ Hệ thống đang tiến hành tách dữ liệu tệp PDF tổng...",
           "loading",
         );
         try {
@@ -1003,7 +716,7 @@
             "success",
           );
         } catch (e) {
-          alert(e.message);
+          updateStatus(statusId, "❌ Lỗi: " + e.message, "error");
         }
       }
 
@@ -1014,14 +727,16 @@
         const timerDigits = document.getElementById(`timerDigits${type}`);
         const timerCard = document.getElementById(`timerCard${type}`);
         if (fileInput.files.length === 0) return;
-
         timerCard.style.display = "flex";
+        document.getElementById(`totalPage${type}`).innerText =
+          fileInput.files.length;
+        let successCount = 0;
+        let failCount = 0;
         let startTime = Date.now();
         timerInterval = setInterval(() => {
           timerDigits.innerText =
             ((Date.now() - startTime) / 1000).toFixed(2) + "s";
         }, 50);
-
         const uw =
           parseFloat(document.getElementById(type.toLowerCase() + "_w").value) /
           100;
@@ -1034,16 +749,10 @@
         const uy =
           parseFloat(document.getElementById(type.toLowerCase() + "_y").value) /
           100;
-
-        updateStatus(
-          statusId,
-          "⏳ Đang khởi tạo môi trường thông minh OCR (Chạy trên RAM)...",
-          "loading",
-        );
+        updateStatus(statusId, "⏳ Đang khởi tạo môi trường OCR...", "loading");
         const logBox = document.getElementById(logId);
         logBox.innerHTML = "";
         logBox.style.display = "block";
-
         const zip = new JSZip();
         try {
           const worker = await Tesseract.createWorker("eng", 1);
@@ -1051,20 +760,16 @@
             tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
             tessedit_pageseg_mode: "6",
           });
-
           for (let file of fileInput.files) {
             if (!file.name.toLowerCase().endsWith(".pdf")) continue;
-
             try {
               const originalBuffer = await readFileAsArrayBuffer(file);
               const arrayBufferForPDFJS = originalBuffer.slice(0);
               const arrayBufferForZip = originalBuffer.slice(0);
-
               const pdf = await pdfjsLib.getDocument({
                 data: arrayBufferForPDFJS,
               }).promise;
               const page = await pdf.getPage(1);
-
               const viewport = page.getViewport({ scale: 2.5 });
               const canvas = document.createElement("canvas");
               const ctx = canvas.getContext("2d");
@@ -1072,12 +777,10 @@
               canvas.height = viewport.height;
               await page.render({ canvasContext: ctx, viewport: viewport })
                 .promise;
-
               const cropX = canvas.width * ux;
               const cropY = canvas.height * uy;
               const cropW = canvas.width * uw;
               const cropH = canvas.height * uh;
-
               const finalCanvas = document.getElementById("pdfCanvas");
               finalCanvas.width = cropW;
               finalCanvas.height = cropH;
@@ -1094,58 +797,37 @@
                   cropW,
                   cropH,
                 );
-
               const {
                 data: { text },
               } = await worker.recognize(finalCanvas.toDataURL());
               const cleanText = text.replace(/\s+/g, "").toUpperCase();
-
               let finalFileName = "";
-              const regexPattern =
-                type === "A4" ? /([A-Z]{2})(\d{7,8})/ : /([A-Z]{2})(\d{6})/;
-              const match = cleanText.match(regexPattern);
-
+              const match = cleanText.match(/([A-Z]{2})(\d{6,8})/);
               if (match) {
                 finalFileName = match[1] + " " + match[2];
                 addLog(
                   logId,
                   `✓ Thành công | ${file.name} --> Khớp Số hiệu GCN: ${finalFileName}`,
                 );
+                successCount++;
               } else {
-                const backupPattern =
-                  type === "A4" ? /[A-Z0-9]{9,10}/ : /[A-Z0-9]{8}/;
-                const backupMatch = cleanText.match(backupPattern);
-                if (backupMatch && isNaN(backupMatch[0])) {
-                  let code = backupMatch[0];
-                  finalFileName =
-                    code.substring(0, 2) + " " + code.substring(2);
-                  addLog(
-                    logId,
-                    `⚠ Phục hồi nghi vấn | ${file.name} --> Đọc được: ${finalFileName}`,
-                  );
-                } else {
-                  finalFileName =
-                    file.name.replace(".pdf", "") + "_KhongRoMaSeri";
-                  addLog(
-                    logId,
-                    `❌ Không tìm thấy mã số hiệu trên file: ${file.name}`,
-                    true,
-                  );
-                }
+                finalFileName =
+                  file.name.replace(".pdf", "") + "_KhongRoMaSeri";
+                addLog(
+                  logId,
+                  `❌ Thất bại | Không quét được số hiệu GCN trên file: ${file.name}`,
+                  true,
+                );
+                failCount++;
               }
-
+              document.getElementById(`successOcr${type}`).innerText =
+                successCount;
+              document.getElementById(`failOcr${type}`).innerText = failCount;
               zip.file(`${finalFileName}.pdf`, arrayBufferForZip);
             } catch (fileError) {
-              addLog(
-                logId,
-                `💥 Lỗi tệp dữ liệu ${file.name}: ${fileError.message}`,
-                true,
-              );
-              const fallbackBuffer = await readFileAsArrayBuffer(file);
-              zip.file(
-                `${file.name.replace(".pdf", "")}_LoiDocFile.pdf`,
-                fallbackBuffer,
-              );
+              failCount++;
+              document.getElementById(`failOcr${type}`).innerText = failCount;
+              addLog(logId, `💥 Lỗi file ${file.name}`, true);
             }
           }
           await worker.terminate();
@@ -1153,12 +835,12 @@
           const blob = await zip.generateAsync({ type: "blob" });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
-          link.download = `Ket_Qua_Doi_Ten_Seri_Thanh_Pham_${type}.zip`;
+          link.download = `Ket_Qua_Doi_Ten_File_${type}.zip`;
           link.click();
           updateStatus(statusId, "🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG!", "success");
         } catch (e) {
           clearInterval(timerInterval);
-          alert(e.message);
+          updateStatus(statusId, "🚨 Lỗi: " + e.message, "error");
         }
       }
 
@@ -1167,14 +849,18 @@
         el.style.display = "block";
         el.innerText = text;
         el.className =
-          "status-msg " +
-          (type === "loading" ? "status-loading" : "status-success");
+          "alert-box " +
+          (type === "loading"
+            ? "status-loading"
+            : type === "error"
+              ? "status-error"
+              : "status-success");
       }
 
       function addLog(id, msg, isErr) {
         const line = document.createElement("div");
         line.className = "log-line";
-        if (isErr) line.style.color = "#f87171";
+        if (isErr) line.style.color = "#ef4444";
         line.innerText = msg;
         const box = document.getElementById(id);
         box.appendChild(line);
