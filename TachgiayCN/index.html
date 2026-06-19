@@ -16,18 +16,12 @@
     <header class="app-header">
       <div class="header-left">
         <div class="logo-wrapper">
-          <svg
-            width="34"
-            height="40"
-            viewBox="0 0 34 40"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M20 0H4C1.79 0 0 1.79 0 4V36C0 38.21 1.79 40 4 40H30C32.21 40 34 38.21 34 36V14L20 0ZM28 36H6V4H18V16H28V36ZM10 24H24V28H10V24ZM10 16H16V20H10V16ZM10 32H24V34H10V32Z"
-              fill="white"
-            />
-          </svg>
+          <img
+            src="images/Quochuy.png"
+            alt="Quốc huy"
+            class="logo-quochuy"
+            onerror="this.style.style.display = 'none'"
+          />
         </div>
         <div class="header-titles">
           <h1 class="main-brand">HỆ THỐNG</h1>
@@ -361,10 +355,10 @@
       </footer>
     </main>
 
-    <canvas id="pdfCanvas"></canvas>
+    <canvas id="pdfCanvas" style="display: none"></canvas>
 
     <script>
-      // FIX TRIỆT ĐỂ: Hàm bổ trợ đọc Buffer bắt buộc nằm trên đầu phân vùng Script toàn cục
+      // Hàm đọc tệp tin Buffer
       function readFileAsArrayBuffer(file) {
         return new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -407,10 +401,8 @@
         document
           .querySelectorAll(".tab-btn")
           .forEach((b) => b.classList.remove("active"));
-
         document.getElementById(tabId).classList.add("active");
         evt.currentTarget.classList.add("active");
-
         const activeType = tabId === "tabA4" ? "A4" : "A3";
         setTimeout(() => {
           readInputsAndDraw(activeType);
@@ -499,8 +491,23 @@
         if (demoImages[type]) {
           ctx.drawImage(demoImages[type], 0, 0, canvas.width, canvas.height);
         } else {
-          ctx.fillStyle = "#fcfcfc";
+          // Tự động tạo hoa văn GCN khi chưa nạp file
+          ctx.fillStyle = "#fff1f2";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.strokeStyle = "#fda4af";
+          ctx.lineWidth = 4;
+          ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+          ctx.strokeStyle = "rgba(251, 113, 133, 0.25)";
+          ctx.lineWidth = 1.5;
+          const centerX = isA4 ? canvas.width / 2 : canvas.width * 0.75;
+          const centerY = canvas.height / 2;
+          for (let r = 20; r <= 90; r += 15) {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, r, 0, 2 * Math.PI);
+            ctx.stroke();
+          }
+
           if (!isA4) {
             ctx.strokeStyle = "#e2e8f0";
             ctx.lineWidth = 1;
@@ -511,12 +518,12 @@
             ctx.stroke();
             ctx.setLineDash([]);
           }
-          ctx.fillStyle = "#cbd5e1";
+          ctx.fillStyle = "#f43f5e";
           ctx.font = "bold 11px sans-serif";
           ctx.fillText(
-            isA4 ? "CHƯA NẠP FILE MẪU A4" : "CHƯA NẠP FILE MẪU A3",
+            isA4 ? "PHÔI GCN MẪU ĐỨNG A4" : "PHÔI GCN MẪU NGANG A3",
             20,
-            30,
+            32,
           );
         }
 
@@ -690,7 +697,7 @@
         if (!fileInput.files[0]) return;
         updateStatus(
           statusId,
-          "⏳ Hệ thống đang tiến hành tách dữ liệu tệp PDF tổng...",
+          "⏳ Hệ thống đang bẻ tách file PDF tổng...",
           "loading",
         );
         try {
@@ -749,7 +756,7 @@
         const uy =
           parseFloat(document.getElementById(type.toLowerCase() + "_y").value) /
           100;
-        updateStatus(statusId, "⏳ Đang khởi tạo môi trường OCR...", "loading");
+        updateStatus(statusId, "⏳ Đang nhận diện OCR...", "loading");
         const logBox = document.getElementById(logId);
         logBox.innerHTML = "";
         logBox.style.display = "block";
@@ -815,7 +822,7 @@
                   file.name.replace(".pdf", "") + "_KhongRoMaSeri";
                 addLog(
                   logId,
-                  `❌ Thất bại | Không quét được số hiệu GCN trên file: ${file.name}`,
+                  `❌ Thất bại | Không quét được mã sê-ri trên file: ${file.name}`,
                   true,
                 );
                 failCount++;
@@ -835,7 +842,7 @@
           const blob = await zip.generateAsync({ type: "blob" });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
-          link.download = `Ket_Qua_Doi_Ten_File_${type}.zip`;
+          link.download = `Ket_Qua_Doi_Tên_${type}.zip`;
           link.click();
           updateStatus(statusId, "🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG!", "success");
         } catch (e) {
