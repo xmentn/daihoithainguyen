@@ -1,773 +1,1347 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</title>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HỆ THỐNG TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</title>
-
-  <style>
-    :root {
-      /* Cải tiến bộ màu tươi sáng, trang nhã và có độ tương phản tốt hơn */
-      --primary-color: #2563eb;
-      /* Xanh Cobalt sáng công nghệ */
-      --primary-hover: #1d4ed8;
-      --secondary-color: #0d9488;
-      --secondary-hover: #0f766e;
-      --bg-body: #f8fafc;
-      /* Nền xám xanh nhạt dịu mắt */
-      --text-main: #0f172a;
-      /* Chữ đậm hơn để nhìn rõ nét */
-      --text-muted: #475569;
-      --accent-orange: #ea580c;
-      --bg-card: #ffffff;
-      --border-color: #cbd5e1;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background-color: var(--bg-body);
-      color: var(--text-main);
-      line-height: 1.5;
-      padding: 30px 15px;
-    }
-
-    .container {
-      max-width: 850px;
-      margin: 0 auto;
-      background: var(--bg-card);
-      padding: 35px;
-      border-radius: 16px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-    }
-
-    /* --- THIẾT KẾ PHỐI MÀU LẠI BANNER TIÊU ĐỀ HÀNH CHÍNH --- */
-    .header-section {
-      text-align: center;
-      margin-bottom: 35px;
-      /* Chuyển sang dải màu xanh Cobalt sáng hoàng gia, bớt tối sẫm */
-      background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
-      padding: 32px 20px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
-    }
-
-    .header-title-main {
-      color: #ffffff;
-      /* Chữ trắng tinh khôi nổi bật */
-      font-size: 34px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      display: block;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .header-title-sub {
-      color: #fef08a;
-      /* Thay bằng màu vàng nhạt ánh kim để tăng tối đa độ tương phản trực quan */
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      text-transform: uppercase;
-      display: block;
-      line-height: 1.4;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-
-    .header-info-bar {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-top: 15px;
-      font-size: 13.5px;
-      color: var(--text-muted);
-      margin-bottom: 25px;
-      font-weight: 500;
-    }
-
-    .tabs-container {
-      display: flex;
-      border-bottom: 2px solid #e2e8f0;
-      margin-bottom: 25px;
-      gap: 10px;
-    }
-
-    .tab-button {
-      background: none;
-      border: none;
-      padding: 12px 24px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #64748b;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .tab-button:hover {
-      color: var(--primary-color);
-      background-color: #f1f5f9;
-    }
-
-    .tab-button.active {
-      color: var(--primary-color);
-      background-color: #fff;
-    }
-
-    .tab-button.active::after {
-      content: "";
-      position: absolute;
-      bottom: -2px;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background-color: var(--primary-color);
-      border-radius: 999px;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .section-box {
-      background: #ffffff;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 30px;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .section-box:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    }
-
-    h3 {
-      color: #1e293b;
-      font-size: 16px;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .section-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .drop-zone {
-      border: 2px dashed #cbd5e1;
-      border-radius: 10px;
-      padding: 30px 20px;
-      text-align: center;
-      background: #f8fafc;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-    }
-
-    .drop-zone:hover {
-      background: #f0fdf4;
-      border-color: var(--secondary-color);
-    }
-
-    .drop-zone-blue:hover {
-      background: #eff6ff;
-      border-color: var(--primary-color);
-    }
-
-    .drop-icon {
-      font-size: 32px;
-      margin-bottom: 8px;
-      display: block;
-    }
-
-    .drop-text {
-      font-size: 14px;
-      font-weight: 600;
-      color: #334155;
-    }
-
-    .drop-subtext {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
-
-    .guide-box {
-      background: #fffbeb;
-      border: 1px solid #fef3c7;
-      border-radius: 12px;
-      margin-bottom: 30px;
-      overflow: hidden;
-    }
-
-    .guide-header {
-      background: #fef3c7;
-      color: #92400e;
-      padding: 14px 20px;
-      font-weight: 700;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-    }
-
-    .guide-content {
-      padding: 20px;
-      font-size: 13.5px;
-      color: #451a03;
-      line-height: 1.6;
-    }
-
-    .guide-content ol {
-      padding-left: 18px;
-    }
-
-    .guide-content li {
-      margin-bottom: 10px;
-    }
-
-    .status-msg {
-      margin-top: 14px;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 13.5px;
-      font-weight: 600;
-      text-align: center;
-      background: #f1f5f9;
-    }
-
-    .status-loading {
-      background-color: #eff6ff;
-      color: var(--primary-color);
-      border-left: 4px solid var(--primary-color);
-    }
-
-    .status-success {
-      background-color: #f0fdf4;
-      color: #166534;
-      border-left: 4px solid #166534;
-    }
-
-    .log-container {
-      background-color: #0f172a;
-      color: #38bdf8;
-      padding: 14px;
-      border-radius: 8px;
-      font-family: "Consolas", "Courier New", monospace;
-      font-size: 12.5px;
-      max-height: 180px;
-      overflow-y: auto;
-      margin-top: 14px;
-      display: none;
-      border: 1px solid #1e293b;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .log-line {
-      margin: 3px 0;
-    }
-
-    .hidden-input {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      cursor: pointer;
-    }
-
-    .timer-display-card {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-      background: #0f172a;
-      border: 2px solid #1e293b;
-      padding: 15px 25px;
-      border-radius: 10px;
-      margin: 15px 0;
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    .timer-label {
-      color: #94a3b8;
-      font-size: 13px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .timer-digits {
-      font-family: "Consolas", "Courier New", monospace;
-      font-size: 32px;
-      font-weight: 700;
-      color: #4ade80;
-      text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
-      letter-spacing: 1px;
-    }
-
-    .timer-pulse {
-      animation: timerGlow 1.5s infinite alternate;
-    }
-
-    @keyframes timerGlow {
-      from {
-        text-shadow: 0 0 8px rgba(74, 222, 128, 0.4);
+    <style>
+      :root {
+        --primary-color: #2563eb;
+        --primary-hover: #1d4ed8;
+        --secondary-color: #0d9488;
+        --secondary-hover: #0f766e;
+        --bg-body: #f8fafc;
+        --text-main: #0f172a;
+        --text-muted: #475569;
+        --accent-orange: #ea580c;
+        --bg-card: #ffffff;
+        --border-color: #cbd5e1;
       }
 
-      to {
-        text-shadow: 0 0 18px rgba(74, 222, 128, 0.9);
-        color: #22c55e;
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
       }
-    }
 
-    .badge-security {
-      background-color: #dcfce7;
-      color: #15803d;
-      padding: 3px 10px;
-      border-radius: 9999px;
-      font-size: 11px;
-      font-weight: 600;
-    }
-
-    .site-footer {
-      text-align: center;
-      margin-top: 40px;
-      padding-top: 15px;
-      border-top: 1px dashed #cbd5e1;
-      font-size: 13px;
-      font-weight: 600;
-      color: #94a3b8;
-      letter-spacing: 0.5px;
-    }
-
-    canvas {
-      display: none;
-    }
-  </style>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
-</head>
-
-<body>
-  <div class="container">
-    <div class="header-section">
-      <span class="header-title-main">HỆ THỐNG</span>
-      <span class="header-title-sub">TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</span>
-    </div>
-
-    <div class="header-info-bar">
-      <span>Ứng dụng xử lý dữ liệu nội bộ trực tiếp trên trình duyệt</span>
-      <span class="badge-security">🔒 Bảo mật an toàn</span>
-    </div>
-
-    <div class="tabs-container">
-      <button class="tab-button active" onclick="switchTab(event, 'tabA4')">📄 Giấy Chứng Nhận A4</button>
-      <button class="tab-button" onclick="switchTab(event, 'tabA3')">📖 Giấy Chứng Nhận A3</button>
-    </div>
-
-    <div id="tabA4" class="tab-content active">
-      <div class="guide-box">
-        <div class="guide-header" onclick="toggleGuide('guideContentA4', 'guideArrowA4')">
-          <span>📌 XEM HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN (MẪU A4)</span>
-          <span id="guideArrowA4">▲</span>
-        </div>
-        <div class="guide-content" id="guideContentA4">
-          <ol>
-            <li><strong>Bước 1 (Tách file):</strong> Nạp file PDF gộp (vào ô màu xanh dương ở dưới). Hệ thống sẽ tách
-              thành từng sổ riêng (2 trang A4/sổ) và tải về file <code>Cac_File_Da_Tach_A4.zip</code>.</li>
-            <li><strong>Giải nén:</strong> Giải nén tệp ZIP vừa tải về ra một thư mục riêng.</li>
-            <li><strong>Bước 2 (Quét mã đổi tên):</strong> Nạp các file nhỏ (vào ô màu xanh lá ở dưới). Hệ thống quét số
-              hiệu Giấy Chứng nhận và đổi tên tự động.</li>
-          </ol>
-        </div>
-      </div>
-
-      <div class="section-box">
-        <h3>📂 BƯỚC 1: Tách nhỏ tệp PDF tổng hợp (Mẫu A4)</h3>
-        <div class="section-desc">Hệ thống tách file gộp lớn thành các file GCNđộc lập (gồm trang bìa và sơ đồ).</div>
-
-        <div class="drop-zone drop-zone-blue">
-          <span class="drop-icon">📥</span>
-          <span class="drop-text">Kéo & thả file PDF tổng vào đây hoặc bấm để chọn file</span>
-          <span class="drop-subtext">Hỗ trợ định dạng: .pdf</span>
-          <input type="file" id="fileInputTổngA4" accept=".pdf" class="hidden-input" onchange="processSplitPdf('A4')" />
-        </div>
-
-        <div id="statusStep1A4" class="status-msg" style="display:none;"></div>
-        <div id="logStep1A4" class="log-container"></div>
-      </div>
-
-      <div class="section-box">
-        <h3>🔍 BƯỚC 2: Nhận diện Số hiệu và đồng bộ tên file (Mẫu A4)</h3>
-        <div class="section-desc">Quét mã và đổi tên tự động.</div>
-
-        <div class="drop-zone" style="border-color: #a7f3d0; background: #f0fdf4;">
-          <span class="drop-icon" style="color: var(--secondary-color);">⚡</span>
-          <span class="drop-text" style="color: #065f46;">Bấm vào đây, ấn Ctrl + A chọn toàn bộ các file GCN nhỏ
-            A4</span>
-          <span class="drop-subtext">Hỗ trợ chọn nhiều tệp PDF cùng lúc</span>
-          <input type="file" id="fileInputNhỏA4" accept=".pdf" multiple class="hidden-input"
-            onchange="processRenameOCR('A4')" />
-        </div>
-
-        <div class="timer-display-card" id="timerCardA4" style="display:none;">
-          <span class="timer-label" id="timerLabelA4">⏱️ Thời gian thực thi:</span>
-          <span class="timer-digits" id="timerDigitsA4">00.00s</span>
-        </div>
-
-        <div id="statusStep2A4" class="status-msg" style="display:none;"></div>
-        <div id="logStep2A4" class="log-container"></div>
-      </div>
-    </div>
-
-    <div id="tabA3" class="tab-content">
-      <div class="guide-box">
-        <div class="guide-header" onclick="toggleGuide('guideContentA3', 'guideArrowA3')">
-          <span>📌 XEM HƯỚNG DẪN CÁC BƯỚC THỰC HIỆN (MẪU A3 NẰM NGANG)</span>
-          <span id="guideArrowA3">▲</span>
-        </div>
-        <div class="guide-content" id="guideContentA3">
-          <ol>
-            <li><strong>Bước 1 (Tách file):</strong> Nạp file PDF gộp lớn (vào ô màu xanh dương ở dưới). Hệ thống tự
-              động tách thành từng sổ riêng (2 trang nằm ngang/sổ) và tải về file <code>Cac_File_Da_Tach_A3.zip</code>.
-            </li>
-            <li><strong>Giải nén:</strong> Giải nén file ZIP vừa tải về ra một thư mục riêng biệt.</li>
-            <li><strong>Bước 2 (Quét mã đổi tên):</strong> Nạp toàn bộ các file nhỏ đã tách (vào ô màu xanh lá ở dưới).
-              Hệ thống quét số hiệu Giấy chứng nhận A3 và đổi tên tự động.</li>
-          </ol>
-        </div>
-      </div>
-
-      <div class="section-box">
-        <h3>📂 BƯỚC 1: Tách nhỏ file PDF tổng hợp (Mẫu A3)</h3>
-        <div class="section-desc">Hệ thống bẻ tách chu kỳ 2 trang ngang đối với file hồ sơ lưu trữ mẫu sổ A3 tổng hợp.
-        </div>
-
-        <div class="drop-zone drop-zone-blue" style="border-color: #bae6fd; background: #f0f9ff;">
-          <span class="drop-icon" style="color: #0284c7;">📥</span>
-          <span class="drop-text" style="color: #0369a1;">Kéo & thả file PDF tổng mẫu A3 vào đây hoặc bấm để chọn</span>
-          <span class="drop-subtext">Hỗ trợ định dạng: .pdf</span>
-          <input type="file" id="fileInputTổngA3" accept=".pdf" class="hidden-input" onchange="processSplitPdf('A3')" />
-        </div>
-
-        <div id="statusStep1A3" class="status-msg" style="display:none;"></div>
-        <div id="logStep1A3" class="log-container"></div>
-      </div>
-
-      <div class="section-box">
-        <h3>🔍 BƯỚC 2: Nhận diện Số hiệu Giấy chứng nhận và đổi tên file (Mẫu A3)</h3>
-        <div class="section-desc">Quét mã số hiệu Giấy chứng nhận (gồm 2 chữ cái + 6 chữ số).</div>
-
-        <div class="drop-zone" style="border-color: #fed7aa; background: #fff7ed;">
-          <span class="drop-icon" style="color: #ea580c;">⚡</span>
-          <span class="drop-text" style="color: #9a3412;">Bấm vào đây, ấn Ctrl + A chọn toàn bộ các file sổ nhỏ
-            A3</span>
-          <span class="drop-subtext">Hỗ trợ chọn nhiều tệp PDF cùng lúc</span>
-          <input type="file" id="fileInputNhỏA3" accept=".pdf" multiple class="hidden-input"
-            onchange="processRenameOCR('A3')" />
-        </div>
-
-        <div class="timer-display-card" id="timerCardA3" style="display:none;">
-          <span class="timer-label" id="timerLabelA3">⏱️ Thời gian thực thi:</span>
-          <span class="timer-digits" id="timerDigitsA3">00.00s</span>
-        </div>
-
-        <div id="statusStep2A3" class="status-msg" style="display:none;"></div>
-        <div id="logStep2A3" class="log-container"></div>
-      </div>
-    </div>
-
-    <div class="site-footer">
-      Văn phòng Đăng ký đất đai tỉnh Thái Nguyên
-    </div>
-
-  </div>
-
-  <canvas id="pdfCanvas" style="display:none;"></canvas>
-
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
-
-    let timerInterval = null;
-
-    function switchTab(evt, tabId) {
-      const tabContents = document.getElementsByClassName("tab-content");
-      for (let i = 0; i < tabContents.length; i++) {
-        tabContents[i].className = tabContents[i].className.replace(" active", "");
+      body {
+        font-family: "Segoe UI", Arial, sans-serif;
+        background-color: var(--bg-body);
+        color: var(--text-main);
+        line-height: 1.5;
+        padding: 30px 15px;
       }
-      const tabButtons = document.getElementsByClassName("tab-button");
-      for (let i = 0; i < tabButtons.length; i++) {
-        tabButtons[i].className = tabButtons[i].className.replace(" active", "");
+
+      .container {
+        max-width: 850px;
+        margin: 0 auto;
+        background: var(--bg-card);
+        padding: 35px;
+        border-radius: 16px;
+        box-shadow:
+          0 10px 25px -5px rgba(0, 0, 0, 0.05),
+          0 8px 10px -6px rgba(0, 0, 0, 0.05);
       }
-      document.getElementById(tabId).className += " active";
-      evt.currentTarget.className += " active";
 
-      clearInterval(timerInterval);
-      document.getElementById("timerCardA4").style.display = "none";
-      document.getElementById("timerCardA3").style.display = "none";
-    }
-
-    function toggleGuide(contentId, arrowId) {
-      const content = document.getElementById(contentId);
-      const arrow = document.getElementById(arrowId);
-      if (content.style.display === "none") {
-        content.style.display = "block";
-        arrow.innerText = "▲";
-      } else {
-        content.style.display = "none";
-        arrow.innerText = "▼";
+      .header-section {
+        text-align: center;
+        margin-bottom: 35px;
+        background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+        padding: 32px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
       }
-    }
 
-    function addLog(boxId, message, isError = false) {
-      const logBox = document.getElementById(boxId);
-      logBox.style.display = "block";
-      const line = document.createElement("div");
-      line.className = "log-line";
-      if (isError) line.style.color = "#f87171";
-      line.innerText = message;
-      logBox.appendChild(line);
-      logBox.scrollTop = logBox.scrollHeight;
-    }
+      .header-title-main {
+        color: #ffffff;
+        font-size: 34px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+        display: block;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
 
-    function updateStatus(elementId, text, type) {
-      const el = document.getElementById(elementId);
-      el.style.display = "block";
-      el.innerText = text;
-      el.className = "status-msg " + (type === "loading" ? "status-loading" : "status-success");
-    }
+      .header-title-sub {
+        color: #fef08a;
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: block;
+        line-height: 1.4;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
 
-    function readFileAsArrayBuffer(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = () => reject(reader.error);
-        reader.readAsArrayBuffer(file);
-      });
-    }
+      .header-info-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 15px;
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin-bottom: 25px;
+        font-weight: 500;
+      }
 
-    async function processSplitPdf(type) {
-      const fileInput = document.getElementById(type === 'A4' ? "fileInputTổngA4" : "fileInputTổngA3");
-      const statusId = type === 'A4' ? "statusStep1A4" : "statusStep1A3";
-      const logId = type === 'A4' ? "logStep1A4" : "logStep1A3";
+      .tabs-container {
+        display: flex;
+        border-bottom: 2px solid #e2e8f0;
+        margin-bottom: 25px;
+        gap: 10px;
+      }
 
-      if (fileInput.files.length === 0) return;
+      .tab-button {
+        background: none;
+        border: none;
+        padding: 12px 24px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #64748b;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+        border-radius: 8px 8px 0 0;
+      }
 
-      updateStatus(statusId, "⏳ Hệ thống đang tiến hành bẻ tách dữ liệu tệp PDF tổng...", "loading");
-      document.getElementById(logId).innerHTML = "";
+      .tab-button:hover {
+        color: var(--primary-color);
+        background-color: #f1f5f9;
+      }
 
-      const file = fileInput.files[0];
-      const reader = new FileReader();
+      .tab-button.active {
+        color: var(--primary-color);
+        background-color: #fff;
+      }
 
-      reader.onload = async function () {
-        try {
-          const srcPdfDoc = await PDFLib.PDFDocument.load(this.result);
-          const totalPages = srcPdfDoc.getPageCount();
-          const totalBooks = Math.floor(totalPages / 2);
+      .tab-button.active::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background-color: var(--primary-color);
+        border-radius: 999px;
+      }
 
-          addLog(logId, `--> Tệp nguồn: ${file.name} (${totalPages} trang)`);
-          const zip = new JSZip();
+      .tab-content {
+        display: none;
+      }
 
-          for (let i = 0; i < totalBooks; i++) {
-            const p1Idx = i * 2;
-            const p2Idx = p1Idx + 1;
+      .tab-content.active {
+        display: block;
+      }
 
-            const newPdfDoc = await PDFLib.PDFDocument.create();
-            const [p1, p2] = await newPdfDoc.copyPages(srcPdfDoc, [p1Idx, p2Idx]);
-            newPdfDoc.addPage(p1);
-            newPdfDoc.addPage(p2);
+      .section-box {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 30px;
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
 
-            const pdfBytes = await newPdfDoc.save();
-            zip.file(`So_${i + 1}.pdf`, pdfBytes);
-            addLog(logId, `✓ Đã trích xuất thành công: Sổ thứ ${i + 1} (Trang ${p1Idx + 1}-${p2Idx + 1})`);
+      .drop-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 10px;
+        padding: 30px 20px;
+        text-align: center;
+        background: #f8fafc;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.2s ease;
+      }
+
+      .drop-zone:hover {
+        background: #f0fdf4;
+        border-color: var(--secondary-color);
+      }
+
+      .drop-zone-blue:hover {
+        background: #eff6ff;
+        border-color: var(--primary-color);
+      }
+
+      .drop-zone-disabled {
+        background: #f1f5f9 !important;
+        border-color: #cbd5e1 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6;
+      }
+
+      .drop-icon {
+        font-size: 32px;
+        margin-bottom: 8px;
+        display: block;
+      }
+
+      .drop-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+      }
+
+      .coord-panel {
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 15px;
+      }
+
+      .coord-panel-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #334155;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .btn-lock-action {
+        background-color: var(--accent-orange);
+        color: #ffffff;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+      }
+
+      .btn-lock-action:hover {
+        background-color: #c2410c;
+      }
+
+      .btn-locked {
+        background-color: #166534 !important;
+      }
+
+      .coord-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      .coord-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .coord-field label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #475569;
+      }
+
+      .coord-field input {
+        padding: 6px;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        font-weight: 600;
+        font-family: monospace;
+        text-align: center;
+        background-color: #ffffff;
+      }
+
+      .coord-field input:disabled {
+        background-color: #e2e8f0;
+        color: #64748b;
+      }
+
+      .preview-box {
+        margin-top: 15px;
+        text-align: center;
+        background: #1e293b;
+        padding: 15px;
+        border-radius: 8px;
+      }
+
+      .preview-box span {
+        display: block;
+        color: #cbd5e1;
+        font-size: 12px;
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+
+      .preview-canvas-render {
+        border: 1px dashed #94a3b8;
+        max-width: 100%;
+        background: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        cursor: crosshair;
+      }
+
+      .status-msg {
+        margin-top: 14px;
+        padding: 10px;
+        border-radius: 6px;
+        font-size: 13.5px;
+        font-weight: 600;
+        text-align: center;
+        background: #f1f5f9;
+      }
+
+      .status-loading {
+        background-color: #eff6ff;
+        color: var(--primary-color);
+        border-left: 4px solid var(--primary-color);
+      }
+
+      .status-success {
+        background-color: #f0fdf4;
+        color: #166534;
+        border-left: 4px solid #166534;
+      }
+
+      .log-container {
+        background-color: #0f172a;
+        color: #38bdf8;
+        padding: 14px;
+        border-radius: 8px;
+        font-family: "Consolas", "Courier New", monospace;
+        font-size: 12.5px;
+        max-height: 180px;
+        overflow-y: auto;
+        margin-top: 14px;
+        display: none;
+        border: 1px solid #1e293b;
+      }
+
+      .log-line {
+        margin: 3px 0;
+      }
+
+      .hidden-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .hidden-input:disabled {
+        cursor: not-allowed;
+      }
+
+      .timer-display-card {
+        display: none;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        background: #0f172a;
+        border: 2px solid #1e293b;
+        padding: 15px 25px;
+        border-radius: 10px;
+        margin: 15px 0;
+      }
+
+      .timer-label {
+        color: #94a3b8;
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .timer-digits {
+        font-family: "Consolas", monospace;
+        font-size: 32px;
+        font-weight: 700;
+        color: #4ade80;
+      }
+
+      .badge-security {
+        background-color: #dcfce7;
+        color: #15803d;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .site-footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 15px;
+        border-top: 1px dashed #cbd5e1;
+        font-size: 13px;
+        color: #94a3b8;
+      }
+
+      #pdfCanvas {
+        display: none;
+      }
+    </style>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js"></script>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="header-section">
+        <span class="header-title-main">HỆ THỐNG</span>
+        <span class="header-title-sub"
+          >TÁCH VÀ ĐỒNG BỘ TÊN FILE GCN QUYỀN SỬ DỤNG ĐẤT</span
+        >
+      </div>
+
+      <div class="header-info-bar">
+        <span>Ứng dụng xử lý dữ liệu nội bộ trực tiếp trên trình duyệt</span>
+        <span class="badge-security">🔒 Bảo mật an toàn</span>
+      </div>
+
+      <div class="tabs-container">
+        <button class="tab-button active" onclick="switchTab(event, 'tabA4')">
+          📄 Giấy Chứng Nhận A4
+        </button>
+        <button class="tab-button" onclick="switchTab(event, 'tabA3')">
+          📖 Giấy Chứng Nhận A3
+        </button>
+      </div>
+
+      <div id="tabA4" class="tab-content active">
+        <div class="section-box">
+          <h3>📂 BƯỚC 1: Tách nhỏ tệp PDF tổng hợp (Mẫu A4)</h3>
+          <div class="section-desc">
+            Hệ thống tách file gộp lớn thành các file GCNđộc lập (gồm trang bìa
+            và sơ đồ).
+          </div>
+          <div class="drop-zone drop-zone-blue">
+            <span class="drop-icon">📥</span>
+            <span class="drop-text"
+              >Kéo & thả file PDF tổng vào đây hoặc bấm để chọn file</span
+            >
+            <input
+              type="file"
+              id="fileInputTổngA4"
+              accept=".pdf"
+              class="hidden-input"
+              onchange="processSplitPdf('A4')"
+            />
+          </div>
+          <div
+            id="statusStep1A4"
+            class="status-msg"
+            style="display: none"
+          ></div>
+          <div id="logStep1A4" class="log-container"></div>
+        </div>
+
+        <div class="section-box">
+          <h3>🔍 BƯỚC 2: Nhận diện Số hiệu và đồng bộ tên file (Mẫu A4)</h3>
+          <div class="section-desc">
+            Căn chỉnh vùng sê-ri màu xanh dưới trái, click Chấp nhận để kích
+            hoạt tính năng nạp file quét.
+          </div>
+
+          <div class="coord-panel">
+            <div class="coord-panel-title">
+              <span>⚙️ THÔNG SỐ VÙNG KHUNG CẮT QUY ĐỔI SỔ A4</span>
+              <button
+                id="lockBtnA4"
+                class="btn-lock-action"
+                onclick="toggleLockState('A4')"
+              >
+                🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ
+              </button>
+            </div>
+            <div class="coord-grid">
+              <div class="coord-field">
+                <label>Chiều rộng (%)</label
+                ><input
+                  type="number"
+                  id="a4_w"
+                  value="35"
+                  oninput="readInputsAndDraw('A4')"
+                />
+              </div>
+              <div class="coord-field">
+                <label>Chiều cao (%)</label
+                ><input
+                  type="number"
+                  id="a4_h"
+                  value="20"
+                  oninput="readInputsAndDraw('A4')"
+                />
+              </div>
+              <div class="coord-field">
+                <label>Lùi lề ngang X (%)</label
+                ><input
+                  type="number"
+                  id="a4_x"
+                  value="0"
+                  oninput="readInputsAndDraw('A4')"
+                />
+              </div>
+              <div class="coord-field">
+                <label>Lùi lề dọc Y (%)</label
+                ><input
+                  type="number"
+                  id="a4_y"
+                  value="80"
+                  oninput="readInputsAndDraw('A4')"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-box">
+            <span
+              >📊 SƠ ĐỒ PHÔI ĐỨNG A4 (DÙNG CHUỘT KÉO THẢ TRỰC TIẾP TRƯỚC KHI BẤM
+              KHÓA)</span
+            >
+            <canvas
+              id="interactiveCanvasA4"
+              class="preview-canvas-render"
+              style="display: block; margin: 0 auto"
+            ></canvas>
+          </div>
+
+          <div
+            id="dropZoneNhỏA4"
+            class="drop-zone drop-zone-disabled"
+            style="margin-top: 20px"
+          >
+            <span class="drop-icon">⚡</span>
+            <span id="dropTextA4" class="drop-text" style="color: #64748b"
+              >Vui lòng bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng
+              chọn file</span
+            >
+            <input
+              type="file"
+              id="fileInputNhỏA4"
+              accept=".pdf"
+              multiple
+              class="hidden-input"
+              onchange="processRenameOCR('A4')"
+              disabled
+            />
+          </div>
+
+          <div
+            class="timer-display-card"
+            id="timerCardA4"
+            style="display: none"
+          >
+            <span class="timer-label" id="timerLabelA4"
+              >⏱️ Thời gian thực thi:</span
+            >
+            <span class="timer-digits" id="timerDigitsA4">00.00s</span>
+          </div>
+          <div
+            id="statusStep2A4"
+            class="status-msg"
+            style="display: none"
+          ></div>
+          <div id="logStep2A4" class="log-container"></div>
+        </div>
+      </div>
+
+      <div id="tabA3" class="tab-content">
+        <div class="section-box">
+          <h3>📂 BƯỚC 1: Tách nhỏ file PDF tổng hợp (Mẫu A3)</h3>
+          <div class="section-desc">
+            Hệ thống bẻ tách chu kỳ 2 trang ngang đối với file hồ sơ tổng hợp.
+          </div>
+          <div
+            class="drop-zone drop-zone-blue"
+            style="border-color: #bae6fd; background: #f0f9ff"
+          >
+            <span class="drop-icon" style="color: #0284c7">📥</span>
+            <span class="drop-text"
+              >Kéo & thả file PDF tổng mẫu A3 vào đây hoặc bấm để chọn</span
+            >
+            <input
+              type="file"
+              id="fileInputTổngA3"
+              accept=".pdf"
+              class="hidden-input"
+              onchange="processSplitPdf('A3')"
+            />
+          </div>
+          <div
+            id="statusStep1A3"
+            class="status-msg"
+            style="display: none"
+          ></div>
+          <div id="logStep1A3" class="log-container"></div>
+        </div>
+
+        <div class="section-box">
+          <h3>
+            🔍 BƯỚC 2: Nhận diện Số hiệu Giấy chứng nhận và đổi tên file (Mẫu
+            A3)
+          </h3>
+          <div class="section-desc">
+            Căn chỉnh vùng sê-ri màu đỏ dưới phải, click Chấp nhận để kích hoạt
+            tính năng nạp file quét.
+          </div>
+
+          <div class="coord-panel">
+            <div class="coord-panel-title">
+              <span>⚙️ THÔNG SỐ VÙNG KHUNG CẮT QUY ĐỔI SỔ A3</span>
+              <button
+                id="lockBtnA3"
+                class="btn-lock-action"
+                onclick="toggleLockState('A3')"
+              >
+                🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ
+              </button>
+            </div>
+            <div class="coord-grid">
+              <div class="coord-field">
+                <label>Chiều rộng (%)</label
+                ><input
+                  type="number"
+                  id="a3_w"
+                  value="35"
+                  oninput="readInputsAndDraw('A3')"
+                />
+              </div>
+              <div class="coord-field">
+                <label>Chiều cao (%)</label
+                ><input
+                  type="number"
+                  id="a3_h"
+                  value="12"
+                  oninput="readInputsAndDraw('A3')"
+                />
+              </div>
+              <div class="coord-field">
+                <label>Lùi lề ngang X (%)</label
+                ><input
+                  type="number"
+                  id="a3_x"
+                  value="65"
+                  oninput="readInputsAndDraw('A3')"
+                />
+              </div>
+              <div class="coord-field">
+                <label>Lùi lề dọc Y (%)</label
+                ><input
+                  type="number"
+                  id="a3_y"
+                  value="77"
+                  oninput="readInputsAndDraw('A3')"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="preview-box">
+            <span
+              >📊 SƠ ĐỒ PHÔI NGANG A3 (DÙNG CHUỘT KÉO THẢ TRỰC TIẾP TRƯỚC KHI
+              BẤM KHÓA)</span
+            >
+            <canvas
+              id="interactiveCanvasA3"
+              class="preview-canvas-render"
+              style="display: block; margin: 0 auto"
+            ></canvas>
+          </div>
+
+          <div
+            id="dropZoneNhỏA3"
+            class="drop-zone drop-zone-disabled"
+            style="margin-top: 20px"
+          >
+            <span class="drop-icon">⚡</span>
+            <span id="dropTextA3" class="drop-text" style="color: #64748b"
+              >Vui lòng bấm nút "CHẤP NHẬN VÀ KHÓA VỊ TRÍ" ở trên để mở vùng
+              chọn file</span
+            >
+            <input
+              type="file"
+              id="fileInputNhỏA3"
+              accept=".pdf"
+              multiple
+              class="hidden-input"
+              onchange="processRenameOCR('A3')"
+              disabled
+            />
+          </div>
+
+          <div
+            class="timer-display-card"
+            id="timerCardA3"
+            style="display: none"
+          >
+            <span class="timer-label" id="timerLabelA3"
+              >⏱️ Thời gian thực thi:</span
+            >
+            <span class="timer-digits" id="timerDigitsA3">00.00s</span>
+          </div>
+          <div
+            id="statusStep2A3"
+            class="status-msg"
+            style="display: none"
+          ></div>
+          <div id="logStep2A3" class="log-container"></div>
+        </div>
+      </div>
+
+      <div class="site-footer">Văn phòng Đăng ký đất đai tỉnh Thái Nguyên</div>
+    </div>
+
+    <canvas id="pdfCanvas"></canvas>
+
+    <script>
+      // --- ĐẢM BẢO KHAI BÁO HÀM TOÀN CỤC CHUẨN XÁC ---
+      function readFileAsArrayBuffer(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsArrayBuffer(file);
+        });
+      }
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
+      let timerInterval = null;
+
+      let isLockedMap = { A4: false, A3: false };
+
+      let dragData = {
+        isDragging: false,
+        isResizing: false,
+        currentType: null,
+        startX: 0,
+        startY: 0,
+        boxX: 0,
+        boxY: 0,
+        boxW: 0,
+        boxH: 0,
+        handleSize: 8,
+      };
+
+      window.onload = function () {
+        setupInteractiveCanvas("A4");
+        setupInteractiveCanvas("A3");
+        readInputsAndDraw("A4");
+        readInputsAndDraw("A3");
+      };
+
+      function toggleLockState(type) {
+        const btn = document.getElementById(
+          type === "A4" ? "lockBtnA4" : "lockBtnA3",
+        );
+        const dropZone = document.getElementById(
+          type === "A4" ? "dropZoneNhỏA4" : "dropZoneNhỏA3",
+        );
+        const textLabel = document.getElementById(
+          type === "A4" ? "dropTextA4" : "dropTextA3",
+        );
+        const fileInput = document.getElementById(
+          type === "A4" ? "fileInputNhỏA4" : "fileInputNhỏA3",
+        );
+
+        const inputs = [
+          document.getElementById(type.toLowerCase() + "_w"),
+          document.getElementById(type.toLowerCase() + "_h"),
+          document.getElementById(type.toLowerCase() + "_x"),
+          document.getElementById(type.toLowerCase() + "_y"),
+        ];
+
+        if (!isLockedMap[type]) {
+          isLockedMap[type] = true;
+          btn.innerText = "🔓 MỞ KHÓA ĐỂ ĐIỀU CHỈNH LẠI";
+          btn.classList.add("btn-locked");
+
+          inputs.forEach((inp) => (inp.disabled = true));
+
+          dropZone.className = "drop-zone";
+          dropZone.style.borderColor = type === "A4" ? "#a7f3d0" : "#fed7aa";
+          dropZone.style.backgroundColor =
+            type === "A4" ? "#f0fdf4" : "#fff7ed";
+          textLabel.innerText =
+            type === "A4"
+              ? "Bấm vào đây chọn toàn bộ file GCN sổ nhỏ A4"
+              : "Bấm vào đây chọn toàn bộ file sổ nhỏ A3";
+          textLabel.style.color = type === "A4" ? "#065f46" : "#9a3412";
+          fileInput.disabled = false;
+        } else {
+          isLockedMap[type] = false;
+          btn.innerText = "🔒 CHẤP NHẬN VÀ KHÓA VỊ TRÍ";
+          btn.classList.remove("btn-locked");
+
+          inputs.forEach((inp) => (inp.disabled = false));
+
+          dropZone.className = "drop-zone drop-zone-disabled";
+          dropZone.style.borderColor = "#cbd5e1";
+          dropZone.style.backgroundColor = "#f1f5f9";
+          textLabel.innerText =
+            "Vui lòng bấm nút 'CHẤP NHẬN VÀ KHÓA VỊ TRÍ' ở trên để mở vùng chọn file";
+          textLabel.style.color = "#64748b";
+          fileInput.disabled = true;
+          fileInput.value = "";
+        }
+        readInputsAndDraw(type);
+      }
+
+      function readInputsAndDraw(type) {
+        const canvas = document.getElementById(
+          type === "A4" ? "interactiveCanvasA4" : "interactiveCanvasA3",
+        );
+        if (!canvas) return;
+        drawSimulatedPreview(type, canvas);
+      }
+
+      function drawSimulatedPreview(type, canvas) {
+        const ctx = canvas.getContext("2d");
+
+        if (type === "A4") {
+          canvas.width = 300;
+          canvas.height = 420;
+          ctx.fillStyle = "#fffbeb";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "bold 11px sans-serif";
+          ctx.fillText("[ TRANG BÌA 1 - PHÔI ĐỨNG A4 ]", 45, 40);
+          ctx.font = "10px sans-serif";
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillText("GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT", 50, 150);
+        } else {
+          canvas.width = 600;
+          canvas.height = 340;
+          ctx.fillStyle = "#fffbeb";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.strokeStyle = "#cbd5e1";
+          ctx.lineWidth = 2;
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath();
+          ctx.moveTo(canvas.width / 2, 0);
+          ctx.lineTo(canvas.width / 2, canvas.height);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "bold 11px sans-serif";
+          ctx.fillText("[ TRANG BÌA SAU ]", 70, 40);
+          ctx.fillText(
+            "[ TRANG BÌA TRƯỚC HÀNH CHÍNH ]",
+            canvas.width / 2 + 50,
+            40,
+          );
+          ctx.font = "10px sans-serif";
+          ctx.fillStyle = "#cbd5e1";
+          ctx.fillText(
+            "GIẤY CHỨNG NHẬN QUYỀN SỬ DỤNG ĐẤT",
+            canvas.width / 2 + 68,
+            120,
+          );
+          ctx.fillStyle = "#94a3b8";
+          ctx.fillText(
+            "Người được cấp Giấy chứng nhận không được sửa chữa...",
+            canvas.width / 2 + 25,
+            canvas.height - 25,
+          );
+        }
+
+        const w_pct =
+          parseFloat(document.getElementById(type.toLowerCase() + "_w").value) /
+          100;
+        const h_pct =
+          parseFloat(document.getElementById(type.toLowerCase() + "_h").value) /
+          100;
+        const x_pct =
+          parseFloat(document.getElementById(type.toLowerCase() + "_x").value) /
+          100;
+        const y_pct =
+          parseFloat(document.getElementById(type.toLowerCase() + "_y").value) /
+          100;
+
+        const r_width = canvas.width * w_pct;
+        const r_height = canvas.height * h_pct;
+        const r_x = canvas.width * x_pct;
+        const r_y = canvas.height * y_pct;
+
+        const isLocked = isLockedMap[type];
+        const themeColor = isLocked
+          ? "rgba(22, 101, 52, "
+          : type === "A4"
+            ? "rgba(37, 99, 235, "
+            : "rgba(220, 38, 38, ";
+        const strokeTheme = isLocked
+          ? "#166534"
+          : type === "A4"
+            ? "#2563eb"
+            : "#dc2626";
+
+        ctx.fillStyle = themeColor + "0.22)";
+        ctx.fillRect(r_x, r_y, r_width, r_height);
+        ctx.strokeStyle = strokeTheme;
+        ctx.lineWidth = isLocked ? 3 : 2;
+        ctx.strokeRect(r_x, r_y, r_width, r_height);
+
+        if (!isLocked) {
+          ctx.fillStyle = strokeTheme;
+          ctx.fillRect(
+            r_x + r_width - dragData.handleSize / 2,
+            r_y + r_height - dragData.handleSize / 2,
+            dragData.handleSize,
+            dragData.handleSize,
+          );
+        }
+
+        ctx.fillStyle = strokeTheme;
+        ctx.font = "bold 9px sans-serif";
+        ctx.fillText(
+          isLocked ? "🔒 VÙNG CHỐT ĐÃ ĐƯỢC KHÓA" : "⚡ VÙNG CAMERA CAM QUÉT",
+          r_x + 5,
+          r_y - 6,
+        );
+      }
+
+      function setupInteractiveCanvas(type) {
+        const canvas = document.getElementById(
+          type === "A4" ? "interactiveCanvasA4" : "interactiveCanvasA3",
+        );
+        if (!canvas) return;
+
+        function getMousePos(evt) {
+          const rect = canvas.getBoundingClientRect();
+          return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+        }
+
+        canvas.addEventListener("mousedown", function (e) {
+          if (isLockedMap[type]) return;
+
+          const pos = getMousePos(e);
+          const w = canvas.width;
+          const h = canvas.height;
+
+          const w_pct =
+            parseFloat(
+              document.getElementById(type.toLowerCase() + "_w").value,
+            ) / 100;
+          const h_pct =
+            parseFloat(
+              document.getElementById(type.toLowerCase() + "_h").value,
+            ) / 100;
+          const x_pct =
+            parseFloat(
+              document.getElementById(type.toLowerCase() + "_x").value,
+            ) / 100;
+          const y_pct =
+            parseFloat(
+              document.getElementById(type.toLowerCase() + "_y").value,
+            ) / 100;
+
+          const rx = w * x_pct;
+          const ry = h * y_pct;
+          const rw = w * w_pct;
+          const rh = h * h_pct;
+
+          const hSize = dragData.handleSize;
+          if (
+            pos.x >= rx + rw - hSize &&
+            pos.x <= rx + rw + hSize &&
+            pos.y >= ry + rh - hSize &&
+            pos.y <= ry + rh + hSize
+          ) {
+            dragData.isResizing = true;
+            dragData.currentType = type;
+            dragData.startX = pos.x;
+            dragData.startY = pos.y;
+            dragData.boxW = rw;
+            dragData.boxH = rh;
+            return;
           }
+
+          if (
+            pos.x >= rx &&
+            pos.x <= rx + rw &&
+            pos.y >= ry &&
+            pos.y <= ry + rh
+          ) {
+            dragData.isDragging = true;
+            dragData.currentType = type;
+            dragData.startX = pos.x;
+            dragData.startY = pos.y;
+            dragData.boxX = rx;
+            dragData.boxY = ry;
+          }
+        });
+
+        canvas.addEventListener("mousemove", function (e) {
+          if (isLockedMap[type]) return;
+          const pos = getMousePos(e);
+          if (!dragData.isDragging && !dragData.isResizing) return;
+          if (dragData.currentType !== type) return;
+
+          const deltaX = pos.x - dragData.startX;
+          const deltaY = pos.y - dragData.startY;
+
+          if (dragData.isDragging) {
+            let newX = dragData.boxX + deltaX;
+            let newY = dragData.boxY + deltaY;
+
+            const w_pct =
+              parseFloat(
+                document.getElementById(type.toLowerCase() + "_w").value,
+              ) / 100;
+            const h_pct =
+              parseFloat(
+                document.getElementById(type.toLowerCase() + "_h").value,
+              ) / 100;
+            if (newX < 0) newX = 0;
+            if (newY < 0) newY = 0;
+            if (newX + canvas.width * w_pct > canvas.width)
+              newX = canvas.width - canvas.width * w_pct;
+            if (newY + canvas.height * h_pct > canvas.height)
+              newY = canvas.height - canvas.height * h_pct;
+
+            document.getElementById(type.toLowerCase() + "_x").value =
+              Math.round((newX / canvas.width) * 100);
+            document.getElementById(type.toLowerCase() + "_y").value =
+              Math.round((newY / canvas.height) * 100);
+          }
+
+          if (dragData.isResizing) {
+            let newW = dragData.boxW + deltaX;
+            let newH = dragData.boxH + deltaY;
+
+            const x_pct =
+              parseFloat(
+                document.getElementById(type.toLowerCase() + "_x").value,
+              ) / 100;
+            const y_pct =
+              parseFloat(
+                document.getElementById(type.toLowerCase() + "_y").value,
+              ) / 100;
+
+            if (newW < 20) newW = 20;
+            if (newH < 15) newH = 15;
+            if (canvas.width * x_pct + newW > canvas.width)
+              newW = canvas.width - canvas.width * x_pct;
+            if (canvas.height * y_pct + newH > canvas.height)
+              newH = canvas.height - canvas.height * y_pct;
+
+            document.getElementById(type.toLowerCase() + "_w").value =
+              Math.round((newW / canvas.width) * 100);
+            document.getElementById(type.toLowerCase() + "_h").value =
+              Math.round((newH / canvas.height) * 100);
+          }
+
+          drawSimulatedPreview(type, canvas);
+        });
+
+        window.addEventListener("mouseup", function () {
+          dragData.isDragging = false;
+          dragData.isResizing = false;
+          dragData.currentType = null;
+        });
+      }
+
+      function switchTab(evt, tabId) {
+        const tabContents = document.getElementsByClassName("tab-content");
+        for (let i = 0; i < tabContents.length; i++)
+          tabContents[i].className = tabContents[i].className.replace(
+            " active",
+            "",
+          );
+        const tabButtons = document.getElementsByClassName("tab-button");
+        for (let i = 0; i < tabButtons.length; i++)
+          tabButtons[i].className = tabButtons[i].className.replace(
+            " active",
+            "",
+          );
+        document.getElementById(tabId).className += " active";
+        evt.currentTarget.className += " active";
+        clearInterval(timerInterval);
+
+        setTimeout(() => {
+          readInputsAndDraw("A4");
+          readInputsAndDraw("A3");
+        }, 40);
+      }
+
+      function addLog(boxId, message, isError = false) {
+        const logBox = document.getElementById(boxId);
+        if (!logBox) return;
+        logBox.style.display = "block";
+        const line = document.createElement("div");
+        line.className = "log-line";
+        if (isError) line.style.color = "#f87171";
+        line.innerText = message;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+
+      async function processSplitPdf(type) {
+        const fileInput = document.getElementById(
+          type === "A4" ? "fileInputTổngA4" : "fileInputTổngA3",
+        );
+        const statusId = type === "A4" ? "statusStep1A4" : "statusStep1A3";
+        const logId = type === "A4" ? "logStep1A4" : "logStep1A3";
+
+        if (fileInput.files.length === 0) return;
+        updateStatus(
+          statusId,
+          "⏳ Hệ thống đang tiến hành bẻ tách dữ liệu tệp PDF tổng...",
+          "loading",
+        );
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async function () {
+          try {
+            const srcPdfDoc = await PDFLib.PDFDocument.load(this.result);
+            const totalPages = srcPdfDoc.getPageCount();
+            const totalBooks = Math.floor(totalPages / 2);
+
+            const zip = new JSZip();
+            for (let i = 0; i < totalBooks; i++) {
+              const p1Idx = i * 2;
+              const p2Idx = p1Idx + 1;
+              const newPdfDoc = await PDFLib.PDFDocument.create();
+              const [p1, p2] = await newPdfDoc.copyPages(srcPdfDoc, [
+                p1Idx,
+                p2Idx,
+              ]);
+              newPdfDoc.addPage(p1);
+              newPdfDoc.addPage(p2);
+              const pdfBytes = await newPdfDoc.save();
+              zip.file(`So_${i + 1}.pdf`, pdfBytes);
+            }
+
+            const content = await zip.generateAsync({ type: "blob" });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(content);
+            link.download = `Cac_File_Da_Tach_${type}.zip`;
+            link.click();
+            updateStatus(
+              statusId,
+              `🎉 Tách hoàn tất! Tệp ZIP đã được lưu về máy.`,
+              "success",
+            );
+          } catch (error) {
+            addLog(logId, "❌ Lỗi bẻ trang: " + error.message, true);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+      }
+
+      async function processRenameOCR(type) {
+        const fileInput = document.getElementById(
+          type === "A4" ? "fileInputNhỏA4" : "fileInputNhỏA3",
+        );
+        const statusId = type === "A4" ? "statusStep2A4" : "statusStep2A3";
+        const logId = type === "A4" ? "logStep2A4" : "logStep2A3";
+        const timerCard = document.getElementById(
+          type === "A4" ? "timerCardA4" : "timerCardA3",
+        );
+        const timerDigits = document.getElementById(
+          type === "A4" ? "timerDigitsA4" : "timerDigitsA3",
+        );
+        const timerLabel = document.getElementById(
+          type === "A4" ? "timerLabelA4" : "timerLabelA3",
+        );
+
+        const totalFiles = fileInput.files.length;
+        if (totalFiles === 0) return;
+
+        clearInterval(timerInterval);
+        timerCard.style.display = "flex";
+        timerDigits.className = "timer-digits";
+        timerLabel.innerText = "⏱️ Thời gian thực thi:";
+
+        let startTime = Date.now();
+        timerInterval = setInterval(() => {
+          timerDigits.innerText =
+            ((Date.now() - startTime) / 1000).toFixed(2) + "s";
+        }, 40);
+
+        const user_w =
+          parseFloat(document.getElementById(type.toLowerCase() + "_w").value) /
+          100;
+        const user_h =
+          parseFloat(document.getElementById(type.toLowerCase() + "_h").value) /
+          100;
+        const user_x =
+          parseFloat(document.getElementById(type.toLowerCase() + "_x").value) /
+          100;
+        const user_y =
+          parseFloat(document.getElementById(type.toLowerCase() + "_y").value) /
+          100;
+
+        updateStatus(
+          statusId,
+          "⏳ Đang khởi tạo môi trường thông minh OCR (Chạy trên RAM)...",
+          "loading",
+        );
+        document.getElementById(logId).innerHTML = "";
+
+        const zip = new JSZip();
+        let validFileCount = 0;
+
+        try {
+          const worker = await Tesseract.createWorker("eng", 1, {
+            cacheMethod: "none",
+          });
+          await worker.setParameters({
+            tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+            tessedit_pageseg_mode: "6",
+          });
+
+          for (let i = 0; i < totalFiles; i++) {
+            const file = fileInput.files[i];
+            if (!file.name.toLowerCase().endsWith(".pdf")) continue;
+
+            validFileCount++;
+            updateStatus(
+              statusId,
+              `⏳ Tiến độ phân tích: Đang xử lý sổ [${validFileCount}/${totalFiles}] -> ${file.name}`,
+              "loading",
+            );
+
+            try {
+              const arrayBufferForPDFJS = await readFileAsArrayBuffer(file);
+              const arrayBufferForZip = await readFileAsArrayBuffer(file);
+
+              const pdfjsDoc = await pdfjsLib.getDocument({
+                data: arrayBufferForPDFJS,
+              }).promise;
+              const page = await pdfjsDoc.getPage(1);
+              const viewport = page.getViewport({ scale: 2.5 });
+
+              const tempCanvas = document.createElement("canvas");
+              const tempContext = tempCanvas.getContext("2d");
+              tempCanvas.height = viewport.height;
+              tempCanvas.width = viewport.width;
+              await page.render({
+                canvasContext: tempContext,
+                viewport: viewport,
+              }).promise;
+
+              const mainCanvas = document.getElementById("pdfCanvas");
+              const mainContext = mainCanvas.getContext("2d");
+
+              let cropWidth = Math.floor(viewport.width * user_w);
+              let cropHeight = Math.floor(viewport.height * user_h);
+              let cropX = Math.floor(viewport.width * user_x);
+              let cropY = Math.floor(viewport.height * user_y);
+
+              if (cropX + cropWidth > viewport.width)
+                cropWidth = viewport.width - cropX;
+              if (cropY + cropHeight > viewport.height)
+                cropHeight = viewport.height - cropY;
+
+              mainCanvas.width = cropWidth;
+              mainCanvas.height = cropHeight;
+              mainContext.drawImage(
+                tempCanvas,
+                cropX,
+                cropY,
+                cropWidth,
+                cropHeight,
+                0,
+                0,
+                cropWidth,
+                cropHeight,
+              );
+
+              const dataUrl = mainCanvas.toDataURL("image/png");
+              const ret = await worker.recognize(dataUrl);
+              const rawText = ret.data.text.toUpperCase();
+              const textNoSpaces = rawText.replace(/\s+/g, "");
+
+              let finalFileName = "";
+              const regexPattern =
+                type === "A4" ? /([A-Z]{2})(\d{7,8})/ : /([A-Z]{2})(\d{6})/;
+              const match = textNoSpaces.match(regexPattern);
+
+              if (match) {
+                finalFileName = match[1] + " " + match[2];
+                addLog(
+                  logId,
+                  `✓ Thành công | ${file.name} --> Khớp Số hiệu GCN: ${finalFileName}`,
+                );
+              } else {
+                const backupPattern =
+                  type === "A4" ? /[A-Z0-9]{9,10}/ : /[A-Z0-9]{8}/;
+                const backupMatch = textNoSpaces.match(backupPattern);
+                if (backupMatch && isNaN(backupMatch[0])) {
+                  let code = backupMatch[0];
+                  finalFileName =
+                    code.substring(0, 2) + " " + code.substring(2);
+                  addLog(
+                    logId,
+                    `⚠ Phục hồi nghi vấn | ${file.name} --> Đọc được: ${finalFileName}`,
+                  );
+                } else {
+                  finalFileName =
+                    file.name.replace(".pdf", "") + "_KhongRoMaSeri";
+                  addLog(
+                    logId,
+                    `❌ Không tìm thấy mã số hiệu trên file: ${file.name}`,
+                  );
+                }
+              }
+
+              zip.file(`${finalFileName}.pdf`, arrayBufferForZip);
+            } catch (fileError) {
+              addLog(
+                logId,
+                `💥 Lỗi tệp dữ liệu ${file.name}: ${fileError.message}`,
+                true,
+              );
+              const fallbackBuffer = await readFileAsArrayBuffer(file);
+              zip.file(
+                `${file.name.replace(".pdf", "")}_LoiDocFile.pdf`,
+                fallbackBuffer,
+              );
+            }
+          }
+
+          await worker.terminate();
+          clearInterval(timerInterval);
 
           const content = await zip.generateAsync({ type: "blob" });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(content);
-          link.download = `Cac_File_Da_Tach_${type}.zip`;
+          link.download = `Ket_Qua_Doi_Ten_Seri_Thanh_Pham_${type}.zip`;
           link.click();
 
-          updateStatus(statusId, `🎉 Tách thành công! Tệp ZIP đã được lưu về máy. Hãy GIẢI NÉN ra thư mục và làm tiếp Bước 2.`, "success");
+          updateStatus(
+            statusId,
+            `🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG! Đã đóng gói xong ${validFileCount} file.`,
+            "success",
+          );
         } catch (error) {
-          addLog(logId, "❌ Lỗi hệ thống khi bẻ trang: " + error.message, true);
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    async function processRenameOCR(type) {
-      const fileInput = document.getElementById(type === 'A4' ? "fileInputNhỏA4" : "fileInputNhỏA3");
-      const statusId = type === 'A4' ? "statusStep2A4" : "statusStep2A3";
-      const logId = type === 'A4' ? "logStep2A4" : "logStep2A3";
-      const timerCard = document.getElementById(type === 'A4' ? "timerCardA4" : "timerCardA3");
-      const timerDigits = document.getElementById(type === 'A4' ? "timerDigitsA4" : "timerDigitsA3");
-      const timerLabel = document.getElementById(type === 'A4' ? "timerLabelA4" : "timerLabelA3");
-
-      const totalFiles = fileInput.files.length;
-      if (totalFiles === 0) return;
-
-      clearInterval(timerInterval);
-      timerCard.style.display = "flex";
-      timerDigits.className = "timer-digits";
-      timerLabel.innerText = "⏱️ Thời gian thực thi:";
-
-      let startTime = Date.now();
-      timerInterval = setInterval(() => {
-        let elapsedTime = Date.now() - startTime;
-        timerDigits.innerText = (elapsedTime / 1000).toFixed(2) + "s";
-      }, 40);
-
-      updateStatus(statusId, "⏳ Đang khởi tạo môi trường thông minh OCR (Chạy trên RAM)...", "loading");
-      document.getElementById(logId).innerHTML = "";
-      addLog(logId, `--> Đã nạp thành công ${totalFiles} tệp tin đầu vào vào bộ nhớ tạm.`);
-
-      const zip = new JSZip();
-      let validFileCount = 0;
-
-      try {
-        const worker = await Tesseract.createWorker("eng", 1, { cacheMethod: 'none' });
-        await worker.setParameters({
-          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
-          tessedit_pageseg_mode: '6'
-        });
-
-        for (let i = 0; i < totalFiles; i++) {
-          const file = fileInput.files[i];
-          if (!file.name.toLowerCase().endsWith(".pdf")) continue;
-
-          validFileCount++;
-          updateStatus(statusId, `⏳ Tiến độ phân tích: Đang xử lý sổ [${validFileCount}/${totalFiles}] -> ${file.name}`, "loading");
-
-          try {
-            const arrayBufferForPDFJS = await readFileAsArrayBuffer(file);
-            const arrayBufferForZip = await readFileAsArrayBuffer(file);
-
-            const pdfjsDoc = await pdfjsLib.getDocument({ data: arrayBufferForPDFJS }).promise;
-            const page = await pdfjsDoc.getPage(1);
-
-            const viewport = page.getViewport({ scale: 2.5 });
-
-            const tempCanvas = document.createElement("canvas");
-            const tempContext = tempCanvas.getContext("2d");
-            tempCanvas.height = viewport.height;
-            tempCanvas.width = viewport.width;
-
-            await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
-
-            const mainCanvas = document.getElementById("pdfCanvas");
-            const mainContext = mainCanvas.getContext("2d");
-
-            let cropX = 0, cropY = 0, cropWidth = 0, cropHeight = 0;
-
-            if (type === 'A4') {
-              cropWidth = Math.floor(viewport.width * 0.35);
-              cropHeight = Math.floor(viewport.height * 0.20);
-              cropX = 0;
-              cropY = viewport.height - cropHeight;
-            } else {
-              cropWidth = Math.floor(viewport.width * 0.35);
-              cropHeight = Math.floor(viewport.height * 0.25);
-              cropX = viewport.width - cropWidth;
-              cropY = viewport.height - cropHeight;
-            }
-
-            mainCanvas.width = cropWidth;
-            mainCanvas.height = cropHeight;
-
-            mainContext.drawImage(tempCanvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-            const dataUrl = mainCanvas.toDataURL("image/png");
-
-            const ret = await worker.recognize(dataUrl);
-            const rawText = ret.data.text.toUpperCase();
-            const textNoSpaces = rawText.replace(/\s+/g, "");
-
-            let finalFileName = "";
-
-            const regexPattern = (type === 'A4') ? /([A-Z]{2})(\d{7,8})/ : /([A-Z]{2})(\d{6})/;
-            const match = textNoSpaces.match(regexPattern);
-
-            if (match) {
-              finalFileName = match[1] + " " + match[2];
-              addLog(logId, `✓ Thành công | ${file.name} --> Khớp Số hiệu GCN: ${finalFileName}`);
-            } else {
-              const backupPattern = (type === 'A4') ? /[A-Z0-9]{9,10}/ : /[A-Z0-9]{8}/;
-              const backupMatch = textNoSpaces.match(backupPattern);
-              if (backupMatch && isNaN(backupMatch[0])) {
-                let code = backupMatch[0];
-                finalFileName = code.substring(0, 2) + " " + code.substring(2);
-                addLog(logId, `⚠ Phục hồi nghi vấn | ${file.name} --> Đọc được: ${finalFileName}`);
-              } else {
-                finalFileName = file.name.replace(".pdf", "") + "_KhongRoMaSeri";
-                addLog(logId, `❌ Không tìm thấy mã số hiệu trên file: ${file.name}`, true);
-              }
-            }
-
-            zip.file(`${finalFileName}.pdf`, arrayBufferForZip);
-          } catch (fileError) {
-            addLog(logId, `💥 Lỗi tệp dữ liệu ${file.name}: ${fileError.message}`, true);
-            const fallbackBuffer = await readFileAsArrayBuffer(file);
-            zip.file(`${file.name.replace(".pdf", "")}_LoiDocFile.pdf`, fallbackBuffer);
-          }
-        }
-
-        await worker.terminate();
-
-        if (validFileCount === 0) {
           clearInterval(timerInterval);
-          updateStatus(statusId, "Không tìm thấy tệp tin PDF hợp lệ nào để thực hiện quét.", "success");
-          return;
+          addLog(
+            logId,
+            "🚨 Lỗi hệ thống OCR nghiêm trọng: " + error.message,
+            true,
+          );
         }
-
-        updateStatus(statusId, "⏳ Định dạng và nén gói sản phẩm thành phẩm...", "loading");
-        const content = await zip.generateAsync({ type: "blob" });
-
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(content);
-        link.download = `Ket_Qua_Doi_Ten_Seri_Thanh_Pham_${type}.zip`;
-        link.click();
-
-        clearInterval(timerInterval);
-        let finalDuration = ((Date.now() - startTime) / 1000).toFixed(2);
-        timerDigits.innerText = finalDuration + "s";
-        timerDigits.className = "timer-digits timer-pulse";
-        timerLabel.innerText = "🏁 Tổng thời gian xử lý:";
-
-        updateStatus(statusId, `🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG! Đã đóng gói xong ${validFileCount} file.`, "success");
-        addLog(logId, "====================================================");
-        addLog(logId, `➔ HOÀN THÀNH: Quá trình bóc tách kết thúc sau ${finalDuration} giây.`);
-      } catch (error) {
-        clearInterval(timerInterval);
-        addLog(logId, "🚨 Lỗi hệ thống OCR nghiêm trọng: " + error.message, true);
-        updateStatus(statusId, "Quá trình quét và nhận diện OCR thất bại.", "loading");
       }
-    }
-  </script>
-</body>
 
+      function updateStatus(elementId, text, type) {
+        const el = document.getElementById(elementId);
+        el.style.display = "block";
+        el.innerText = text;
+        el.className =
+          "status-msg " +
+          (type === "loading" ? "status-loading" : "status-success");
+      }
+    </script>
+  </body>
 </html>
