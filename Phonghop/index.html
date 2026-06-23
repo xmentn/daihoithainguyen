@@ -1,89 +1,100 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Sơ đồ Hội trường</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div id="admin-icon" class="admin-icon-btn">
-      <span>⚙️</span><span class="admin-text">Quản trị</span>
-    </div>
 
-    <div id="login-modal" class="modal-overlay">
-      <div class="modal-box">
-        <h3>Đăng nhập Quản trị</h3>
-        <div style="margin-bottom: 10px">
-          <input
-            type="text"
-            id="username"
-            placeholder="Tên đăng nhập"
-            style="width: 100%; padding: 8px"
-          />
-        </div>
-        <div style="margin-bottom: 15px">
-          <input
-            type="password"
-            id="password"
-            placeholder="Mật khẩu"
-            style="width: 100%; padding: 8px"
-          />
-        </div>
-        <p
-          id="login-error"
-          style="
-            color: red;
-            font-size: 12px;
-            display: none;
-            margin-bottom: 10px;
-          "
-        >
-          Sai tài khoản hoặc mật khẩu!
-        </p>
-        <div style="text-align: right">
-          <button id="close-login" style="padding: 6px 12px; margin-right: 5px">
-            Hủy
-          </button>
-          <button
-            id="submit-login"
-            style="
-              padding: 6px 12px;
-              background: #2980b9;
-              color: white;
-              border: none;
-              cursor: pointer;
-            "
-          >
-            Đăng nhập
-          </button>
-        </div>
+<head>
+  <meta charset="UTF-8">
+  <title>Sơ đồ Hội trường</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <header class="main-header">
+    <div class="header-left">
+      <img src="images/codang.png" alt="Cờ Đảng" class="header-party-flag">
+      <div>
+        <h2 id="dynamic-header-title">HỘI NGHỊ BAN THƯỜNG VỤ TỈNH ỦY</h2>
+        <p id="dynamic-header-subtitle">Phiên họp Ban Thường vụ</p>
       </div>
     </div>
+    <div class="header-right">
+      <button id="admin-icon" class="header-admin-btn">⚙️ Quản trị</button>
+    </div>
+  </header>
 
-    <div class="app-container">
-      <h1 class="main-title">SƠ ĐỒ CHỖ NGỒI HỘI TRƯỜNG</h1>
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-box">
+      <h3>Đăng nhập Quản trị</h3>
+      <div style="margin-bottom: 10px;">
+        <input type="text" id="username" placeholder="Tên đăng nhập" style="width: 100%; padding: 8px;">
+      </div>
+      <div style="margin-bottom: 15px;">
+        <input type="password" id="password" placeholder="Mật khẩu" style="width: 100%; padding: 8px;">
+      </div>
+      <p id="login-error" style="color: red; font-size: 12px; display: none; margin-bottom: 10px;">Sai tài khoản hoặc
+        mật khẩu!</p>
+      <div style="text-align: right;">
+        <button id="close-login" style="padding: 6px 12px; margin-right: 5px;">Hủy</button>
+        <button id="submit-login"
+          style="padding: 6px 12px; background: #2980b9; color: white; border: none; cursor: pointer;">Đăng
+          nhập</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-main-layout">
+
+    <div class="layout-left-content">
+      <div style="text-align: center; margin-bottom: 15px;">
+        <label style="font-weight: bold; color: #34495e;">Chọn phiên làm việc: </label>
+        <select id="view-conference-select"
+          style="padding: 6px 12px; font-size: 14px; font-weight: bold; border-radius: 4px; border: 1px solid #3498db; color: #2c3e50;">
+          <option value="">-- Đang tải danh sách Hội nghị... --</option>
+        </select>
+      </div>
+
       <div class="hall-container">
+        <h3 class="hall-title">SƠ ĐỒ VỊ TRÍ CHỖ NGỒI</h3>
+        <p class="hall-subtitle">Hội trường Tỉnh ủy</p>
+
         <div class="stage-section">
           <div class="chairman-area" id="chairman-container"></div>
         </div>
 
         <div class="search-area">
-          <input
-            type="text"
-            id="search-delegate"
-            placeholder="🔍 Nhập tên đại biểu để tìm vị trí ghế..."
-          />
+          <input type="text" id="search-delegate" placeholder="🔍 Tìm kiếm đại biểu, chức vụ, vị trí...">
         </div>
 
         <div class="auditorium-section">
           <div class="hall-body">
             <div class="seating-block" id="left-block"></div>
-            <div class="center-aisle"></div>
+            <div class="center-aisle-text">LỐI ĐI CHÍNH</div>
             <div class="seating-block" id="right-block"></div>
           </div>
         </div>
       </div>
     </div>
-    <script type="module" src="script.js"></script>
-  </body>
+
+    <div class="layout-right-sidebar">
+      <div class="sidebar-card">
+        <div class="card-title">THỐNG KÊ</div>
+        <div class="stat-row"><span>Tổng số chỗ</span><strong id="stat-total">64</strong></div>
+        <div class="stat-row"><span>Đã chọn</span><strong id="stat-selected" style="color: #c0392b;">0</strong></div>
+        <div class="stat-row"><span>Còn trống</span><strong id="stat-empty">64</strong></div>
+        <div class="stat-row"><span>Tỷ lệ lấp đầy</span><strong id="stat-percent" style="color: #27ae60;">0%</strong>
+        </div>
+      </div>
+
+      <div class="sidebar-card">
+        <div class="card-title">THAO TÁC NHANH</div>
+        <button class="sidebar-btn" onclick="window.print()">📥 Xuất sơ đồ (PDF)</button>
+        <button class="sidebar-btn" onclick="window.print()">🖨️ In sơ đồ</button>
+        <button class="sidebar-btn" id="btn-refresh-page">🔄 Làm mới</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+
 </html>

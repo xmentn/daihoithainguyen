@@ -1,105 +1,123 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Quản trị Hệ thống</title>
-    <link rel="stylesheet" href="admin.css" />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  </head>
-  <body>
-    <div class="admin-container">
-      <h1>QUẢN TRỊ HỆ THỐNG</h1>
-      <div class="nav-links"><a href="index.html">🔙 Quay lại Sơ đồ</a></div>
 
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="tab-danhsach">
-          Danh sách Đại biểu
-        </button>
-        <button class="tab-btn" data-tab="tab-vitri">Vị trí Chỗ ngồi</button>
+<head>
+  <meta charset="UTF-8">
+  <title>Quản trị Hệ thống Hội trường</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+  <div class="admin-container">
+    <h1>BẢNG QUẢN TRỊ HỆ THỐNG</h1>
+    <div class="nav-links"><a href="index.html">🔙 Quay lại Sơ đồ</a></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-danhsach">1. Danh sách Tổng</button>
+      <button class="tab-btn" data-tab="tab-hoignhi">2. Quản lý Hội nghị</button>
+      <button class="tab-btn" data-tab="tab-vitri">3. Xếp chỗ Hội nghị</button>
+    </div>
+
+    <div id="tab-danhsach" class="tab-content active">
+      <div class="form-section">
+        <h3 id="form-title">Thêm Đại biểu vào Danh sách tổng</h3>
+        <form id="delegate-form">
+          <input type="hidden" id="delegate-id">
+          <div class="form-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="number" id="delegate-rank" required placeholder="Rank (VD: 1, 2...)" style="width: 120px;"
+              min="1">
+            <input type="text" id="fullname" required placeholder="Nhập Họ và Tên đại biểu..." style="flex: 1;">
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label style="font-weight: bold; margin-right: 10px;">Phân loại đối tượng:</label>
+            <select id="delegate-category" required
+              style="padding: 8px; width: 250px; border-radius: 4px; border: 1px solid #ccc;">
+              <option value="">-- Chọn nhóm đối tượng --</option>
+              <option value="Trung ương">Đại biểu Trung ương</option>
+              <option value="Thường trực">Thường trực Tỉnh ủy</option>
+              <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
+              <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
+            </select>
+          </div>
+          <button type="submit" id="save-btn" class="btn-primary">Lưu vào Danh sách tổng</button>
+          <button type="button" id="cancel-btn" style="display:none;" class="btn-secondary">Hủy</button>
+        </form>
       </div>
 
-      <div id="tab-danhsach" class="tab-content active">
-        <div class="form-section">
-          <h3 id="form-title">Thêm Đại biểu mới</h3>
-          <form id="delegate-form">
-            <input type="hidden" id="delegate-id" />
-            <div class="form-group" style="display: flex; gap: 10px">
-              <input
-                type="number"
-                id="delegate-rank"
-                required
-                placeholder="Rank (VD: 1, 2...)"
-                style="width: 120px"
-                min="1"
-              />
-              <input
-                type="text"
-                id="fullname"
-                required
-                placeholder="Nhập Họ và Tên (VD: Nguyễn Minh Đức)"
-                style="flex: 1"
-              />
-            </div>
-            <button type="submit" id="save-btn" class="btn-primary">
-              Lưu Đại biểu
-            </button>
-            <button
-              type="button"
-              id="cancel-btn"
-              style="display: none"
-              class="btn-secondary"
-            >
-              Hủy
-            </button>
-          </form>
+      <div class="filter-section"
+        style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; border-left: 4px solid #2980b9;">
+        <label style="font-weight: bold; margin-right: 10px;">🔍 Xem theo đối tượng:</label>
+        <select id="filter-category"
+          style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #2c3e50;">
+          <option value="ALL">-- Hiển thị tất cả --</option>
+          <option value="Trung ương">Đại biểu Trung ương</option>
+          <option value="Thường trực">Thường trực Tỉnh ủy</option>
+          <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
+          <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
+        </select>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Rank</th>
+            <th>Phân loại</th>
+            <th>Họ và Tên</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="table-danhsach"></tbody>
+      </table>
+    </div>
+
+    <div id="tab-hoignhi" class="tab-content">
+      <div class="form-section">
+        <h3>Tạo phiên Hội nghị mới</h3>
+        <form id="conf-form" style="display: flex; gap: 10px;">
+          <input type="text" id="conf-name" required placeholder="Nhập tên Hội nghị..."
+            style="flex:1; padding:10px; border:1px solid #ccc; border-radius:4px;">
+          <button type="submit" class="btn-primary">Tạo Hội nghị</button>
+        </form>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Tên phiên Hội nghị / Cuộc họp</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="table-hoignhi"></tbody>
+      </table>
+    </div>
+
+    <div id="tab-vitri" class="tab-content">
+      <div class="form-section" style="background: #eef5f9; border-color: #3498db;">
+        <label style="font-weight: bold; color: #2c3e50; margin-right: 10px;">Chọn Hội nghị cần xếp chỗ:</label>
+        <select id="select-conference"
+          style="padding: 10px; width: 70%; border-radius: 4px; font-weight: bold; color: #2980b9;">
+          <option value="">-- Vui lòng chọn một Hội nghị --</option>
+        </select>
+      </div>
+
+      <div id="action-vitri-container" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+          <p style="color:#555; margin: 0;"><i>* Nhập mã ghế (V1, A1...) để mời và xếp chỗ. Bỏ trống nếu đại biểu không
+              dự phiên này.</i></p>
+          <button id="clear-all-seats"
+            style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️
+            Làm trống sơ đồ hội nghị này</button>
         </div>
         <table>
           <thead>
             <tr>
               <th>STT</th>
               <th>Rank</th>
+              <th>Phân loại</th>
               <th>Họ và Tên</th>
-              <th>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody id="table-danhsach"></tbody>
-        </table>
-      </div>
-
-      <div id="tab-vitri" class="tab-content">
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-          "
-        >
-          <p style="color: #555; margin: 0">
-            <i>* Nhập mã ghế (V1, A1...) để xếp chỗ. Bỏ trống nếu không dự.</i>
-          </p>
-          <button
-            id="clear-all-seats"
-            style="
-              background: #e74c3c;
-              color: white;
-              border: none;
-              padding: 8px 15px;
-              border-radius: 4px;
-              font-weight: bold;
-              cursor: pointer;
-            "
-          >
-            🗑️ Xóa toàn bộ ghế
-          </button>
-        </div>
-        <table>
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Rank</th>
-              <th>Họ và Tên</th>
-              <th>Mã ghế hiện tại</th>
+              <th>Mã ghế phiên này</th>
               <th>Thao tác</th>
             </tr>
           </thead>
@@ -107,6 +125,8 @@
         </table>
       </div>
     </div>
-    <script type="module" src="admin.js"></script>
-  </body>
+  </div>
+  <script type="module" src="admin.js"></script>
+</body>
+
 </html>
