@@ -481,3 +481,35 @@ body {
 .tab-content.active {
   display: block !important;
 }
+/* ==================== CẤU TRÚC ĐỊNH DẠNG BỘ ĐẾM FIREBASE TRÊN BANNER ==================== */
+.header-counter-group {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  margin-left: auto;
+  margin-right: 30px; /* Đẩy cụm đếm nằm giữa banner */
+}
+
+.counter-box-global {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 6px 14px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.lbl-g {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.val-g {
+  font-size: 15px;
+  font-weight: 800;
+  color: #166534; /* Tông màu xanh lục sẫm nổi bật số liệu */
+  font-family: monospace;
+}
