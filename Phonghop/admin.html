@@ -110,6 +110,24 @@
             style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️
             Làm trống sơ đồ hội nghị này</button>
         </div>
+        <div class="filter-container"
+          style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
+          <label for="delegate-filter"
+            style="font-weight: bold; font-size: 13px; color: #1e457e; display: block; margin-bottom: 5px;">
+            🎯 Lọc nhanh theo đối tượng:
+          </label>
+          <select id="delegate-filter"
+            style="width: 100%; padding: 8px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1; outline: none; font-weight: 500;">
+            <option value="ALL">-- Hiển thị tất cả đại biểu --</option>
+            <option value="Trung ương">Đại biểu Trung ương</option>
+            <option value="Thường trực">Thường trực Tỉnh ủy</option>
+            <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
+            <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
+          </select>
+        </div>
+
+        <div id="external-delegates" class="delegate-list-box">
+        </div>
         <table>
           <thead>
             <tr>

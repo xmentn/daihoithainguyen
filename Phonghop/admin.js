@@ -18,20 +18,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentDelegates = [];
   let currentConferences = [];
   let selectedConfId = "";
-  let currentFilter = "ALL"; // Mặc định hiển thị tất cả
+  let currentFilterTab1 = "ALL"; // Bộ lọc xem ở Tab 1
+  let currentFilterTab3 = "ALL"; // Bộ lọc phục vụ xếp chỗ ở Tab 3 (MỚI THÊM)
 
   const delegatesCol = collection(db, 'delegates');
   const conferencesCol = collection(db, 'conferences');
 
-  // DOM các bảng và bộ lọc
+  // DOM các bảng, ô nhập và bộ lọc
   const tableDanhSach = document.getElementById('table-danhsach');
   const tableHoiNghi = document.getElementById('table-hoignhi');
   const tableVitri = document.getElementById('table-vitri');
   const selectConf = document.getElementById('select-conference');
   const actionVitriContainer = document.getElementById('action-vitri-container');
-  const filterCategory = document.getElementById('filter-category');
+  const filterCategoryTab1 = document.getElementById('filter-category'); // Bộ lọc Tab 1
+  const filterCategoryTab3 = document.getElementById('delegate-filter');  // Bộ lọc Tab 3 (MỚI THÊM)
 
-  // Nhãn hiển thị danh nghĩa phân loại
+  // Nhãn danh nghĩa trang trọng đã được chuẩn hóa theo yêu cầu của bạn
   const categoryLabels = {
     "Trung ương": "Đại biểu Trung ương",
     "Thường trực": "Thường trực Tỉnh ủy",
@@ -39,23 +41,35 @@ document.addEventListener('DOMContentLoaded', () => {
     "BCH": "Ủy viên BCH Đảng bộ tỉnh"
   };
 
-  // Lắng nghe bộ lọc thay đổi
-  filterCategory.addEventListener('change', (e) => {
-    currentFilter = e.target.value;
-    renderTabDanhSach();
-  });
+  // Lắng nghe bộ lọc thay đổi ở Tab 1
+  if (filterCategoryTab1) {
+    filterCategoryTab1.addEventListener('change', (e) => {
+      currentFilterTab1 = e.target.value;
+      renderTabDanhSach();
+    });
+  }
 
-  // --- 1. THEO DÕI DANH SÁCH TỔNG ĐẠI BIỂU ---
+  // Lắng nghe bộ lọc thay đổi ở Tab 3 để lọc danh sách xếp chỗ (MỚI THÊM)
+  if (filterCategoryTab3) {
+    filterCategoryTab3.addEventListener('change', (e) => {
+      currentFilterTab3 = e.target.value;
+      renderTabVitri(); // Tải lại bảng xếp chỗ dựa trên đối tượng được lọc
+    });
+  }
+
+  // --- 1. THEO DÕI REALTIME DANH SÁCH TỔNG ĐẠI BIỂU TỪ FIREBASE ---
   onSnapshot(delegatesCol, (snapshot) => {
     currentDelegates = [];
     snapshot.forEach(docSnap => currentDelegates.push({ id: docSnap.id, ...docSnap.data() }));
 
+    // Tự động sắp xếp theo Rank ưu tiên
     currentDelegates.sort((a, b) => (a.rank ?? 9999) - (b.rank ?? 9999));
+
     renderTabDanhSach();
     if (selectedConfId) renderTabVitri();
   });
 
-  // --- 2. THEO DÕI DANH SÁCH HỘI NGHỊ ---
+  // --- 2. THEO DÕI REALTIME DANH SÁCH HỘI NGHỊ TỪ FIREBASE ---
   onSnapshot(conferencesCol, (snapshot) => {
     currentConferences = [];
     selectConf.innerHTML = '<option value="">-- Vui lòng chọn một Hội nghị --</option>';
@@ -83,14 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.delete-conf').forEach(b => b.addEventListener('click', (e) => deleteConference(e.target.dataset.id)));
   });
 
-  // Hiển thị Tab 1 (Danh sách tổng kèm bộ lọc)
+  // HIỂN THỊ TAB 1 (Danh sách tổng)
   function renderTabDanhSach() {
     tableDanhSach.innerHTML = '';
     let displayIndex = 1;
 
     currentDelegates.forEach((del) => {
-      // Lọc theo đối tượng được chọn
-      if (currentFilter !== "ALL" && del.category !== currentFilter) return;
+      if (currentFilterTab1 !== "ALL" && del.category !== currentFilterTab1) return;
 
       const tr = document.createElement('tr');
       const label = categoryLabels[del.category] || 'Chưa phân loại';
@@ -98,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${displayIndex++}</td>
                 <td style="color:#e67e22; font-weight:bold;">${del.rank ?? '-'}</td>
                 <td style="color:#2980b9; font-weight:bold; font-size:13px;">${label}</td>
-                <td style="font-weight:bold;">${del.name}</td>
+                <td style="font-weight:bold;">Đ/c ${del.name}</td>
                 <td>
                     <button class="btn-edit edit-del" data-id="${del.id}">Sửa</button>
                     <button class="btn-delete delete-del" data-id="${del.id}">Xóa</button>
@@ -121,21 +134,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Hiển thị Tab 3
+  // HIỂN THỊ TAB 3 (Xếp chỗ hội nghị - ĐÃ THÊM LOGIC LỌC ĐỐI TƯỢNG)
   function renderTabVitri() {
     tableVitri.innerHTML = '';
     const conf = currentConferences.find(c => c.id === selectedConfId);
     const seatsMap = conf?.seats || {};
+    let displayIndex = 1;
 
-    currentDelegates.forEach((del, i) => {
+    currentDelegates.forEach((del) => {
+      // ĐOẠN ĐƯỢC NÂNG CẤP: Lọc danh sách hiển thị khi xếp chỗ
+      if (currentFilterTab3 !== "ALL" && del.category !== currentFilterTab3) return;
+
       const currentSeat = seatsMap[del.id] || '';
       const tr = document.createElement('tr');
       const label = categoryLabels[del.category] || '-';
       tr.innerHTML = `
-                <td>${i + 1}</td>
+                <td>${displayIndex++}</td>
                 <td style="color:#e67e22; font-weight:bold;">${del.rank ?? '-'}</td>
-                <td style="color:#2980b9; font-size:12px;">${label}</td>
-                <td style="font-weight:bold;">${del.name}</td>
+                <td style="color:#2980b9; font-size:12px; font-weight:bold;">${label}</td>
+                <td style="font-weight:bold;">Đ/c ${del.name}</td>
                 <td><input type="text" class="seat-input" id="seat-${del.id}" value="${currentSeat}" placeholder="Không đi"></td>
                 <td><button class="btn-update update-seat-btn" data-id="${del.id}">Cập nhật</button></td>
             `;

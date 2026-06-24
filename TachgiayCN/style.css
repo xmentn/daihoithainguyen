@@ -14,6 +14,7 @@
   margin: 0;
   padding: 0;
 }
+
 body {
   font-family:
     "Segoe UI",
@@ -43,22 +44,26 @@ body {
 .logo-wrapper {
   width: 48px;
   height: 48px;
-  min-width: 48px; /* Ép khung không bị co lại khi thu nhỏ màn hình */
+  min-width: 48px;
+  /* Ép khung không bị co lại khi thu nhỏ màn hình */
   min-height: 48px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  overflow: hidden; /* Giữ mọi phần thừa của ảnh luôn nằm trong khung tròn */
+  overflow: hidden;
+  /* Giữ mọi phần thừa của ảnh luôn nằm trong khung tròn */
 }
 
 /* Khống chế tuyệt đối kích thước ảnh Quốc huy */
 .logo-quochuy {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Giúp ảnh tự điền đầy khung tròn mà không bị méo tỉ lệ */
+  object-fit: cover;
+  /* Giúp ảnh tự điền đầy khung tròn mà không bị méo tỉ lệ */
   display: block;
 }
+
 .main-brand {
   font-size: 26px;
   font-weight: 800;
@@ -88,14 +93,17 @@ body {
   border: 1px solid #f1f5f9;
   background: white;
 }
+
 .status-pill.green {
   border-color: #bbf7d0;
   background-color: #dcfce7;
 }
+
 .status-pill.green .pill-icon {
   color: var(--green-dark);
   font-weight: bold;
 }
+
 .status-pill.blue-dark {
   background-color: var(--primary-blue);
   color: white;
@@ -106,21 +114,25 @@ body {
 .pill-icon {
   font-size: 18px;
 }
+
 .pill-text {
   display: flex;
   flex-direction: column;
   line-height: 1.3;
 }
+
 .p-top {
   font-size: 13px;
   font-weight: 700;
   color: var(--green-dark);
 }
+
 .p-bot {
   font-size: 12px;
   font-weight: 600;
   color: #15803d;
 }
+
 .pill-text-single {
   font-size: 13px;
   font-weight: 700;
@@ -130,21 +142,21 @@ body {
 .gradient-slide-line {
   height: 4px;
   width: 100%;
-  background: linear-gradient(
-    90deg,
-    #1e3a8a 0%,
-    #3b82f6 25%,
-    #10b981 50%,
-    #3b82f6 75%,
-    #1e3a8a 100%
-  );
+  background: linear-gradient(90deg,
+      #1e3a8a 0%,
+      #3b82f6 25%,
+      #10b981 50%,
+      #3b82f6 75%,
+      #1e3a8a 100%);
   background-size: 200% 100%;
   animation: slideEffect 4s linear infinite;
 }
+
 @keyframes slideEffect {
   0% {
     background-position: 0% 50%;
   }
+
   100% {
     background-position: 100% 50%;
   }
@@ -156,6 +168,7 @@ body {
   margin: 25px auto;
   padding: 0 20px;
 }
+
 .tabs-navigation {
   display: flex;
   background: #e2e8f0;
@@ -164,6 +177,7 @@ body {
   width: fit-content;
   margin-bottom: 25px;
 }
+
 .tab-btn {
   background: none;
   border: none;
@@ -175,6 +189,7 @@ body {
   border-radius: 8px;
   transition: 0.2s;
 }
+
 .tab-btn.active {
   background: white;
   color: var(--primary-blue);
@@ -191,6 +206,7 @@ body {
   border: 1px solid #cbd5e1;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
 }
+
 .step-label {
   position: absolute;
   top: -14px;
@@ -205,11 +221,13 @@ body {
   border-radius: 8px;
   font-weight: 800;
 }
+
 .card-header {
   border-bottom: 2px dashed #f1f5f9;
   padding-bottom: 12px;
   margin-bottom: 20px;
 }
+
 .card-header h3 {
   font-size: 16px;
   font-weight: 800;
@@ -220,6 +238,7 @@ body {
   display: block;
   width: 100%;
 }
+
 .main-drop-box {
   border: 2px dashed #cbd5e1;
   background: #f8fafc;
@@ -229,16 +248,19 @@ body {
   position: relative;
   transition: 0.2s;
 }
+
 .main-drop-box.blue-theme:hover {
   background: #eff6ff;
   border-color: var(--secondary-blue);
 }
+
 .drop-icon {
   font-size: 32px;
   display: block;
   margin-bottom: 8px;
   color: var(--secondary-blue);
 }
+
 .drop-txt-main {
   font-size: 14px;
   font-weight: 700;
@@ -255,6 +277,7 @@ body {
   margin-bottom: 20px;
   border: 1px solid #e2e8f0;
 }
+
 .demo-btn {
   background: var(--green-success);
   color: white;
@@ -265,9 +288,11 @@ body {
   cursor: pointer;
   transition: 0.2s;
 }
+
 .demo-btn:hover {
   background-color: var(--green-dark);
 }
+
 .demo-msg {
   font-size: 12px;
   color: #475569;
@@ -285,6 +310,7 @@ body {
   border-radius: 12px;
   margin-bottom: 20px;
 }
+
 .config-lbl {
   font-size: 13px;
   font-weight: 800;
@@ -292,20 +318,24 @@ body {
   margin-bottom: 10px;
   display: block;
 }
+
 .input-row {
   display: flex;
   gap: 15px;
 }
+
 .fld {
   display: flex;
   flex-direction: column;
   gap: 5px;
 }
+
 .fld label {
   font-size: 11px;
   font-weight: 700;
   color: #475569;
 }
+
 .fld input {
   width: 80px;
   padding: 8px;
@@ -316,10 +346,12 @@ body {
   color: #0f172a;
   background: white;
 }
+
 .fld input:focus {
   border-color: var(--green-success);
   outline: none;
 }
+
 .fld input:disabled {
   background-color: #e2e8f0;
   color: #94a3b8;
@@ -336,9 +368,11 @@ body {
   cursor: pointer;
   transition: 0.2s;
 }
+
 .btn-lock:hover {
   background-color: var(--secondary-blue);
 }
+
 .btn-lock.locked-style {
   background: #dc2626 !important;
 }
@@ -349,6 +383,7 @@ body {
   gap: 25px;
   justify-content: center;
 }
+
 .view-panel {
   background: #f8fafc;
   border: 1px solid #cbd5e1;
@@ -356,9 +391,11 @@ body {
   border-radius: 12px;
   flex: 1;
 }
+
 .view-panel.narrow {
   flex: 0 0 280px;
 }
+
 .view-header {
   font-size: 11px;
   font-weight: 800;
@@ -366,6 +403,7 @@ body {
   margin-bottom: 12px;
   text-transform: uppercase;
 }
+
 .view-body {
   background: white;
   padding: 10px;
@@ -374,15 +412,18 @@ body {
   display: flex;
   justify-content: center;
 }
+
 .main-canvas {
   max-width: 100%;
   height: auto;
   cursor: crosshair;
 }
+
 .mag-canvas {
   width: 250px;
   height: 120px;
 }
+
 .magnifier-bg {
   border: 2px dashed var(--orange-accent);
   background: #fff7ed;
@@ -399,19 +440,23 @@ body {
   color: #475569;
   border: 1px solid #cbd5e1;
 }
+
 .stats strong {
   color: #0f172a;
   font-family: monospace;
   font-size: 16px;
 }
+
 .c-green {
   color: #16a34a !important;
   font-weight: bold;
 }
+
 .c-red {
   color: #dc2626 !important;
   font-weight: bold;
 }
+
 .timer-box {
   color: var(--green-dark);
   font-weight: 800;
@@ -440,14 +485,17 @@ body {
   font-weight: 700;
   font-size: 13px;
 }
+
 .status-loading {
   background: #eff6ff;
   color: #2563eb;
 }
+
 .status-success {
   background: #f0fdf4;
   color: #16a34a;
 }
+
 .status-error {
   background: #fef2f2;
   color: #dc2626;
@@ -457,6 +505,7 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .hidden-input {
   position: absolute;
   top: 0;
@@ -466,6 +515,7 @@ body {
   opacity: 0;
   cursor: pointer;
 }
+
 .bottom-footer {
   text-align: center;
   margin-top: 30px;
@@ -478,16 +528,19 @@ body {
 .tab-content {
   display: none !important;
 }
+
 .tab-content.active {
   display: block !important;
 }
+
 /* ==================== CẤU TRÚC ĐỊNH DẠNG BỘ ĐẾM FIREBASE TRÊN BANNER ==================== */
 .header-counter-group {
   display: flex;
   gap: 20px;
   align-items: center;
   margin-left: auto;
-  margin-right: 30px; /* Đẩy cụm đếm nằm giữa banner */
+  margin-right: 30px;
+  /* Đẩy cụm đếm nằm giữa banner */
 }
 
 .counter-box-global {
@@ -510,6 +563,164 @@ body {
 .val-g {
   font-size: 15px;
   font-weight: 800;
-  color: #166534; /* Tông màu xanh lục sẫm nổi bật số liệu */
+  color: #166534;
+  /* Tông màu xanh lục sẫm nổi bật số liệu */
   font-family: monospace;
+}
+
+/* ==================== GIAO DIỆN HỘP THOẠI HƯỚNG DẪN (MODAL) ==================== */
+.nav-wrapper-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.btn-guide-trigger {
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.15);
+}
+
+.btn-guide-trigger:hover {
+  background-color: #166534;
+}
+
+/* Hiệu ứng nền mờ bao phủ */
+.guide-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(15, 23, 42, 0.4);
+  /* Màu Slate mờ nhẹ */
+  backdrop-filter: blur(4px);
+  /* Làm mờ nhẹ nền phía sau */
+  z-index: 9999;
+  display: none;
+  /* Mặc định ẩn */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Khung nội dung hướng dẫn */
+.guide-modal-content {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 680px;
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  border: 1px solid #cbd5e1;
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.guide-modal-header {
+  background-color: #f8fafc;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.guide-modal-header h3 {
+  font-size: 15px;
+  font-weight: 800;
+  color: #1e3a8a;
+  letter-spacing: 0.3px;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-close-modal:hover {
+  color: #64748b;
+}
+
+.guide-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.guide-step-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.guide-step-badge {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  border: 1px solid #bae6fd;
+}
+
+.guide-step-text {
+  font-size: 13.5px;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.guide-step-text strong {
+  color: #0f172a;
+}
+
+.guide-modal-footer {
+  padding: 15px 24px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-guide-close-bottom {
+  background-color: #1e3a8a;
+  color: white;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-guide-close-bottom:hover {
+  background-color: #2563eb;
 }
