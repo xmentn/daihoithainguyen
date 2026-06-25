@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bộ Tẩy Chữ Vàng PDF - Phục Hồi Vân Nền</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 1000px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .upload-box {
+            border: 2px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #f8fafc;
+            display: inline-block;
+            width: 80%;
+        }
+
+        .upload-box:hover {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .workspace {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            margin-top: 20px;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .canvas-container {
+            position: relative;
+            border: 1px solid #94a3b8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            user-select: none;
+        }
+
+        #pdf-canvas {
+            display: block;
+        }
+
+        #selection-box {
+            position: absolute;
+            border: 2px dashed #dc2626;
+            background-color: rgba(220, 38, 38, 0.08);
+            cursor: move;
+            top: 100px;
+            left: 100px;
+            width: 220px;
+            height: 60px;
+            box-sizing: border-box;
+        }
+
+        .resizer {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #dc2626;
+            right: -6px;
+            bottom: -6px;
+            cursor: se-resize;
+            border-radius: 2px;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 260px;
+        }
+
+        .preview-panel {
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        #zoom-canvas {
+            border: 1px solid #64748b;
+            background-color: #f1f5f9;
+            width: 240px;
+            height: 120px;
+        }
+
+        button {
+            background-color: #eab308;
+            color: #1e293b;
+            border: none;
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #ca8a04;
+        }
+
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        #status {
+            font-size: 14px;
+            color: #2563eb;
+            font-weight: 500;
+            margin-top: 10px;
+            white-space: pre-line;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Ứng Dụng Khử Chữ Vàng & Phục Hồi Vân Nền PDF</h2>
+        <p>Thuật toán tự động bóc tách viền xám, ruột trắng của chữ thời gian và tái tạo lại hoa văn bị đè ẩn phía dưới
+        </p>
+
+        <div class="upload-box" onclick="document.getElementById('pdf-file').click()">
+            <span style="color: #475569; font-weight: 500;">📁 Chọn file Giấy chứng nhận (PDF)</span>
+            <input type="file" id="pdf-file" accept=".pdf">
+        </div>
+        <div id="file-name" style="font-weight: bold; color: #3b82f6; margin-top: 10px;"></div>
+
+        <div class="workspace" id="editor-workspace" style="display: none;">
+            <div class="canvas-container" id="canvas-wrapper">
+                <canvas id="pdf-canvas"></canvas>
+                <div id="selection-box">
+                    <div class="resizer"></div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="preview-panel">
+                    <h4 style="margin:0 0 8px 0;">🔍 Kính lúp phóng to</h4>
+                    <canvas id="zoom-canvas"></canvas>
+                </div>
+                <button id="process-btn">Tẩy Chữ Vàng & Phục Hồi Nền</button>
+                <div id="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
+        const fileInput = document.getElementById('pdf-file');
+        const fileNameDiv = document.getElementById('file-name');
+        const workspace = document.getElementById('editor-workspace');
+        const mainCanvas = document.getElementById('pdf-canvas');
+        const zoomCanvas = document.getElementById('zoom-canvas');
+        const selectionBox = document.getElementById('selection-box');
+        const canvasWrapper = document.getElementById('canvas-wrapper');
+        const processBtn = document.getElementById('process-btn');
+        const statusDiv = document.getElementById('status');
+
+        let uploadedFileBuffer = null;
+        let originalFileName = "";
+        let pdfViewport = null;
+        let displayScale = 1.0;
+        const processScale = 3.5; // Tăng độ phân giải siêu cao để xử lý chính xác cấu trúc viền chữ
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            originalFileName = file.name;
+            fileNameDiv.innerText = `Đã nhận: ${file.name}`;
+            statusDiv.innerText = "";
+
+            const reader = new FileReader();
+            reader.onload = function (evt) {
+                uploadedFileBuffer = evt.target.result;
+                renderPageOne();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        async function renderPageOne() {
+            const bufferCopy = uploadedFileBuffer.slice(0);
+            const loadingTask = pdfjsLib.getDocument(new Uint8Array(bufferCopy));
+            const pdfDoc = await loadingTask.promise;
+            const page = await pdfDoc.getPage(1);
+
+            const unscaledViewport = page.getViewport({ scale: 1.0 });
+            displayScale = 650 / unscaledViewport.width;
+            pdfViewport = page.getViewport({ scale: displayScale });
+
+            mainCanvas.width = pdfViewport.width;
+            mainCanvas.height = pdfViewport.height;
+            canvasWrapper.style.width = pdfViewport.width + 'px';
+            canvasWrapper.style.height = pdfViewport.height + 'px';
+
+            const ctx = mainCanvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport: pdfViewport }).promise;
+
+            workspace.style.display = 'flex';
+            selectionBox.style.left = (pdfViewport.width - 250) + 'px';
+            selectionBox.style.top = (pdfViewport.height - 90) + 'px';
+            updateMagnifier();
+        }
+
+        // Cơ chế tương tác kéo giãn khung chọn
+        let isDragging = false, isResizing = false, startX, startY, startLeft, startTop, startWidth, startHeight;
+        selectionBox.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('resizer')) isResizing = true; else isDragging = true;
+            startX = e.clientX; startY = e.clientY;
+            startLeft = parseInt(selectionBox.style.left, 10) || 0;
+            startTop = parseInt(selectionBox.style.top, 10) || 0;
+            startWidth = selectionBox.offsetWidth; startHeight = selectionBox.offsetHeight;
+            e.preventDefault();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging && !isResizing) return;
+            const dx = e.clientX - startX; const dy = e.clientY - startY;
+            if (isDragging) {
+                let nL = Math.max(0, Math.min(startLeft + dx, pdfViewport.width - selectionBox.offsetWidth));
+                let nT = Math.max(0, Math.min(startTop + dy, pdfViewport.height - selectionBox.offsetHeight));
+                selectionBox.style.left = nL + 'px'; selectionBox.style.top = nT + 'px';
+            } else if (isResizing) {
+                selectionBox.style.width = Math.max(40, Math.min(startWidth + dx, pdfViewport.width - startLeft)) + 'px';
+                selectionBox.style.height = Math.max(20, Math.min(startHeight + dy, pdfViewport.height - startTop)) + 'px';
+            }
+            updateMagnifier();
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; isResizing = false; });
+
+        function updateMagnifier() {
+            const left = parseInt(selectionBox.style.left, 10), top = parseInt(selectionBox.style.top, 10);
+            const width = selectionBox.offsetWidth, height = selectionBox.offsetHeight;
+            zoomCanvas.width = width * 2; zoomCanvas.height = height * 2;
+            const zCtx = zoomCanvas.getContext('2d');
+            zCtx.drawImage(mainCanvas, left, top, width, height, 0, 0, zoomCanvas.width, zoomCanvas.height);
+        }
+
+        // THUẬT TOÁN KHỬ CHỮ VÀNG VÀ HÒA TRỘN TÁI TẠO VÂN NỀN
+        processBtn.addEventListener('click', async () => {
+            if (!uploadedFileBuffer) return;
+            processBtn.disabled = true;
+            statusDiv.style.color = "#2563eb";
+            statusDiv.innerText = "⏳ Bước 1: Đang bóc tách ma trận ảnh trang 1...";
+
+            try {
+                const bufferCopy = uploadedFileBuffer.slice(0);
+                const loadingTask = pdfjsLib.getDocument(new Uint8Array(bufferCopy));
+                const pdfDocJS = await loadingTask.promise;
+                const pageJS = await pdfDocJS.getPage(1);
+
+                const procViewport = pageJS.getViewport({ scale: processScale });
+                const procCanvas = document.createElement('canvas');
+                procCanvas.width = procViewport.width; procCanvas.height = procViewport.height;
+                const procCtx = procCanvas.getContext('2d');
+                await pageJS.render({ canvasContext: procCtx, viewport: procViewport }).promise;
+
+                const ratio = procViewport.width / pdfViewport.width;
+                const cX = Math.round(parseInt(selectionBox.style.left, 10) * ratio);
+                const cY = Math.round(parseInt(selectionBox.style.top, 10) * ratio);
+                const cW = Math.round(selectionBox.offsetWidth * ratio);
+                const cH = Math.round(selectionBox.offsetHeight * ratio);
+
+                statusDiv.innerText = "⏳ Bước 2: Thuật toán đang dò quét vân giấy lân cận...";
+
+                const imgData = procCtx.getImageData(cX, cY, cW, cH);
+                const data = imgData.data;
+
+                // Mảng đánh dấu pixel lỗi cần khôi phục (1: pixel chữ vàng/viền chữ, 0: nền giấy/chữ đen)
+                const mask = new Uint8Array(cW * cH);
+
+                // Bước 2a: Nhận diện và lập bản đồ các pixel thuộc cấu trúc chữ thời gian
+                for (let y = 0; y < cH; y++) {
+                    for (let x = 0; x < cW; x++) {
+                        const idx = (y * cW + x) * 4;
+                        const r = data[idx]; const g = data[idx + 1]; const b = data[idx + 2];
+
+                        // 1. Nhận diện dải màu ruột vàng/cam chói
+                        const isYellow = (r > 135 && g > 110 && b < 100 && r > b + 40);
+                        // 2. Nhận diện phần ruột chữ trắng tinh đã bị lỗi ở bước trước
+                        const isWhiteText = (r > 210 && g > 210 && b > 190 && Math.abs(r - g) < 15 && (r + g) - 2 * b > 10);
+                        // 3. Nhận diện đường viền bóng mờ xám đen bao quanh chữ vàng (nhưng loại trừ chữ hành chính đen đậm hẳn)
+                        const isStroke = (r > 75 && g > 65 && b < r && r - b > 10 && r < 160 && g < 150);
+
+                        if (isYellow || isWhiteText || isStroke) {
+                            mask[y * cW + x] = 1; // Đóng dấu cần tẩy
+                        }
+                    }
+                }
+
+                // Bước 2b: Thực hiện thuật toán nội suy lấp đầy (Inpainting) từ trái sang phải
+                // Thay vì đổi thành màu trắng, ta mượn giá trị màu của pixel nền sạch gần nhất bên cạnh để bù vào
+                for (let y = 0; y < cH; y++) {
+                    for (let x = 0; x < cW; x++) {
+                        if (mask[y * cW + x] === 1) {
+                            // Dò tìm pixel nền sạch gần nhất ở phía bên trái
+                            let leftX = x;
+                            while (leftX > 0 && mask[y * cW + leftX] === 1) { leftX--; }
+
+                            // Dò tìm pixel nền sạch gần nhất ở phía bên phải
+                            let rightX = x;
+                            while (rightX < cW - 1 && mask[y * cW + rightX] === 1) { rightX++; }
+
+                            // Lấy mẫu màu của vùng nền sạch lân cận để phủ vào điểm lỗi
+                            const targetX = (x - leftX < rightX - x && leftX > 0) ? leftX : rightX;
+                            const srcIdx = (y * cW + targetX) * 4;
+                            const destIdx = (y * cW + x) * 4;
+
+                            data[destIdx] = data[srcIdx];       // Tái tạo kênh Đỏ (R)
+                            data[destIdx + 1] = data[srcIdx + 1]; // Tái tạo kênh Xanh lá (G)
+                            data[destIdx + 2] = data[srcIdx + 2]; // Tái tạo kênh Xanh dương (B)
+                        }
+                    }
+                }
+
+                procCtx.putImageData(imgData, cX, cY);
+                statusDiv.innerText = "⏳ Bước 3: Đang đóng gói xuất bản tài liệu mới...";
+
+                // 3. Tiến hành đóng gói lại file PDF
+                const outPdfDoc = await PDFLib.PDFDocument.create();
+                const imgBase64 = procCanvas.toDataURL('image/png', 1.0);
+                const embedImg = await outPdfDoc.embedPng(imgBase64);
+                const pageOneNew = outPdfDoc.addPage([procViewport.width, procViewport.height]);
+                pageOneNew.drawImage(embedImg, { x: 0, y: 0, width: procViewport.width, height: procViewport.height });
+
+                // Sao chép nguyên bản trang 2 để bảo toàn chất lượng gốc tuyệt đối
+                const srcPdfDoc = await PDFLib.PDFDocument.load(uploadedFileBuffer.slice(0));
+                const totalPages = srcPdfDoc.getPageCount();
+                if (totalPages > 1) {
+                    const copiedPages = await outPdfDoc.copyPages(srcPdfDoc, Array.from({ length: totalPages - 1 }, (_, i) => i + 1));
+                    for (const cpPage of copiedPages) { outPdfDoc.addPage(cpPage); }
+                }
+
+                const cleanedPdfBytes = await outPdfDoc.save();
+                const blob = new Blob([cleanedPdfBytes], { type: "application/pdf" });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = originalFileName.replace(".pdf", "_tẩy_sạch_hoàn_toàn.pdf");
+                document.body.appendChild(link); link.click(); document.body.removeChild(link);
+
+                statusDiv.style.color = "#059669";
+                statusDiv.innerText = "✅ Tẩy sạch hoàn tất!\nChữ vàng và viền chữ đã được bóc tách dứt điểm.\nHoa văn gốc bên dưới đã phục hồi liền mạch.";
+            } catch (error) {
+                console.error(error);
+                statusDiv.style.color = "#dc2626";
+                statusDiv.innerText = "❌ Gặp sự cố trong quá trình phân tích tái tạo cấu trúc ảnh.";
+            } finally {
+                processBtn.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+
+</html>

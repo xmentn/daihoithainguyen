@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TẠO FILE ĐẦU VÀO SỐ GIẤY CHỨNG NHẬN</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" type="image/png" href="../Tachgiay/images/Quochuy.png" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="header-left">
+            <div class="logo-wrapper">
+                <img src="../images/Quochuy.png" alt="Quốc huy" class="logo-quochuy">
+            </div>
+            <div class="header-titles">
+                <h1 class="main-brand">ỨNG DỤNG</h1>
+                <h2 class="sub-brand">TẠO FILE ĐẦU VÀO SỐ GIẤY CHỨNG NHẬN</h2>
+            </div>
+        </div>
+        <div class="header-right">
+            <a href="../index.html" class="btn-back-home">🏠 VỀ TRANG CHỦ</a>
+        </div>
+    </header>
+
+    <div class="gradient-slide-line"></div>
+
+    <main class="main-container">
+        <section class="card-section">
+            <div class="card-header">
+                <h3>NHẬP FILE EXCEL DANH SÁCH SỐ GCN</h3>
+            </div>
+
+            <div class="main-drop-box excel-theme">
+                <span class="drop-icon">📊</span>
+                <p class="drop-txt-main">Kéo & thả file Excel (.xlsx) chứa danh sách vào đây hoặc bấm để chọn</p>
+                <input type="file" id="excelInput" accept=".xlsx, .xls" class="hidden-input"
+                    onchange="handleExcelUpload(event)" />
+            </div>
+
+            <div id="fileInfoBox" class="file-info-strip" style="display: none;">
+                <span>📋 Tên file: <strong id="lblFileName">-</strong></span>
+                <span>🔹 Tổng số dòng: <strong id="lblTotalRows">0</strong></span>
+            </div>
+
+            <div class="action-bar" style="margin-top: 20px; text-align: center;">
+                <button id="btnProcess" class="btn-execute" onclick="generatePdfInputs()" disabled>⚡ TIẾN HÀNH TẠO FILE
+                    HÀNG LOẠT</button>
+            </div>
+
+            <div id="errorAlertBox" class="alert-box status-error" style="display: none;"></div>
+
+            <div id="successAlertBox" class="alert-box status-success" style="display: none;"></div>
+
+            <div id="logConsole" class="console-box" style="display: none;"></div>
+        </section>
+    </main>
+
+    <footer class="bottom-footer">Văn phòng Đăng ký đất đai tỉnh Thái Nguyên</footer>
+
+    <script>
+        let excelDataRows = []; // Lưu trữ dữ liệu sau khi đọc từ Excel
+
+        // Xử lý nạp và đọc file Excel
+        async function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            document.getElementById("lblFileName").innerText = file.name;
+            document.getElementById("errorAlertBox").style.display = "none";
+            document.getElementById("successAlertBox").style.display = "none";
+            document.getElementById("logConsole").innerHTML = "";
+            document.getElementById("logConsole").style.display = "none";
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+
+                    // Chuyển dữ liệu sang mảng (Dạng ma trận: hàng và cột)
+                    const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    if (rawRows.length <= 1) {
+                        alert("File Excel trống hoặc chỉ có tiêu đề, vui lòng kiểm tra lại!");
+                        return;
+                    }
+
+                    excelDataRows = rawRows;
+                    document.getElementById("lblTotalRows").innerText = rawRows.length - 1; // Trừ dòng tiêu đề
+                    document.getElementById("fileInfoBox").style.display = "flex";
+                    document.getElementById("btnProcess").disabled = false;
+                } catch (err) {
+                    alert("Không thể đọc file Excel. Vui lòng đảm bảo file chuẩn định dạng!");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Tiến hành kiểm tra format và tạo file PDF
+        async function generatePdfInputs() {
+            if (excelDataRows.length <= 1) return;
+
+            const errorAlert = document.getElementById("errorAlertBox");
+            const successAlert = document.getElementById("successAlertBox");
+            const logConsole = document.getElementById("logConsole");
+
+            errorAlert.style.display = "none";
+            successAlert.style.display = "none";
+            logConsole.innerHTML = "";
+            logConsole.style.display = "block";
+
+            let errorRows = []; // Lưu danh sách các hàng sai định dạng
+            let validItems = []; // Lưu danh sách hàng hợp lệ để xuất file
+
+            // Định dạng chuẩn: 2 chữ cái hoa, 1 khoảng trắng, 8 chữ số
+            const gcnRegex = /^[A-Z]{2}\s\d{8}$/;
+
+            addLog("🔍 Bắt đầu kiểm tra cấu trúc định dạng cột Số GCN...");
+
+            // Vòng lặp kiểm tra từ dòng thứ 2 (chỉ mục i = 1) trở đi
+            for (let i = 1; i < excelDataRows.length; i++) {
+                const row = excelDataRows[i];
+                const stt = row[0] || (i);
+                let gcnValue = row[1];
+
+                // Ép kiểu về chuỗi ký tự và cắt bỏ khoảng trắng thừa đầu cuối
+                gcnValue = gcnValue ? String(gcnValue).trim() : "";
+
+                if (gcnRegex.test(gcnValue)) {
+                    validItems.push({ stt: stt, gcn: gcnValue });
+                } else {
+                    // Ghi nhận số hàng thực tế trong Excel (i + 1 vì tính cả dòng tiêu đề và đếm từ 1)
+                    errorRows.push({ line: i + 1, value: gcnValue || "[Trống]" });
+                    addLog(`❌ Hàng ${i + 1}: Sai định dạng (Giá trị: "${gcnValue}")`, true);
+                }
+            }
+
+            // Trường hợp phát hiện có dòng dữ liệu sai quy định
+            if (errorRows.length > 0) {
+                errorAlert.innerHTML = `⚠️ Phát hiện có <strong>${errorRows.length}</strong> hàng dữ liệu chưa chính xác định dạng quy định (Ví dụ chuẩn: AA 12345678).<br>Các hàng phát hiện lỗi: ` +
+                    errorRows.map(e => `Hàng ${e.line}`).join(", ") +
+                    `<br><strong>Vui lòng điều chỉnh lại file Excel và nạp lại hệ thống!</strong>`;
+                errorAlert.style.display = "block";
+                return;
+            }
+
+            // Nếu toàn bộ dữ liệu chuẩn chỉnh, tiến hành tạo tệp PDF hàng loạt
+            addLog(`✨ Dữ liệu chuẩn đạt 100%! Tiến hành khởi tạo ${validItems.length} file PDF...`);
+            updateStatusLoading("⏳ Đang nén cấu trúc gói tệp tin thành phẩm...");
+
+            const { jsPDF } = window.jspdf;
+            const zip = new JSZip();
+
+            for (let item of validItems) {
+                const doc = new jsPDF();
+
+                // Ghi nội dung là số hiệu GCN vào trang PDF
+                doc.setFont("Helvetica", "bold");
+                doc.setFontSize(16);
+                doc.text(item.gcn, 20, 30);
+
+                // Xuất PDF thành mảng dữ liệu nhị phân để đóng gói vào ZIP
+                const pdfOutput = doc.output("arraybuffer");
+                zip.file(`${item.gcn}.pdf`, pdfOutput);
+            }
+
+            // Xuất file ZIP tải về máy người dùng
+            try {
+                const blob = await zip.generateAsync({ type: "blob" });
+                const link = document.createElement("a");
+                link.href = URL.createObjectURL(blob);
+                link.download = `Phôi_Đầu_Vào_GCN_Thành_Phẩm.zip`;
+                link.click();
+
+                successAlert.innerHTML = `🎉 XỬ LÝ THÀNH CÔNG! Đã khởi tạo và tải xuống gói cấu trúc gồm <strong>${validItems.length}</strong> file PDF tương ứng chuẩn xác.`;
+                successAlert.style.display = "block";
+                addLog("✅ Hoàn tất! Tệp ZIP đã được xuất thành công.");
+            } catch (err) {
+                alert("Có lỗi xảy ra trong quá trình nén ZIP: " + err.message);
+            }
+        }
+
+        function addLog(msg, isErr = false) {
+            const consoleBox = document.getElementById("logConsole");
+            const line = document.createElement("div");
+            line.className = "log-line";
+            if (isErr) line.style.color = "#dc2626";
+            line.innerText = msg;
+            consoleBox.appendChild(line);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function updateStatusLoading(msg) {
+            const successAlert = document.getElementById("successAlertBox");
+            successAlert.className = "alert-box status-loading";
+            successAlert.innerText = msg;
+            successAlert.style.display = "block";
+        }
+    </script>
+</body>
+
+</html>
