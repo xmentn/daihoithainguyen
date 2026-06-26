@@ -24,7 +24,12 @@
                     <div class="card-icon-wrapper">
                         <img src="images/pdficon.png" alt="Icon Tách file" class="img-card-illustration">
                     </div>
-                    <h3 class="card-title">TÁCH VÀ ĐỒNG BỘ TÊN FILE GIẤY CHỨNG NHẬN</h3>
+                    <div class="card-title-container">
+                        <h3 class="card-title">TÁCH VÀ ĐỒNG BỘ TÊN FILE GIẤY CHỨNG NHẬN</h3>
+                        <div class="card-live-counter">
+                            📊 Số tệp đã thực hiện: <strong id="portal_global_files">0</strong> tệp
+                        </div>
+                    </div>
                 </div>
                 <p class="card-desc">Hỗ trợ bẻ nhỏ file PDF tổng hợp từ máy quét, tự động quét mã hiệu, nhận diện ký tự
                     qua công nghệ OCR tiên tiến và đồng bộ đổi tên file hàng loạt.</p>
@@ -40,7 +45,9 @@
                     <div class="card-icon-wrapper">
                         <img src="images/document.png" alt="Icon Tạo đầu vào" class="img-card-illustration">
                     </div>
-                    <h3 class="card-title">TẠO FILE ĐẦU VÀO SỐ GIẤY CHỨNG NHẬN</h3>
+                    <div class="card-title-container">
+                        <h3 class="card-title">TẠO FILE ĐẦU VÀO SỐ GIẤY CHỨNG NHẬN</h3>
+                    </div>
                 </div>
                 <p class="card-desc">Hỗ trợ số hóa dữ liệu, tự động kiểm tra định dạng cấu trúc mẫu chuẩn chỉnh "AA
                     12345678", khởi tạo hàng loạt file PDF rỗng mang tên và nội dung số hiệu.</p>
@@ -89,6 +96,43 @@
         Văn phòng Đăng ký đất đai tỉnh Thái Nguyên &copy; 2026
     </footer>
 
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Cấu hình Firebase (Anh giữ nguyên các thông số thực tế của anh)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBOnhnrnR0waYeLcEtCQQLbZp_ESpZ-izY",
+            authDomain: "he-thong-tach-gcn.firebaseapp.com",
+            databaseURL:
+                "https://he-thong-tach-gcn-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "he-thong-tach-gcn",
+            storageBucket: "he-thong-tach-gcn.firebasestorage.app",
+            messagingSenderId: "925682243930",
+            appId: "1:925682243930:web:0ce32adfd408e6ccf9bb63",
+        };
+
+        // Khởi tạo kết nối Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        // 🎯 ĐÃ SỬA CHUẨN: Trỏ đúng vào nhánh cấu trúc 'counter/total_files_processed'
+        const totalFilesRef = database.ref('counter/total_files_processed');
+
+        totalFilesRef.on('value', (snapshot) => {
+            const dataValue = snapshot.val();
+            if (dataValue !== null) {
+                // Hiển thị số liệu lên ô 'portal_global_files' ngoài trang chủ
+                document.getElementById('portal_global_files').innerText = Number(dataValue).toLocaleString('vi-VN');
+            } else {
+                document.getElementById('portal_global_files').innerText = "0";
+            }
+        }, (error) => {
+            console.log("Lỗi đồng bộ dữ liệu: " + error.message);
+        });
+    </script>
 </body>
 
 </html>

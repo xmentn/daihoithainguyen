@@ -11,6 +11,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
@@ -34,8 +37,17 @@
 
     <main class="main-container">
         <section class="card-section">
-            <div class="card-header">
-                <h3>NHẬP FILE EXCEL DANH SÁCH SỐ GCN</h3>
+            <div class="card-header"
+                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div class="card-title-block">
+                    <h3>NHẬP FILE EXCEL DANH SÁCH SỐ GCN</h3>
+                    <div class="card-live-counter"
+                        style="font-size: 13px; font-weight: 600; color: #475569; background: #f1f5f9; padding: 3px 10px; border-radius: 6px; width: fit-content; margin-top: 5px; border: 1px solid #e2e8f0;">
+                        📊 Tổng số phôi đã tạo: <strong id="global_input_files"
+                            style="color: #047857; font-weight: 800;">0</strong> tệp
+                    </div>
+                </div>
+                <button class="btn-guide-trigger" onclick="openGuideModal()">📖 HƯỚNG DẪN SỬ SỤNG</button>
             </div>
 
             <div class="main-drop-box excel-theme">
@@ -56,19 +68,104 @@
             </div>
 
             <div id="errorAlertBox" class="alert-box status-error" style="display: none;"></div>
-
             <div id="successAlertBox" class="alert-box status-success" style="display: none;"></div>
-
             <div id="logConsole" class="console-box" style="display: none;"></div>
         </section>
     </main>
 
+    <div id="guideModal" class="guide-modal-overlay" onclick="closeGuideModalOutside(event)">
+        <div class="guide-modal-content">
+            <div class="guide-modal-header">
+                <h3>📖 QUY TRÌNH TẠO FILE ĐẦU VÀO SỐ GIẤY CHỨNG NHẬN</h3>
+                <button class="btn-close-modal" onclick="closeGuideModal()">&times;</button>
+            </div>
+            <div class="guide-modal-body">
+                <div class="guide-step-item">
+                    <div class="guide-step-badge">Bước 1</div>
+                    <div class="guide-step-text">
+                        <strong>Chuẩn bị File Excel đầu vào:</strong> File Excel dữ liệu cấu trúc gồm 2 cột xếp liền kề:
+                        Cột 1 là <strong>STT</strong>, Cột 2 là <strong>Số GCN</strong>. Hàng đầu tiên bắt buộc phải là
+                        tiêu đề.
+                    </div>
+                </div>
+
+                <div class="guide-step-item">
+                    <div class="guide-step-badge">Bước 2</div>
+                    <div class="guide-step-text">
+                        <strong>Nạp dữ liệu vào hệ thống:</strong> Thực hiện kéo thả file Excel vào vùng màu vàng hoặc
+                        bấm trực tiếp vào khung để lựa chọn tệp tin từ máy tính.
+                    </div>
+                </div>
+
+                <div class="guide-step-item">
+                    <div class="guide-step-badge">Bước 3</div>
+                    <div class="guide-step-text">
+                        <strong>Kiểm tra Định dạng tự động:</strong> Khi bấm nút <em>"Tiến hành tạo file hàng
+                            loạt"</em>, hệ thống chạy RAM tự động rà soát từ hàng số 2 trở đi. Mã hiệu phải đúng quy
+                        định: <strong>2 ký tự viết hoa + 1 khoảng trắng + 8 chữ số</strong> (Ví dụ chuẩn:
+                        <code>AA 12345678</code>).
+                    </div>
+                </div>
+
+                <div class="guide-step-item">
+                    <div class="guide-step-badge">Bước 4</div>
+                    <div class="guide-step-text">
+                        <strong>Xuất thành phẩm:</strong> Nếu phát hiện lỗi định dạng, hệ thống sẽ chỉ rõ số hàng lỗi để
+                        chỉnh sửa. Nếu dữ liệu đạt chuẩn 100%, tệp ZIP chứa hàng loạt file PDF rỗng mang tên và nội dung
+                        số hiệu GCN tương ứng sẽ tự động tải xuống.
+                    </div>
+                </div>
+            </div>
+            <div class="guide-modal-footer">
+                <button class="btn-guide-close-bottom" onclick="closeGuideModal()">Đã hiểu, đóng hướng dẫn</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="bottom-footer">Văn phòng Đăng ký đất đai tỉnh Thái Nguyên</footer>
 
     <script>
-        let excelDataRows = []; // Lưu trữ dữ liệu sau khi đọc từ Excel
+        // --- CẤU HÌNH KẾT NỐI HỆ THỐNG FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAsX-xxxxxx_YOUR_KEY",
+            authDomain: "gcn-project.firebaseapp.com",
+            databaseURL: "https://gcn-project-default-rtdb.firebaseio.com", // Điền link Realtime Database của anh vào đây
+            projectId: "gcn-project",
+            storageBucket: "gcn-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef"
+        };
 
-        // Xử lý nạp và đọc file Excel
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        // 🎯 FIX VẤN ĐỀ 1 & 2: Lắng nghe nhánh 'counter/total_inputs_generated' riêng biệt
+        // Hàm này tự chạy ngay khi load trang để kéo số liệu cũ về, không bị reset thành 0 khi F5
+        database.ref("counter/total_inputs_generated").on("value", (snapshot) => {
+            const val = snapshot.val() || 0;
+            document.getElementById("global_input_files").innerText = Number(val).toLocaleString('vi-VN');
+        });
+
+        // --- CÁC HÀM ĐIỀU KHIỂN HỘP THOẠI HƯỚNG DẪN ---
+        function openGuideModal() {
+            document.getElementById("guideModal").style.display = "flex";
+        }
+
+        function closeGuideModal() {
+            document.getElementById("guideModal").style.display = "none";
+        }
+
+        function closeGuideModalOutside(event) {
+            const modal = document.getElementById("guideModal");
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        let excelDataRows = [];
+
         async function handleExcelUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -87,7 +184,6 @@
                     const firstSheetName = workbook.SheetNames[0];
                     const worksheet = workbook.Sheets[firstSheetName];
 
-                    // Chuyển dữ liệu sang mảng (Dạng ma trận: hàng và cột)
                     const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
                     if (rawRows.length <= 1) {
@@ -96,7 +192,7 @@
                     }
 
                     excelDataRows = rawRows;
-                    document.getElementById("lblTotalRows").innerText = rawRows.length - 1; // Trừ dòng tiêu đề
+                    document.getElementById("lblTotalRows").innerText = rawRows.length - 1;
                     document.getElementById("fileInfoBox").style.display = "flex";
                     document.getElementById("btnProcess").disabled = false;
                 } catch (err) {
@@ -106,7 +202,6 @@
             reader.readAsArrayBuffer(file);
         }
 
-        // Tiến hành kiểm tra format và tạo file PDF
         async function generatePdfInputs() {
             if (excelDataRows.length <= 1) return;
 
@@ -119,33 +214,28 @@
             logConsole.innerHTML = "";
             logConsole.style.display = "block";
 
-            let errorRows = []; // Lưu danh sách các hàng sai định dạng
-            let validItems = []; // Lưu danh sách hàng hợp lệ để xuất file
+            let errorRows = [];
+            let validItems = [];
 
-            // Định dạng chuẩn: 2 chữ cái hoa, 1 khoảng trắng, 8 chữ số
             const gcnRegex = /^[A-Z]{2}\s\d{8}$/;
 
             addLog("🔍 Bắt đầu kiểm tra cấu trúc định dạng cột Số GCN...");
 
-            // Vòng lặp kiểm tra từ dòng thứ 2 (chỉ mục i = 1) trở đi
             for (let i = 1; i < excelDataRows.length; i++) {
                 const row = excelDataRows[i];
                 const stt = row[0] || (i);
                 let gcnValue = row[1];
 
-                // Ép kiểu về chuỗi ký tự và cắt bỏ khoảng trắng thừa đầu cuối
                 gcnValue = gcnValue ? String(gcnValue).trim() : "";
 
                 if (gcnRegex.test(gcnValue)) {
                     validItems.push({ stt: stt, gcn: gcnValue });
                 } else {
-                    // Ghi nhận số hàng thực tế trong Excel (i + 1 vì tính cả dòng tiêu đề và đếm từ 1)
                     errorRows.push({ line: i + 1, value: gcnValue || "[Trống]" });
                     addLog(`❌ Hàng ${i + 1}: Sai định dạng (Giá trị: "${gcnValue}")`, true);
                 }
             }
 
-            // Trường hợp phát hiện có dòng dữ liệu sai quy định
             if (errorRows.length > 0) {
                 errorAlert.innerHTML = `⚠️ Phát hiện có <strong>${errorRows.length}</strong> hàng dữ liệu chưa chính xác định dạng quy định (Ví dụ chuẩn: AA 12345678).<br>Các hàng phát hiện lỗi: ` +
                     errorRows.map(e => `Hàng ${e.line}`).join(", ") +
@@ -154,7 +244,6 @@
                 return;
             }
 
-            // Nếu toàn bộ dữ liệu chuẩn chỉnh, tiến hành tạo tệp PDF hàng loạt
             addLog(`✨ Dữ liệu chuẩn đạt 100%! Tiến hành khởi tạo ${validItems.length} file PDF...`);
             updateStatusLoading("⏳ Đang nén cấu trúc gói tệp tin thành phẩm...");
 
@@ -163,18 +252,14 @@
 
             for (let item of validItems) {
                 const doc = new jsPDF();
-
-                // Ghi nội dung là số hiệu GCN vào trang PDF
                 doc.setFont("Helvetica", "bold");
                 doc.setFontSize(16);
                 doc.text(item.gcn, 20, 30);
 
-                // Xuất PDF thành mảng dữ liệu nhị phân để đóng gói vào ZIP
                 const pdfOutput = doc.output("arraybuffer");
                 zip.file(`${item.gcn}.pdf`, pdfOutput);
             }
 
-            // Xuất file ZIP tải về máy người dùng
             try {
                 const blob = await zip.generateAsync({ type: "blob" });
                 const link = document.createElement("a");
@@ -183,8 +268,16 @@
                 link.click();
 
                 successAlert.innerHTML = `🎉 XỬ LÝ THÀNH CÔNG! Đã khởi tạo và tải xuống gói cấu trúc gồm <strong>${validItems.length}</strong> file PDF tương ứng chuẩn xác.`;
+                successAlert.className = "alert-box status-success"; // Khôi phục lại màu xanh thành công
                 successAlert.style.display = "block";
                 addLog("✅ Hoàn tất! Tệp ZIP đã được xuất thành công.");
+
+                // 🎯 ĐÃ TÁCH BIỆT: Cộng dồn số phôi đầu ra vào nhánh độc lập 'counter/total_inputs_generated'
+                const successCount = validItems.length;
+                database.ref("counter/total_inputs_generated").transaction((currentValue) => {
+                    return (currentValue || 0) + successCount;
+                });
+
             } catch (err) {
                 alert("Có lỗi xảy ra trong quá trình nén ZIP: " + err.message);
             }

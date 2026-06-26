@@ -105,6 +105,34 @@ body {
     line-height: 1.45;
 }
 
+/* Tạo khối bọc tiêu đề và counter nằm dọc sát nhau */
+.card-title-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+/* Thao tác định dạng dòng text số liệu tinh tế */
+.card-live-counter {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #475569;
+    /* Màu Slate nhã nhặn không làm lu mờ tên phân hệ */
+    background-color: #f1f5f9;
+    padding: 3px 10px;
+    border-radius: 6px;
+    width: fit-content;
+    margin-top: 2px;
+    border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+.card-live-counter strong {
+    color: #1d4ed8;
+    /* Highlight số đếm màu xanh nổi bật */
+    font-weight: 800;
+    font-size: 13.5px;
+}
+
 .card-desc {
     font-size: 14px;
     color: #475569;

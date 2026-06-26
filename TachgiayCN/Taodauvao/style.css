@@ -27,8 +27,8 @@ body {
     padding: 15px 40px;
     display: flex;
     justify-content: space-between;
-    /* Đẩy tiêu đề sang trái, nút sang phải */
     align-items: center;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .header-left {
@@ -53,18 +53,29 @@ body {
     object-fit: cover;
 }
 
+.header-titles {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+}
+
 .main-brand {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 800;
-    color: var(--primary-blue);
+    color: #1e3a8a;
     letter-spacing: -0.5px;
 }
 
 .sub-brand {
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 700;
-    color: var(--secondary-blue);
-    letter-spacing: 0.3px;
+    color: #2563eb;
+    letter-spacing: 0.2px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
 }
 
 .btn-back-home {
@@ -258,4 +269,158 @@ body {
     color: #94a3b8;
     font-size: 12px;
     font-weight: 600;
+}
+
+/* ==================== ĐỊNH DẠNG KHỐI HƯỚNG DẪN POPUP (MODAL) ==================== */
+.btn-guide-trigger {
+    background-color: #047857;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.btn-guide-trigger:hover {
+    background-color: #065f46;
+}
+
+/* Nền che mờ phía sau */
+.guide-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9999;
+    display: none;
+    /* Mặc định ẩn */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Khung popup chứa quy trình steps */
+.guide-modal-content {
+    background-color: #ffffff;
+    width: 100%;
+    max-width: 650px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #cbd5e1;
+    overflow: hidden;
+    animation: modalSlideUp 0.25s ease-out;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.guide-modal-header {
+    background-color: #f8fafc;
+    padding: 16px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.guide-modal-header h3 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #065f46;
+}
+
+.btn-close-modal {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.btn-close-modal:hover {
+    color: #475569;
+}
+
+.guide-modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.guide-step-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+}
+
+.guide-step-badge {
+    background-color: #ecfdf5;
+    color: #047857;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 5px;
+    white-space: nowrap;
+    border: 1px solid #a7f3d0;
+}
+
+.guide-step-text {
+    font-size: 13px;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.guide-step-text strong {
+    color: #0f172a;
+}
+
+.guide-step-text code {
+    background: #f1f5f9;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #dc2626;
+    font-weight: bold;
+}
+
+.guide-modal-footer {
+    padding: 12px 20px;
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-guide-close-bottom {
+    background-color: #0f172a;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-guide-close-bottom:hover {
+    background-color: #1e293b;
 }
