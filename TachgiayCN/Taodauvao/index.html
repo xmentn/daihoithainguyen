@@ -127,23 +127,22 @@
     <script>
         // --- CẤU HÌNH KẾT NỐI HỆ THỐNG FIREBASE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAsX-xxxxxx_YOUR_KEY",
-            authDomain: "gcn-project.firebaseapp.com",
-            databaseURL: "https://gcn-project-default-rtdb.firebaseio.com", // Điền link Realtime Database của anh vào đây
-            projectId: "gcn-project",
-            storageBucket: "gcn-project.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef"
+            apiKey: "AIzaSyBOnhnrnR0waYeLcEtCQQLbZp_ESpZ-izY",
+            authDomain: "he-thong-tach-gcn.firebaseapp.com",
+            databaseURL:
+                "https://he-thong-tach-gcn-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "he-thong-tach-gcn",
+            storageBucket: "he-thong-tach-gcn.firebasestorage.app",
+            messagingSenderId: "925682243930",
+            appId: "1:925682243930:web:0ce32adfd408e6ccf9bb63",
         };
-
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
         const database = firebase.database();
 
-        // 🎯 FIX VẤN ĐỀ 1 & 2: Lắng nghe nhánh 'counter/total_inputs_generated' riêng biệt
-        // Hàm này tự chạy ngay khi load trang để kéo số liệu cũ về, không bị reset thành 0 khi F5
-        database.ref("counter/total_inputs_generated").on("value", (snapshot) => {
+        // 🎯 ĐÃ SỬA: Lắng nghe trực tiếp từ biến phẳng gốc 'total_inputs_processed' độc lập, tránh bị reset về 0 khi F5
+        database.ref("total_inputs_processed").on("value", (snapshot) => {
             const val = snapshot.val() || 0;
             document.getElementById("global_input_files").innerText = Number(val).toLocaleString('vi-VN');
         });
@@ -157,6 +156,7 @@
             document.getElementById("guideModal").style.display = "none";
         }
 
+        // Đóng modal khi click ra vùng ngoài màu đen
         function closeGuideModalOutside(event) {
             const modal = document.getElementById("guideModal");
             if (event.target === modal) {
@@ -166,6 +166,7 @@
 
         let excelDataRows = [];
 
+        // Xử lý nạp và đọc file Excel
         async function handleExcelUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -202,6 +203,7 @@
             reader.readAsArrayBuffer(file);
         }
 
+        // Tiến hành kiểm tra format và tạo file PDF
         async function generatePdfInputs() {
             if (excelDataRows.length <= 1) return;
 
@@ -268,16 +270,15 @@
                 link.click();
 
                 successAlert.innerHTML = `🎉 XỬ LÝ THÀNH CÔNG! Đã khởi tạo và tải xuống gói cấu trúc gồm <strong>${validItems.length}</strong> file PDF tương ứng chuẩn xác.`;
-                successAlert.className = "alert-box status-success"; // Khôi phục lại màu xanh thành công
+                successAlert.className = "alert-box status-success";
                 successAlert.style.display = "block";
                 addLog("✅ Hoàn tất! Tệp ZIP đã được xuất thành công.");
 
-                // 🎯 ĐÃ TÁCH BIỆT: Cộng dồn số phôi đầu ra vào nhánh độc lập 'counter/total_inputs_generated'
+                // 🎯 ĐÃ TÁCH BIỆT: Ghi nhận độc lập số phôi đầu ra cộng dồn thẳng vào gốc 'total_inputs_processed' của Firebase, tránh chạm vào khối 1
                 const successCount = validItems.length;
-                database.ref("counter/total_inputs_generated").transaction((currentValue) => {
+                database.ref("total_inputs_processed").transaction((currentValue) => {
                     return (currentValue || 0) + successCount;
                 });
-
             } catch (err) {
                 alert("Có lỗi xảy ra trong quá trình nén ZIP: " + err.message);
             }

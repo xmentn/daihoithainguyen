@@ -47,6 +47,9 @@
                     </div>
                     <div class="card-title-container">
                         <h3 class="card-title">TẠO FILE ĐẦU VÀO SỐ GIẤY CHỨNG NHẬN</h3>
+                        <div class="card-live-counter">
+                            📊 Số phôi đã tạo: <strong id="portal_input_files">0</strong> tệp
+                        </div>
                     </div>
                 </div>
                 <p class="card-desc">Hỗ trợ số hóa dữ liệu, tự động kiểm tra định dạng cấu trúc mẫu chuẩn chỉnh "AA
@@ -131,6 +134,14 @@
             }
         }, (error) => {
             console.log("Lỗi đồng bộ dữ liệu: " + error.message);
+        });
+        database.ref("total_inputs_processed").on("value", (snapshot) => {
+            const val = snapshot.val() || 0;
+            // Giả sử id hiển thị số liệu của khối 2 ngoài trang chủ anh đặt là 'portal_input_files'
+            const el = document.getElementById("portal_input_files");
+            if (el) {
+                el.innerText = Number(val).toLocaleString('vi-VN');
+            }
         });
     </script>
 </body>
