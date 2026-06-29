@@ -1,13 +1,70 @@
-import { db } from './firebase-config.js';
-import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { db, auth } from './firebase-config.js';
+import { collection, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Đăng ký bộ tiện ích hiển thị số liệu lên các khối màu biểu đồ
+// ĐĂNG KÝ HÀM ĐĂNG XUẤT TOÀN CỤC NGAY TẠI TRANG CHỦ CHỐNG LỖI NOT DEFINED
+window.logoutUser = function () {
+  signOut(auth).then(() => {
+    window.location.reload(); // Đăng xuất xong tải lại trang chủ để cập nhật giao diện ẩn/hiện nút
+  }).catch((error) => {
+    alert("Lỗi đăng xuất: " + error.message);
+  });
+};
+
 Chart.register(ChartDataLabels);
-
 let scanChart, clChart, trendChart;
+// Hàm kiểm tra trạng thái đăng nhập để cấu hình lại các nút bấm trên thanh Header Trang chủ
+function checkUserStatus() {
+  onAuthStateChanged(auth, async (user) => {
+    const nameContainer = document.getElementById('admin-name');
+    const adminLink = document.getElementById('btn-admin-link');
+    const logoutBtn = document.getElementById('btn-logout-main');
 
+    if (user) {
+      // --- TRƯỜNG HỢP: ADMIN ĐÃ ĐĂNG NHẬP ---
+      if (logoutBtn) logoutBtn.style.display = "inline-flex"; // Hiện nút Đăng xuất
+
+      // ĐỔI TÍNH NĂNG NÚT QUẢN TRỊ: Dẫn thẳng vào trang nhập liệu số liệu thay vì trang login
+      if (adminLink) {
+        adminLink.style.display = "inline-flex";
+        adminLink.href = "admin.html"; // Đổi link sang trang quản trị dữ liệu
+        adminLink.innerHTML = "<i class='fa-solid fa-sliders' style='margin-right: 5px;'></i> Quản trị số liệu"; // Đổi chữ cho chuyên nghiệp
+        adminLink.style.background = "#e0f2fe";
+        adminLink.style.color = "#0369a1";
+        adminLink.style.borderColor = "#bae6fd";
+      }
+
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().fullName && nameContainer) {
+          nameContainer.innerHTML = `<i class='fa-solid fa-user-shield' style='color: #0056b3; margin-right: 5px;'></i> ${userDoc.data().fullName}`;
+          nameContainer.style.display = "inline-flex";
+        }
+      } catch (e) {
+        console.error("Lỗi lấy tên user:", e);
+      }
+    } else {
+      // --- TRƯỜNG HỢP: KHÁCH VÃNG LAI (CHƯA ĐĂNG NHẬP) ---
+      if (nameContainer) nameContainer.style.display = "none";
+      if (logoutBtn) logoutBtn.style.display = "none";
+
+      // Khôi phục nút về trạng thái dẫn tới trang Đăng nhập mặc định
+      if (adminLink) {
+        adminLink.style.display = "inline-flex";
+        adminLink.href = "login.html";
+        adminLink.innerHTML = "Khu vực Quản trị";
+        adminLink.style.background = ""; // Reset về css mặc định trong file style.css
+        adminLink.style.color = "";
+        adminLink.style.borderColor = "";
+      }
+    }
+  });
+}
 function loadDashboardData() {
-  // TỐI ƯU: Chỉ cần lắng nghe duy nhất bảng lịch sử 'progress_history' sắp xếp theo thời gian tăng dần
+  // Gọi hàm kiểm tra giao diện đăng nhập
+  checkUserStatus();
+
+  // Lắng nghe trục lịch sử tiến độ sắp xếp tăng dần
   const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "asc"));
 
   onSnapshot(historyQuery, (querySnapshot) => {
@@ -15,8 +72,7 @@ function loadDashboardData() {
     const dataScanList = [];
     const dataChuanHoaList = [];
     const dataChinhLyList = [];
-
-    let latestData = null; // Biến lưu trữ đợt dữ liệu gần ngày hiện tại nhất
+    let latestData = null;
 
     querySnapshot.forEach((docSnap) => {
       const log = docSnap.data();
@@ -24,14 +80,11 @@ function loadDashboardData() {
       dataScanList.push(log.soHoaDaScan || 0);
       dataChuanHoaList.push(log.soHoaChuanHoa || 0);
       dataChinhLyList.push(log.chinhLyDaXong || 0);
-
-      // Vì danh sách đã xếp tăng dần (asc), phần tử cuối cùng được duyệt sẽ luôn là đợt mới nhất theo thời gian
-      latestData = log;
+      latestData = log; // Phần tử cuối cùng là đợt mới nhất theo thời gian
     });
 
-    // --- 1. NẾU CÓ DỮ LIỆU, TIẾN HÀNH ĐỔ SỐ LIỆU ĐỢT MỚI NHẤT LÊN CÁC THẺ CARD ---
+    // --- ĐỔ DỮ LIỆU ĐỢT MỚI NHẤT LÊN CÁC THẺ CARD TIẾN ĐỘ ---
     if (latestData) {
-      // Xử lý số liệu khối Chỉnh lý (mét) của đợt mới nhất
       const clXong = latestData.chinhLyDaXong || 0;
       const clConLai = latestData.chinhLyConLai || 0;
       const totalCl = clXong + clConLai;
@@ -39,14 +92,13 @@ function loadDashboardData() {
       const clXongPercent = totalCl > 0 ? ((clXong / totalCl) * 100).toFixed(1) : 0;
       const clConLaiPercent = totalCl > 0 ? ((clConLai / totalCl) * 100).toFixed(1) : 0;
 
-      document.getElementById('cl-da-xong').innerText = clXong;
-      document.getElementById('cl-con-lai').innerText = clConLai;
-      document.getElementById('cl-xong-percent').innerText = clXongPercent;
-      document.getElementById('cl-conlai-percent').innerText = clConLaiPercent;
-      document.getElementById('bar-cl-xong').style.width = clXongPercent + '%';
-      document.getElementById('bar-cl-conlai').style.width = clConLaiPercent + '%';
+      if (document.getElementById('cl-da-xong')) document.getElementById('cl-da-xong').innerText = clXong;
+      if (document.getElementById('cl-con-lai')) document.getElementById('cl-con-lai').innerText = clConLai;
+      if (document.getElementById('cl-xong-percent')) document.getElementById('cl-xong-percent').innerText = clXongPercent;
+      if (document.getElementById('cl-conlai-percent')) document.getElementById('cl-conlai-percent').innerText = clConLaiPercent;
+      if (document.getElementById('bar-cl-xong')) document.getElementById('bar-cl-xong').style.width = clXongPercent + '%';
+      if (document.getElementById('bar-cl-conlai')) document.getElementById('bar-cl-conlai').style.width = clConLaiPercent + '%';
 
-      // Xử lý số liệu khối Số hóa (trang) của đợt mới nhất
       const shScan = latestData.soHoaDaScan || 0;
       const totalScan = latestData.tongSoCanScan || 1;
       const shChuanHoa = latestData.soHoaChuanHoa || 0;
@@ -55,31 +107,36 @@ function loadDashboardData() {
       const scanPercent = ((shScan / totalScan) * 100).toFixed(1);
       const chuanHoaPercent = ((shChuanHoa / totalChuanHoa) * 100).toFixed(1);
 
-      document.getElementById('sh-da-scan').innerText = shScan.toLocaleString();
-      document.getElementById('sh-chuan-hoa').innerText = shChuanHoa.toLocaleString();
-      document.getElementById('sh-scan-percent').innerText = scanPercent;
-      document.getElementById('sh-chuanhoa-percent').innerText = chuanHoaPercent;
-      document.getElementById('bar-sh-scan').style.width = scanPercent + '%';
-      document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
+      if (document.getElementById('sh-da-scan')) document.getElementById('sh-da-scan').innerText = shScan.toLocaleString();
+      if (document.getElementById('sh-chuan-hoa')) document.getElementById('sh-chuan-hoa').innerText = shChuanHoa.toLocaleString();
+      if (document.getElementById('sh-scan-percent')) document.getElementById('sh-scan-percent').innerText = scanPercent;
+      if (document.getElementById('sh-chuanhoa-percent')) document.getElementById('sh-chuanhoa-percent').innerText = chuanHoaPercent;
+      if (document.getElementById('bar-sh-scan')) document.getElementById('bar-sh-scan').style.width = scanPercent + '%';
+      if (document.getElementById('bar-sh-chuanhoa')) document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
 
-      // Vẽ lại 2 biểu đồ tĩnh phía trên dựa theo số liệu của đợt mới nhất này
       updateStaticCharts(latestData, totalCl);
+    } else {
+      // Trường hợp DB trống trơn chưa có đợt nào, xóa chữ "Đang tải..."
+      const cards = ['cl-da-xong', 'cl-con-lai', 'sh-da-scan', 'sh-chuan-hoa'];
+      cards.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = "0"; });
     }
 
-    // --- 2. VẼ BIỂU ĐỒ XU HƯỚNG THEO TOÀN BỘ LỊCH SỬ QUA CÁC ĐỢT ---
+    // VẼ BIỂU ĐỒ XU HƯỚNG
     updateTrendChart(labelsDates, dataScanList, dataChuanHoaList, dataChinhLyList);
+  }, (error) => {
+    console.error("Lỗi Firebase lắng nghe tiến độ:", error);
   });
 }
 
-// Hàm vẽ biểu đồ cột và biểu đồ tròn tĩnh phía trên
 function updateStaticCharts(data, totalCl) {
-  const ctxScan = document.getElementById('scanChart').getContext('2d');
-  const ctxCl = document.getElementById('clChart').getContext('2d');
+  const ctxScan = document.getElementById('scanChart')?.getContext('2d');
+  const ctxCl = document.getElementById('clChart')?.getContext('2d');
+
+  if (!ctxScan || !ctxCl) return;
 
   if (scanChart) scanChart.destroy();
   if (clChart) clChart.destroy();
 
-  // Biểu đồ cột mảng Số hóa tài liệu (Đợt mới nhất)
   scanChart = new Chart(ctxScan, {
     type: 'bar',
     data: {
@@ -107,7 +164,6 @@ function updateStaticCharts(data, totalCl) {
     }
   });
 
-  // Biểu đồ tròn tỷ lệ Chỉnh lý tài liệu (Đợt mới nhất)
   clChart = new Chart(ctxCl, {
     type: 'pie',
     data: {
@@ -120,7 +176,7 @@ function updateStaticCharts(data, totalCl) {
     options: {
       responsive: true, maintainAspectRatio: true, radius: '100%',
       plugins: {
-        legend: { display: false }, // Ẩn chú thích gốc của Chart.js, sử dụng hàng chú thích HTML tự tạo
+        legend: { display: false },
         datalabels: {
           formatter: (value) => {
             let percent = totalCl > 0 ? ((value / totalCl) * 100).toFixed(1) : 0;
@@ -133,9 +189,9 @@ function updateStaticCharts(data, totalCl) {
   });
 }
 
-// Hàm vẽ biểu đồ đường diễn biến xu hướng toàn diện
 function updateTrendChart(labels, scans, chuẩnHoas, chinhLys) {
-  const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  const ctxTrend = document.getElementById('trendChart')?.getContext('2d');
+  if (!ctxTrend) return;
   if (trendChart) trendChart.destroy();
 
   trendChart = new Chart(ctxTrend, {

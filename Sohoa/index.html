@@ -14,8 +14,18 @@
   <header class="banner-header">
     <img src="images/banner.png" alt="Hệ thống theo dõi tiến độ số hóa tài liệu lưu trữ Văn phòng Tỉnh ủy Thái Nguyên"
       class="banner-img" />
-    <nav class="nav-admin">
-      <a href="login.html" class="btn-admin">Khu vực Quản trị</a>
+    <nav class="nav-admin" style="display: flex; align-items: center; gap: 12px;">
+
+      <span id="admin-name"
+        style="font-weight: 600; color: #4a5568; font-size: 13px; background: rgba(255,255,255,0.9); padding: 6px 12px; border-radius: 4px; border: 1px solid #cbd5e1; display: none;"></span>
+
+      <a href="login.html" id="btn-admin-link" class="btn-admin"
+        style="display: inline-flex; align-items: center; justify-content: center; height: 32px; box-sizing: border-box;">Khu
+        vực Quản trị</a>
+
+      <button onclick="logoutUser()" id="btn-logout-main" class="btn-admin"
+        style="display: none; background: #fff5f5; color: #e53e3e; border-color: #fed7d7; height: 32px; box-sizing: border-box; align-items: center; justify-content: center;">Đăng
+        xuất</button>
     </nav>
   </header>
 
