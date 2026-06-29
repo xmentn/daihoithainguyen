@@ -1,17 +1,39 @@
 import { db } from './firebase-config.js';
-import { doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Đăng ký plugin hiển thị số liệu với Chart.js
+// Đăng ký bộ tiện ích hiển thị số liệu lên các khối màu biểu đồ
 Chart.register(ChartDataLabels);
 
-function loadDashboardData() {
-  onSnapshot(doc(db, "progress", "current_state"), (docSnap) => {
-    if (docSnap.exists()) {
-      const data = docSnap.data();
+let scanChart, clChart, trendChart;
 
-      // --- 1. Xử lý số liệu Chỉnh lý tài liệu (mét) ---
-      const clXong = data.chinhLyDaXong || 0;
-      const clConLai = data.chinhLyConLai || 0;
+function loadDashboardData() {
+  // TỐI ƯU: Chỉ cần lắng nghe duy nhất bảng lịch sử 'progress_history' sắp xếp theo thời gian tăng dần
+  const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "asc"));
+
+  onSnapshot(historyQuery, (querySnapshot) => {
+    const labelsDates = [];
+    const dataScanList = [];
+    const dataChuanHoaList = [];
+    const dataChinhLyList = [];
+
+    let latestData = null; // Biến lưu trữ đợt dữ liệu gần ngày hiện tại nhất
+
+    querySnapshot.forEach((docSnap) => {
+      const log = docSnap.data();
+      labelsDates.push(log.dateLabel || "");
+      dataScanList.push(log.soHoaDaScan || 0);
+      dataChuanHoaList.push(log.soHoaChuanHoa || 0);
+      dataChinhLyList.push(log.chinhLyDaXong || 0);
+
+      // Vì danh sách đã xếp tăng dần (asc), phần tử cuối cùng được duyệt sẽ luôn là đợt mới nhất theo thời gian
+      latestData = log;
+    });
+
+    // --- 1. NẾU CÓ DỮ LIỆU, TIẾN HÀNH ĐỔ SỐ LIỆU ĐỢT MỚI NHẤT LÊN CÁC THẺ CARD ---
+    if (latestData) {
+      // Xử lý số liệu khối Chỉnh lý (mét) của đợt mới nhất
+      const clXong = latestData.chinhLyDaXong || 0;
+      const clConLai = latestData.chinhLyConLai || 0;
       const totalCl = clXong + clConLai;
 
       const clXongPercent = totalCl > 0 ? ((clXong / totalCl) * 100).toFixed(1) : 0;
@@ -24,11 +46,11 @@ function loadDashboardData() {
       document.getElementById('bar-cl-xong').style.width = clXongPercent + '%';
       document.getElementById('bar-cl-conlai').style.width = clConLaiPercent + '%';
 
-      // --- 2. Xử lý số liệu Số hóa tài liệu (trang) ---
-      const shScan = data.soHoaDaScan || 0;
-      const totalScan = data.tongSoCanScan || 1;
-      const shChuanHoa = data.soHoaChuanHoa || 0;
-      const totalChuanHoa = data.tongSoCanChuanHoa || 1;
+      // Xử lý số liệu khối Số hóa (trang) của đợt mới nhất
+      const shScan = latestData.soHoaDaScan || 0;
+      const totalScan = latestData.tongSoCanScan || 1;
+      const shChuanHoa = latestData.soHoaChuanHoa || 0;
+      const totalChuanHoa = latestData.tongSoCanChuanHoa || 1;
 
       const scanPercent = ((shScan / totalScan) * 100).toFixed(1);
       const chuanHoaPercent = ((shChuanHoa / totalChuanHoa) * 100).toFixed(1);
@@ -40,26 +62,29 @@ function loadDashboardData() {
       document.getElementById('bar-sh-scan').style.width = scanPercent + '%';
       document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
 
-      // 3. Cập nhật biểu đồ đồ họa
-      updateCharts(data, totalCl);
+      // Vẽ lại 2 biểu đồ tĩnh phía trên dựa theo số liệu của đợt mới nhất này
+      updateStaticCharts(latestData, totalCl);
     }
+
+    // --- 2. VẼ BIỂU ĐỒ XU HƯỚNG THEO TOÀN BỘ LỊCH SỬ QUA CÁC ĐỢT ---
+    updateTrendChart(labelsDates, dataScanList, dataChuanHoaList, dataChinhLyList);
   });
 }
 
-let scanChart, clChart;
-function updateCharts(data, totalCl) {
+// Hàm vẽ biểu đồ cột và biểu đồ tròn tĩnh phía trên
+function updateStaticCharts(data, totalCl) {
   const ctxScan = document.getElementById('scanChart').getContext('2d');
   const ctxCl = document.getElementById('clChart').getContext('2d');
 
   if (scanChart) scanChart.destroy();
   if (clChart) clChart.destroy();
-  // --- CẤU HÌNH BIỂU ĐỒ CỘT (Số lượng trang đã số hóa) ---
+
+  // Biểu đồ cột mảng Số hóa tài liệu (Đợt mới nhất)
   scanChart = new Chart(ctxScan, {
     type: 'bar',
     data: {
       labels: ['Đã Scan', 'Đã Chuẩn hóa'],
       datasets: [{
-        // Bỏ phần 'Số lượng (Trang)' ở đây để tránh tạo nhãn thừa
         data: [data.soHoaDaScan || 0, data.soHoaChuanHoa || 0],
         backgroundColor: ['#2ecc71', '#9b59b6']
       }]
@@ -67,33 +92,22 @@ function updateCharts(data, totalCl) {
     options: {
       responsive: true,
       scales: {
-        x: {
-          display: true, // Đảm bảo trục X hiển thị chữ "Đã Scan" và "Đã Chuẩn hóa" phẳng, ngay ngắn dưới chân cột
-          grid: { display: false } // Ẩn đường lưới dọc cho biểu đồ thoáng hơn
-        },
-        y: {
-          beginAtZero: true,
-          grace: '15%' // Tạo khoảng trống phía trên đỉnh cột để không bị đè chữ số dữ liệu
-        }
+        x: { display: true, grid: { display: false } },
+        y: { beginAtZero: true, grace: '15%' }
       },
       plugins: {
-        // Ẩn hoàn toàn ô nhãn chú thích thừa thô sơ ở dưới đáy sơ đồ
         legend: { display: false },
         datalabels: {
-          anchor: 'end', // Đặt số liệu nổi ở trên đầu cột
-          align: 'top',
-          formatter: function (value) {
-            return value.toLocaleString() + " trang";
-          },
-          font: { weight: 'bold', size: 12 },
+          anchor: 'end', align: 'top',
+          formatter: (val) => val.toLocaleString() + " trang",
+          font: { weight: 'bold', size: 11 },
           color: '#2d3748'
         }
       }
     }
   });
 
-  // --- CẤU HÌNH BIỂU ĐỒ TRÒN (Tỷ lệ chỉnh lý tài liệu) ---
-  // --- CẤU HÌNH BIỂU ĐỒ TRÒN (Tỷ lệ chỉnh lý tài liệu) ---
+  // Biểu đồ tròn tỷ lệ Chỉnh lý tài liệu (Đợt mới nhất)
   clChart = new Chart(ctxCl, {
     type: 'pie',
     data: {
@@ -104,19 +118,77 @@ function updateCharts(data, totalCl) {
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      radius: '100%',
+      responsive: true, maintainAspectRatio: true, radius: '100%',
       plugins: {
-        // ẨN CHÚ THÍCH MẶC ĐỊNH BỊ BÓ BUỘC CỦA CHART.JS GÒN TRONG KHUNG ẢO
-        legend: { display: false },
+        legend: { display: false }, // Ẩn chú thích gốc của Chart.js, sử dụng hàng chú thích HTML tự tạo
         datalabels: {
           formatter: (value) => {
             let percent = totalCl > 0 ? ((value / totalCl) * 100).toFixed(1) : 0;
             return percent + '%';
           },
-          color: '#ffffff',
-          font: { weight: 'bold', size: 14 }
+          color: '#ffffff', font: { weight: 'bold', size: 13 }
+        }
+      }
+    }
+  });
+}
+
+// Hàm vẽ biểu đồ đường diễn biến xu hướng toàn diện
+function updateTrendChart(labels, scans, chuẩnHoas, chinhLys) {
+  const ctxTrend = document.getElementById('trendChart').getContext('2d');
+  if (trendChart) trendChart.destroy();
+
+  trendChart = new Chart(ctxTrend, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'Tiến độ Đã Scan (Trang)',
+          data: scans,
+          borderColor: '#2ecc71',
+          backgroundColor: 'rgba(46, 204, 113, 0.1)',
+          tension: 0.3,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Tiến độ Chuẩn hóa (Trang)',
+          data: chuẩnHoas,
+          borderColor: '#9b59b6',
+          backgroundColor: 'rgba(155, 89, 182, 0.1)',
+          tension: 0.3,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Đã Chỉnh lý (Mét)',
+          data: chinhLys,
+          borderColor: '#2b78e4',
+          backgroundColor: 'rgba(43, 120, 228, 0.1)',
+          tension: 0.3,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          type: 'linear', display: true, position: 'left',
+          title: { display: true, text: 'Số lượng Số hóa (Trang)', font: { weight: 'bold' } }
+        },
+        y1: {
+          type: 'linear', display: true, position: 'right',
+          title: { display: true, text: 'Khối lượng Chỉnh lý (Mét)', font: { weight: 'bold' } },
+          grid: { drawOnChartArea: false }
+        }
+      },
+      plugins: {
+        legend: { position: 'bottom' },
+        datalabels: {
+          align: 'top',
+          font: { size: 10, weight: '500' },
+          formatter: (val) => val.toLocaleString()
         }
       }
     }
