@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tiến độ Số hóa - VP Tỉnh ủy Thái Nguyên</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>TIẾN ĐỘ CHỈNH LÝ, SỐ HÓA TÀI LIỆU LƯU TRỮ</h1>
+      <h2>Văn phòng Tỉnh ủy Thái Nguyên</h2>
+      <nav>
+        <a href="login.html" class="btn-admin">Khu vực Quản trị</a>
+      </nav>
+    </header>
+
+    <main class="dashboard-container">
+      <section class="stats-grid">
+        <div class="card blue">
+          <h3>Chỉnh lý xong</h3>
+          <p id="cl-da-xong">-- mét</p>
+        </div>
+        <div class="card orange">
+          <h3>Chỉnh lý còn lại</h3>
+          <p id="cl-con-lai">-- mét</p>
+        </div>
+        <div class="card green">
+          <h3>Đã Scan</h3>
+          <p id="sh-da-scan">-- trang</p>
+        </div>
+        <div class="card purple">
+          <h3>Chuẩn hóa dữ liệu</h3>
+          <p id="sh-chuan-hoa">-- trang</p>
+        </div>
+      </section>
+
+      <section class="charts-grid">
+        <div class="chart-box">
+          <h3>Biểu đồ Tiến độ Số hóa (Trang)</h3>
+          <canvas id="scanChart"></canvas>
+        </div>
+        <div class="chart-box">
+          <h3>Tỷ lệ Chỉnh lý Tài liệu (Mét)</h3>
+          <canvas id="clChart"></canvas>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="js/dashboard.js"></script>
+  </body>
+</html>
