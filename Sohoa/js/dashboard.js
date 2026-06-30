@@ -118,6 +118,10 @@ function renderCampaignData(campaignName) {
   // 3. Tính toán khối Chuẩn hóa trang
   const shChuanHoa = latest.soHoaChuanHoa || 0;
   const chuanHoaPercent = tongTrang > 0 ? ((shChuanHoa / tongTrang) * 100).toFixed(1) : 0;
+  const chuanhoaConLai = tongTrang - shChuanHoa;
+  if (document.getElementById('sh-chuanhoa-conlai')) {
+    document.getElementById('sh-chuanhoa-conlai').innerText = chuanhoaConLai > 0 ? chuanhoaConLai.toLocaleString() : 0;
+  }
   document.getElementById('sh-chuan-hoa').innerText = shChuanHoa.toLocaleString();
   document.getElementById('sh-chuanhoa-percent').innerText = chuanHoaPercent;
   document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
