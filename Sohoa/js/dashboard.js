@@ -2,145 +2,164 @@ import { db, auth } from './firebase-config.js';
 import { collection, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// ĐĂNG KÝ HÀM ĐĂNG XUẤT TOÀN CỤC NGAY TẠI TRANG CHỦ CHỐNG LỖI NOT DEFINED
 window.logoutUser = function () {
-  signOut(auth).then(() => {
-    window.location.reload(); // Đăng xuất xong tải lại trang chủ để cập nhật giao diện ẩn/hiện nút
-  }).catch((error) => {
-    alert("Lỗi đăng xuất: " + error.message);
-  });
+  signOut(auth).then(() => { window.location.reload(); });
 };
 
 Chart.register(ChartDataLabels);
-let scanChart, clChart, trendChart;
-// Hàm kiểm tra trạng thái đăng nhập để cấu hình lại các nút bấm trên thanh Header Trang chủ
+// Khai báo thêm biến chứa đối tượng biểu đồ phần mềm toàn cục
+let scanChart, clChart, pmChart, trendChart;
+let allLogs = [];
+
 function checkUserStatus() {
   onAuthStateChanged(auth, async (user) => {
     const nameContainer = document.getElementById('admin-name');
     const adminLink = document.getElementById('btn-admin-link');
     const logoutBtn = document.getElementById('btn-logout-main');
-
     if (user) {
-      // --- TRƯỜNG HỢP: ADMIN ĐÃ ĐĂNG NHẬP ---
-      if (logoutBtn) logoutBtn.style.display = "inline-flex"; // Hiện nút Đăng xuất
-
-      // ĐỔI TÍNH NĂNG NÚT QUẢN TRỊ: Dẫn thẳng vào trang nhập liệu số liệu thay vì trang login
+      if (logoutBtn) logoutBtn.style.display = "inline-flex";
       if (adminLink) {
-        adminLink.style.display = "inline-flex";
-        adminLink.href = "admin.html"; // Đổi link sang trang quản trị dữ liệu
-        adminLink.innerHTML = "<i class='fa-solid fa-sliders' style='margin-right: 5px;'></i> Quản trị số liệu"; // Đổi chữ cho chuyên nghiệp
-        adminLink.style.background = "#e0f2fe";
-        adminLink.style.color = "#0369a1";
-        adminLink.style.borderColor = "#bae6fd";
+        adminLink.href = "admin.html";
+        adminLink.innerHTML = "<i class='fa-solid fa-sliders'></i> Quản trị số liệu";
       }
-
-      try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().fullName && nameContainer) {
-          nameContainer.innerHTML = `<i class='fa-solid fa-user-shield' style='color: #0056b3; margin-right: 5px;'></i> ${userDoc.data().fullName}`;
-          nameContainer.style.display = "inline-flex";
-        }
-      } catch (e) {
-        console.error("Lỗi lấy tên user:", e);
-      }
-    } else {
-      // --- TRƯỜNG HỢP: KHÁCH VÃNG LAI (CHƯA ĐĂNG NHẬP) ---
-      if (nameContainer) nameContainer.style.display = "none";
-      if (logoutBtn) logoutBtn.style.display = "none";
-
-      // Khôi phục nút về trạng thái dẫn tới trang Đăng nhập mặc định
-      if (adminLink) {
-        adminLink.style.display = "inline-flex";
-        adminLink.href = "login.html";
-        adminLink.innerHTML = "Khu vực Quản trị";
-        adminLink.style.background = ""; // Reset về css mặc định trong file style.css
-        adminLink.style.color = "";
-        adminLink.style.borderColor = "";
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().role === "admin" && userDoc.data().fullName && nameContainer) {
+        nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> ${userDoc.data().fullName}`;
+        nameContainer.style.display = "inline-flex";
       }
     }
   });
 }
+
 function loadDashboardData() {
-  // Gọi hàm kiểm tra giao diện đăng nhập
   checkUserStatus();
 
-  // Lắng nghe trục lịch sử tiến độ sắp xếp tăng dần
+  // Lắng nghe dữ liệu lịch sử từ Firebase
   const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "asc"));
-
   onSnapshot(historyQuery, (querySnapshot) => {
-    const labelsDates = [];
-    const dataScanList = [];
-    const dataChuanHoaList = [];
-    const dataChinhLyList = [];
-    let latestData = null;
+    allLogs = [];
+    const campaignSet = new Set();
 
     querySnapshot.forEach((docSnap) => {
       const log = docSnap.data();
-      labelsDates.push(log.dateLabel || "");
-      dataScanList.push(log.soHoaDaScan || 0);
-      dataChuanHoaList.push(log.soHoaChuanHoa || 0);
-      dataChinhLyList.push(log.chinhLyDaXong || 0);
-      latestData = log; // Phần tử cuối cùng là đợt mới nhất theo thời gian
+      log.id = docSnap.id;
+      allLogs.push(log);
+      if (log.campaignName) campaignSet.add(log.campaignName);
     });
 
-    // --- ĐỔ DỮ LIỆU ĐỢT MỚI NHẤT LÊN CÁC THẺ CARD TIẾN ĐỘ ---
-    if (latestData) {
-      const clXong = latestData.chinhLyDaXong || 0;
-      const clConLai = latestData.chinhLyConLai || 0;
-      const totalCl = clXong + clConLai;
+    const selectBox = document.getElementById('select-campaign');
+    if (!selectBox) return;
+    const currentSelection = selectBox.value;
+    selectBox.innerHTML = "";
 
-      const clXongPercent = totalCl > 0 ? ((clXong / totalCl) * 100).toFixed(1) : 0;
-      const clConLaiPercent = totalCl > 0 ? ((clConLai / totalCl) * 100).toFixed(1) : 0;
-
-      if (document.getElementById('cl-da-xong')) document.getElementById('cl-da-xong').innerText = clXong;
-      if (document.getElementById('cl-con-lai')) document.getElementById('cl-con-lai').innerText = clConLai;
-      if (document.getElementById('cl-xong-percent')) document.getElementById('cl-xong-percent').innerText = clXongPercent;
-      if (document.getElementById('cl-conlai-percent')) document.getElementById('cl-conlai-percent').innerText = clConLaiPercent;
-      if (document.getElementById('bar-cl-xong')) document.getElementById('bar-cl-xong').style.width = clXongPercent + '%';
-      if (document.getElementById('bar-cl-conlai')) document.getElementById('bar-cl-conlai').style.width = clConLaiPercent + '%';
-
-      const shScan = latestData.soHoaDaScan || 0;
-      const totalScan = latestData.tongSoCanScan || 1;
-      const shChuanHoa = latestData.soHoaChuanHoa || 0;
-      const totalChuanHoa = latestData.tongSoCanChuanHoa || 1;
-
-      const scanPercent = ((shScan / totalScan) * 100).toFixed(1);
-      const chuanHoaPercent = ((shChuanHoa / totalChuanHoa) * 100).toFixed(1);
-
-      if (document.getElementById('sh-da-scan')) document.getElementById('sh-da-scan').innerText = shScan.toLocaleString();
-      if (document.getElementById('sh-chuan-hoa')) document.getElementById('sh-chuan-hoa').innerText = shChuanHoa.toLocaleString();
-      if (document.getElementById('sh-scan-percent')) document.getElementById('sh-scan-percent').innerText = scanPercent;
-      if (document.getElementById('sh-chuanhoa-percent')) document.getElementById('sh-chuanhoa-percent').innerText = chuanHoaPercent;
-      if (document.getElementById('bar-sh-scan')) document.getElementById('bar-sh-scan').style.width = scanPercent + '%';
-      if (document.getElementById('bar-sh-chuanhoa')) document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
-
-      updateStaticCharts(latestData, totalCl);
-    } else {
-      // Trường hợp DB trống trơn chưa có đợt nào, xóa chữ "Đang tải..."
-      const cards = ['cl-da-xong', 'cl-con-lai', 'sh-da-scan', 'sh-chuan-hoa'];
-      cards.forEach(id => { if (document.getElementById(id)) document.getElementById(id).innerText = "0"; });
+    if (campaignSet.size === 0) {
+      selectBox.innerHTML = "<option value=''>Chưa có đợt dữ liệu nào</option>";
+      return;
     }
 
-    // VẼ BIỂU ĐỒ XU HƯỚNG
-    updateTrendChart(labelsDates, dataScanList, dataChuanHoaList, dataChinhLyList);
-  }, (error) => {
-    console.error("Lỗi Firebase lắng nghe tiến độ:", error);
+    campaignSet.forEach(camp => {
+      const opt = document.createElement('option');
+      opt.value = camp;
+      opt.innerText = camp;
+      selectBox.appendChild(opt);
+    });
+
+    if (currentSelection && campaignSet.has(currentSelection)) {
+      selectBox.value = currentSelection;
+    } else {
+      selectBox.value = Array.from(campaignSet).pop();
+    }
+
+    renderCampaignData(selectBox.value);
+  });
+
+  document.getElementById('select-campaign').addEventListener('change', (e) => {
+    renderCampaignData(e.target.value);
   });
 }
 
-function updateStaticCharts(data, totalCl) {
+function renderCampaignData(campaignName) {
+  if (!campaignName) return;
+
+  const campLogs = allLogs.filter(log => log.campaignName === campaignName);
+  if (campLogs.length === 0) return;
+
+  // Lấy mốc báo cáo mới nhất của đợt này
+  const latest = campLogs[campLogs.length - 1];
+
+  // Lấy chỉ tiêu tổng cố định
+  const tongMet = latest.tongChinhLy || 0;
+  const tongTrang = latest.tongSoCanScan || 0;
+
+  document.getElementById('show-ten-dot').innerText = campaignName;
+  document.getElementById('show-tong-met').innerText = tongMet;
+  document.getElementById('show-tong-trang').innerText = tongTrang.toLocaleString();
+
+  // 1. Tính toán khối Chỉnh lý mét
+  const clXong = latest.chinhLyDaXong || 0;
+  const clConLai = tongMet - clXong;
+  const clPercent = tongMet > 0 ? ((clXong / tongMet) * 100).toFixed(1) : 0;
+
+  document.getElementById('cl-da-xong').innerText = clXong;
+  document.getElementById('cl-con-lai').innerText = clConLai > 0 ? clConLai.toFixed(1) : 0;
+  document.getElementById('cl-xong-percent').innerText = clPercent;
+  document.getElementById('bar-cl-xong').style.width = clPercent + '%';
+
+  // 2. Tính toán khối Đã Scan trang
+  const shScan = latest.soHoaDaScan || 0;
+  const scanConLai = tongTrang - shScan;
+  const scanPercent = tongTrang > 0 ? ((shScan / tongTrang) * 100).toFixed(1) : 0;
+
+  document.getElementById('sh-da-scan').innerText = shScan.toLocaleString();
+  document.getElementById('sh-scan-conlai').innerText = scanConLai > 0 ? scanConLai.toLocaleString() : 0;
+  document.getElementById('sh-scan-percent').innerText = scanPercent;
+  document.getElementById('bar-sh-scan').style.width = scanPercent + '%';
+
+  // 3. Tính toán khối Chuẩn hóa trang
+  const shChuanHoa = latest.soHoaChuanHoa || 0;
+  const chuanHoaPercent = tongTrang > 0 ? ((shChuanHoa / tongTrang) * 100).toFixed(1) : 0;
+  document.getElementById('sh-chuan-hoa').innerText = shChuanHoa.toLocaleString();
+  document.getElementById('sh-chuanhoa-percent').innerText = chuanHoaPercent;
+  document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
+
+  // 4. Tính toán khối Đã đưa lên phần mềm
+  const shPhanMem = latest.soHoaPhanMem || 0;
+  const pmConLai = tongTrang - shPhanMem;
+  const pmPercent = tongTrang > 0 ? ((shPhanMem / tongTrang) * 100).toFixed(1) : 0;
+
+  document.getElementById('sh-len-phan-mem').innerText = shPhanMem.toLocaleString();
+  document.getElementById('sh-pm-conlai').innerText = pmConLai > 0 ? pmConLai.toLocaleString() : 0;
+  document.getElementById('sh-pm-percent').innerText = pmPercent;
+  document.getElementById('bar-sh-pm').style.width = pmPercent + '%';
+
+  // Gọi hàm cập nhật các biểu đồ vòng tròn bao gồm cả biểu đồ Phần mềm mới
+  updateStaticCharts(latest, tongMet, tongTrang);
+
+  // Cập nhật biểu đồ xu hướng đường chạy dài ở dưới cùng
+  const labels = campLogs.map(l => l.dateLabel || "");
+  const scans = campLogs.map(l => l.soHoaDaScan || 0);
+  const chuẩnHoas = campLogs.map(l => l.soHoaChuanHoa || 0);
+  const phanMems = campLogs.map(l => l.soHoaPhanMem || 0);
+  const chinhLys = campLogs.map(l => l.chinhLyDaXong || 0);
+  updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys);
+}
+
+function updateStaticCharts(data, tongMet, tongTrang) {
   const ctxScan = document.getElementById('scanChart')?.getContext('2d');
   const ctxCl = document.getElementById('clChart')?.getContext('2d');
+  const ctxPm = document.getElementById('pmChart')?.getContext('2d');
 
   if (!ctxScan || !ctxCl) return;
 
   if (scanChart) scanChart.destroy();
   if (clChart) clChart.destroy();
+  if (pmChart) pmChart.destroy();
 
+  // 1. BIỂU ĐỒ CỘT: TIẾN ĐỘ SỐ HÓA (Đã được kéo giãn chiều cao đồng bộ)
   scanChart = new Chart(ctxScan, {
     type: 'bar',
     data: {
-      labels: ['Đã Scan', 'Đã Chuẩn hóa'],
+      labels: ['Đã Scan', 'Chuẩn hóa'],
       datasets: [{
         data: [data.soHoaDaScan || 0, data.soHoaChuanHoa || 0],
         backgroundColor: ['#2ecc71', '#9b59b6']
@@ -148,30 +167,33 @@ function updateStaticCharts(data, totalCl) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false, // Tắt tỉ lệ mặc định để dãn theo chiều cao khung chứa
       scales: {
-        x: { display: true, grid: { display: false } },
-        y: { beginAtZero: true, grace: '15%' }
+        y: {
+          beginAtZero: true,
+          grace: '15%',
+          ticks: { font: { size: 11 } }
+        },
+        x: { grid: { display: false } }
       },
       plugins: {
         legend: { display: false },
-        datalabels: {
-          anchor: 'end', align: 'top',
-          formatter: (val) => val.toLocaleString() + " trang",
-          font: { weight: 'bold', size: 11 },
-          color: '#2d3748'
-        }
+        datalabels: { anchor: 'end', align: 'top', formatter: (v) => v.toLocaleString(), font: { weight: 'bold' } }
+      },
+      layout: {
+        padding: { top: 30, bottom: 35 } // Căn chỉnh lề để cột cao tương đương 2 biểu đồ bên
       }
     }
   });
 
+  // 2. BIỂU ĐỒ TRÒN: TỶ LỆ CHỈNH LÝ TÀI LIỆU
+  const clXong = data.chinhLyDaXong || 0;
+  const clConLai = tongMet - clXong;
   clChart = new Chart(ctxCl, {
     type: 'pie',
     data: {
       labels: ['Đã chỉnh lý xong', 'Còn lại sơ bộ'],
-      datasets: [{
-        data: [data.chinhLyDaXong || 0, data.chinhLyConLai || 0],
-        backgroundColor: ['#2b78e4', '#f27a1a']
-      }]
+      datasets: [{ data: [clXong, clConLai > 0 ? clConLai : 0], backgroundColor: ['#2b78e4', '#f27a1a'] }]
     },
     options: {
       responsive: true, maintainAspectRatio: true, radius: '100%',
@@ -179,17 +201,53 @@ function updateStaticCharts(data, totalCl) {
         legend: { display: false },
         datalabels: {
           formatter: (value) => {
-            let percent = totalCl > 0 ? ((value / totalCl) * 100).toFixed(1) : 0;
-            return percent + '%';
+            let total = clXong + (clConLai > 0 ? clConLai : 0);
+            return total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
           },
-          color: '#ffffff', font: { weight: 'bold', size: 13 }
+          color: '#ffffff', font: { weight: 'bold', size: 12 }
         }
       }
     }
   });
-}
 
-function updateTrendChart(labels, scans, chuẩnHoas, chinhLys) {
+  // 3. BIỂU ĐỒ HÌNH NHẪN (DOUGHNUT): TỶ LỆ ĐƯA LÊN PHẦN MỀM SỐ HÓA
+  if (ctxPm) {
+    const pmXong = data.soHoaPhanMem || 0;
+    const pmConLai = tongTrang - pmXong;
+
+    // Tính toán nhanh % đưa lên phần mềm để hiển thị ở tâm nhẫn nếu cần
+    const pmPercent = tongTrang > 0 ? ((pmXong / tongTrang) * 100).toFixed(1) : '0.0';
+
+    pmChart = new Chart(ctxPm, {
+      type: 'doughnut', // CHUYỂN ĐỔI: Từ 'pie' sang 'doughnut' để tạo hình nhẫn
+      data: {
+        labels: ['Đã đưa lên PM', 'Chưa đưa lên'],
+        datasets: [{
+          data: [pmXong, pmConLai > 0 ? pmConLai : 0],
+          backgroundColor: ['#16a34a', '#cbd5e1']
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        radius: '100%',
+        cutout: '65%', // Độ rộng khoét lỗ giữa nhẫn (65% giúp vòng nhẫn thanh thoát, đẹp mắt)
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            formatter: (value) => {
+              let total = pmXong + (pmConLai > 0 ? pmConLai : 0);
+              return total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+            },
+            color: (context) => context.dataIndex === 0 ? '#ffffff' : '#475569', // Tự đổi màu chữ theo nền nhẫn
+            font: { weight: 'bold', size: 11 }
+          }
+        }
+      }
+    });
+  }
+}
+function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
   const ctxTrend = document.getElementById('trendChart')?.getContext('2d');
   if (!ctxTrend) return;
   if (trendChart) trendChart.destroy();
@@ -199,54 +257,19 @@ function updateTrendChart(labels, scans, chuẩnHoas, chinhLys) {
     data: {
       labels: labels,
       datasets: [
-        {
-          label: 'Tiến độ Đã Scan (Trang)',
-          data: scans,
-          borderColor: '#2ecc71',
-          backgroundColor: 'rgba(46, 204, 113, 0.1)',
-          tension: 0.3,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Tiến độ Chuẩn hóa (Trang)',
-          data: chuẩnHoas,
-          borderColor: '#9b59b6',
-          backgroundColor: 'rgba(155, 89, 182, 0.1)',
-          tension: 0.3,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Đã Chỉnh lý (Mét)',
-          data: chinhLys,
-          borderColor: '#2b78e4',
-          backgroundColor: 'rgba(43, 120, 228, 0.1)',
-          tension: 0.3,
-          yAxisID: 'y1'
-        }
+        { label: 'Đã Scan (Trang)', data: scans, borderColor: '#2ecc71', tension: 0.2, yAxisID: 'y' },
+        { label: 'Chuẩn hóa (Trang)', data: chuẩnHoas, borderColor: '#9b59b6', tension: 0.2, yAxisID: 'y' },
+        { label: 'Lên PM (Trang)', data: phanMems, borderColor: '#e67e22', tension: 0.2, yAxisID: 'y' },
+        { label: 'Chỉnh lý (Mét)', data: chinhLys, borderColor: '#2b78e4', tension: 0.2, yAxisID: 'y1' }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       scales: {
-        y: {
-          type: 'linear', display: true, position: 'left',
-          title: { display: true, text: 'Số lượng Số hóa (Trang)', font: { weight: 'bold' } }
-        },
-        y1: {
-          type: 'linear', display: true, position: 'right',
-          title: { display: true, text: 'Khối lượng Chỉnh lý (Mét)', font: { weight: 'bold' } },
-          grid: { drawOnChartArea: false }
-        }
+        y: { type: 'linear', position: 'left', title: { display: true, text: 'Số lượng Trang' } },
+        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Số lượng Mét' }, grid: { drawOnChartArea: false } }
       },
-      plugins: {
-        legend: { position: 'bottom' },
-        datalabels: {
-          align: 'top',
-          font: { size: 10, weight: '500' },
-          formatter: (val) => val.toLocaleString()
-        }
-      }
+      plugins: { legend: { position: 'bottom' }, datalabels: { display: false } }
     }
   });
 }

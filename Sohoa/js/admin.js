@@ -1,202 +1,299 @@
 import { db, auth } from './firebase-config.js';
-import { collection, addDoc, doc, setDoc, getDoc, query, orderBy, onSnapshot, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { collection, addDoc, doc, setDoc, getDoc, query, orderBy, onSnapshot, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// ĐĂNG KÝ HÀM ĐĂNG XUẤT TOÀN CỤC NGAY LẬP TỨC ĐỂ THẺ HTML ONCLICK KHÔNG BỊ "NOT DEFINED"
 window.logoutUser = function () {
-  signOut(auth).then(() => {
-    window.location.href = "login.html";
-  }).catch((error) => {
-    alert("Lỗi đăng xuất hệ thống: " + error.message);
-  });
+  signOut(auth).then(() => { window.location.href = "login.html"; });
 };
 
-// Hàm nạp số liệu tiến độ cũ vào Form và lắng nghe lịch sử đổ ra bảng bên phải
+let campaignsConfigMap = {};
+
 async function setupAdminData() {
-  // 1. Tự động gán mốc thời gian ngày hôm nay cho ô Date Input
   const today = new Date();
-  const inputDateEl = document.getElementById('input-date');
-  if (inputDateEl) {
-    inputDateEl.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  if (document.getElementById('input-date')) {
+    document.getElementById('input-date').value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   }
 
-  // 2. Lấy số liệu trạng thái hiện tại (current_state) điền sẵn vào các ô nhập
-  try {
-    const docSnap = await getDoc(doc(db, "progress", "current_state"));
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (document.getElementById('input-cl-xong')) document.getElementById('input-cl-xong').value = data.chinhLyDaXong || 0;
-      if (document.getElementById('input-cl-conlai')) document.getElementById('input-cl-conlai').value = data.chinhLyConLai || 0;
-      if (document.getElementById('input-sh-scan')) document.getElementById('input-sh-scan').value = data.soHoaDaScan || 0;
-      if (document.getElementById('input-tong-scan')) document.getElementById('input-tong-scan').value = data.tongSoCanScan || 0;
-      if (document.getElementById('input-sh-chuanhoa')) document.getElementById('input-sh-chuanhoa').value = data.soHoaChuanHoa || 0;
-      if (document.getElementById('input-tong-chuanhoa')) document.getElementById('input-tong-chuanhoa').value = data.tongSoCanChuanHoa || 0;
-    }
-  } catch (e) {
-    console.error("Lỗi kết nối database progress:", e);
-  }
+  // 1. LẮNG NGHE DANH SÁCH ĐỢT SỐ HÓA
+  const campQuery = query(collection(db, "campaigns"), orderBy("timestamp", "desc"));
+  onSnapshot(campQuery, (querySnapshot) => {
+    const campTableBody = document.getElementById('campaign-table-body');
+    if (campTableBody) campTableBody.innerHTML = "";
+    campaignsConfigMap = {};
 
-  // 3. Lắng nghe thời gian thực (Realtime) bảng lịch sử, xếp đợt mới lên đầu
+    querySnapshot.forEach((docSnap) => {
+      const camp = docSnap.data();
+      const campId = docSnap.id;
+
+      campaignsConfigMap[camp.campaignName] = {
+        tongChinhLy: camp.tongChinhLy || 0,
+        tongSoCanScan: camp.tongSoCanScan || 0
+      };
+
+      const row = document.createElement('tr');
+      row.style.borderBottom = "1px solid #f1f5f9";
+      row.innerHTML = `
+        <td style="padding: 10px; font-weight: 600; color: #1e293b;">${camp.campaignName}</td>
+        <td style="padding: 10px;">${camp.tongChinhLy} m</td>
+        <td style="padding: 10px;">${(camp.tongSoCanScan || 0).toLocaleString()} tr</td>
+        <td style="padding: 10px; text-align: center; display: flex; gap: 5px; justify-content: center;">
+            <button onclick="startEditCamp('${campId}')" style="background: #e0f2fe; color: #0369a1; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Sửa</button>
+            <button onclick="deleteCamp('${campId}', '${camp.campaignName}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
+        </td>
+      `;
+      if (campTableBody) campTableBody.appendChild(row);
+    });
+    updateCampaignSelectOptions();
+  });
+
+  // 2. LẮNG NGHE LỊCH SỬ TIẾN ĐỘ
   const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "desc"));
   onSnapshot(historyQuery, (querySnapshot) => {
     const tableBody = document.getElementById('history-table-body');
-    if (tableBody) {
-      tableBody.innerHTML = "";
-      querySnapshot.forEach((docSnap) => {
-        const log = docSnap.data();
-        const docId = docSnap.id;
-        const row = document.createElement('tr');
-        row.style.borderBottom = "1px solid #f1f5f9";
-        row.innerHTML = `
-                    <td style="padding: 12px 10px; font-weight: 600; color: #1e293b;">${log.dateLabel || 'Chưa rõ'}</td>
-                    <td style="padding: 12px 10px;">${log.chinhLyDaXong || 0} / ${(log.chinhLyDaXong || 0) + (log.chinhLyConLai || 0)} m</td>
-                    <td style="padding: 12px 10px;">${(log.soHoaDaScan || 0).toLocaleString()} trang</td>
-                    <td style="padding: 12px 10px; text-align: center;">
-                        <button class="btn-edit-action" onclick="startEdit('${docId}')" style="background: #e0f2fe; color: #0369a1; border: none; padding: 5px 10px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 12.5px;">
-                            <i class="fa-solid fa-pen-to-square"></i> Sửa
-                        </button>
-                    </td>
-                `;
-        tableBody.appendChild(row);
-      });
-    }
+    if (tableBody) tableBody.innerHTML = "";
+
+    querySnapshot.forEach((docSnap) => {
+      const log = docSnap.data();
+      const docId = docSnap.id;
+
+      const row = document.createElement('tr');
+      row.style.borderBottom = "1px solid #f1f5f9";
+      row.innerHTML = `
+                <td style="padding: 10px; font-weight: 600; color: #1e293b;">${log.campaignName || 'Chưa rõ'}<br><small style='color:#64748b;font-weight:500;'>${log.dateLabel}</small></td>
+                <td style="padding: 10px;">${log.chinhLyDaXong || 0} m</td>
+                <td style="padding: 10px;">${(log.soZero || log.soDoc || log.soHoaDaScan || 0).toLocaleString()} tr</td>
+                <td style="padding: 10px; text-align: center; display: flex; gap: 5px; justify-content: center;">
+                    <button class="btn-edit-action" onclick="startEdit('${docId}')" style="background: #e0f2fe; color: #0369a1; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Sửa</button>
+                    <button onclick="deleteProgress('${docId}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
+                </td>
+            `;
+      if (tableBody) tableBody.appendChild(row);
+    });
   });
 }
 
-// Kiểm tra quyền hạn tài khoản khi vừa vào trang quản trị
-function initAdminPage() {
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      const nameContainer = document.getElementById('admin-name');
-      if (nameContainer) {
-        nameContainer.innerHTML = `<i class='fa-solid fa-user-shield' style='color: #0056b3; margin-right: 5px;'></i> Đang xác thực quyền...`;
-      }
-
-      try {
-        // Truy vấn quyền từ Firestore
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().role === "admin") {
-          if (userDoc.data().fullName && nameContainer) {
-            nameContainer.innerHTML = `<i class='fa-solid fa-user-shield' style='color: #0056b3; margin-right: 5px;'></i> Xin chào, ${userDoc.data().fullName}`;
-          }
-          // Đúng quyền quản trị -> Load dữ liệu lên trang
-          setupAdminData();
-        } else {
-          alert("Tài khoản của bạn không có quyền truy cập vùng Quản trị!");
-          window.location.href = "index.html";
-        }
-      } catch (error) {
-        console.error("Lỗi đồng bộ dữ liệu tài khoản:", error);
-        setupAdminData(); // Phương án thoát hiểm dự phòng nếu lỗi kết nối
-      }
-    } else {
-      // Chưa đăng nhập -> Đá thẳng về login.html
-      window.location.href = "login.html";
-    }
+function updateCampaignSelectOptions() {
+  const selectBox = document.getElementById('input-campaign-name');
+  if (!selectBox) return;
+  const savedValue = selectBox.value;
+  selectBox.innerHTML = "";
+  const campaigns = Object.keys(campaignsConfigMap);
+  if (campaigns.length === 0) {
+    selectBox.innerHTML = "<option value=''>-- Hãy tạo Đợt ở Tab 1 --</option>";
+    return;
+  }
+  campaigns.forEach(camp => {
+    const opt = document.createElement('option');
+    opt.value = camp; opt.innerText = camp;
+    selectBox.appendChild(opt);
   });
+  if (savedValue && campaignsConfigMap[savedValue]) selectBox.value = savedValue;
 }
 
-// ĐĂNG KÝ HÀM KHI NGƯỜI DÙNG BẤM "SỬA" ĐỢT LỊCH SỬ CŨ
-window.startEdit = async (docId) => {
+// ================= TAB 1: THIẾT LẬP ĐỢT SỐ HÓA =================
+window.saveCampaignConfig = async function (e) {
+  e.preventDefault();
+  const btn = document.querySelector('#campaignForm .btn-save');
+  const origText = btn.innerHTML;
+  btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Đang lưu...";
+  btn.disabled = true;
+
+  const campId = document.getElementById('editing-camp-id').value;
+  const campaignName = document.getElementById('config-campaign-name').value.trim();
+  const tongChinhLy = parseFloat(document.getElementById('config-tong-chinhly').value) || 0;
+  const tongSoCanScan = parseInt(document.getElementById('config-tong-scan').value) || 0;
+
+  const payload = { campaignName, tongChinhLy, tongSoCanScan, timestamp: new Date() };
+
   try {
-    const docSnap = await getDoc(doc(db, "progress_history", docId));
+    if (campId) {
+      await updateDoc(doc(db, "campaigns", campId), payload);
+      // Sử dụng thông báo SweetAlert2 chuyên nghiệp
+      Swal.fire({ title: 'Thành công', text: `Đã cập nhật thông tin Đợt số hóa: "${campaignName}"`, icon: 'success', confirmButtonColor: '#0056b3' });
+    } else {
+      await addDoc(collection(db, "campaigns"), payload);
+      Swal.fire({ title: 'Thành công', text: `Khởi tạo thành công Đợt số hóa mới: "${campaignName}"`, icon: 'success', confirmButtonColor: '#0056b3' });
+    }
+    resetCampForm();
+  } catch (err) {
+    Swal.fire({ title: 'Lỗi dữ liệu', text: err.message, icon: 'error', confirmButtonColor: '#dc2626' });
+  }
+  btn.innerHTML = origText; btn.disabled = false;
+};
+
+window.startEditCamp = async (campId) => {
+  try {
+    const docSnap = await getDoc(doc(db, "campaigns", campId));
     if (docSnap.exists()) {
       const data = docSnap.data();
+      document.getElementById('editing-camp-id').value = campId;
+      document.getElementById('config-campaign-name').value = data.campaignName;
+      document.getElementById('config-tong-chinhly').value = data.tongChinhLy;
+      document.getElementById('config-tong-scan').value = data.tongSoCanScan;
 
-      // Gán dữ liệu lên form
-      document.getElementById('editing-doc-id').value = docId;
-      document.getElementById('input-cl-xong').value = data.chinhLyDaXong || 0;
-      document.getElementById('input-cl-conlai').value = data.chinhLyConLai || 0;
-      document.getElementById('input-sh-scan').value = data.soHoaDaScan || 0;
-      document.getElementById('input-tong-scan').value = data.tongSoCanScan || 0;
-      document.getElementById('input-sh-chuanhoa').value = data.soHoaChuanHoa || 0;
-      document.getElementById('input-tong-chuanhoa').value = data.tongSoCanChuanHoa || 0;
-
-      if (data.timestamp) {
-        const t = data.timestamp.toDate();
-        document.getElementById('input-date').value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
-      }
-
-      // Thay đổi tiêu đề giao diện sang Chế độ hiệu chỉnh
-      document.getElementById('form-action-title').innerHTML = "<i class='fa-solid fa-wrench' style='color: #d97706;'></i> HIỆU CHỈNH SỐ LIỆU ĐÃ CẬP NHẬT";
-      document.getElementById('form-action-desc').innerText = "Bạn đang sửa đổi số liệu của một đợt báo cáo cũ chưa chuẩn xác.";
-      document.getElementById('btn-submit-text').innerText = "Cập nhật thay đổi";
-
-      // Xử lý ẩn/hiện nút (Giữ nguyên nút Trang chủ hiển thị trên đầu)
-      if (document.getElementById('btn-cancel-edit')) document.getElementById('btn-cancel-edit').style.display = "inline-flex";
-      if (document.getElementById('btn-home-link')) document.getElementById('btn-home-link').style.display = "inline-flex";
-
-      // Cuộn mượt màn hình về form nhập liệu
-      document.getElementById('updateForm').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('camp-form-title').innerHTML = "<i class='fa-solid fa-wrench' style='color:#d97706;'></i> HIỆU CHỈNH THÔNG TIN ĐỢT";
+      document.getElementById('btn-camp-text').innerText = "Cập nhật đợt";
+      document.getElementById('btn-cancel-camp-edit').style.display = "inline-flex";
     }
-  } catch (e) {
-    alert("Không thể tải dữ liệu đợt chỉnh sửa: " + e.message);
-  }
+  } catch (e) { alert(e.message); }
 };
 
-// ĐĂNG KÝ HÀM ĐƯA FORM VỀ TRẠNG THÁI THÊM ĐỢT MỚI MẶC ĐỊNH (HỦY SỬA)
-window.resetToCreateMode = () => {
-  document.getElementById('editing-doc-id').value = "";
-  document.getElementById('form-action-title').innerHTML = "<i class='fa-solid fa-pen-to-square'></i> CẬP NHẬT TIẾN ĐỘ ĐỢT MỚI";
-  document.getElementById('form-action-desc').innerText = "Vui lòng nhập số liệu báo cáo mới nhất. Hệ thống sẽ tự động thêm đợt mới.";
-  document.getElementById('btn-submit-text').innerText = "Lưu đợt mới";
-
-  if (document.getElementById('btn-cancel-edit')) document.getElementById('btn-cancel-edit').style.display = "none";
-  if (document.getElementById('btn-home-link')) document.getElementById('btn-home-link').style.display = "inline-flex"; // Giữ nút Trang chủ luôn hiện trên đầu
-
-  setupAdminData();
+window.resetCampForm = () => {
+  document.getElementById('editing-camp-id').value = "";
+  document.getElementById('campaignForm').reset();
+  document.getElementById('camp-form-title').innerHTML = "<i class='fa-solid fa-sliders'></i> THIẾT LẬP ĐỢT SỐ HÓA";
+  document.getElementById('btn-camp-text').innerText = "Lưu đợt số hóa";
+  document.getElementById('btn-cancel-camp-edit').style.display = "none";
 };
 
-// HÀM XỬ LÝ LƯU HOẶC CẬP NHẬT DỮ LIỆU KHI SUBMIT FORM
+window.deleteCamp = async (campId, campName) => {
+  // Hộp thoại confirm SweetAlert2 cực đẹp
+  Swal.fire({
+    title: 'Xác nhận xóa đợt?',
+    text: `Đồng chí đang thực hiện xóa đợt số hóa: "${campName}". Tiến độ cũ sẽ không bị ảnh hưởng.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Đồng ý xóa',
+    cancelButtonText: 'Hủy bỏ'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, "campaigns", campId));
+        Swal.fire({ title: 'Đã xóa', text: `Hệ thống gỡ bỏ thành công đợt "${campName}".`, icon: 'success', confirmButtonColor: '#0056b3' });
+      } catch (e) {
+        Swal.fire({ title: 'Lỗi', text: e.message, icon: 'error' });
+      }
+    }
+  });
+};
+
+// ================= TAB 2: TIẾN ĐỘ THỰC TẾ LŨY KẾ =================
 window.updateData = async (e) => {
   e.preventDefault();
-  const btnSave = document.querySelector('.btn-save');
+  const btnSave = document.querySelector('#updateForm .btn-save');
   const originalText = btnSave.innerHTML;
-  btnSave.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Đang xử lý...";
+  btnSave.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>...";
   btnSave.disabled = true;
 
   const editingId = document.getElementById('editing-doc-id').value;
+  const campaignName = document.getElementById('input-campaign-name').value;
+  if (!campaignName) {
+    Swal.fire({ title: 'Yêu cầu', text: 'Vui lòng chọn đợt số hóa dữ liệu trước.', icon: 'warning', confirmButtonColor: '#0056b3' });
+    btnSave.innerHTML = originalText; btnSave.disabled = false; return;
+  }
+
   const rawDateValue = document.getElementById('input-date').value;
   const dateParts = rawDateValue.split('-');
   const dateLabel = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
   const timestampDate = new Date(rawDateValue + "T12:00:00");
 
-  // Đóng gói dữ liệuPayload
+  const config = campaignsConfigMap[campaignName] || { tongChinhLy: 0, tongSoCanScan: 0 };
+  const chinhLyDaXong = parseFloat(document.getElementById('input-cl-xong').value) || 0;
+
   const updatePayload = {
-    chinhLyDaXong: parseFloat(document.getElementById('input-cl-xong').value) || 0,
-    chinhLyConLai: parseFloat(document.getElementById('input-cl-conlai').value) || 0,
+    campaignName,
+    tongChinhLy: config.tongChinhLy,
+    tongSoCanScan: config.tongSoCanScan,
+    tongSoCanChuanHoa: config.tongSoCanScan,
+    chinhLyDaXong,
+    chinhLyConLai: (config.tongChinhLy - chinhLyDaXong) > 0 ? (config.tongChinhLy - chinhLyDaXong) : 0,
     soHoaDaScan: parseInt(document.getElementById('input-sh-scan').value) || 0,
-    tongSoCanScan: parseInt(document.getElementById('input-tong-scan').value) || 0,
     soHoaChuanHoa: parseInt(document.getElementById('input-sh-chuanhoa').value) || 0,
-    tongSoCanChuanHoa: parseInt(document.getElementById('input-tong-chuanhoa').value) || 0,
-    dateLabel,
-    timestamp: timestampDate
+    soHoaPhanMem: parseInt(document.getElementById('input-sh-phanmem').value) || 0,
+    dateLabel, timestamp: timestampDate
   };
 
   try {
     if (editingId) {
-      // Nếu có ID ẩn -> Tiến hành cập nhật đợt lịch sử đó
       await updateDoc(doc(db, "progress_history", editingId), updatePayload);
+      await Swal.fire({ title: 'Thành công', text: `Cập nhật lũy kế ngày ${dateLabel} thành công.`, icon: 'success', confirmButtonColor: '#0056b3' });
     } else {
-      // Nếu không có ID -> Thêm mới một đợt báo cáo vào lịch sử
       await addDoc(collection(db, "progress_history"), updatePayload);
+      await Swal.fire({ title: 'Thành công', text: `Ghi nhận số liệu tiến độ ngày ${dateLabel} thành công.`, icon: 'success', confirmButtonColor: '#0056b3' });
     }
-
-    // Luôn cập nhật đè số liệu mới nhất này lên bảng trạng thái tổng (current_state) để hiển thị Dashboard trang chủ
     await setDoc(doc(db, "progress", "current_state"), updatePayload);
-
-    btnSave.innerHTML = "<i class='fa-solid fa-circle-check'></i> Thành công!";
-    btnSave.style.backgroundColor = "#27ae60";
-
-    // Trở về Dashboard trang chủ sau khi xử lý thành công 1.2 giây
-    setTimeout(() => { window.location.href = "index.html"; }, 1200);
+    window.location.href = "index.html";
   } catch (error) {
-    btnSave.innerHTML = originalText;
-    btnSave.style.backgroundColor = "#e74c3c";
-    btnSave.disabled = false;
-    alert("Lỗi lưu trữ dữ liệu lên Firebase: " + error.message);
+    btnSave.innerHTML = originalText; btnSave.disabled = false;
+    Swal.fire({ title: 'Lỗi kết nối', text: error.message, icon: 'error' });
   }
 };
 
-// Đăng ký kích hoạt hàm kiểm tra quyền khi cấu trúc trang HTML tải xong
+window.startEdit = async (docId) => {
+  try {
+    const docSnap = await getDoc(doc(db, "progress_history", docId));
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      if (typeof window.switchTab === 'function') window.switchTab('tab-progress');
+
+      document.getElementById('editing-doc-id').value = docId;
+      document.getElementById('input-campaign-name').value = data.campaignName || "";
+      document.getElementById('input-cl-xong').value = data.chinhLyDaXong || 0;
+      document.getElementById('input-sh-scan').value = data.soHoaDaScan || 0;
+      document.getElementById('input-sh-chuanhoa').value = data.soHoaChuanHoa || 0;
+      document.getElementById('input-sh-phanmem').value = data.soHoaPhanMem || 0;
+
+      if (data.timestamp) {
+        const t = data.timestamp.toDate();
+        document.getElementById('input-date').value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+      }
+      document.getElementById('form-action-title').innerHTML = "<i class='fa-solid fa-wrench' style='color:#d97706;'></i> HIỆU CHỈNH TIẾN ĐỘ BÁO CÁO";
+      document.getElementById('btn-submit-text').innerText = "Cập nhật thay đổi";
+      if (document.getElementById('btn-cancel-edit')) document.getElementById('btn-cancel-edit').style.display = "inline-flex";
+      document.getElementById('updateForm').scrollIntoView({ behavior: 'smooth' });
+    }
+  } catch (e) { alert(e.message); }
+};
+
+window.resetToCreateMode = () => {
+  document.getElementById('editing-doc-id').value = "";
+  document.getElementById('form-action-title').innerHTML = "CẬP NHẬT TIẾN ĐỘ THỰC TẾ LŨY KẾ";
+  document.getElementById('btn-submit-text').innerText = "Lưu đợt mới";
+  if (document.getElementById('btn-cancel-edit')) document.getElementById('btn-cancel-edit').style.display = "none";
+  document.getElementById('updateForm').reset();
+};
+
+window.deleteProgress = async (docId) => {
+  Swal.fire({
+    title: 'Xác nhận xóa tiến độ?',
+    text: "Số liệu lịch sử mốc báo cáo này sẽ mất hoàn toàn và không thể khôi phục.",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626',
+    cancelButtonColor: '#64748b',
+    confirmButtonText: 'Đồng ý xóa',
+    cancelButtonText: 'Hủy bỏ'
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        await deleteDoc(doc(db, "progress_history", docId));
+        Swal.fire({ title: 'Đã xóa', text: "Hệ thống đã thực hiện gỡ bỏ bản ghi tiến độ thành công.", icon: 'success', confirmButtonColor: '#0056b3' });
+      } catch (e) {
+        Swal.fire({ title: 'Lỗi kỹ thuật', text: e.message, icon: 'error' });
+      }
+    }
+  });
+};
+
+function initAdminPage() {
+  onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      const nameContainer = document.getElementById('admin-name');
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists() && userDoc.data().role === "admin") {
+        if (userDoc.data().fullName && nameContainer) {
+          nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> Xin chào, ${userDoc.data().fullName}`;
+        }
+        setupAdminData();
+      } else {
+        Swal.fire({ title: 'Từ chối quyền', text: 'Tài khoản không có quyền quản trị.', icon: 'error' }).then(() => {
+          window.location.href = "index.html";
+        });
+      }
+    } else { window.location.href = "login.html"; }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', initAdminPage);
