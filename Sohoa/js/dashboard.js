@@ -238,7 +238,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
   if (scanChart) scanChart.destroy();
   if (clChart) clChart.destroy();
   if (pmChart) pmChart.destroy();
-
+  // Cập nhật lại cấu hình scanChart trong js/dashboard.js
   scanChart = new Chart(ctxScan, {
     type: "bar",
     data: {
@@ -252,10 +252,16 @@ function updateStaticCharts(data, tongMet, tongTrang) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false,
+      maintainAspectRatio: false, // Bắt buộc giữ false để canvas kéo dãn hết div bao ngoài
       scales: {
-        y: { beginAtZero: true, grace: "15%" },
-        x: { grid: { display: false } },
+        y: {
+          beginAtZero: true,
+          grace: "10%", // Giảm bớt tỷ lệ khoảng trống thừa phía trên đỉnh cột (từ 15% xuống 10%)
+          ticks: { font: { size: 11 } },
+        },
+        x: {
+          grid: { display: false },
+        },
       },
       plugins: {
         legend: { display: false },
@@ -263,9 +269,17 @@ function updateStaticCharts(data, tongMet, tongTrang) {
           anchor: "end",
           align: "top",
           formatter: (v) => v.toLocaleString(),
+          font: { weight: "bold" },
         },
       },
-      layout: { padding: { top: 35, bottom: 12 } },
+      layout: {
+        padding: {
+          top: 20, // Khoảng cách từ đỉnh số số liệu đến mép trên tiêu đề biểu đồ
+          bottom: 0, // Đặt bằng 0 để kéo sát nhãn Đã Scan / Chuẩn hóa xuống đáy
+          left: 5,
+          right: 5,
+        },
+      },
     },
   });
 
