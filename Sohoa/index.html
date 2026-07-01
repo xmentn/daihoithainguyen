@@ -1,58 +1,131 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="images/Codang.png" />
     <title>Tiến độ Số hóa - VP Tỉnh ủy Thái Nguyên</title>
     <link rel="stylesheet" href="css/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   </head>
 
   <body>
-    <header class="banner-header">
+    <header class="banner-header" style="position: relative;">
       <img
         src="images/banner1.png"
         alt="Hệ thống theo dõi tiến độ số hóa tài liệu lưu trữ Văn phòng Tỉnh ủy Thái Nguyên"
         class="banner-img"
       />
-      <nav
-        class="nav-admin"
-        style="display: flex; align-items: center; gap: 12px"
-      >
-        <span
-          id="admin-name"
-          style="
-            font-weight: 600;
-            color: #4a5568;
-            font-size: 13px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 6px 12px;
-            border-radius: 4px;
-            border: 1px solid #cbd5e1;
-            display: none;
-          "
-        ></span>
-        <a href="login.html" id="btn-admin-link" class="btn-admin"
-          >Khu vực Quản trị</a
-        >
-        <button
-          onclick="logoutUser()"
-          id="btn-logout-main"
-          class="btn-admin"
-          style="
-            display: none;
-            background: #fff5f5;
-            color: #e53e3e;
-            border-color: #fed7d7;
-          "
-        >
-          Đăng xuất
-        </button>
+      
+      <style>
+        .modern-nav-container {
+          position: absolute;
+          right: 24px;
+          top: 50%;
+          transform: translateY(-50%);
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          gap: 8px;
+          z-index: 100;
+        }
+        .btn-admin-modern {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          height: 34px;
+          padding: 0 14px;
+          background: #0056b3;
+          color: #ffffff !important;
+          text-decoration: none;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          transition: all 0.2s ease;
+        }
+        .btn-admin-modern:hover {
+          background: #004494;
+        }
+        
+        /* Cấu trúc ẩn hiện menu khi di chuột vào Tên tài khoản */
+        .user-dropdown-wrapper {
+          position: relative;
+          display: none; /* Khối này sẽ được file js/dashboard.js kích hoạt kích thước khi đăng nhập */
+        }
+        .user-trigger-box {
+          font-weight: 600;
+          color: #334155;
+          font-size: 13px;
+          background: rgba(255, 255, 255, 0.95);
+          padding: 6px 12px;
+          border-radius: 6px;
+          border: 1px solid #cbd5e1;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .dropdown-content-box {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          margin-top: 4px;
+          background: #ffffff;
+          min-width: 130px;
+          border-radius: 6px;
+          box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+          border: 1px solid #e2e8f0;
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-5px);
+          transition: all 0.2s ease;
+        }
+        .user-dropdown-wrapper:hover .dropdown-content-box {
+          opacity: 1;
+          visibility: visible;
+          transform: translateY(0);
+        }
+        .btn-logout-modern {
+          width: 100%;
+          height: 36px;
+          border: none;
+          background: transparent;
+          color: #dc2626;
+          font-weight: 600;
+          font-size: 13px;
+          padding: 0 12px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          border-radius: 6px;
+          text-align: left;
+          box-sizing: border-box;
+        }
+        .btn-logout-modern:hover {
+          background: #fef2f2;
+        }
+      </style>
+
+      <nav class="modern-nav-container">
+        <a href="login.html" id="btn-admin-link" class="btn-admin-modern">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i> Khu vực Quản trị
+        </a>
+        
+        <div id="user-dropdown-area" class="user-dropdown-wrapper">
+          <div class="user-trigger-box">
+            <span id="admin-name">Đang tải...</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #64748b;"></i>
+          </div>
+          <div class="dropdown-content-box">
+            <button onclick="logoutUser()" class="btn-logout-modern">
+              <i class="fa-solid fa-power-off" style="font-size: 13px;"></i> Đăng xuất
+            </button>
+          </div>
+        </div>
       </nav>
     </header>
 
@@ -73,7 +146,7 @@
       >
         <label style="font-weight: 700; color: #2d3748; font-size: 14.5px"
           ><i class="fa-solid fa-filter" style="color: #0056b3"></i> Chọn đợt số
-          hóa dữ liệu:</label
+          hoa dữ liệu:</label
         >
         <select
           id="select-campaign"
@@ -241,7 +314,6 @@
           }
         }
 
-        /* Cải tiến thanh trượt đẹp, hiện đại */
         .timeline-slider-box {
           background: #ffffff;
           padding: 20px;
