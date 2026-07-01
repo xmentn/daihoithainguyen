@@ -1,29 +1,48 @@
-import { db, auth } from './firebase-config.js';
-import { collection, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { db, auth } from "./firebase-config.js";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  getDoc,
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import {
+  onAuthStateChanged,
+  signOut,
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 window.logoutUser = function () {
-  signOut(auth).then(() => { window.location.reload(); });
+  signOut(auth).then(() => {
+    window.location.reload();
+  });
 };
 
 Chart.register(ChartDataLabels);
-// Khai báo thêm biến chứa đối tượng biểu đồ phần mềm toàn cục
 let scanChart, clChart, pmChart, trendChart;
 let allLogs = [];
+let currentFilteredLogs = []; // Lưu trữ các mốc ngày của riêng đợt đang chọn
+let debounceTimer; // Bộ đếm thời gian trễ phục vụ thao tác kéo slider
 
 function checkUserStatus() {
   onAuthStateChanged(auth, async (user) => {
-    const nameContainer = document.getElementById('admin-name');
-    const adminLink = document.getElementById('btn-admin-link');
-    const logoutBtn = document.getElementById('btn-logout-main');
+    const nameContainer = document.getElementById("admin-name");
+    const adminLink = document.getElementById("btn-admin-link");
+    const logoutBtn = document.getElementById("btn-logout-main");
     if (user) {
       if (logoutBtn) logoutBtn.style.display = "inline-flex";
       if (adminLink) {
         adminLink.href = "admin.html";
-        adminLink.innerHTML = "<i class='fa-solid fa-sliders'></i> Quản trị số liệu";
+        adminLink.innerHTML =
+          "<i class='fa-solid fa-sliders'></i> Quản trị số liệu";
       }
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().role === "admin" && userDoc.data().fullName && nameContainer) {
+      if (
+        userDoc.exists() &&
+        userDoc.data().role === "admin" &&
+        userDoc.data().fullName &&
+        nameContainer
+      ) {
         nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> ${userDoc.data().fullName}`;
         nameContainer.style.display = "inline-flex";
       }
@@ -34,8 +53,10 @@ function checkUserStatus() {
 function loadDashboardData() {
   checkUserStatus();
 
-  // Lắng nghe dữ liệu lịch sử từ Firebase
-  const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "asc"));
+  const historyQuery = query(
+    collection(db, "progress_history"),
+    orderBy("timestamp", "asc"),
+  );
   onSnapshot(historyQuery, (querySnapshot) => {
     allLogs = [];
     const campaignSet = new Set();
@@ -47,7 +68,7 @@ function loadDashboardData() {
       if (log.campaignName) campaignSet.add(log.campaignName);
     });
 
-    const selectBox = document.getElementById('select-campaign');
+    const selectBox = document.getElementById("select-campaign");
     if (!selectBox) return;
     const currentSelection = selectBox.value;
     selectBox.innerHTML = "";
@@ -57,8 +78,8 @@ function loadDashboardData() {
       return;
     }
 
-    campaignSet.forEach(camp => {
-      const opt = document.createElement('option');
+    campaignSet.forEach((camp) => {
+      const opt = document.createElement("option");
       opt.value = camp;
       opt.innerText = camp;
       selectBox.appendChild(opt);
@@ -70,88 +91,147 @@ function loadDashboardData() {
       selectBox.value = Array.from(campaignSet).pop();
     }
 
-    renderCampaignData(selectBox.value);
+    setupCampaignView(selectBox.value);
   });
 
-  document.getElementById('select-campaign').addEventListener('change', (e) => {
-    renderCampaignData(e.target.value);
+  document.getElementById("select-campaign").addEventListener("change", (e) => {
+    setupCampaignView(e.target.value);
   });
+
+  // KHỞI TẠO BỘ LẮNG NGHE SỰ KIỆN KÉO THANH TRƯỢT TIMELINE
+  const slider = document.getElementById("timelineRange");
+  if (slider) {
+    slider.addEventListener("input", (e) => {
+      const index = parseInt(e.target.value);
+      if (!currentFilteredLogs[index]) return;
+
+      const selectedLog = currentFilteredLogs[index];
+      const isLatest = index === currentFilteredLogs.length - 1;
+
+      // Thay đổi nhãn thông báo mốc thời gian tức thì khi kéo
+      document.getElementById("txt-slider-date-status").innerText =
+        `Đang xem ngày: ${selectedLog.dateLabel} ${isLatest ? "(Mới nhất)" : "(Cũ hơn)"}`;
+
+      // Cơ chế hoãn (Debounce) 1.5 giây: Dừng hẳn tay kéo mới vẽ lại biểu đồ và số liệu
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        renderStateData(selectedLog);
+      }, 1200);
+    });
+  }
 }
 
-function renderCampaignData(campaignName) {
+function setupCampaignView(campaignName) {
   if (!campaignName) return;
 
-  const campLogs = allLogs.filter(log => log.campaignName === campaignName);
-  if (campLogs.length === 0) return;
+  // Lọc danh sách mốc lịch sử báo cáo của đợt được chọn
+  currentFilteredLogs = allLogs.filter(
+    (log) => log.campaignName === campaignName,
+  );
+  if (currentFilteredLogs.length === 0) return;
 
-  // Lấy mốc báo cáo mới nhất của đợt này
-  const latest = campLogs[campLogs.length - 1];
+  // Cấu hình thanh trượt dựa theo số lượng mốc ghi nhận
+  const slider = document.getElementById("timelineRange");
+  if (slider) {
+    const totalSteps = currentFilteredLogs.length - 1;
+    slider.min = 0;
+    slider.max = totalSteps;
+    slider.value = totalSteps; // Mặc định nhảy tới mốc hiện tại/mới nhất ở cuối cùng
+    slider.disabled = totalSteps <= 0; // Vô hiệu hóa nếu đợt chỉ có 1 bản ghi
 
-  // Lấy chỉ tiêu tổng cố định
-  const tongMet = latest.tongChinhLy || 0;
-  const tongTrang = latest.tongSoCanScan || 0;
+    document.getElementById("txt-slider-start").innerText =
+      `Bắt đầu (${currentFilteredLogs[0].dateLabel})`;
+    document.getElementById("txt-slider-end").innerText =
+      `Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
+    document.getElementById("txt-slider-date-status").innerText =
+      `Đang xem: Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
+  }
 
-  document.getElementById('show-ten-dot').innerText = campaignName;
-  document.getElementById('show-tong-met').innerText = tongMet;
-  document.getElementById('show-tong-trang').innerText = tongTrang.toLocaleString();
+  // Vẽ biểu đồ xu hướng đường dưới cùng trước (Biểu đồ này hiển thị cố định toàn đợt)
+  const labels = currentFilteredLogs.map((l) => l.dateLabel || "");
+  const scans = currentFilteredLogs.map((l) => l.soHoaDaScan || 0);
+  const chuẩnHoas = currentFilteredLogs.map((l) => l.soHoaChuanHoa || 0);
+  const phanMems = currentFilteredLogs.map((l) => l.soHoaPhanMem || 0);
+  const chinhLys = currentFilteredLogs.map((l) => l.chinhLyDaXong || 0);
+  updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys);
 
-  // 1. Tính toán khối Chỉnh lý mét
-  const clXong = latest.chinhLyDaXong || 0;
+  // Đổ số liệu của bản ghi mới nhất lên các ô nhanh và 3 biểu đồ phía trên
+  renderStateData(currentFilteredLogs[currentFilteredLogs.length - 1]);
+}
+
+// HÀM CHUYÊN TRÁCH ĐỔ SỐ LIỆU VÀ VẼ LẠI 3 BIỂU ĐỒ TRÊN THEO MỐC GHI NHẬN ĐƯỢC CHỌN
+function renderStateData(logRecord) {
+  if (!logRecord) return;
+
+  const tongMet = logRecord.tongChinhLy || 0;
+  const tongTrang = logRecord.tongSoCanScan || 0;
+
+  document.getElementById("show-ten-dot").innerText =
+    logRecord.campaignName || "";
+  document.getElementById("show-tong-met").innerText = tongMet;
+  document.getElementById("show-tong-trang").innerText =
+    tongTrang.toLocaleString();
+
+  // 1. Khối Chỉnh lý mét
+  const clXong = logRecord.chinhLyDaXong || 0;
   const clConLai = tongMet - clXong;
   const clPercent = tongMet > 0 ? ((clXong / tongMet) * 100).toFixed(1) : 0;
 
-  document.getElementById('cl-da-xong').innerText = clXong;
-  document.getElementById('cl-con-lai').innerText = clConLai > 0 ? clConLai.toFixed(1) : 0;
-  document.getElementById('cl-xong-percent').innerText = clPercent;
-  document.getElementById('bar-cl-xong').style.width = clPercent + '%';
+  document.getElementById("cl-da-xong").innerText = clXong;
+  document.getElementById("cl-con-lai").innerText =
+    clConLai > 0 ? clConLai.toFixed(1) : 0;
+  document.getElementById("cl-xong-percent").innerText = clPercent;
+  document.getElementById("bar-cl-xong").style.width = clPercent + "%";
 
-  // 2. Tính toán khối Đã Scan trang
-  const shScan = latest.soHoaDaScan || 0;
+  // 2. Khối Đã Scan trang
+  const shScan = logRecord.soHoaDaScan || 0;
   const scanConLai = tongTrang - shScan;
-  const scanPercent = tongTrang > 0 ? ((shScan / tongTrang) * 100).toFixed(1) : 0;
+  const scanPercent =
+    tongTrang > 0 ? ((shScan / tongTrang) * 100).toFixed(1) : 0;
 
-  document.getElementById('sh-da-scan').innerText = shScan.toLocaleString();
-  document.getElementById('sh-scan-conlai').innerText = scanConLai > 0 ? scanConLai.toLocaleString() : 0;
-  document.getElementById('sh-scan-percent').innerText = scanPercent;
-  document.getElementById('bar-sh-scan').style.width = scanPercent + '%';
+  document.getElementById("sh-da-scan").innerText = shScan.toLocaleString();
+  document.getElementById("sh-scan-conlai").innerText =
+    scanConLai > 0 ? scanConLai.toLocaleString() : 0;
+  document.getElementById("sh-scan-percent").innerText = scanPercent;
+  document.getElementById("bar-sh-scan").style.width = scanPercent + "%";
 
-  // 3. Tính toán khối Chuẩn hóa trang
-  const shChuanHoa = latest.soHoaChuanHoa || 0;
-  const chuanHoaPercent = tongTrang > 0 ? ((shChuanHoa / tongTrang) * 100).toFixed(1) : 0;
+  // 3. Khối Chuẩn hóa trang
+  const shChuanHoa = logRecord.soHoaChuanHoa || 0;
+  const chuanHoaPercent =
+    tongTrang > 0 ? ((shChuanHoa / tongTrang) * 100).toFixed(1) : 0;
   const chuanhoaConLai = tongTrang - shChuanHoa;
-  if (document.getElementById('sh-chuanhoa-conlai')) {
-    document.getElementById('sh-chuanhoa-conlai').innerText = chuanhoaConLai > 0 ? chuanhoaConLai.toLocaleString() : 0;
+
+  document.getElementById("sh-chuan-hoa").innerText =
+    shChuanHoa.toLocaleString();
+  document.getElementById("sh-chuanhoa-percent").innerText = chuanHoaPercent;
+  document.getElementById("bar-sh-chuanhoa").style.width =
+    chuanHoaPercent + "%";
+  if (document.getElementById("sh-chuanhoa-conlai")) {
+    document.getElementById("sh-chuanhoa-conlai").innerText =
+      chuanhoaConLai > 0 ? chuanhoaConLai.toLocaleString() : 0;
   }
-  document.getElementById('sh-chuan-hoa').innerText = shChuanHoa.toLocaleString();
-  document.getElementById('sh-chuanhoa-percent').innerText = chuanHoaPercent;
-  document.getElementById('bar-sh-chuanhoa').style.width = chuanHoaPercent + '%';
 
-  // 4. Tính toán khối Đã đưa lên phần mềm
-  const shPhanMem = latest.soHoaPhanMem || 0;
+  // 4. Khối Đã đưa lên phần mềm
+  const shPhanMem = logRecord.soHoaPhanMem || 0;
   const pmConLai = tongTrang - shPhanMem;
-  const pmPercent = tongTrang > 0 ? ((shPhanMem / tongTrang) * 100).toFixed(1) : 0;
+  const pmPercent =
+    tongTrang > 0 ? ((shPhanMem / tongTrang) * 100).toFixed(1) : 0;
 
-  document.getElementById('sh-len-phan-mem').innerText = shPhanMem.toLocaleString();
-  document.getElementById('sh-pm-conlai').innerText = pmConLai > 0 ? pmConLai.toLocaleString() : 0;
-  document.getElementById('sh-pm-percent').innerText = pmPercent;
-  document.getElementById('bar-sh-pm').style.width = pmPercent + '%';
+  document.getElementById("sh-len-phan-mem").innerText =
+    shPhanMem.toLocaleString();
+  document.getElementById("sh-pm-percent").innerText = pmPercent;
+  document.getElementById("sh-pm-conlai").innerText =
+    pmConLai > 0 ? pmConLai.toLocaleString() : 0;
+  document.getElementById("bar-sh-pm").style.width = pmPercent + "%";
 
-  // Gọi hàm cập nhật các biểu đồ vòng tròn bao gồm cả biểu đồ Phần mềm mới
-  updateStaticCharts(latest, tongMet, tongTrang);
-
-  // Cập nhật biểu đồ xu hướng đường chạy dài ở dưới cùng
-  const labels = campLogs.map(l => l.dateLabel || "");
-  const scans = campLogs.map(l => l.soHoaDaScan || 0);
-  const chuẩnHoas = campLogs.map(l => l.soHoaChuanHoa || 0);
-  const phanMems = campLogs.map(l => l.soHoaPhanMem || 0);
-  const chinhLys = campLogs.map(l => l.chinhLyDaXong || 0);
-  updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys);
+  // Làm mới cấu trúc đồ họa hiển thị của 3 biểu đồ khuyên trên theo ngày đang chọn
+  updateStaticCharts(logRecord, tongMet, tongTrang);
 }
 
 function updateStaticCharts(data, tongMet, tongTrang) {
-  const ctxScan = document.getElementById('scanChart')?.getContext('2d');
-  const ctxCl = document.getElementById('clChart')?.getContext('2d');
-  const ctxPm = document.getElementById('pmChart')?.getContext('2d');
+  const ctxScan = document.getElementById("scanChart")?.getContext("2d");
+  const ctxCl = document.getElementById("clChart")?.getContext("2d");
+  const ctxPm = document.getElementById("pmChart")?.getContext("2d");
 
   if (!ctxScan || !ctxCl) return;
 
@@ -159,123 +239,167 @@ function updateStaticCharts(data, tongMet, tongTrang) {
   if (clChart) clChart.destroy();
   if (pmChart) pmChart.destroy();
 
-  // 1. BIỂU ĐỒ CỘT: TIẾN ĐỘ SỐ HÓA (Đã được kéo giãn chiều cao đồng bộ)
   scanChart = new Chart(ctxScan, {
-    type: 'bar',
+    type: "bar",
     data: {
-      labels: ['Đã Scan', 'Chuẩn hóa'],
-      datasets: [{
-        data: [data.soHoaDaScan || 0, data.soHoaChuanHoa || 0],
-        backgroundColor: ['#2ecc71', '#9b59b6']
-      }]
+      labels: ["Đã Scan", "Chuẩn hóa"],
+      datasets: [
+        {
+          data: [data.soHoaDaScan || 0, data.soHoaChuanHoa || 0],
+          backgroundColor: ["#2ecc71", "#9b59b6"],
+        },
+      ],
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // Tắt tỉ lệ mặc định để dãn theo chiều cao khung chứa
+      maintainAspectRatio: false,
       scales: {
-        y: {
-          beginAtZero: true,
-          grace: '15%',
-          ticks: { font: { size: 11 } }
-        },
-        x: { grid: { display: false } }
+        y: { beginAtZero: true, grace: "15%" },
+        x: { grid: { display: false } },
       },
       plugins: {
         legend: { display: false },
-        datalabels: { anchor: 'end', align: 'top', formatter: (v) => v.toLocaleString(), font: { weight: 'bold' } }
+        datalabels: {
+          anchor: "end",
+          align: "top",
+          formatter: (v) => v.toLocaleString(),
+        },
       },
-      layout: {
-        padding: { top: 30, bottom: 35 } // Căn chỉnh lề để cột cao tương đương 2 biểu đồ bên
-      }
-    }
+      layout: { padding: { top: 35, bottom: 12 } },
+    },
   });
 
-  // 2. BIỂU ĐỒ TRÒN: TỶ LỆ CHỈNH LÝ TÀI LIỆU
   const clXong = data.chinhLyDaXong || 0;
   const clConLai = tongMet - clXong;
   clChart = new Chart(ctxCl, {
-    type: 'pie',
+    type: "pie",
     data: {
-      labels: ['Đã chỉnh lý xong', 'Còn lại sơ bộ'],
-      datasets: [{ data: [clXong, clConLai > 0 ? clConLai : 0], backgroundColor: ['#2b78e4', '#f27a1a'] }]
+      labels: ["Đã chỉnh lý xong", "Còn lại sơ bộ"],
+      datasets: [
+        {
+          data: [clXong, clConLai > 0 ? clConLai : 0],
+          backgroundColor: ["#2b78e4", "#f27a1a"],
+        },
+      ],
     },
     options: {
-      responsive: true, maintainAspectRatio: true, radius: '100%',
+      responsive: true,
+      maintainAspectRatio: true,
+      radius: "100%",
       plugins: {
         legend: { display: false },
         datalabels: {
           formatter: (value) => {
             let total = clXong + (clConLai > 0 ? clConLai : 0);
-            return total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+            return total > 0 ? ((value / total) * 100).toFixed(1) + "%" : "0%";
           },
-          color: '#ffffff', font: { weight: 'bold', size: 12 }
-        }
-      }
-    }
+          color: "#ffffff",
+          font: { weight: "bold", size: 12 },
+        },
+      },
+    },
   });
 
-  // 3. BIỂU ĐỒ HÌNH NHẪN (DOUGHNUT): TỶ LỆ ĐƯA LÊN PHẦN MỀM SỐ HÓA
   if (ctxPm) {
     const pmXong = data.soHoaPhanMem || 0;
     const pmConLai = tongTrang - pmXong;
-
-    // Tính toán nhanh % đưa lên phần mềm để hiển thị ở tâm nhẫn nếu cần
-    const pmPercent = tongTrang > 0 ? ((pmXong / tongTrang) * 100).toFixed(1) : '0.0';
-
     pmChart = new Chart(ctxPm, {
-      type: 'doughnut', // CHUYỂN ĐỔI: Từ 'pie' sang 'doughnut' để tạo hình nhẫn
+      type: "doughnut",
       data: {
-        labels: ['Đã đưa lên PM', 'Chưa đưa lên'],
-        datasets: [{
-          data: [pmXong, pmConLai > 0 ? pmConLai : 0],
-          backgroundColor: ['#16a34a', '#cbd5e1']
-        }]
+        labels: ["Đã đưa lên PM", "Chưa đưa lên"],
+        datasets: [
+          {
+            data: [pmXong, pmConLai > 0 ? pmConLai : 0],
+            backgroundColor: ["#16a34a", "#cbd5e1"],
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        radius: '100%',
-        cutout: '65%', // Độ rộng khoét lỗ giữa nhẫn (65% giúp vòng nhẫn thanh thoát, đẹp mắt)
+        radius: "100%",
+        cutout: "65%",
         plugins: {
           legend: { display: false },
           datalabels: {
             formatter: (value) => {
               let total = pmXong + (pmConLai > 0 ? pmConLai : 0);
-              return total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
+              return total > 0
+                ? ((value / total) * 100).toFixed(1) + "%"
+                : "0%";
             },
-            color: (context) => context.dataIndex === 0 ? '#ffffff' : '#475569', // Tự đổi màu chữ theo nền nhẫn
-            font: { weight: 'bold', size: 11 }
-          }
-        }
-      }
+            color: (context) =>
+              context.dataIndex === 0 ? "#ffffff" : "#475569",
+            font: { weight: "bold", size: 11 },
+          },
+        },
+      },
     });
   }
 }
+
 function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
-  const ctxTrend = document.getElementById('trendChart')?.getContext('2d');
+  const ctxTrend = document.getElementById("trendChart")?.getContext("2d");
   if (!ctxTrend) return;
   if (trendChart) trendChart.destroy();
 
   trendChart = new Chart(ctxTrend, {
-    type: 'line',
+    type: "line",
     data: {
       labels: labels,
       datasets: [
-        { label: 'Đã Scan (Trang)', data: scans, borderColor: '#2ecc71', tension: 0.2, yAxisID: 'y' },
-        { label: 'Chuẩn hóa (Trang)', data: chuẩnHoas, borderColor: '#9b59b6', tension: 0.2, yAxisID: 'y' },
-        { label: 'Lên PM (Trang)', data: phanMems, borderColor: '#e67e22', tension: 0.2, yAxisID: 'y' },
-        { label: 'Chỉnh lý (Mét)', data: chinhLys, borderColor: '#2b78e4', tension: 0.2, yAxisID: 'y1' }
-      ]
+        {
+          label: "Đã Scan (Trang)",
+          data: scans,
+          borderColor: "#2ecc71",
+          tension: 0.2,
+          yAxisID: "y",
+        },
+        {
+          label: "Chuẩn hóa (Trang)",
+          data: chuẩnHoas,
+          borderColor: "#9b59b6",
+          tension: 0.2,
+          yAxisID: "y",
+        },
+        {
+          label: "Lên PM (Trang)",
+          data: phanMems,
+          borderColor: "#e67e22",
+          tension: 0.2,
+          yAxisID: "y",
+        },
+        {
+          label: "Chỉnh lý (Mét)",
+          data: chinhLys,
+          borderColor: "#2b78e4",
+          tension: 0.2,
+          yAxisID: "y1",
+        },
+      ],
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      maintainAspectRatio: false,
       scales: {
-        y: { type: 'linear', position: 'left', title: { display: true, text: 'Số lượng Trang' } },
-        y1: { type: 'linear', position: 'right', title: { display: true, text: 'Số lượng Mét' }, grid: { drawOnChartArea: false } }
+        y: {
+          type: "linear",
+          position: "left",
+          title: { display: true, text: "Số lượng Trang" },
+        },
+        y1: {
+          type: "linear",
+          position: "right",
+          title: { display: true, text: "Số lượng Mét" },
+          grid: { drawOnChartArea: false },
+        },
       },
-      plugins: { legend: { position: 'bottom' }, datalabels: { display: false } }
-    }
+      plugins: {
+        legend: { position: "bottom" },
+        datalabels: { display: false },
+      },
+    },
   });
 }
 
-document.addEventListener('DOMContentLoaded', loadDashboardData);
+document.addEventListener("DOMContentLoaded", loadDashboardData);
