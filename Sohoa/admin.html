@@ -1,274 +1,373 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hệ thống quản trị số liệu - Văn phòng Tỉnh ủy Thái Nguyên</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-
-<body style="background-color: #f8fafc; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif;">
-
-  <div style="max-width: 1200px; margin: 0 auto; padding: 20px; box-sizing: border-box;">
-
-    <div
-      style="display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 15px 24px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0;">
-      <div style="display: flex; align-items: center; gap: 15px;">
-        <i class="fa-solid fa-gauge-high" style="font-size: 28px; color: #0056b3;"></i>
-        <div>
-          <h1 style="margin: 0; font-size: 18px; color: #1e293b; font-weight: 700;">HỆ THỐNG QUẢN TRỊ SỐ LIỆU</h1>
-          <h2 style="margin: 3px 0 0 0; font-size: 13px; color: #64748b; font-weight: 500;">Văn phòng Tỉnh ủy Thái
-            Nguyên</h2>
-        </div>
-      </div>
-
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <span id="admin-name"
-          style="font-weight: 600; color: #4a5568; font-size: 14.5px; background: #f8fafc; padding: 6px 12px; border-radius: 6px; border: 1px solid #e2e8f0;">Đang
-          xác thực...</span>
-        <a href="index.html"
-          style="display: inline-flex; height: 38px; padding: 0 16px; align-items: center; justify-content: center; text-decoration: none; font-size: 13.5px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600;">Trang
-          chủ</a>
-        <button onclick="logoutUser()"
-          style="display: inline-flex; height: 38px; align-items: center; gap: 6px; background: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; padding: 0 14px; border-radius: 6px; font-weight: 600; font-size: 13.5px; cursor: pointer;">Đăng
-          xuất</button>
-      </div>
-    </div>
-
-    <div
-      style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; width: 100%; box-sizing: border-box;">
-      <button id="btn-tab-camp"
-        style="padding: 12px 20px; font-size: 14px; font-weight: 700; border: 1px solid transparent; background: transparent; color: #64748b; cursor: pointer; border-radius: 8px 8px 0 0; margin-bottom: -2px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
-        class="custom-t-btn active-t-btn" onclick="switchTab('tab-campaign')">
-        <i class="fa-solid fa-folder-plus"></i> 1. Quản lý Đợt số hóa
-      </button>
-      <button id="btn-tab-prog"
-        style="padding: 12px 20px; font-size: 14px; font-weight: 700; border: 1px solid transparent; background: transparent; color: #64748b; cursor: pointer; border-radius: 8px 8px 0 0; margin-bottom: -2px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s;"
-        class="custom-t-btn" onclick="switchTab('tab-progress')">
-        <i class="fa-solid fa-pen-to-square"></i> 2. Báo cáo Tiến độ
-      </button>
-    </div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống quản trị số liệu - Văn phòng Tỉnh ủy Thái Nguyên</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-      .custom-t-btn.active-t-btn {
-        background: #ffffff !important;
-        color: #0056b3 !important;
-        border: 1px solid #e2e8f0 !important;
-        border-bottom-color: #ffffff !important;
-      }
+        /* CSS CHUẨN ĐẸP HIỆN ĐẠI CỦA TRANG QUẢN TRỊ */
+        body {
+            background-color: #f1f5f9 !important;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+            color: #1e293b;
+        }
 
-      .custom-t-btn:hover:not(.active-t-btn) {
-        color: #1e293b !important;
-        background: #e2e8f0 !important;
-      }
+        /* Khung bọc chính */
+        .modern-admin-wrapper {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+            box-sizing: border-box;
+        }
 
-      .admin-dynamic-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 25px;
-        align-items: start;
-      }
+        /* Header cô lập riêng biệt */
+        .modern-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 16px 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+            position: relative;
+            z-index: 10;
+        }
 
-      .admin-dynamic-grid.split-layout {
-        grid-template-columns: 1.1fr 0.9fr;
-      }
+        /* Lưới bố cục động */
+        .modern-dynamic-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            align-items: start;
+            margin-top: 15px;
+        }
+        .modern-dynamic-grid.split-layout {
+            grid-template-columns: 1.1fr 0.9fr;
+        }
+
+        /* Khối hộp trắng nội dung cao cấp */
+        .modern-card {
+            background: #ffffff;
+            padding: 28px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+            box-sizing: border-box;
+        }
+
+        /* Form nhập liệu */
+        .modern-field-group {
+            margin-bottom: 18px;
+        }
+        .modern-field-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 13.5px;
+            color: #334155;
+        }
+        .modern-input-ctrl {
+            width: 100%;
+            height: 42px;
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 14px;
+            color: #0f172a;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .modern-input-ctrl:focus {
+            border-color: #0056b3;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.12);
+        }
+
+        /* Khung nhóm số liệu Fieldset */
+        .modern-fieldset {
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+        .modern-fieldset legend {
+            font-weight: 700;
+            color: #0056b3;
+            padding: 0 10px;
+            font-size: 13.5px;
+            text-transform: uppercase;
+        }
+
+        /* Thiết kế nút bấm */
+        .modern-btn-primary {
+            height: 42px;
+            padding: 0 22px;
+            background: #0056b3;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 4px rgba(0, 86, 179, 0.15);
+            transition: all 0.2s ease;
+        }
+        .modern-btn-primary:hover {
+            background: #004494;
+            transform: translateY(-1px);
+        }
+        .modern-btn-secondary {
+            height: 42px;
+            padding: 0 18px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .modern-btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        /* Bảng lịch sử */
+        .modern-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+        .modern-table th {
+            padding: 14px 12px;
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 700;
+            border-bottom: 2px solid #e2e8f0;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .modern-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+        }
+        .modern-table tr:hover {
+            background-color: #f8fafc;
+        }
     </style>
+</head>
+<body>
 
-    <div id="adminMainGrid" class="admin-dynamic-grid">
-
-      <div style="width: 100%;">
-
-        <div id="tab-campaign" style="display: block; width: 100%;">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start;">
-
-            <div
-              style="background: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box;">
-              <div style="border-bottom: 1px solid #edf2f7; padding-bottom: 15px; margin-bottom: 20px;">
-                <h3 id="camp-form-title" style="margin: 0; color: #0056b3; font-size: 15.5px; font-weight: 700;"><i
-                    class="fa-solid fa-sliders"></i> THIẾT LẬP ĐỢT SỐ HÓA</h3>
-              </div>
-              <form id="campaignForm" onsubmit="saveCampaignConfig(event)">
-                <input type="hidden" id="editing-camp-id" value="">
-
-                <div class="input-group" style="margin-bottom: 15px;">
-                  <label
-                    style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #334155;">Tên
-                    đợt số hóa dữ liệu</label>
-                  <input type="text" id="config-campaign-name" placeholder="Ví dụ: Đợt 1 năm 2026" required
-                    style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px;">
+    <div class="modern-admin-wrapper">
+        
+        <header class="modern-header">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="background: rgba(0, 86, 179, 0.08); width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fa-solid fa-gauge-high" style="font-size: 24px; color: #0056b3;"></i>
                 </div>
-                <div class="input-group" style="margin-bottom: 15px;">
-                  <label
-                    style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #334155;">Số
-                    mét tài liệu cần chỉnh lý (m)</label>
-                  <input type="number" step="0.01" id="config-tong-chinhly" placeholder="Ví dụ: 163" required
-                    style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px;">
+                <div>
+                    <h1 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: 700;">HỆ THỐNG QUẢN TRỊ SỐ LIỆU</h1>
+                    <h2 style="margin: 4px 0 0 0; font-size: 12.5px; color: #64748b; font-weight: 500;">Văn phòng Tỉnh ủy Thái Nguyên</h2>
                 </div>
-                <div class="input-group" style="margin-bottom: 20px;">
-                  <label
-                    style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #334155;">Số
-                    trang tài liệu cần số hóa (trang)</label>
-                  <input type="number" id="config-tong-scan" placeholder="Ví dụ: 430000" required
-                    style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px;">
-                </div>
-
-                <div
-                  style="text-align: right; border-top: 1px solid #edf2f7; padding-top: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-                  <button type="button" id="btn-cancel-camp-edit"
-                    style="display: none; height: 40px; padding: 0 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13.5px;"
-                    onclick="resetCampForm()">Hủy sửa</button>
-                  <button type="submit" class="btn-save"
-                    style="height: 40px; padding: 0 20px; background: #0056b3; color: #ffffff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px;"><i
-                      class="fa-solid fa-floppy-disk"></i> <span id="btn-camp-text">Lưu đợt số hóa</span></button>
-                </div>
-              </form>
             </div>
-
-            <div
-              style="background: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box;">
-              <h3 style="margin: 0 0 15px 0; font-size: 15.5px; font-weight: 700; color: #475569;"><i
-                  class="fa-solid fa-layer-group"></i> DANH SÁCH CÁC ĐỢT SỐ HÓA</h3>
-              <div style="overflow-x: auto; width: 100%;">
-                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
-                  <thead>
-                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                      <th style="padding: 10px; font-weight: 600; color: #475569;">Tên đợt</th>
-                      <th style="padding: 10px; font-weight: 600; color: #475569;">Chỉ tiêu m</th>
-                      <th style="padding: 10px; font-weight: 600; color: #475569;">Chỉ tiêu trang</th>
-                      <th style="padding: 10px; text-align: center; font-weight: 600; color: #475569;">Hành động</th>
-                    </tr>
-                  </thead>
-                  <tbody id="campaign-table-body"></tbody>
-                </table>
-              </div>
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="admin-name" style="font-weight: 600; color: #334155; font-size: 14px; background: #f8fafc; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="color: #0056b3;"></i> Đang xác thực...
+                </span>
+                <a href="index.html" style="display: inline-flex; height: 38px; padding: 0 16px; align-items: center; justify-content: center; text-decoration: none; font-size: 13.5px; background: #ffffff; color: #475569; border: 1px solid #cbd5e1; border-radius: 8px; font-weight: 600;">Trang chủ</a>
+                <button onclick="logoutUser()" style="display: inline-flex; height: 38px; align-items: center; gap: 6px; background: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; padding: 0 14px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+                </button>
             </div>
-          </div>
+        </header>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; width: 100%; box-sizing: border-box;">
+            <button id="btn-tab-camp" style="padding: 12px 24px; font-size: 14px; font-weight: 600; border: 1px solid transparent; background: transparent; color: #64748b; cursor: pointer; border-radius: 8px 8px 0 0; margin-bottom: -2px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;" class="modern-custom-tab active-modern-tab" onclick="switchTab('tab-campaign')">
+                <i class="fa-solid fa-folder-plus"></i> 1. Quản lý Đợt số hóa
+            </button>
+            <button id="btn-tab-prog" style="padding: 12px 24px; font-size: 14px; font-weight: 600; border: 1px solid transparent; background: transparent; color: #64748b; cursor: pointer; border-radius: 8px 8px 0 0; margin-bottom: -2px; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s;" class="modern-custom-tab" onclick="switchTab('tab-progress')">
+                <i class="fa-solid fa-pen-to-square"></i> 2. Báo cáo Tiến độ
+            </button>
         </div>
 
-        <div id="tab-progress"
-          style="display: none; background: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box;">
-          <div style="border-bottom: 1px solid #edf2f7; padding-bottom: 15px; margin-bottom: 20px;">
-            <h3 id="form-action-title" style="margin: 0; color: #0056b3; font-size: 15px; font-weight: 700;"><i
-                class="fa-solid fa-pen-to-square"></i> CẬP NHẬT TIẾN ĐỘ THỰC TẾ LŨY KẾ</h3>
-            <p id="form-action-desc" style="margin: 5px 0 0 0; color: #64748b; font-size: 13px;">Chọn đợt số hóa dữ liệu
-              đã khởi tạo và nhập số liệu lũy kế báo cáo.</p>
-          </div>
+        <style>
+            .modern-custom-tab.active-modern-tab {
+                background: #ffffff !important;
+                color: #0056b3 !important;
+                border: 1px solid #e2e8f0 !important;
+                border-bottom-color: #ffffff !important;
+                font-weight: 700 !important;
+            }
+            .modern-custom-tab:hover:not(.active-modern-tab) {
+                color: #0f172a !important;
+                background: #e2e8f0 !important;
+            }
+        </style>
 
-          <form id="updateForm" onsubmit="updateData(event)">
-            <input type="hidden" id="editing-doc-id" value="">
+        <div id="adminMainGrid" class="modern-dynamic-grid">
+            
+            <div style="width: 100%;">
+                
+                <div id="tab-campaign" style="display: block; width: 100%;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
+                        
+                        <div class="modern-card">
+                            <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 20px;">
+                                <h3 id="camp-form-title" style="margin: 0; color: #0056b3; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-sliders"></i> THIẾT LẬP ĐỢT SỐ HÓA</h3>
+                            </div>
+                            <form id="campaignForm" onsubmit="saveCampaignConfig(event)">
+                                <input type="hidden" id="editing-camp-id" value="">
+                                
+                                <div class="modern-field-group">
+                                    <label>Tên đợt số hóa dữ liệu</label>
+                                    <input type="text" id="config-campaign-name" placeholder="Ví dụ: Đợt 1 năm 2026" required class="modern-input-ctrl">
+                                </div>
+                                <div class="modern-field-group">
+                                    <label>Số mét tài liệu cần chỉnh lý (m)</label>
+                                    <input type="number" step="0.01" id="config-tong-chinhly" placeholder="Ví dụ: 163" required class="modern-input-ctrl">
+                                </div>
+                                <div class="modern-field-group" style="margin-bottom: 24px;">
+                                    <label>Số trang tài liệu cần số hóa (trang)</label>
+                                    <input type="number" id="config-tong-scan" placeholder="Ví dụ: 430000" required class="modern-input-ctrl">
+                                </div>
+                                
+                                <div style="text-align: right; border-top: 1px solid #f1f5f9; padding-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+                                    <button type="button" id="btn-cancel-camp-edit" class="modern-btn-secondary" onclick="resetCampForm()">Hủy sửa</button>
+                                    <button type="submit" class="modern-btn-primary"><i class="fa-solid fa-floppy-disk"></i> <span id="btn-camp-text">Lưu đợt số hóa</span></button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="modern-card">
+                            <h3 style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-layer-group"></i> DANH SÁCH CÁC ĐỢT SỐ HÓA</h3>
+                            <div style="overflow-x: auto; width: 100%;">
+                                <table class="modern-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên đợt</th>
+                                            <th>Chỉ tiêu m</th>
+                                            <th>Chỉ tiêu trang</th>
+                                            <th style="text-align: center;">Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="campaign-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="input-group" style="margin-bottom: 15px;">
-              <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #334155;">Chọn
-                đợt số hóa dữ liệu:</label>
-              <select id="input-campaign-name" required
-                style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; background: #fff; font-weight: 600; color: #1e293b; font-size: 14px;"></select>
+                <div id="tab-progress" class="modern-card" style="display: none;">
+                    <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 20px;">
+                        <h3 id="form-action-title" style="margin: 0; color: #0056b3; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-pen-to-square"></i> CẬP NHẬT TIẾN ĐỘ THỰC TẾ LŨY KẾ</h3>
+                        <p id="form-action-desc" style="margin: 6px 0 0 0; color: #64748b; font-size: 12.5px;">Chọn đợt số hóa dữ liệu đã khởi tạo và nhập số liệu lũy kế báo cáo đợt.</p>
+                    </div>
+
+                    <form id="updateForm" onsubmit="updateData(event)">
+                        <input type="hidden" id="editing-doc-id" value="">
+
+                        <div class="modern-field-group">
+                            <label>Chọn đợt số hóa dữ liệu:</label>
+                            <select id="input-campaign-name" required class="modern-input-ctrl" style="font-weight: 600; color: #0056b3;"></select>
+                        </div>
+
+                        <div class="modern-field-group">
+                            <label>Ngày báo cáo tiến độ</label>
+                            <input type="date" id="input-date" required class="modern-input-ctrl">
+                        </div>
+
+                        <fieldset class="modern-fieldset">
+                            <legend><i class="fa-solid fa-chart-line"></i> Số liệu lũy kế tính đến ngày báo cáo</legend>
+                            <div class="modern-field-group">
+                                <label style="font-weight: 500; color: #475569;">Số mét đã chỉnh lý xong thực tế (m):</label>
+                                <input type="number" step="0.01" id="input-cl-xong" required class="modern-input-ctrl">
+                            </div>
+                            <div class="modern-field-group">
+                                <label style="font-weight: 500; color: #475569;">Số trang đã quét thực tế (trang):</label>
+                                <input type="number" id="input-sh-scan" required class="modern-input-ctrl">
+                            </div>
+                            <div class="modern-field-group">
+                                <label style="font-weight: 500; color: #475569;">Số trang đã biên mục, chuẩn hóa (trang):</label>
+                                <input type="number" id="input-sh-chuanhoa" required class="modern-input-ctrl">
+                            </div>
+                            <div class="modern-field-group" style="margin-bottom: 5px;">
+                                <label style="font-weight: 500; color: #475569;">Số trang đã đưa lên ứng dụng phần mềm (trang):</label>
+                                <input type="number" id="input-sh-phanmem" required class="modern-input-ctrl">
+                            </div>
+                        </fieldset>
+
+                        <div class="form-actions" style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 18px;">
+                            <button type="button" id="btn-cancel-edit" class="modern-btn-secondary" onclick="resetToCreateMode()">Hủy sửa</button>
+                            <button type="submit" class="modern-btn-primary"><i class="fa-solid fa-cloud-arrow-up"></i> <span id="btn-submit-text">Lưu đợt mới</span></button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
-            <div class="input-group" style="margin-bottom: 15px;">
-              <label style="display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; color: #334155;">Ngày
-                báo cáo tiến độ</label>
-              <input type="date" id="input-date" required
-                style="width: 100%; height: 40px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 14px;">
+            <div id="adminHistoryPanel" class="modern-card" style="display: none;">
+                <h3 style="margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;"><i class="fa-solid fa-clock-rotate-left" style="color: #64748b;"></i> LỊCH SỬ TIẾN ĐỘ</h3>
+                <p style="margin: 0 0 20px 0; color: #64748b; font-size: 12.5px;">Các mốc số liệu tiến độ tích lũy đã ghi nhận trên hệ thống.</p>
+                <div style="overflow-x: auto; width: 100%;">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>Đợt / Ngày</th>
+                                <th>Chỉnh lý</th>
+                                <th>Đã Scan</th>
+                                <th style="text-align: center;">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body"></tbody>
+                    </table>
+                </div>
             </div>
-
-            <fieldset style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-              <legend style="font-weight: 700; color: #0056b3; padding: 0 8px; font-size: 13px;"><i
-                  class="fa-solid fa-chart-line"></i> Số liệu lũy kế tính đến ngày báo cáo</legend>
-              <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; font-size:13px; margin-bottom:4px; color:#475569;">Số mét đã chỉnh lý
-                  xong:</label>
-                <input type="number" step="0.01" id="input-cl-xong" required
-                  style="width: 100%; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-              </div>
-              <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; font-size:13px; margin-bottom:4px; color:#475569;">Số trang đã
-                  scan:</label>
-                <input type="number" id="input-sh-scan" required
-                  style="width: 100%; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-              </div>
-              <div class="input-group" style="margin-bottom: 12px;">
-                <label style="display:block; font-size:13px; margin-bottom:4px; color:#475569;">Số trang đã chuẩn
-                  hóa:</label>
-                <input type="number" id="input-sh-chuanhoa" required
-                  style="width: 100%; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-              </div>
-              <div class="input-group">
-                <label style="display:block; font-size:13px; margin-bottom:4px; color:#475569;">Số trang đã đưa lên phần
-                  mềm:</label>
-                <input type="number" id="input-sh-phanmem" required
-                  style="width: 100%; height: 38px; padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
-              </div>
-            </fieldset>
-
-            <div class="form-actions"
-              style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #edf2f7; padding-top: 15px;">
-              <button type="button" id="btn-cancel-edit" class="btn-back"
-                style="display: none; height: 40px; padding: 0 16px; border: 1px solid #cbd5e1; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13.5px;"
-                onclick="resetToCreateMode()">Hủy sửa</button>
-              <button type="submit" class="btn-save"
-                style="height: 40px; padding: 0 20px; background: #0056b3; color: #ffffff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px;"><i
-                  class="fa-solid fa-cloud-arrow-up"></i> <span id="btn-submit-text">Lưu đợt mới</span></button>
-            </div>
-          </form>
+            
         </div>
-      </div>
-
-      <div id="adminHistoryPanel"
-        style="display: none; background: #ffffff; padding: 25px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); box-sizing: border-box;">
-        <h3 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 700;"><i class="fa-solid fa-clock-rotate-left"
-            style="color: #64748b;"></i> LỊCH SỬ TIẾN ĐỘ</h3>
-        <p style="margin: 0 0 20px 0; color: #64748b; font-size: 13px;">Các mốc báo cáo tiến độ lũy kế đã ghi nhận.</p>
-        <div style="overflow-x: auto; width: 100%;">
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
-            <thead>
-              <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                <th style="padding: 12px 10px; color: #475569; font-weight: 600;">Đợt / Ngày</th>
-                <th style="padding: 12px 10px; color: #475569; font-weight: 600;">Chỉnh lý</th>
-                <th style="padding: 12px 10px; color: #475569; font-weight: 600;">Đã Scan</th>
-                <th style="padding: 12px 10px; color: #475569; font-weight: 600; text-align: center;">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody id="history-table-body"></tbody>
-          </table>
-        </div>
-      </div>
-
     </div>
-  </div>
+    
+    <script type="module">
+        import { db, auth } from './js/firebase-config.js';
+        
+        // Gắn hàm switchTab trực tiếp lên phạm vi window
+        window.switchTab = function(tabId) {
+            document.querySelectorAll('.modern-custom-tab').forEach(btn => btn.classList.remove('active-modern-tab'));
+            
+            const tabCampaign = document.getElementById('tab-campaign');
+            const tabProgress = document.getElementById('tab-progress');
+            const historyPanel = document.getElementById('adminHistoryPanel');
+            const mainGrid = document.getElementById('adminMainGrid');
 
-  <script type="module">
-    import { db, auth } from './js/firebase-config.js';
-
-    window.switchTab = function (tabId) {
-      // Khử trạng thái lựa chọn cũ trên 2 nút tab
-      document.querySelectorAll('.custom-t-btn').forEach(btn => btn.classList.remove('active-t-btn'));
-
-      const tabCampaign = document.getElementById('tab-campaign');
-      const tabProgress = document.getElementById('tab-progress');
-      const historyPanel = document.getElementById('adminHistoryPanel');
-      const mainGrid = document.getElementById('adminMainGrid');
-
-      if (tabId === 'tab-campaign') {
-        document.getElementById('btn-tab-camp').classList.add('active-t-btn');
-        if (tabCampaign) tabCampaign.style.display = "block";
-        if (tabProgress) tabProgress.style.display = "none";
-        if (historyPanel) historyPanel.style.display = "none";
-        if (mainGrid) mainGrid.classList.remove('split-layout');
-      } else {
-        document.getElementById('btn-tab-prog').classList.add('active-t-btn');
-        if (tabCampaign) tabCampaign.style.display = "none";
-        if (tabProgress) tabProgress.style.display = "block";
-        if (historyPanel) historyPanel.style.display = "block";
-        if (mainGrid) mainGrid.classList.add('split-layout');
-      }
-    };
-  </script>
-
-  <script type="module" src="js/admin.js"></script>
+            if (tabId === 'tab-campaign') {
+                document.getElementById('btn-tab-camp').classList.add('active-modern-tab');
+                if (tabCampaign) tabCampaign.style.display = "block";
+                if (tabProgress) tabProgress.style.display = "none";
+                if (historyPanel) historyPanel.style.display = "none";
+                if (mainGrid) mainGrid.classList.remove('split-layout');
+            } else {
+                document.getElementById('btn-tab-prog').classList.add('active-modern-tab');
+                if (tabCampaign) tabCampaign.style.display = "none";
+                if (tabProgress) tabProgress.style.display = "block";
+                if (historyPanel) historyPanel.style.display = "block";
+                if (mainGrid) mainGrid.classList.add('split-layout');
+            }
+        };
+    </script>
+    
+    <script type="module" src="js/admin.js"></script>
 </body>
-
 </html>

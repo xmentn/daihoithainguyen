@@ -26,25 +26,39 @@ let debounceTimer; // Bộ đếm thời gian trễ phục vụ thao tác kéo s
 
 function checkUserStatus() {
   onAuthStateChanged(auth, async (user) => {
-    const nameContainer = document.getElementById("admin-name");
-    const adminLink = document.getElementById("btn-admin-link");
-    const logoutBtn = document.getElementById("btn-logout-main");
+    const nameContainer = document.getElementById('admin-name');
+    const adminLink = document.getElementById('btn-admin-link');
+    const dropdownArea = document.getElementById('user-dropdown-area');
+
     if (user) {
-      if (logoutBtn) logoutBtn.style.display = "inline-flex";
+      // 1. Cấu hình nút Quản trị nằm ở dòng trên
       if (adminLink) {
         adminLink.href = "admin.html";
-        adminLink.innerHTML =
-          "<i class='fa-solid fa-sliders'></i> Quản trị số liệu";
+        adminLink.innerHTML = "<i class='fa-solid fa-sliders'></i> Quản trị dữ liệu";
+        adminLink.style.display = "inline-flex"; // Đảm bảo nút luôn hiện
       }
+
+      // 2. Lấy thông tin họ tên Admin từ Database
       const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (
-        userDoc.exists() &&
-        userDoc.data().role === "admin" &&
-        userDoc.data().fullName &&
-        nameContainer
-      ) {
-        nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> ${userDoc.data().fullName}`;
-        nameContainer.style.display = "inline-flex";
+      if (userDoc.exists() && userDoc.data().role === "admin") {
+        if (userDoc.data().fullName && nameContainer) {
+          nameContainer.innerText = userDoc.data().fullName;
+        }
+
+        // ĐÈ THUỘC TÍNH: Ép khối Dropdown chứa tên hiển thị lên theo dạng block
+        if (dropdownArea) {
+          dropdownArea.style.setProperty('display', 'block', 'important');
+        }
+      }
+    } else {
+      // Nếu chưa đăng nhập hoặc đã đăng xuất, ẩn khối dropdown tên người dùng đi
+      if (dropdownArea) {
+        dropdownArea.style.display = "none";
+      }
+      if (adminLink) {
+        adminLink.href = "login.html";
+        adminLink.innerHTML = "<i class='fa-solid fa-arrow-right-to-bracket'></i> Khu vực Quản trị";
+        adminLink.style.display = "inline-flex";
       }
     }
   });
