@@ -26,15 +26,16 @@ let debounceTimer; // Bộ đếm thời gian trễ phục vụ thao tác kéo s
 
 function checkUserStatus() {
   onAuthStateChanged(auth, async (user) => {
-    const nameContainer = document.getElementById('admin-name');
-    const adminLink = document.getElementById('btn-admin-link');
-    const dropdownArea = document.getElementById('user-dropdown-area');
+    const nameContainer = document.getElementById("admin-name");
+    const adminLink = document.getElementById("btn-admin-link");
+    const dropdownArea = document.getElementById("user-dropdown-area");
 
     if (user) {
       // 1. Cấu hình nút Quản trị nằm ở dòng trên
       if (adminLink) {
         adminLink.href = "admin.html";
-        adminLink.innerHTML = "<i class='fa-solid fa-sliders'></i> Quản trị dữ liệu";
+        adminLink.innerHTML =
+          "<i class='fa-solid fa-sliders'></i> Quản trị dữ liệu";
         adminLink.style.display = "inline-flex"; // Đảm bảo nút luôn hiện
       }
 
@@ -47,7 +48,7 @@ function checkUserStatus() {
 
         // ĐÈ THUỘC TÍNH: Ép khối Dropdown chứa tên hiển thị lên theo dạng block
         if (dropdownArea) {
-          dropdownArea.style.setProperty('display', 'block', 'important');
+          dropdownArea.style.setProperty("display", "block", "important");
         }
       }
     } else {
@@ -57,7 +58,8 @@ function checkUserStatus() {
       }
       if (adminLink) {
         adminLink.href = "login.html";
-        adminLink.innerHTML = "<i class='fa-solid fa-arrow-right-to-bracket'></i> Khu vực Quản trị";
+        adminLink.innerHTML =
+          "<i class='fa-solid fa-arrow-right-to-bracket'></i> Khu vực Quản trị";
         adminLink.style.display = "inline-flex";
       }
     }
@@ -296,17 +298,18 @@ function updateStaticCharts(data, tongMet, tongTrang) {
       },
     },
   });
-
+  // Biểu đồ 2: Hình Tròn Chỉnh lý Mét tài liệu (Đã đảo vế Trái - Phải)
   const clXong = data.chinhLyDaXong || 0;
   const clConLai = tongMet - clXong;
   clChart = new Chart(ctxCl, {
     type: "pie",
     data: {
-      labels: ["Đã chỉnh lý xong", "Còn lại sơ bộ"],
+      // ĐẢO THỨ TỰ: Đưa 'Còn lại sơ bộ' lên trước để 'Đã chỉnh lý xong' nhảy sang bên trái
+      labels: ["Còn lại sơ bộ", "Đã chỉnh lý xong"],
       datasets: [
         {
-          data: [clXong, clConLai > 0 ? clConLai : 0],
-          backgroundColor: ["#2b78e4", "#f27a1a"],
+          data: [clConLai > 0 ? clConLai : 0, clXong],
+          backgroundColor: ["#f27a1a", "#2b78e4"], // Đảo luôn thứ tự màu cam trước, xanh sau
         },
       ],
     },
@@ -327,7 +330,6 @@ function updateStaticCharts(data, tongMet, tongTrang) {
       },
     },
   });
-
   if (ctxPm) {
     const pmXong = data.soHoaPhanMem || 0;
     const pmConLai = tongTrang - pmXong;
