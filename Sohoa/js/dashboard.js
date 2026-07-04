@@ -436,12 +436,31 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
           type: "linear",
           position: "left",
           title: { display: true, text: "Số lượng Trang" },
+          min: 0,
+          max: 450000,
+          ticks: {
+            stepSize: 50000,
+            font: { size: 11 },
+          },
+          // ĐIỀU CHỈNH ĐẬM ĐƯỜNG KẺ NGANG:
+          grid: {
+            color: "#cbd5e1", // Đổi sang màu xám đậm giúp đường kẻ ngang rõ nét tuyệt đối
+            lineWidth: 1, // Độ dày đường kẻ (để 1 là vừa vặn, không bị thô)
+          },
         },
         y1: {
           type: "linear",
           position: "right",
           title: { display: true, text: "Số lượng Mét" },
-          grid: { drawOnChartArea: false },
+          min: 0,
+          max: 180,
+          grid: {
+            drawOnChartArea: false, // Giữ nguyên ẩn lưới phụ để không bị đè rối mắt
+          },
+          ticks: {
+            stepSize: 20,
+            font: { size: 11 },
+          },
         },
       },
       plugins: {
@@ -451,5 +470,4 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
     },
   });
 }
-
 document.addEventListener("DOMContentLoaded", loadDashboardData);
