@@ -31,28 +31,24 @@ function checkUserStatus() {
     const dropdownArea = document.getElementById("user-dropdown-area");
 
     if (user) {
-      // 1. Cấu hình nút Quản trị nằm ở dòng trên
       if (adminLink) {
         adminLink.href = "admin.html";
         adminLink.innerHTML =
           "<i class='fa-solid fa-sliders'></i> Quản trị dữ liệu";
-        adminLink.style.display = "inline-flex"; // Đảm bảo nút luôn hiện
+        adminLink.style.display = "inline-flex";
       }
 
-      // 2. Lấy thông tin họ tên Admin từ Database
       const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists() && userDoc.data().role === "admin") {
         if (userDoc.data().fullName && nameContainer) {
           nameContainer.innerText = userDoc.data().fullName;
         }
 
-        // ĐÈ THUỘC TÍNH: Ép khối Dropdown chứa tên hiển thị lên theo dạng block
         if (dropdownArea) {
           dropdownArea.style.setProperty("display", "block", "important");
         }
       }
     } else {
-      // Nếu chưa đăng nhập hoặc đã đăng xuất, ẩn khối dropdown tên người dùng đi
       if (dropdownArea) {
         dropdownArea.style.display = "none";
       }
@@ -73,6 +69,7 @@ function loadDashboardData() {
     collection(db, "progress_history"),
     orderBy("timestamp", "asc"),
   );
+
   onSnapshot(historyQuery, (querySnapshot) => {
     allLogs = [];
     const campaignSet = new Set();
@@ -114,25 +111,27 @@ function loadDashboardData() {
     setupCampaignView(e.target.value);
   });
 
-  // KHỞI TẠO BỘ LẮNG NGHE SỰ KIỆN KÉO THANH TRƯỢT TIMELINE
+  // ĐỒNG BỘ: ĐƯA BỘ LẮNG NGHE KHỞI TẠO RA VÙNG TOÀN CỤC AN TOÀN NHẤT
   const slider = document.getElementById("timelineRange");
   if (slider) {
     slider.addEventListener("input", (e) => {
       const index = parseInt(e.target.value);
-      if (!currentFilteredLogs[index]) return;
+      if (!currentFilteredLogs || !currentFilteredLogs[index]) return;
 
       const selectedLog = currentFilteredLogs[index];
       const isLatest = index === currentFilteredLogs.length - 1;
 
-      // Thay đổi nhãn thông báo mốc thời gian tức thì khi kéo
-      document.getElementById("txt-slider-date-status").innerText =
-        `Đang xem ngày: ${selectedLog.dateLabel} ${isLatest ? "(Mới nhất)" : "(Cũ hơn)"}`;
+      // Cập nhật nhãn thời gian phản hồi tức thì để người dùng biết đang kéo đến ngày nào
+      const statusTxt = document.getElementById("txt-slider-date-status");
+      if (statusTxt) {
+        statusTxt.innerText = `Đang xem ngày: ${selectedLog.dateLabel} ${isLatest ? "(Mới nhất)" : "(Cũ hơn)"}`;
+      }
 
-      // Cơ chế hoãn (Debounce) 1.5 giây: Dừng hẳn tay kéo mới vẽ lại biểu đồ và số liệu
+      // Cơ chế hoãn (Debounce) mượt mà: Dừng hẳn kéo sau 400ms mới dựng lại dữ liệu
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         renderStateData(selectedLog);
-      }, 1200);
+      }, 400);
     });
   }
 }
@@ -146,7 +145,7 @@ function setupCampaignView(campaignName) {
   );
   if (currentFilteredLogs.length === 0) return;
 
-  // Cấu hình thanh trượt dựa theo số lượng mốc ghi nhận
+  // Cấu hình thanh trượt dựa theo số lượng mốc ghi nhận thực tế
   const slider = document.getElementById("timelineRange");
   if (slider) {
     const totalSteps = currentFilteredLogs.length - 1;
@@ -155,12 +154,16 @@ function setupCampaignView(campaignName) {
     slider.value = totalSteps; // Mặc định nhảy tới mốc hiện tại/mới nhất ở cuối cùng
     slider.disabled = totalSteps <= 0; // Vô hiệu hóa nếu đợt chỉ có 1 bản ghi
 
-    document.getElementById("txt-slider-start").innerText =
-      `Bắt đầu (${currentFilteredLogs[0].dateLabel})`;
-    document.getElementById("txt-slider-end").innerText =
-      `Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
-    document.getElementById("txt-slider-date-status").innerText =
-      `Đang xem: Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
+    const txtStart = document.getElementById("txt-slider-start");
+    const txtEnd = document.getElementById("txt-slider-end");
+    const txtStatus = document.getElementById("txt-slider-date-status");
+
+    if (txtStart)
+      txtStart.innerText = `Bắt đầu (${currentFilteredLogs[0].dateLabel})`;
+    if (txtEnd)
+      txtEnd.innerText = `Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
+    if (txtStatus)
+      txtStatus.innerText = `Đang xem: Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
   }
 
   // Vẽ biểu đồ xu hướng đường dưới cùng trước (Biểu đồ này hiển thị cố định toàn đợt)
@@ -182,22 +185,28 @@ function renderStateData(logRecord) {
   const tongMet = logRecord.tongChinhLy || 0;
   const tongTrang = logRecord.tongSoCanScan || 0;
 
-  document.getElementById("show-ten-dot").innerText =
-    logRecord.campaignName || "";
-  document.getElementById("show-tong-met").innerText = tongMet;
-  document.getElementById("show-tong-trang").innerText =
-    tongTrang.toLocaleString();
+  const txtTenDot = document.getElementById("show-ten-dot");
+  const txtTongMet = document.getElementById("show-tong-met");
+  const txtTongTrang = document.getElementById("show-tong-trang");
+
+  if (txtTenDot) txtTenDot.innerText = logRecord.campaignName || "";
+  if (txtTongMet) txtTongMet.innerText = tongMet;
+  if (txtTongTrang) txtTongTrang.innerText = tongTrang.toLocaleString();
 
   // 1. Khối Chỉnh lý mét
   const clXong = logRecord.chinhLyDaXong || 0;
   const clConLai = tongMet - clXong;
   const clPercent = tongMet > 0 ? ((clXong / tongMet) * 100).toFixed(1) : 0;
 
-  document.getElementById("cl-da-xong").innerText = clXong;
-  document.getElementById("cl-con-lai").innerText =
-    clConLai > 0 ? clConLai.toFixed(1) : 0;
-  document.getElementById("cl-xong-percent").innerText = clPercent;
-  document.getElementById("bar-cl-xong").style.width = clPercent + "%";
+  if (document.getElementById("cl-da-xong"))
+    document.getElementById("cl-da-xong").innerText = clXong;
+  if (document.getElementById("cl-con-lai"))
+    document.getElementById("cl-con-lai").innerText =
+      clConLai > 0 ? clConLai.toFixed(1) : 0;
+  if (document.getElementById("cl-xong-percent"))
+    document.getElementById("cl-xong-percent").innerText = clPercent;
+  if (document.getElementById("bar-cl-xong"))
+    document.getElementById("bar-cl-xong").style.width = clPercent + "%";
 
   // 2. Khối Đã Scan trang
   const shScan = logRecord.soHoaDaScan || 0;
@@ -205,11 +214,15 @@ function renderStateData(logRecord) {
   const scanPercent =
     tongTrang > 0 ? ((shScan / tongTrang) * 100).toFixed(1) : 0;
 
-  document.getElementById("sh-da-scan").innerText = shScan.toLocaleString();
-  document.getElementById("sh-scan-conlai").innerText =
-    scanConLai > 0 ? scanConLai.toLocaleString() : 0;
-  document.getElementById("sh-scan-percent").innerText = scanPercent;
-  document.getElementById("bar-sh-scan").style.width = scanPercent + "%";
+  if (document.getElementById("sh-da-scan"))
+    document.getElementById("sh-da-scan").innerText = shScan.toLocaleString();
+  if (document.getElementById("sh-scan-conlai"))
+    document.getElementById("sh-scan-conlai").innerText =
+      scanConLai > 0 ? scanConLai.toLocaleString() : 0;
+  if (document.getElementById("sh-scan-percent"))
+    document.getElementById("sh-scan-percent").innerText = scanPercent;
+  if (document.getElementById("bar-sh-scan"))
+    document.getElementById("bar-sh-scan").style.width = scanPercent + "%";
 
   // 3. Khối Chuẩn hóa trang
   const shChuanHoa = logRecord.soHoaChuanHoa || 0;
@@ -217,11 +230,14 @@ function renderStateData(logRecord) {
     tongTrang > 0 ? ((shChuanHoa / tongTrang) * 100).toFixed(1) : 0;
   const chuanhoaConLai = tongTrang - shChuanHoa;
 
-  document.getElementById("sh-chuan-hoa").innerText =
-    shChuanHoa.toLocaleString();
-  document.getElementById("sh-chuanhoa-percent").innerText = chuanHoaPercent;
-  document.getElementById("bar-sh-chuanhoa").style.width =
-    chuanHoaPercent + "%";
+  if (document.getElementById("sh-chuan-hoa"))
+    document.getElementById("sh-chuan-hoa").innerText =
+      shChuanHoa.toLocaleString();
+  if (document.getElementById("sh-chuanhoa-percent"))
+    document.getElementById("sh-chuanhoa-percent").innerText = chuanHoaPercent;
+  if (document.getElementById("bar-sh-chuanhoa"))
+    document.getElementById("bar-sh-chuanhoa").style.width =
+      chuanHoaPercent + "%";
   if (document.getElementById("sh-chuanhoa-conlai")) {
     document.getElementById("sh-chuanhoa-conlai").innerText =
       chuanhoaConLai > 0 ? chuanhoaConLai.toLocaleString() : 0;
@@ -233,12 +249,16 @@ function renderStateData(logRecord) {
   const pmPercent =
     tongTrang > 0 ? ((shPhanMem / tongTrang) * 100).toFixed(1) : 0;
 
-  document.getElementById("sh-len-phan-mem").innerText =
-    shPhanMem.toLocaleString();
-  document.getElementById("sh-pm-percent").innerText = pmPercent;
-  document.getElementById("sh-pm-conlai").innerText =
-    pmConLai > 0 ? pmConLai.toLocaleString() : 0;
-  document.getElementById("bar-sh-pm").style.width = pmPercent + "%";
+  if (document.getElementById("sh-len-phan-mem"))
+    document.getElementById("sh-len-phan-mem").innerText =
+      shPhanMem.toLocaleString();
+  if (document.getElementById("sh-pm-percent"))
+    document.getElementById("sh-pm-percent").innerText = pmPercent;
+  if (document.getElementById("sh-pm-conlai"))
+    document.getElementById("sh-pm-conlai").innerText =
+      pmConLai > 0 ? pmConLai.toLocaleString() : 0;
+  if (document.getElementById("bar-sh-pm"))
+    document.getElementById("bar-sh-pm").style.width = pmPercent + "%";
 
   // Làm mới cấu trúc đồ họa hiển thị của 3 biểu đồ khuyên trên theo ngày đang chọn
   updateStaticCharts(logRecord, tongMet, tongTrang);
@@ -254,7 +274,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
   if (scanChart) scanChart.destroy();
   if (clChart) clChart.destroy();
   if (pmChart) pmChart.destroy();
-  // Cập nhật lại cấu hình scanChart trong js/dashboard.js
+
   scanChart = new Chart(ctxScan, {
     type: "bar",
     data: {
@@ -268,11 +288,11 @@ function updateStaticCharts(data, tongMet, tongTrang) {
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // Bắt buộc giữ false để canvas kéo dãn hết div bao ngoài
+      maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,
-          grace: "10%", // Giảm bớt tỷ lệ khoảng trống thừa phía trên đỉnh cột (từ 15% xuống 10%)
+          grace: "10%",
           ticks: { font: { size: 11 } },
         },
         x: {
@@ -290,26 +310,25 @@ function updateStaticCharts(data, tongMet, tongTrang) {
       },
       layout: {
         padding: {
-          top: 20, // Khoảng cách từ đỉnh số số liệu đến mép trên tiêu đề biểu đồ
-          bottom: 0, // Đặt bằng 0 để kéo sát nhãn Đã Scan / Chuẩn hóa xuống đáy
+          top: 20,
+          bottom: 0,
           left: 5,
           right: 5,
         },
       },
     },
   });
-  // Biểu đồ 2: Hình Tròn Chỉnh lý Mét tài liệu (Đã đảo vế Trái - Phải)
+
   const clXong = data.chinhLyDaXong || 0;
   const clConLai = tongMet - clXong;
   clChart = new Chart(ctxCl, {
     type: "pie",
     data: {
-      // ĐẢO THỨ TỰ: Đưa 'Còn lại sơ bộ' lên trước để 'Đã chỉnh lý xong' nhảy sang bên trái
       labels: ["Còn lại sơ bộ", "Đã chỉnh lý xong"],
       datasets: [
         {
           data: [clConLai > 0 ? clConLai : 0, clXong],
-          backgroundColor: ["#f27a1a", "#2b78e4"], // Đảo luôn thứ tự màu cam trước, xanh sau
+          backgroundColor: ["#f27a1a", "#2b78e4"],
         },
       ],
     },
@@ -330,6 +349,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
       },
     },
   });
+
   if (ctxPm) {
     const pmXong = data.soHoaPhanMem || 0;
     const pmConLai = tongTrang - pmXong;
