@@ -103,16 +103,15 @@ function updateCampaignSelectOptions() {
   const savedValue = selectBox.value;
   selectBox.innerHTML = "";
   const campaigns = Object.keys(campaignsConfigMap);
-  if (campaigns.length === 0) {
-    selectBox.innerHTML = "<option value=''>-- Hãy tạo Đợt ở Tab 1 --</option>";
-    return;
-  }
 
-  // Thêm tùy chọn mặc định rỗng để kích hoạt sự kiện change rõ ràng hơn
   const defaultOpt = document.createElement("option");
   defaultOpt.value = "";
   defaultOpt.innerText = "-- Chọn đợt số hóa dữ liệu --";
   selectBox.appendChild(defaultOpt);
+
+  if (campaigns.length === 0) {
+    return;
+  }
 
   campaigns.forEach((camp) => {
     const opt = document.createElement("option");
@@ -126,7 +125,7 @@ function updateCampaignSelectOptions() {
   }
 }
 
-// BỔ SUNG: LOGIC TỰ ĐỘNG ĐIỀN SỐ LIỆU ĐÃ HOÀN THÀNH 100% CỦA BÁO CÁO GẦN NHẤT
+// KHỐI XỬ LÝ: TỰ ĐỘNG QUÉT VÀ ĐIỀN SỐ LIỆU ĐÃ HOÀN THÀNH 100% (ĐỘC LẬP)
 if (document.getElementById("input-campaign-name")) {
   document
     .getElementById("input-campaign-name")
@@ -134,13 +133,41 @@ if (document.getElementById("input-campaign-name")) {
       const campaignName = e.target.value;
       if (!campaignName) return;
 
-      // Reset các ô nhập về trống trước để đón dữ liệu mới
-      document.getElementById("input-cl-xong").value = "";
-      document.getElementById("input-sh-scan").value = "";
-      document.getElementById("input-sh-chuanhoa").value = "";
-      document.getElementById("input-sh-phanmem").value = "";
+      // Đưa toàn bộ các ô nhập tiến độ về trạng thái trống trước khi quét dữ liệu mới
+      if (document.getElementById("input-cl-xong"))
+        document.getElementById("input-cl-xong").value = "";
+      if (document.getElementById("input-sh-scan"))
+        document.getElementById("input-sh-scan").value = "";
+      if (document.getElementById("input-sh-chuanhoa"))
+        document.getElementById("input-sh-chuanhoa").value = "";
+      if (document.getElementById("input-sh-phanmem"))
+        document.getElementById("input-sh-phanmem").value = "";
 
       try {
+        // 1. Truy vấn trực tiếp lấy chỉ tiêu gốc của đợt từ cơ sở dữ liệu
+        const campQ = query(
+          collection(db, "campaigns"),
+          where("campaignName", "==", campaignName),
+        );
+        const campSnapshot = await getDocs(campQ);
+
+        let chiTieuMet = 0;
+        let chiTieuTrang = 0;
+
+        if (!campSnapshot.empty) {
+          const campData = campSnapshot.docs[0].data();
+          chiTieuMet = Number(campData.tongChinhLy || 0);
+          chiTieuTrang = Number(campData.tongSoCanScan || 0);
+        } else {
+          const fallbackConfig = campaignsConfigMap[campaignName] || {
+            tongChinhLy: 0,
+            tongSoCanScan: 0,
+          };
+          chiTieuMet = Number(fallbackConfig.tongChinhLy);
+          chiTieuTrang = Number(fallbackConfig.tongSoCanScan);
+        }
+
+        // 2. Truy vấn lấy bản ghi lịch sử tiến độ lũy kế mới nhất của đợt này
         const q = query(
           collection(db, "progress_history"),
           where("campaignName", "==", campaignName),
@@ -150,42 +177,44 @@ if (document.getElementById("input-campaign-name")) {
 
         if (!querySnapshot.empty) {
           const latestLog = querySnapshot.docs[0].data();
-          const config = campaignsConfigMap[campaignName] || {
-            tongChinhLy: 0,
-            tongSoCanScan: 0,
-          };
-
-          // ÉP KIỂU SỐ TƯỜNG MINH ĐỂ ĐẢM BẢO PHÉP SO SÁNH CHÍNH XÁC 100%
-          const chiTieuMet = Number(config.tongChinhLy);
-          const chiTieuTrang = Number(config.tongSoCanScan);
 
           const daChinhLy = Number(latestLog.chinhLyDaXong || 0);
           const daScan = Number(latestLog.soHoaDaScan || 0);
           const daChuanHoa = Number(latestLog.soHoaChuanHoa || 0);
           const daPhanMem = Number(latestLog.soHoaPhanMem || 0);
 
-          // 1. Kiểm tra khâu chỉnh lý mét
-          if (daChinhLy >= chiTieuMet && chiTieuMet > 0) {
+          // Đối chiếu điều kiện chạm mốc 100% và gán dữ liệu tự động
+          if (
+            daChinhLy >= chiTieuMet &&
+            chiTieuMet > 0 &&
+            document.getElementById("input-cl-xong")
+          ) {
             document.getElementById("input-cl-xong").value = chiTieuMet;
           }
-
-          // 2. Kiểm tra khâu đã scan trang (Ví dụ: 430000 >= 430000)
-          if (daScan >= chiTieuTrang && chiTieuTrang > 0) {
+          if (
+            daScan >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-scan")
+          ) {
             document.getElementById("input-sh-scan").value = chiTieuTrang;
           }
-
-          // 3. Kiểm tra khâu biên mục & chuẩn hóa trang
-          if (daChuanHoa >= chiTieuTrang && chiTieuTrang > 0) {
+          if (
+            daChuanHoa >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-chuanhoa")
+          ) {
             document.getElementById("input-sh-chuanhoa").value = chiTieuTrang;
           }
-
-          // 4. Kiểm tra khâu đưa lên phần mềm trang
-          if (daPhanMem >= chiTieuTrang && chiTieuTrang > 0) {
+          if (
+            daPhanMem >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-phanmem")
+          ) {
             document.getElementById("input-sh-phanmem").value = chiTieuTrang;
           }
         }
       } catch (err) {
-        console.error("Lỗi tự động quét điền số liệu 100%: ", err);
+        console.error("Lỗi hệ thống tự động quét dữ liệu: ", err);
       }
     });
 }
@@ -326,7 +355,8 @@ window.updateData = async (e) => {
   let originalText = "Lưu đợt mới";
   if (btnSave) {
     originalText = btnSave.innerHTML;
-    btnSave.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i>...";
+    btnSave.innerHTML =
+      "<i class='fa-solid fa-spinner fa-spin'></i> Đang lưu...";
     btnSave.disabled = true;
   }
 
@@ -486,6 +516,15 @@ window.deleteProgress = async (docId) => {
 };
 
 function initAdminPage() {
+  // CƠ CHẾ DỰ PHÒNG: Tự lưu token vào RAM nếu trình duyệt bật Tracking Prevention chặn Storage
+  import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js").then(
+    (authModule) => {
+      auth.setPersistence(
+        authModule.browserSessionPersistence || authModule.inMemoryPersistence,
+      );
+    },
+  );
+
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const nameContainer = document.getElementById("admin-name");
