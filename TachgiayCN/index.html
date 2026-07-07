@@ -37,9 +37,43 @@
               <h3 class="card-title">
                 TÁCH VÀ ĐỒNG BỘ TÊN FILE GIẤY CHỨNG NHẬN
               </h3>
-              <div class="card-live-counter">
-                📊 Số tệp đã thực hiện:
-                <strong id="portal_global_files">0</strong> tệp
+              <div
+                class="card-live-counter"
+                style="
+                  display: flex;
+                  flex-direction: column;
+                  gap: 4px;
+                  padding: 6px 12px;
+                "
+              >
+                <div>
+                  📊 Tổng số tệp:
+                  <strong id="portal_global_files">0</strong> tệp
+                </div>
+                <div
+                  style="
+                    font-size: 11.5px;
+                    color: #64748b;
+                    font-weight: 500;
+                    border-top: 1px dashed #e2e8f0;
+                    padding-top: 4px;
+                    margin-top: 2px;
+                  "
+                >
+                  📄 A4:
+                  <span
+                    id="portal_a4_files"
+                    style="color: #2563eb; font-weight: 700"
+                    >0</span
+                  >
+                  tệp | 📖 A3:
+                  <span
+                    id="portal_a3_files"
+                    style="color: #ef4444; font-weight: 700"
+                    >0</span
+                  >
+                  tệp
+                </div>
               </div>
             </div>
           </div>
@@ -143,24 +177,30 @@
       const database = firebase.database();
 
       // 🎯 ĐÃ SỬA CHUẨN: Trỏ đúng vào nhánh cấu trúc 'counter/total_files_processed'
-      const totalFilesRef = database.ref("counter/total_files_processed");
+      // Đồng bộ tổng số file tệp chung
+      database.ref("counter/total_files_processed").on("value", (snapshot) => {
+        const val = snapshot.val();
+        document.getElementById("portal_global_files").innerText =
+          val !== null ? Number(val).toLocaleString("vi-VN") : "0";
+      });
 
-      totalFilesRef.on(
-        "value",
-        (snapshot) => {
-          const dataValue = snapshot.val();
-          if (dataValue !== null) {
-            // Hiển thị số liệu lên ô 'portal_global_files' ngoài trang chủ
-            document.getElementById("portal_global_files").innerText =
-              Number(dataValue).toLocaleString("vi-VN");
-          } else {
-            document.getElementById("portal_global_files").innerText = "0";
-          }
-        },
-        (error) => {
-          console.log("Lỗi đồng bộ dữ liệu: " + error.message);
-        },
-      );
+      // Đồng bộ số file mẫu A4 riêng biệt
+      database.ref("counter/total_files_a4").on("value", (snapshot) => {
+        const val = snapshot.val();
+        const el = document.getElementById("portal_a4_files");
+        if (el)
+          el.innerText =
+            val !== null ? Number(val).toLocaleString("vi-VN") : "0";
+      });
+
+      // Đồng bộ số file mẫu A3 riêng biệt
+      database.ref("counter/total_files_a3").on("value", (snapshot) => {
+        const val = snapshot.val();
+        const el = document.getElementById("portal_a3_files");
+        if (el)
+          el.innerText =
+            val !== null ? Number(val).toLocaleString("vi-VN") : "0";
+      });
       database.ref("total_inputs_processed").on("value", (snapshot) => {
         const val = snapshot.val() || 0;
         // Giả sử id hiển thị số liệu của khối 2 ngoài trang chủ anh đặt là 'portal_input_files'
