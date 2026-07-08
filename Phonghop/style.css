@@ -1,10 +1,9 @@
 :root {
-  /* Đổi màu chủ đạo banner sang màu đỏ cờ/đỏ đại hội trang trọng */
   --header-bg: #b71c1c;
   --bg-main: #f0f4f8;
   --panel-bg: #ffffff;
-  --table-color: #f7f9fa;
-  --table-border: #e2e8f0;
+  --table-color: #d2b48c; /* Đổi sang màu gỗ nâu sáng rõ ràng */
+  --table-border: #8b5a2b; /* Đường viền màu gỗ sậm đậm nét */
   --seat-empty: #c0392b;
   --seat-shadow: #7b241c;
 }
@@ -13,7 +12,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', Arial, sans-serif;
+  font-family: "Segoe UI", Arial, sans-serif;
 }
 
 body {
@@ -91,14 +90,16 @@ body {
 /* BỐ CỤC CHÍNH ĐA CỘT */
 .app-main-layout {
   display: flex;
-  max-width: 1500px;
+  max-width: 100%; /* Thay vì cố định 1500px, mở rộng tối đa theo màn hình */
   margin: 25px auto;
-  padding: 0 20px;
-  gap: 20px;
+  padding: 0 40px; /* Tăng khoảng cách đệm hai bên một chút cho cân đối */
+  gap: 30px; /* Tăng khoảng cách giữa sơ đồ và cột phải */
 }
 
 .layout-left-content {
-  flex: 1;
+  flex: 1; /* Giúp phần sơ đồ tự co giãn chiếm trọn không gian còn lại */
+  display: flex;
+  flex-direction: column;
 }
 
 .layout-right-sidebar {
@@ -115,8 +116,22 @@ body {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   text-align: center;
+  flex: 1; /* Ép khung sơ đồ mở rộng tối đa bề ngang */
+}
+.auditorium-section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
+.hall-body {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  gap: 10px;
+  width: 100%; /* Kéo giãn ma trận ghế đều ra hai bên */
+  max-width: 1200px; /* Giới hạn vừa vặn để các hàng ghế không bị quá thưa */
+  margin: 0 auto; /* Căn chỉnh ma trận ghế nằm chính giữa panel */
+}
 .hall-title {
   font-size: 18px;
   font-weight: bold;
@@ -145,39 +160,46 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin: 0 auto;
+  width: 100%;
 }
-
+/* Hàng chứa ghế chủ tọa: Chuyển sang Grid để khớp tỉ lệ 1:1 với ô bàn */
 .chairman-chairs {
   display: flex;
+  justify-content: space-around;
+  width: 100%;
   margin-bottom: 8px;
-  gap: 10px;
 }
-
+/* Ô bọc ngoài của từng chiếc ghế chủ tọa để ép nó đứng giữa ô bàn */
 .chair-slot {
+  flex: 1;
   display: flex;
-  justify-content: center;
+  justify-content: center; /* Đảm bảo ghế c-seat luôn nằm chính giữa ô bàn tương ứng */
   align-items: flex-end;
 }
 
+/* Mặt bàn chủ tọa chia ô tương ứng tỉ lệ 1:1 với hàng ghế */
 .chairman-table {
   display: flex;
   width: 100%;
   height: 45px;
-  background-color: var(--table-color);
-  border: 1px solid var(--table-border);
+  background: linear-gradient(to bottom, #ebd3b4, #d2b48c);
+  border: 2px solid var(--table-border);
   border-radius: 4px;
-  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    inset 0 -3px 5px rgba(0, 0, 0, 0.1),
+    0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Vách ngăn chia đều các ô bàn chủ tọa theo tỉ lệ 1:1 với hàng ghế */
 .table-panel {
   flex: 1;
-  border-right: 1px solid var(--table-border);
+  height: 100%;
+  border-right: 2px solid var(--table-border);
 }
-
 .table-panel:last-child {
   border-right: none;
 }
-
 /* THANH TÌM KIẾM GIỮA PHÒNG */
 .search-area {
   margin: 20px 0 30px 0;
@@ -262,15 +284,22 @@ body {
 .auditorium-table {
   width: 100%;
   height: 32px;
-  background-color: var(--table-color);
-  border: 1px solid var(--table-border);
+  background: linear-gradient(
+    to bottom,
+    #ebd3b4,
+    #d2b48c
+  ); /* Tạo khối viền 3D nhẹ cho mặt bàn khán phòng */
+  border: 2px solid var(--table-border); /* Tăng độ dày viền lên 2px */
+  border-bottom-width: 3px; /* Làm dày đáy bàn tạo cảm giác vững chãi */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
-
 /* THIẾT KẾ ĐỆM GHẾ ĐỎ SẪM ĐỒNG BỘ */
 .seat-3d {
   background: linear-gradient(to bottom, #e74c3c, #c0392b);
   border-radius: 6px;
-  box-shadow: 0 4px 0 var(--seat-shadow), 0 6px 4px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 4px 0 var(--seat-shadow),
+    0 6px 4px rgba(0, 0, 0, 0.1);
   border: 1px solid #922b21;
   display: flex;
   flex-direction: column;
@@ -282,7 +311,6 @@ body {
   cursor: pointer;
   transition: transform 0.15s;
 }
-
 .c-seat {
   width: 60px;
   height: 40px;
@@ -315,7 +343,9 @@ body {
 .has-delegate {
   background: linear-gradient(to bottom, #922b21, #641e16) !important;
   border-color: #f1c40f !important;
-  box-shadow: 0 4px 0 #421510, 0 0 8px rgba(241, 196, 15, 0.4) !important;
+  box-shadow:
+    0 4px 0 #421510,
+    0 0 8px rgba(241, 196, 15, 0.4) !important;
 }
 
 .seat-3d[data-tooltip]:hover {
@@ -329,16 +359,19 @@ body {
   bottom: 120%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #1e293b;
+  background-color: #0e3b83;
   color: #fff;
-  padding: 5px 10px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: bold;
   z-index: 100;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 10px rgba(121, 111, 252, 0.25);
+  pointer-events: none;
+  text-align: center;
+  white-space: pre-line; /* Nhận diện ký tự xuống dòng \n từ file script.js */
+  min-width: 150px; /* Ngăn chặn việc họ tên dài bị tự động ngắt dòng vụn vặt */
 }
-
 /* SIDEBAR CỘT PHẢI */
 .sidebar-card {
   background: white;
