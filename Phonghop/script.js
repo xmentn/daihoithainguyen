@@ -1,11 +1,17 @@
 import { db, collection, onSnapshot } from "./firebase-config.js";
+import { auth, signInWithEmailAndPassword } from "./firebase-config.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // --- ĐĂNG NHẬP QUẢN TRỊ (GIỮ NGUYÊN) ---
+  // --- ĐĂNG NHẬP QUẢN TRỊ (ĐÃ SỬA ĐẦY ĐỦ BIẾN) ---
   const adminBtn = document.getElementById("admin-icon");
   const loginModal = document.getElementById("login-modal");
   const closeLogin = document.getElementById("close-login");
   const submitLogin = document.getElementById("submit-login");
+
+  // BỔ SUNG 3 DÒNG NÀY ĐỂ ĐỊNH VỊ ĐÚNG CÁC Ô NHẬP LIỆU TRÊN GIAO DIỆN MÁY TÍNH
+  const userIn = document.getElementById("username");
+  const passIn = document.getElementById("password");
+  const errorMsg = document.getElementById("login-error");
 
   adminBtn.addEventListener("click", () => {
     loginModal.style.display = "flex";
@@ -14,14 +20,39 @@ document.addEventListener("DOMContentLoaded", () => {
     loginModal.style.display = "none";
   });
   submitLogin.addEventListener("click", () => {
-    if (
-      document.getElementById("username").value === "admin" &&
-      document.getElementById("password").value === "123456"
-    ) {
-      window.location.href = "admin.html";
-    } else {
-      document.getElementById("login-error").style.display = "block";
-    }
+    const email = userIn.value.trim();
+    const password = passIn.value;
+
+    errorMsg.style.display = "none";
+
+    // Hiển thị trạng thái đang xử lý trên nút
+    submitLogin.textContent = "Đang xác thực...";
+    submitLogin.disabled = true;
+
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Trạng thái thành công: Đổi màu nút và hiển thị thông báo chào mừng
+        submitLogin.style.backgroundColor = "#2ecc71";
+        submitLogin.textContent = "Thành công!";
+
+        // Tạo hiệu ứng thông báo mượt mà trước khi chuyển trang
+        setTimeout(() => {
+          loginModal.style.display = "none";
+          // Chuyển hướng sang trang quản trị
+          window.location.href = "admin.html";
+        }, 800); // Đợi 0.8 giây để người dùng kịp nhìn thấy trạng thái thành công
+      })
+      .catch((error) => {
+        console.error("Lỗi đăng nhập Firebase:", error.code, error.message);
+
+        // Khôi phục lại trạng thái nút nếu thất bại
+        submitLogin.style.backgroundColor = "";
+        submitLogin.textContent = "Đăng nhập";
+        submitLogin.disabled = false;
+
+        errorMsg.textContent = "Tài khoản hoặc mật khẩu không chính xác!";
+        errorMsg.style.display = "block";
+      });
   });
 
   // --- KHÔI PHỤC ĐẦY ĐỦ 11 HÀNG GHẾ HỘI TRƯỜNG (TỪ A ĐẾN K) ---
@@ -176,8 +207,13 @@ document.addEventListener("DOMContentLoaded", () => {
       cGroup.style.width = `${seatsToShow.length * 110}px`;
       const cChairs = document.createElement("div");
       cChairs.className = "chairman-chairs";
+      cChairs.style.marginBottom = "5px"; // Ép khoảng cách âm để mặt bàn che bớt một phần chân ghế giống hệt hình mẫu
+      cChairs.style.position = "relative";
+      cChairs.style.zIndex = "1";
       const cTable = document.createElement("div");
       cTable.className = "chairman-table";
+      cTable.style.position = "relative";
+      cTable.style.zIndex = "2";
 
       seatsToShow.forEach((seatCode) => {
         selectedCount++;
@@ -190,7 +226,10 @@ document.addEventListener("DOMContentLoaded", () => {
         shortName =
           shortName.charAt(0).toUpperCase() + shortName.slice(1).toLowerCase();
 
-        seat.innerHTML = `<span class="seat-code">${seatCode}</span><span class="delegate-name">Đ/c ${shortName}</span>`;
+        // ĐOẠN CODE MỚI: TÁCH BIỆT "Đ/C" VÀ "TÊN" THÀNH 2 HÀNG TRÊN GHẾ CHỦ TỌA
+        seat.innerHTML = `
+    <div class="title-row" style="font-size: 11px; opacity: 0.9; margin-bottom: 1px;">Đ/c</div>
+    <div class="name-row" style="font-weight: bold; font-size: 12px; line-height: 1.1;">${shortName}</div>`;
         seat.setAttribute("data-tooltip", `Đồng chí\n${del.name}`);
         slot.appendChild(seat);
         cChairs.appendChild(slot);
@@ -217,9 +256,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // ==========================================
-    // TỰ ĐỘNG CẬP NHẬT CHỈ SỐ THỐNG KÊ THEO QUY MÔ THẬT
-    // ==========================================
+    // ==========================================================================
+    // TỰ ĐỘNG CẬP NHẬT CHỈ SỐ THỐNG KÊ & XOAY BIỂU ĐỒ HÌNH NHẪN (DASHBOARD) Realtime
+    // ==========================================================================
     const totalChairsCount =
       document.querySelectorAll(".a-seat").length + seatsToShow.length;
     const emptyCount = totalChairsCount - selectedCount;
@@ -228,10 +267,21 @@ document.addEventListener("DOMContentLoaded", () => {
         ? ((selectedCount / totalChairsCount) * 100).toFixed(1)
         : 0;
 
+    // Cập nhật giá trị văn bản chữ trên thẻ Sidebar
     document.getElementById("stat-total").textContent = totalChairsCount;
     document.getElementById("stat-selected").textContent = selectedCount;
     document.getElementById("stat-empty").textContent = emptyCount;
     document.getElementById("stat-percent").textContent = `${percent}%`;
+
+    // Cập nhật vòng quay và số liệu trung tâm của biểu đồ hình nhẫn
+    const donutChart = document.getElementById("donut-chart");
+    const chartPercentText = document.getElementById("chart-percent-text");
+
+    if (donutChart && chartPercentText) {
+      chartPercentText.textContent = `${percent}%`;
+      // Thiết lập dải quạt: Màu đỏ sẫm (#922b21) đại diện ghế có người và màu trắng ngà (#f4efe2) đại diện ghế trống
+      donutChart.style.background = `conic-gradient(#922b21 0% ${percent}%, #f4efe2 ${percent}% 100%)`;
+    }
   }
 
   // --- TÌM KIẾM ĐẠI BIỂU ---
