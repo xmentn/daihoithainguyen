@@ -169,14 +169,18 @@ document.addEventListener("DOMContentLoaded", () => {
     // Đổi tiêu đề Banner đầu trang theo Hội nghị đang chọn
     headerTitle.textContent = conf.name.toUpperCase();
     headerSubtitle.textContent = `Hội trường Tỉnh ủy`;
-
     // Reset tất cả ghế khán phòng về trạng thái trống ban đầu
     document.querySelectorAll(".a-seat").forEach((seat) => {
-      seat.classList.remove("has-delegate");
+      seat.classList.remove(
+        "has-delegate",
+        "seat-trung-uong",
+        "seat-btv",
+        "seat-bch",
+        "seat-khac",
+      ); // THÊM CÁC CLASS CẦN XÓA Ở ĐÂY
       seat.removeAttribute("data-tooltip");
       seat.innerHTML = `<span class="seat-code">${seat.dataset.code}</span>`;
     });
-
     const seatsMap = conf.seats || {};
     let selectedCount = 0;
 
@@ -242,7 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
       chairmanContainer.appendChild(cGroup);
     }
 
-    // 2. ĐỔ GHẾ KHÁN PHÒNG TỔNG HỢP
+    // 2. ĐỔ GHẾ KHÁN PHÒNG TỔNG HỢP (PHÂN CHIA MÀU THEO CHỨC VỤ)
     audienceDelegates.forEach((del) => {
       const seatEl = document.querySelector(`[data-code="${del.seat}"]`);
       if (seatEl) {
@@ -251,11 +255,53 @@ document.addEventListener("DOMContentLoaded", () => {
         shortName =
           shortName.charAt(0).toUpperCase() + shortName.slice(1).toLowerCase();
         seatEl.innerHTML = `<span class="seat-code">${del.seat}</span><span class="delegate-name">Đ/c ${shortName}</span>`;
+
+        // Mặc định thêm class có người ngồi
         seatEl.classList.add("has-delegate");
         seatEl.setAttribute("data-tooltip", `Đồng chí\n${del.name}`);
+
+        // Tìm lại thông tin gốc của đại biểu theo delId trong globalDelegates
+        const delId = Object.keys(globalDelegates).find(
+          (id) => globalDelegates[id].name === del.name,
+        );
+        const delRawInfo = delId ? globalDelegates[delId] : null;
+
+        if (delRawInfo) {
+          // SỬA TẠI ĐÂY: Ưu tiên đọc chính xác trường "category" từ Firestore của bạn, sau đó mới đến các trường dự phòng
+          const positionText = (
+            delRawInfo.category ||
+            delRawInfo.position ||
+            delRawInfo.role ||
+            delRawInfo.type ||
+            ""
+          ).toLowerCase(); // Đã chuyển chuỗi về chữ viết thường toàn bộ để so sánh chính xác
+
+          // SỬA TẠI ĐÂY: Chuyển toàn bộ từ khóa so sánh bên dưới thành CHỮ VIẾT THƯỜNG để khớp với lệnh .toLowerCase()
+          if (
+            positionText.includes("trung ương") ||
+            positionText.includes("tw")
+          ) {
+            seatEl.classList.add("seat-trung-uong");
+          } else if (
+            positionText.includes("btv") ||
+            positionText.includes("thường vụ")
+          ) {
+            seatEl.classList.add("seat-btv");
+          } else if (
+            positionText.includes("bch") ||
+            positionText.includes("ban chấp hành") ||
+            positionText.includes("đảng bộ tỉnh")
+          ) {
+            seatEl.classList.add("seat-bch");
+          } else {
+            seatEl.classList.add("seat-khac");
+          }
+        } else {
+          // Phòng hờ nếu không tìm thấy thông tin chi tiết thì xếp vào nhóm Đại biểu khác
+          seatEl.classList.add("seat-khac");
+        }
       }
     });
-
     // ==========================================================================
     // TỰ ĐỘNG CẬP NHẬT CHỈ SỐ THỐNG KÊ & XOAY BIỂU ĐỒ HÌNH NHẪN (DASHBOARD) Realtime
     // ==========================================================================
@@ -304,8 +350,4 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-
-  document.getElementById("btn-refresh-page")?.addEventListener("click", () => {
-    window.location.reload();
-  });
 });

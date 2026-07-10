@@ -337,9 +337,8 @@ body {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
-/* ĐỆM GHẾ ĐỎ SẪM KHÁN PHÒNG */
+/* --- THIẾT KẾ ĐỆM GHẾ TRỐNG MÀU TRẮNG NGÀ CHUẨN KHÁN PHÒNG --- */
 .seat-3d {
-  /* Chuyển sang màu trắng ngà (kem sáng) đổ khối 3D */
   background: linear-gradient(to bottom, #fcfaf2, #f4efe2);
   border-radius: 6px;
   box-shadow:
@@ -395,13 +394,13 @@ body {
   font-weight: bold;
   font-size: 9px;
   opacity: 0.8;
-  color: inherit;
+  color: inherit; /* Tự động kế thừa màu tối khi ghế trống và màu trắng khi có người */
 }
 
 .delegate-name {
   font-size: 8.5px;
   font-weight: bold;
-  color: #fff176;
+  color: #fff176; /* Màu chữ vàng chanh nổi bật trên nền đỏ */
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -425,13 +424,18 @@ body {
   white-space: nowrap;
 }
 
+/* GHẾ ĐÃ CÓ NGƯỜI (TRẠNG THÁI CHUNG) */
 .has-delegate {
-  background: linear-gradient(to bottom, #922b21, #641e16) !important;
   border-color: #f1c40f !important;
   color: white !important;
   box-shadow:
     0 4px 0 #421510,
     0 0 8px rgba(241, 196, 15, 0.4) !important;
+}
+
+/* Ép chữ mã ghế sang màu trắng khi có người ngồi, tránh dính màu xám của ghế trống */
+.has-delegate .seat-code {
+  color: #ffffff !important;
 }
 
 .seat-3d[data-tooltip]:hover {
@@ -464,6 +468,55 @@ body {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* ==========================================================================
+   BẢNG MÀU PHÂN CẤP CHI TIẾT THEO ĐỐI TƯỢNG ĐẠI BIỂU KHÁN PHÒNG
+   ========================================================================== */
+
+/* 1. ĐẠI BIỂU TRUNG ƯƠNG: Đỏ cam lửa phối nhung vàng hoàng gia, viền vàng nét đứt nổi bật */
+.seat-3d.seat-trung-uong {
+  background: linear-gradient(to bottom, #e67e22, #922b21) !important;
+  border: 2px dashed #f1c40f !important;
+  box-shadow:
+    0 4px 0 #5c1d16,
+    0 0 12px rgba(241, 196, 15, 0.7) !important;
+}
+
+/* 2. ỦY VIÊN BTV TỈNH ỦY: Màu đỏ đô sẫm uy nghiêm, viền khối chỉ vàng sắc nét */
+.seat-3d.seat-btv {
+  background: linear-gradient(to bottom, #922b21, #641e16) !important;
+  border: 2px solid #f1c40f !important;
+  box-shadow:
+    0 4px 0 #421510,
+    0 0 8px rgba(241, 196, 15, 0.4) !important;
+}
+
+/* 3. ỦY VIÊN BCH ĐẢNG BỘ TỈNH: Màu đỏ mận chín tươi sáng, viền hổ phách nhẹ */
+.seat-3d.seat-bch {
+  background: linear-gradient(to bottom, #c0392b, #7b241c) !important;
+  border: 1.5px solid #f39c12 !important;
+  box-shadow:
+    0 4px 0 #501610,
+    0 0 6px rgba(243, 156, 18, 0.3) !important;
+}
+
+/* 4. ĐẠI BIỂU KHÁC: Màu đỏ thuần tiêu chuẩn trang trọng, viền bạc nền nã */
+.seat-3d.seat-khac {
+  background: linear-gradient(to bottom, #e74c3c, #962d22) !important;
+  border: 1px solid #bdc3c7 !important;
+  box-shadow:
+    0 4px 0 #6e1f16,
+    0 4px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Đảm bảo chữ tên đại biểu rõ ràng nhất trên mọi dải màu ghế đỏ */
+.seat-trung-uong .delegate-name,
+.seat-btv .delegate-name,
+.seat-bch .delegate-name {
+  color: #fff176 !important;
+}
+.seat-khac .delegate-name {
+  color: #ffffff !important; /* Ghế đỏ tươi nhóm khác dùng chữ trắng cho dịu mắt, dễ nhìn */
+}
 /* SIDEBAR CỘT PHẢI */
 .sidebar-card {
   background: white;
@@ -552,4 +605,67 @@ body {
   padding: 25px;
   border-radius: 8px;
   width: 300px;
+}
+/* ==========================================================================
+   BỐ CỤC KHỐI CHÚ THÍCH MÀU GHẾ (LEGEND SIDEBAR)
+   ========================================================================== */
+.legend-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* Khoảng cách thông thoáng giữa các dòng */
+  margin-top: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Định dạng ô màu mô phỏng mô hình ghế 3D thu nhỏ */
+.legend-color-box {
+  width: 24px;
+  height: 18px;
+  border-radius: 4px;
+  position: relative;
+}
+
+/* Đồng bộ dải màu đổ khối 3D từ sơ đồ ghế xuống bảng chú thích */
+.legend-color-box.seat-trung-uong {
+  background: linear-gradient(to bottom, #e67e22, #922b21) !important;
+  border: 1.5px dashed #f1c40f !important;
+  box-shadow:
+    0 2px 0 #5c1d16,
+    0 0 6px rgba(241, 196, 15, 0.5);
+}
+
+.legend-color-box.seat-btv {
+  background: linear-gradient(to bottom, #922b21, #641e16) !important;
+  border: 1.5px solid #f1c40f !important;
+  box-shadow: 0 2px 0 #421510;
+}
+
+.legend-color-box.seat-bch {
+  background: linear-gradient(to bottom, #c0392b, #7b241c) !important;
+  border: 1px solid #f39c12 !important;
+  box-shadow: 0 2px 0 #501610;
+}
+
+.legend-color-box.seat-khac {
+  background: linear-gradient(to bottom, #e74c3c, #962d22) !important;
+  border: 1px solid #bdc3c7 !important;
+  box-shadow: 0 2px 0 #6e1f16;
+}
+
+.legend-color-box.seat-trong {
+  background: linear-gradient(to bottom, #fcfaf2, #f4efe2) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 0 #d0c9b5;
+}
+
+/* Định dạng nhãn chữ chú thích */
+.legend-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
 }
