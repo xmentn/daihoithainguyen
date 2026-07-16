@@ -1,8 +1,7 @@
 :root {
-  --header-bg: #b71c1c;
   --bg-main: #f0f4f8;
   --panel-bg: #ffffff;
-  --table-color: #d2b48c; /* Đổi sang màu gỗ nâu sáng rõ ràng */
+  --table-color: #d2b48c; /* Màu gỗ nâu sáng rõ ràng */
   --table-border: #8b5a2b; /* Đường viền màu gỗ sậm đậm nét */
   --seat-empty: #c0392b;
   --seat-shadow: #7b241c;
@@ -20,33 +19,52 @@ body {
   padding-bottom: 40px;
 }
 
-/* BANNER TIÊU ĐỀ TRÊN CÙNG */
+/* ==========================================================================
+   BANNER TIÊU ĐỀ TRÊN CÙNG - GIỮ NGUYÊN TỶ LỆ ẢNH GỐC, TRIỆT TIÊU KHOẢNG TRẮNG
+   ========================================================================== */
 .main-header {
-  background-color: var(--header-bg);
-  color: white;
-  padding: 12px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  position: relative;
+  width: 100% !important;
+  max-width: 100vw;
+  overflow: hidden;
+  display: block; /* Chuyển về block để độ cao phụ thuộc hoàn toàn vào ảnh img bên trong */
   border-bottom: 3px solid #f1c40f;
-  /* Thêm đường viền vàng chỉn chu phía dưới banner */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.header-left {
+/* Biến file Banner thành một thẻ ảnh dựng trực tiếp cấu trúc khung hình */
+.main-header::before {
+  content: "";
+  display: block;
+  width: 100%;
+  /* Gọi ảnh trực tiếp thông qua thẻ ảo để dựng độ cao co giãn tự nhiên theo chiều rộng màn hình */
+  background: url("/images/Banner2.png") no-repeat center center;
+  background-size: 100% auto;
+  padding-top: 21.5%; /* Tỷ lệ vàng chính xác theo kích thước file Banner_2.png của bạn */
+}
+
+/* ĐỊNH VỊ TUYỆT ĐỐI KHỐI CHỮ VÀ NÚT ĐỂ NỔI LÊN TRÊN BANNER */
+.main-header .header-left {
+  position: absolute !important;
+  top: 15px !important; /* Đẩy sát lên mép trên 15px */
+  left: 20px !important; /* Đẩy sát ra lề trái 20px */
+  transform: none !important; /* Loại bỏ việc căn giữa theo chiều dọc cũ */
+  z-index: 10;
   display: flex;
   align-items: center;
-  gap: 20px;
 }
-
+.main-header .header-admin-btn {
+  position: absolute !important;
+  top: 90% !important;
+  right: 40px !important;
+  transform: translateY(-50%) !important;
+  z-index: 10;
+}
 .header-party-flag {
-  height: 50px;
-  /* Chiều cao vừa vặn với thanh tiêu đề */
+  height: 50px; /* Thu nhỏ nhẹ một chút để nằm gọn gàng trang trọng ở góc */
   width: auto;
-  /* Tự động co giãn theo tỷ lệ ảnh gốc */
   object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
-  /* Đổ bóng nhẹ giúp cờ nổi bật */
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
 }
 
 .header-icon {
@@ -56,25 +74,16 @@ body {
   border-radius: 50%;
 }
 
-.header-left h2 {
-  font-size: 20px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+.header-left h2,
+.header-left p,
+.header-icon {
+  display: none !important; /* Ẩn hoàn toàn chữ cũ nhưng không làm lỗi file script.js */
 }
-
-.header-left p {
-  font-size: 13px;
-  opacity: 0.9;
-  margin-top: 3px;
-  font-style: italic;
-}
-
 .header-admin-btn {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   color: white;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
@@ -82,22 +91,23 @@ body {
 }
 
 .header-admin-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #1e457e;
   border-color: #f1c40f;
-  /* Đổi viền sang vàng khi di chuột */
 }
 
-/* BỐ CỤC CHÍNH ĐA CỘT */
+/* ==========================================================================
+   BỐ CỤC KHÁN PHÒNG & QUẢN LÝ SƠ ĐỒ CHỖ NGỒI
+   ========================================================================== */
 .app-main-layout {
   display: flex;
-  max-width: 100%; /* Thay vì cố định 1500px, mở rộng tối đa theo màn hình */
+  max-width: 100%;
   margin: 25px auto;
-  padding: 0 40px; /* Tăng khoảng cách đệm hai bên một chút cho cân đối */
-  gap: 30px; /* Tăng khoảng cách giữa sơ đồ và cột phải */
+  padding: 0 40px;
+  gap: 30px;
 }
 
 .layout-left-content {
-  flex: 1; /* Giúp phần sơ đồ tự co giãn chiếm trọn không gian còn lại */
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -107,17 +117,64 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  justify-content: flex-start; /* Để các card xếp từ trên xuống */
+  height: 100%; /* Kéo chiều cao bằng khối cha */
+}
+.layout-right-sidebar .sidebar-card:last-child {
+  margin-top: auto;
+}
+/* KHU VỰC CHỨA BIỂU ĐỒ NHẪN */
+.chart-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 25px;
+  padding-top: 15px;
+  border-top: 1px dashed #e2e8f0; /* Đường vạch đứt phân cách nhẹ */
 }
 
-/* PANEL CHỨA SƠ ĐỒ */
+/* Dựng hình nhẫn bằng conic-gradient động (Sẽ được JS cập nhật tỉ lệ %) */
+.donut-chart {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  /* Mặc định ban đầu trống: màu đỏ sẫm (#922b21) đại diện cho đã ngồi, màu trắng ngà (#f4efe2) đại diện cho trống */
+  background: conic-gradient(#922b21 0% 2.4%, #f4efe2 2.4% 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.05),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: background 0.3s ease;
+}
+
+/* Lõi trắng ở giữa tạo thành hình nhẫn (Donut) */
+.donut-center {
+  width: 94px;
+  height: 94px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+#chart-percent-text {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1e457e;
+}
 .hall-container {
   background-color: var(--panel-bg);
   padding: 30px;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
   text-align: center;
-  flex: 1; /* Ép khung sơ đồ mở rộng tối đa bề ngang */
+  flex: 1;
 }
+
 .auditorium-section {
   display: flex;
   justify-content: center;
@@ -128,10 +185,11 @@ body {
   display: grid;
   grid-template-columns: 1fr 60px 1fr;
   gap: 10px;
-  width: 100%; /* Kéo giãn ma trận ghế đều ra hai bên */
-  max-width: 1200px; /* Giới hạn vừa vặn để các hàng ghế không bị quá thưa */
-  margin: 0 auto; /* Căn chỉnh ma trận ghế nằm chính giữa panel */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
 }
+
 .hall-title {
   font-size: 18px;
   font-weight: bold;
@@ -163,44 +221,40 @@ body {
   margin: 0 auto;
   width: 100%;
 }
-/* Hàng chứa ghế chủ tọa: Chuyển sang Grid để khớp tỉ lệ 1:1 với ô bàn */
+
 .chairman-chairs {
   display: flex;
   justify-content: space-around;
   width: 100%;
   margin-bottom: 8px;
 }
-/* Ô bọc ngoài của từng chiếc ghế chủ tọa để ép nó đứng giữa ô bàn */
+
 .chair-slot {
   flex: 1;
   display: flex;
-  justify-content: center; /* Đảm bảo ghế c-seat luôn nằm chính giữa ô bàn tương ứng */
+  justify-content: center;
   align-items: flex-end;
 }
 
-/* Mặt bàn chủ tọa chia ô tương ứng tỉ lệ 1:1 với hàng ghế */
 .chairman-table {
   display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  height: 45px;
+  height: 48px;
   background: linear-gradient(to bottom, #ebd3b4, #d2b48c);
   border: 2px solid var(--table-border);
-  border-radius: 4px;
+  position: relative;
+  clip-path: polygon(2% 0%, 98% 0%, 100% 100%, 0% 100%);
   box-shadow:
-    inset 0 -3px 5px rgba(0, 0, 0, 0.1),
-    0 4px 6px rgba(0, 0, 0, 0.1);
+    0 6px 0 #b39674,
+    0 10px 10px rgba(0, 0, 0, 0.15);
 }
 
-/* Vách ngăn chia đều các ô bàn chủ tọa theo tỉ lệ 1:1 với hàng ghế */
 .table-panel {
-  flex: 1;
-  height: 100%;
-  border-right: 2px solid var(--table-border);
+  display: none;
 }
-.table-panel:last-child {
-  border-right: none;
-}
-/* THANH TÌM KIẾM GIỮA PHÒNG */
+
 .search-area {
   margin: 20px 0 30px 0;
 }
@@ -218,13 +272,6 @@ body {
 #search-delegate:focus {
   border-color: #1e457e;
   box-shadow: 0 0 8px rgba(30, 69, 126, 0.15);
-}
-
-/* KHÁN PHÒNG (TRỤC TRÁI - PHẢI CHUẨN TỈNH ỦY) */
-.hall-body {
-  display: grid;
-  grid-template-columns: 1fr 60px 1fr;
-  gap: 10px;
 }
 
 .center-aisle-text {
@@ -284,36 +331,58 @@ body {
 .auditorium-table {
   width: 100%;
   height: 32px;
-  background: linear-gradient(
-    to bottom,
-    #ebd3b4,
-    #d2b48c
-  ); /* Tạo khối viền 3D nhẹ cho mặt bàn khán phòng */
-  border: 2px solid var(--table-border); /* Tăng độ dày viền lên 2px */
-  border-bottom-width: 3px; /* Làm dày đáy bàn tạo cảm giác vững chãi */
+  background: linear-gradient(to bottom, #ebd3b4, #d2b48c);
+  border: 2px solid var(--table-border);
+  border-bottom-width: 3px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
 }
-/* THIẾT KẾ ĐỆM GHẾ ĐỎ SẪM ĐỒNG BỘ */
+
+/* --- THIẾT KẾ ĐỆM GHẾ TRỐNG MÀU TRẮNG NGÀ CHUẨN KHÁN PHÒNG --- */
 .seat-3d {
-  background: linear-gradient(to bottom, #e74c3c, #c0392b);
+  background: linear-gradient(to bottom, #fcfaf2, #f4efe2);
   border-radius: 6px;
   box-shadow:
-    0 4px 0 var(--seat-shadow),
-    0 6px 4px rgba(0, 0, 0, 0.1);
-  border: 1px solid #922b21;
+    0 4px 0 #d0c9b5,
+    /* Bóng đổ chân ghế màu sậm hơn của trắng ngà */ 0 6px 4px
+      rgba(0, 0, 0, 0.08);
+  border: 1px solid #cbd5e1; /* Viền xám nhẹ chỉn chu */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: white;
+
+  /* Đổi màu chữ mã ghế (A1, A2...) sang màu tối để nổi bật trên nền trắng ngà */
+  color: #475569;
+
   padding-bottom: 2px;
   position: relative;
   cursor: pointer;
   transition: transform 0.15s;
 }
+
+/* GHẾ CHỦ TỌA VIỀN VÀNG & ĐỔ TAY VỊN AN TOÀN */
 .c-seat {
   width: 60px;
   height: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2px 4px;
+  background: linear-gradient(to bottom, #922b21, #641e16) !important;
+  border: 2px solid #f1c40f !important;
+  border-radius: 8px 8px 4px 4px !important;
+  position: relative;
+  box-shadow:
+    0 4px 0 #421510,
+    0 0 8px rgba(241, 196, 15, 0.4),
+    -6px 10px 0 -4px #8b5a2b,
+    /* Tay vịn gỗ bên trái */ 6px 10px 0 -4px #8b5a2b !important; /* Tay vịn gỗ bên phải */
+}
+
+.c-seat::before,
+.c-seat::after {
+  display: none !important;
 }
 
 .a-seat {
@@ -325,12 +394,13 @@ body {
   font-weight: bold;
   font-size: 9px;
   opacity: 0.8;
+  color: inherit; /* Tự động kế thừa màu tối khi ghế trống và màu trắng khi có người */
 }
 
 .delegate-name {
   font-size: 8.5px;
   font-weight: bold;
-  color: #fff176;
+  color: #fff176; /* Màu chữ vàng chanh nổi bật trên nền đỏ */
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -339,13 +409,33 @@ body {
   margin-top: 1px;
 }
 
-/* GHẾ ĐÃ CÓ NGƯỜI (MÀU ĐỎ THẪM ĐẬM - CÓ VIỀN ĐÈN VÀNG THEO YÊU CẦU TRƯỚC) */
+.c-seat .title-row {
+  font-size: 10px;
+  opacity: 0.85;
+  line-height: 1.1;
+  color: #ffffff;
+}
+
+.c-seat .name-row {
+  font-size: 11.5px;
+  font-weight: bold;
+  line-height: 1.1;
+  color: #fff176;
+  white-space: nowrap;
+}
+
+/* GHẾ ĐÃ CÓ NGƯỜI (TRẠNG THÁI CHUNG) */
 .has-delegate {
-  background: linear-gradient(to bottom, #922b21, #641e16) !important;
   border-color: #f1c40f !important;
+  color: white !important;
   box-shadow:
     0 4px 0 #421510,
     0 0 8px rgba(241, 196, 15, 0.4) !important;
+}
+
+/* Ép chữ mã ghế sang màu trắng khi có người ngồi, tránh dính màu xám của ghế trống */
+.has-delegate .seat-code {
+  color: #ffffff !important;
 }
 
 .seat-3d[data-tooltip]:hover {
@@ -353,24 +443,79 @@ body {
   z-index: 10;
 }
 
+/* TOOLTIP TỰ CO GIÃN THEO CHỮ */
 .seat-3d[data-tooltip]:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  bottom: 120%;
+  bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #0e3b83;
-  color: #fff;
-  padding: 8px 14px;
+  background-color: #0e3b83 !important;
+  color: #fff !important;
+  padding: 12px 16px !important;
+  line-height: 1.4 !important;
   border-radius: 6px;
   font-size: 13px;
   font-weight: bold;
-  z-index: 100;
-  box-shadow: 0 4px 10px rgba(121, 111, 252, 0.25);
+  z-index: 99999 !important;
   pointer-events: none;
   text-align: center;
-  white-space: pre-line; /* Nhận diện ký tự xuống dòng \n từ file script.js */
-  min-width: 150px; /* Ngăn chặn việc họ tên dài bị tự động ngắt dòng vụn vặt */
+  white-space: pre-line !important;
+  min-width: 170px !important;
+  display: block !important;
+  height: auto !important;
+  max-height: none !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ==========================================================================
+   BẢNG MÀU PHÂN CẤP CHI TIẾT THEO ĐỐI TƯỢNG ĐẠI BIỂU KHÁN PHÒNG
+   ========================================================================== */
+
+/* 1. ĐẠI BIỂU TRUNG ƯƠNG: Đỏ cam lửa phối nhung vàng hoàng gia, viền vàng nét đứt nổi bật */
+.seat-3d.seat-trung-uong {
+  background: linear-gradient(to bottom, #e67e22, #922b21) !important;
+  border: 2px dashed #f1c40f !important;
+  box-shadow:
+    0 4px 0 #5c1d16,
+    0 0 12px rgba(241, 196, 15, 0.7) !important;
+}
+
+/* 2. ỦY VIÊN BTV TỈNH ỦY: Màu đỏ đô sẫm uy nghiêm, viền khối chỉ vàng sắc nét */
+.seat-3d.seat-btv {
+  background: linear-gradient(to bottom, #922b21, #641e16) !important;
+  border: 2px solid #f1c40f !important;
+  box-shadow:
+    0 4px 0 #421510,
+    0 0 8px rgba(241, 196, 15, 0.4) !important;
+}
+
+/* 3. ỦY VIÊN BCH ĐẢNG BỘ TỈNH: Màu đỏ mận chín tươi sáng, viền hổ phách nhẹ */
+.seat-3d.seat-bch {
+  background: linear-gradient(to bottom, #c0392b, #7b241c) !important;
+  border: 1.5px solid #f39c12 !important;
+  box-shadow:
+    0 4px 0 #501610,
+    0 0 6px rgba(243, 156, 18, 0.3) !important;
+}
+
+/* 4. ĐẠI BIỂU KHÁC: Màu đỏ thuần tiêu chuẩn trang trọng, viền bạc nền nã */
+.seat-3d.seat-khac {
+  background: linear-gradient(to bottom, #e74c3c, #962d22) !important;
+  border: 1px solid #bdc3c7 !important;
+  box-shadow:
+    0 4px 0 #6e1f16,
+    0 4px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Đảm bảo chữ tên đại biểu rõ ràng nhất trên mọi dải màu ghế đỏ */
+.seat-trung-uong .delegate-name,
+.seat-btv .delegate-name,
+.seat-bch .delegate-name {
+  color: #fff176 !important;
+}
+.seat-khac .delegate-name {
+  color: #ffffff !important; /* Ghế đỏ tươi nhóm khác dùng chữ trắng cho dịu mắt, dễ nhìn */
 }
 /* SIDEBAR CỘT PHẢI */
 .sidebar-card {
@@ -428,12 +573,10 @@ body {
   0% {
     box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.8);
   }
-
   50% {
     box-shadow: 0 0 15px 10px rgba(241, 196, 15, 0);
     transform: scale(1.1);
   }
-
   100% {
     box-shadow: 0 0 0 0 rgba(241, 196, 15, 0);
   }
@@ -462,4 +605,67 @@ body {
   padding: 25px;
   border-radius: 8px;
   width: 300px;
+}
+/* ==========================================================================
+   BỐ CỤC KHỐI CHÚ THÍCH MÀU GHẾ (LEGEND SIDEBAR)
+   ========================================================================== */
+.legend-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* Khoảng cách thông thoáng giữa các dòng */
+  margin-top: 5px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Định dạng ô màu mô phỏng mô hình ghế 3D thu nhỏ */
+.legend-color-box {
+  width: 24px;
+  height: 18px;
+  border-radius: 4px;
+  position: relative;
+}
+
+/* Đồng bộ dải màu đổ khối 3D từ sơ đồ ghế xuống bảng chú thích */
+.legend-color-box.seat-trung-uong {
+  background: linear-gradient(to bottom, #e67e22, #922b21) !important;
+  border: 1.5px dashed #f1c40f !important;
+  box-shadow:
+    0 2px 0 #5c1d16,
+    0 0 6px rgba(241, 196, 15, 0.5);
+}
+
+.legend-color-box.seat-btv {
+  background: linear-gradient(to bottom, #922b21, #641e16) !important;
+  border: 1.5px solid #f1c40f !important;
+  box-shadow: 0 2px 0 #421510;
+}
+
+.legend-color-box.seat-bch {
+  background: linear-gradient(to bottom, #c0392b, #7b241c) !important;
+  border: 1px solid #f39c12 !important;
+  box-shadow: 0 2px 0 #501610;
+}
+
+.legend-color-box.seat-khac {
+  background: linear-gradient(to bottom, #e74c3c, #962d22) !important;
+  border: 1px solid #bdc3c7 !important;
+  box-shadow: 0 2px 0 #6e1f16;
+}
+
+.legend-color-box.seat-trong {
+  background: linear-gradient(to bottom, #fcfaf2, #f4efe2) !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 2px 0 #d0c9b5;
+}
+
+/* Định dạng nhãn chữ chú thích */
+.legend-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
 }

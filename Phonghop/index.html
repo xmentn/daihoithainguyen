@@ -9,11 +9,11 @@
   <body>
     <header class="main-header">
       <div class="header-left">
-        <img
+        <!-- <img
           src="./images/codang.png"
           alt="Cờ Đảng"
           class="header-party-flag"
-        />
+        />-->
         <div>
           <h2 id="dynamic-header-title">HỘI NGHỊ BAN THƯỜNG VỤ TỈNH ỦY</h2>
           <p id="dynamic-header-subtitle">Phiên họp Ban Thường vụ</p>
@@ -122,30 +122,62 @@
         <div class="sidebar-card">
           <div class="card-title">THỐNG KÊ</div>
           <div class="stat-row">
-            <span>Tổng số chỗ</span><strong id="stat-total">64</strong>
+            <span>Tổng số chỗ</span>
+            <strong id="stat-total">212</strong>
           </div>
           <div class="stat-row">
-            <span>Đã chọn</span
-            ><strong id="stat-selected" style="color: #c0392b">0</strong>
+            <span>Đã chọn</span>
+            <strong id="stat-selected" style="color: #c0392b">5</strong>
           </div>
           <div class="stat-row">
-            <span>Còn trống</span><strong id="stat-empty">64</strong>
+            <span>Còn trống</span>
+            <strong id="stat-empty">207</strong>
           </div>
           <div class="stat-row">
-            <span>Tỷ lệ lấp đầy</span
-            ><strong id="stat-percent" style="color: #27ae60">0%</strong>
+            <span>Tỷ lệ lấp đầy</span>
+            <strong id="stat-percent" style="color: #2ecc71">2.4%</strong>
+          </div>
+
+          <!-- BỔ SUNG KHỐI BIỂU ĐỒ HÌNH NHẪN Ở ĐÂY -->
+          <div class="chart-container">
+            <div id="donut-chart" class="donut-chart">
+              <div class="donut-center">
+                <span id="chart-percent-text">2.4%</span>
+              </div>
+            </div>
           </div>
         </div>
 
+        <!-- BẢNG CHÚ THÍCH MÀU GHẾ ĐẠI BIỂU -->
         <div class="sidebar-card">
-          <div class="card-title">THAO TÁC NHANH</div>
-          <button class="sidebar-btn" onclick="window.print()">
-            📥 Xuất sơ đồ (PDF)
-          </button>
-          <button class="sidebar-btn" onclick="window.print()">
-            🖨️ In sơ đồ
-          </button>
-          <button class="sidebar-btn" id="btn-refresh-page">🔄 Làm mới</button>
+          <div class="card-title">CHÚ THÍCH MÀU GHẾ</div>
+
+          <div class="legend-wrapper">
+            <div class="legend-item">
+              <div class="legend-color-box seat-trung-uong"></div>
+              <span class="legend-label">Đại biểu Trung ương</span>
+            </div>
+
+            <div class="legend-item">
+              <div class="legend-color-box seat-btv"></div>
+              <span class="legend-label">Ủy viên BTV</span>
+            </div>
+
+            <div class="legend-item">
+              <div class="legend-color-box seat-bch"></div>
+              <span class="legend-label">Ủy viên BCH</span>
+            </div>
+
+            <div class="legend-item">
+              <div class="legend-color-box seat-khac"></div>
+              <span class="legend-label">Đại biểu khác</span>
+            </div>
+
+            <div class="legend-item">
+              <div class="legend-color-box seat-trong"></div>
+              <span class="legend-label">Vị trí ghế trống</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
