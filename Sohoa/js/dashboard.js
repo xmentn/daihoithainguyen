@@ -181,7 +181,8 @@ function setupCampaignView(campaignName) {
 // HÀM CHUYÊN TRÁCH ĐỔ SỐ LIỆU VÀ VẼ LẠI 3 BIỂU ĐỒ TRÊN THEO MỐC GHI NHẬN ĐƯỢC CHỌN
 function renderStateData(logRecord) {
   if (!logRecord) return;
-
+  const currentStep = logRecord.currentStep || 0;
+  renderWorkflowSteps(currentStep);
   const tongMet = logRecord.tongChinhLy || 0;
   const tongTrang = logRecord.tongSoCanScan || 0;
 
@@ -471,3 +472,51 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
   });
 }
 document.addEventListener("DOMContentLoaded", loadDashboardData);
+// HÀM VẼ VÀ ĐỒNG BỘ TIẾN TRÌNH 9 BƯỚC LÊN TRANG CHỦ
+function renderWorkflowSteps(currentStep) {
+  const container = document.getElementById("workflow-timeline");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const stepsList = [
+    "Scan tài liệu",
+    "Cắt file & biên mục",
+    "Chuẩn hóa dữ liệu",
+    "Hiệu chỉnh dữ liệu",
+    "Chuyển đổi PDF 2 lớp",
+    "Ký số tài liệu",
+    "Hoàn chỉnh, nén dữ liệu",
+    "Cập nhật lên phần mềm",
+    "Hoàn chỉnh & bàn giao"
+  ];
+
+  stepsList.forEach((stepName, index) => {
+    const stepNum = index + 1;
+    let statusClass = ""; // Chưa thực hiện
+    let iconHTML = `<i class="fa-regular fa-circle"></i>`;
+
+    if (stepNum < currentStep) {
+      // 1. Bước đã thực hiện xong
+      statusClass = "step-completed";
+      iconHTML = `<i class="fa-solid fa-circle-check"></i>`;
+    } else if (stepNum === currentStep) {
+      // 2. Bước đang thực hiện
+      statusClass = "step-active";
+      iconHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
+    } else {
+      // 3. Bước chưa thực hiện
+      statusClass = "step-waiting";
+      iconHTML = `<i class="fa-regular fa-circle" style="opacity: 0.5;"></i>`;
+    }
+
+    const stepDiv = document.createElement("div");
+    stepDiv.className = `workflow-step ${statusClass}`;
+    stepDiv.innerHTML = `
+      <div class="step-icon-box" title="Bước ${stepNum}">
+        ${iconHTML}
+      </div>
+      <div class="step-name">B${stepNum}: ${stepName}</div>
+    `;
+    container.appendChild(stepDiv);
+  });
+}

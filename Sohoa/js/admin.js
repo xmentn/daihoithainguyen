@@ -387,6 +387,7 @@ window.updateData = async (e) => {
   };
   const chinhLyDaXong =
     parseFloat(document.getElementById("input-cl-xong").value) || 0;
+  const currentStep = parseInt(document.getElementById('input-current-step').value) || 0;
 
   const updatePayload = {
     campaignName,
@@ -403,6 +404,7 @@ window.updateData = async (e) => {
       parseInt(document.getElementById("input-sh-chuanhoa").value) || 0,
     soHoaPhanMem:
       parseInt(document.getElementById("input-sh-phanmem").value) || 0,
+    currentStep, // THÊM BIẾN NÀY ĐỂ GHI NHẬN TRẠNG THÁI BƯỚC VÀO FIREBASE
     dateLabel,
     timestamp: timestampDate,
   };
@@ -470,6 +472,9 @@ window.startEdit = async (docId) => {
       if (btnCancelEdit) btnCancelEdit.style.display = "inline-flex";
       const updateForm = document.getElementById("updateForm");
       if (updateForm) updateForm.scrollIntoView({ behavior: "smooth" });
+      if (document.getElementById('input-current-step')) {
+        document.getElementById('input-current-step').value = data.currentStep || 0;
+      }
     }
   } catch (e) {
     alert(e.message);
@@ -486,6 +491,9 @@ window.resetToCreateMode = () => {
   if (btnCancelEdit) btnCancelEdit.style.display = "none";
   const updateForm = document.getElementById("updateForm");
   if (updateForm) updateForm.reset();
+  if (document.getElementById('input-current-step')) {
+    document.getElementById('input-current-step').value = 0;
+  }
 };
 
 window.deleteProgress = async (docId) => {
