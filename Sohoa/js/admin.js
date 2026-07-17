@@ -175,13 +175,20 @@ if (document.getElementById("input-campaign-name")) {
         );
         const querySnapshot = await getDocs(q);
 
+        // Thay thế đoạn gán dữ liệu trong sự kiện 'change' của input-campaign-name:
         if (!querySnapshot.empty) {
           const latestLog = querySnapshot.docs[0].data();
 
           const daChinhLy = Number(latestLog.chinhLyDaXong || 0);
           const daScan = Number(latestLog.soHoaDaScan || 0);
+          const daBienMuc = Number(latestLog.soHoaBienMuc || 0);
           const daChuanHoa = Number(latestLog.soHoaChuanHoa || 0);
+          const daHieuChinh = Number(latestLog.soHoaHieuChinh || 0);
+          const daPdf2Lop = Number(latestLog.soHoaPdf2Lop || 0);
+          const daKySo = Number(latestLog.soHoaKySo || 0);
+          const daNenDuLieu = Number(latestLog.soHoaNenDuLieu || 0);
           const daPhanMem = Number(latestLog.soHoaPhanMem || 0);
+          const daBanGiao = Number(latestLog.soHoaBanGiao || 0);
 
           // Đối chiếu điều kiện chạm mốc 100% và gán dữ liệu tự động
           if (
@@ -199,6 +206,13 @@ if (document.getElementById("input-campaign-name")) {
             document.getElementById("input-sh-scan").value = chiTieuTrang;
           }
           if (
+            daBienMuc >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-bienmuc")
+          ) {
+            document.getElementById("input-sh-bienmuc").value = chiTieuTrang;
+          }
+          if (
             daChuanHoa >= chiTieuTrang &&
             chiTieuTrang > 0 &&
             document.getElementById("input-sh-chuanhoa")
@@ -206,11 +220,46 @@ if (document.getElementById("input-campaign-name")) {
             document.getElementById("input-sh-chuanhoa").value = chiTieuTrang;
           }
           if (
+            daHieuChinh >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-hieuchinh")
+          ) {
+            document.getElementById("input-sh-hieuchinh").value = chiTieuTrang;
+          }
+          if (
+            daPdf2Lop >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-pdf2lop")
+          ) {
+            document.getElementById("input-sh-pdf2lop").value = chiTieuTrang;
+          }
+          if (
+            daKySo >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-kyso")
+          ) {
+            document.getElementById("input-sh-kyso").value = chiTieuTrang;
+          }
+          if (
+            daNenDuLieu >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-nendulieu")
+          ) {
+            document.getElementById("input-sh-nendulieu").value = chiTieuTrang;
+          }
+          if (
             daPhanMem >= chiTieuTrang &&
             chiTieuTrang > 0 &&
             document.getElementById("input-sh-phanmem")
           ) {
             document.getElementById("input-sh-phanmem").value = chiTieuTrang;
+          }
+          if (
+            daBanGiao >= chiTieuTrang &&
+            chiTieuTrang > 0 &&
+            document.getElementById("input-sh-bangiao")
+          ) {
+            document.getElementById("input-sh-bangiao").value = chiTieuTrang;
           }
         }
       } catch (err) {
@@ -387,7 +436,8 @@ window.updateData = async (e) => {
   };
   const chinhLyDaXong =
     parseFloat(document.getElementById("input-cl-xong").value) || 0;
-  const currentStep = parseInt(document.getElementById('input-current-step').value) || 0;
+  const currentStep =
+    parseInt(document.getElementById("input-current-step").value) || 0;
 
   const updatePayload = {
     campaignName,
@@ -399,12 +449,26 @@ window.updateData = async (e) => {
       config.tongChinhLy - chinhLyDaXong > 0
         ? config.tongChinhLy - chinhLyDaXong
         : 0,
-    soHoaDaScan: parseInt(document.getElementById("input-sh-scan").value) || 0,
+
+    // Lưu đầy đủ số liệu 9 bước quy trình
+    soHoaDaScan: parseInt(document.getElementById("input-sh-scan").value) || 0, // B1[cite: 1]
+    soHoaBienMuc:
+      parseInt(document.getElementById("input-sh-bienmuc").value) || 0, // B2[cite: 1]
     soHoaChuanHoa:
-      parseInt(document.getElementById("input-sh-chuanhoa").value) || 0,
+      parseInt(document.getElementById("input-sh-chuanhoa").value) || 0, // B3[cite: 1]
+    soHoaHieuChinh:
+      parseInt(document.getElementById("input-sh-hieuchinh").value) || 0, // B4[cite: 1]
+    soHoaPdf2Lop:
+      parseInt(document.getElementById("input-sh-pdf2lop").value) || 0, // B5[cite: 1]
+    soHoaKySo: parseInt(document.getElementById("input-sh-kyso").value) || 0, // B6[cite: 1]
+    soHoaNenDuLieu:
+      parseInt(document.getElementById("input-sh-nendulieu").value) || 0, // B7[cite: 1]
     soHoaPhanMem:
-      parseInt(document.getElementById("input-sh-phanmem").value) || 0,
-    currentStep, // THÊM BIẾN NÀY ĐỂ GHI NHẬN TRẠNG THÁI BƯỚC VÀO FIREBASE
+      parseInt(document.getElementById("input-sh-phanmem").value) || 0, // B8[cite: 1]
+    soHoaBanGiao:
+      parseInt(document.getElementById("input-sh-bangiao").value) || 0, // B9[cite: 1]
+
+    currentStep,
     dateLabel,
     timestamp: timestampDate,
   };
@@ -450,18 +514,35 @@ window.startEdit = async (docId) => {
       document.getElementById("input-campaign-name").value =
         data.campaignName || "";
       document.getElementById("input-cl-xong").value = data.chinhLyDaXong || 0;
+
+      // Đổ ngược dữ liệu 9 bước lên Form sửa[cite: 1]
       document.getElementById("input-sh-scan").value = data.soHoaDaScan || 0;
+      document.getElementById("input-sh-bienmuc").value =
+        data.soHoaBienMuc || 0;
       document.getElementById("input-sh-chuanhoa").value =
         data.soHoaChuanHoa || 0;
+      document.getElementById("input-sh-hieuchinh").value =
+        data.soHoaHieuChinh || 0;
+      document.getElementById("input-sh-pdf2lop").value =
+        data.soHoaPdf2Lop || 0;
+      document.getElementById("input-sh-kyso").value = data.soHoaKySo || 0;
+      document.getElementById("input-sh-nendulieu").value =
+        data.soHoaNenDuLieu || 0;
       document.getElementById("input-sh-phanmem").value =
         data.soHoaPhanMem || 0;
+      document.getElementById("input-sh-bangiao").value =
+        data.soHoaBanGiao || 0;
+
+      if (document.getElementById("input-current-step")) {
+        document.getElementById("input-current-step").value =
+          data.currentStep || 0;
+      }
 
       if (data.timestamp) {
         const t = data.timestamp.toDate();
         document.getElementById("input-date").value =
           `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
       }
-
       const formTitle = document.getElementById("form-action-title");
       if (formTitle)
         formTitle.innerHTML =
@@ -472,8 +553,9 @@ window.startEdit = async (docId) => {
       if (btnCancelEdit) btnCancelEdit.style.display = "inline-flex";
       const updateForm = document.getElementById("updateForm");
       if (updateForm) updateForm.scrollIntoView({ behavior: "smooth" });
-      if (document.getElementById('input-current-step')) {
-        document.getElementById('input-current-step').value = data.currentStep || 0;
+      if (document.getElementById("input-current-step")) {
+        document.getElementById("input-current-step").value =
+          data.currentStep || 0;
       }
     }
   } catch (e) {
@@ -483,16 +565,21 @@ window.startEdit = async (docId) => {
 
 window.resetToCreateMode = () => {
   document.getElementById("editing-doc-id").value = "";
-  const formTitle = document.getElementById("form-action-title");
-  if (formTitle) formTitle.innerHTML = "CẬP NHẬT TIẾN ĐỘ THỰC TẾ LŨY KẾ";
-  const btnSubmitText = document.getElementById("btn-submit-text");
-  if (btnSubmitText) btnSubmitText.innerText = "Lưu đợt mới";
-  const btnCancelEdit = document.getElementById("btn-cancel-edit");
-  if (btnCancelEdit) btnCancelEdit.style.display = "none";
-  const updateForm = document.getElementById("updateForm");
-  if (updateForm) updateForm.reset();
-  if (document.getElementById('input-current-step')) {
-    document.getElementById('input-current-step').value = 0;
+
+  // Trả tất cả các ô nhập liệu về trống
+  document.getElementById("input-cl-xong").value = "";
+  document.getElementById("input-sh-scan").value = "";
+  document.getElementById("input-sh-bienmuc").value = "";
+  document.getElementById("input-sh-chuanhoa").value = "";
+  document.getElementById("input-sh-hieuchinh").value = "";
+  document.getElementById("input-sh-pdf2lop").value = "";
+  document.getElementById("input-sh-kyso").value = "";
+  document.getElementById("input-sh-nendulieu").value = "";
+  document.getElementById("input-sh-phanmem").value = "";
+  document.getElementById("input-sh-bangiao").value = "";
+
+  if (document.getElementById("input-current-step")) {
+    document.getElementById("input-current-step").value = 0;
   }
 };
 
