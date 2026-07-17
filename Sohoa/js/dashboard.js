@@ -19,7 +19,7 @@ window.logoutUser = function () {
 };
 
 Chart.register(ChartDataLabels);
-let scanChart, clChart, pmChart, trendChart;
+let scanChart, clChart, pmChart, trendChart, currentStepChart;
 let allLogs = [];
 let currentFilteredLogs = []; // Lưu trữ các mốc ngày của riêng đợt đang chọn
 let debounceTimer; // Bộ đếm thời gian trễ phục vụ thao tác kéo slider
@@ -151,8 +151,8 @@ function setupCampaignView(campaignName) {
     const totalSteps = currentFilteredLogs.length - 1;
     slider.min = 0;
     slider.max = totalSteps;
-    slider.value = totalSteps; // Mặc định nhảy tới mốc hiện tại/mới nhất ở cuối cùng
-    slider.disabled = totalSteps <= 0; // Vô hiệu hóa nếu đợt chỉ có 1 bản ghi
+    slider.value = totalSteps;
+    slider.disabled = totalSteps <= 0;
 
     const txtStart = document.getElementById("txt-slider-start");
     const txtEnd = document.getElementById("txt-slider-end");
@@ -164,6 +164,19 @@ function setupCampaignView(campaignName) {
       txtEnd.innerText = `Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
     if (txtStatus)
       txtStatus.innerText = `Đang xem: Mới nhất (${currentFilteredLogs[totalSteps].dateLabel})`;
+
+    // --- ĐOẠN MÃ TỰ ĐỘNG VẼ CÁC VẠCH ĐIỂM ĐÁNH DẤU CHO TỪNG KỲ BÁO CÁO ---
+    const datalist = document.getElementById("timeline-ticks");
+    if (datalist) {
+      datalist.innerHTML = ""; // Xóa các mốc cũ đi để vẽ mốc mới của đợt này
+      currentFilteredLogs.forEach((log, index) => {
+        const option = document.createElement("option");
+        option.value = index;
+        option.label = log.dateLabel; // Hiển thị nhãn ngày khi rê chuột vào mốc
+        datalist.appendChild(option);
+      });
+    }
+    // -----------------------------------------------------------------
   }
 
   // Vẽ biểu đồ xu hướng đường dưới cùng trước (Biểu đồ này hiển thị cố định toàn đợt)
@@ -373,14 +386,18 @@ function updateStaticCharts(data, tongMet, tongTrang) {
   const ctxScan = document.getElementById("scanChart")?.getContext("2d");
   const ctxCl = document.getElementById("clChart")?.getContext("2d");
   const ctxPm = document.getElementById("pmChart")?.getContext("2d");
+  const ctxCurrentStep = document
+    .getElementById("currentStepChart")
+    ?.getContext("2d"); // Biểu đồ nhẫn mới[cite: 1]
 
   if (!ctxScan || !ctxCl) return;
 
   if (scanChart) scanChart.destroy();
   if (clChart) clChart.destroy();
   if (pmChart) pmChart.destroy();
+  if (currentStepChart) currentStepChart.destroy(); // Làm sạch biểu đồ nhẫn cũ nếu có[cite: 1]
 
-  // NÂNG CẤP BIỂU ĐỒ 9 BƯỚC THÀNH DẠNG CỘT NGANG ĐA NĂNG THU NHỎ
+  // 1. BIỂU ĐỒ 9 BƯỚC: DẠNG CỘT NGANG ĐA NĂNG THU NHỎ[cite: 1]
   scanChart = new Chart(ctxScan, {
     type: "bar",
     data: {
@@ -394,7 +411,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
         "B7: Nén DL",
         "B8: Lên PM",
         "B9: Bàn giao",
-      ], //
+      ],
       datasets: [
         {
           label: "Thực tế thực hiện (Trang)",
@@ -408,7 +425,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
             data.soHoaNenDuLieu || 0,
             data.soHoaPhanMem || 0,
             data.soHoaBanGiao || 0,
-          ], //[cite: 1]
+          ],
           backgroundColor: [
             "#2ecc71",
             "#06b6d4",
@@ -424,13 +441,13 @@ function updateStaticCharts(data, tongMet, tongTrang) {
       ],
     },
     options: {
-      indexAxis: "y", // QUYẾT ĐỊNH Xoay ngang cột để tối ưu hóa không gian hiển thị 9 bước
+      indexAxis: "y",
       responsive: true,
       maintainAspectRatio: false,
       scales: {
         x: {
           beginAtZero: true,
-          max: tongTrang > 0 ? tongTrang : undefined, // Đối chiếu trần theo tổng chỉ tiêu đợt
+          max: tongTrang > 0 ? tongTrang : undefined,
           ticks: { font: { size: 9.5 }, maxRotation: 0 },
         },
         y: {
@@ -454,7 +471,81 @@ function updateStaticCharts(data, tongMet, tongTrang) {
     },
   });
 
-  // --- GIỮ NGUYÊN CODE VẼ BIỂU ĐỒ TRÒN CHỈNH LÝ VÀ BIỂU ĐỒ PHẦN MỀM BÊN DƯỚI KHÔNG THAY ĐỔI ---
+  // 2. BIỂU ĐỒ NHẪN DOUGHNUT: TIẾN ĐỘ RIÊNG CỦA BƯỚC ĐANG THỰC HIỆN (THÊM MỚI)[cite: 1]
+  if (ctxCurrentStep) {
+    const stepNum = data.currentStep || 0;
+    const stepsNameMapping = [
+      "Chưa bắt đầu",
+      "B1: Scan tài liệu",
+      "B2: Cắt file & biên mục",
+      "B3: Chuẩn hóa dữ liệu",
+      "B4: Hiệu chỉnh dữ liệu",
+      "B5: Chuyển đổi PDF 2 lớp",
+      "B6: Ký số tài liệu",
+      "B7: Hoàn chỉnh & nén dữ liệu",
+      "B8: Cập nhật lên phần mềm",
+      "B9: Bàn giao sản phẩm",
+    ];
+
+    // Tự động đổi tiêu đề hộp biểu đồ theo tên khâu đang chạy thực tế[cite: 1]
+    const titleContainer = document.getElementById("current-step-chart-title");
+    if (titleContainer) {
+      titleContainer.innerText =
+        stepNum > 0
+          ? `Tiến độ ${stepsNameMapping[stepNum]}`
+          : "Tiến độ Bước Hiện tại";
+    }
+
+    // Bóc tách chính xác số liệu của khâu đang chạy[cite: 1]
+    let currentStepVolume = 0;
+    if (stepNum === 1) currentStepVolume = data.soHoaDaScan || 0;
+    else if (stepNum === 2) currentStepVolume = data.soHoaBienMuc || 0;
+    else if (stepNum === 3) currentStepVolume = data.soHoaChuanHoa || 0;
+    else if (stepNum === 4) currentStepVolume = data.soHoaHieuChinh || 0;
+    else if (stepNum === 5) currentStepVolume = data.soHoaPdf2Lop || 0;
+    else if (stepNum === 6) currentStepVolume = data.soHoaKySo || 0;
+    else if (stepNum === 7) currentStepVolume = data.soHoaNenDuLieu || 0;
+    else if (stepNum === 8) currentStepVolume = data.soHoaPhanMem || 0;
+    else if (stepNum === 9) currentStepVolume = data.soHoaBanGiao || 0;
+
+    const remainderVolume =
+      tongTrang - currentStepVolume > 0 ? tongTrang - currentStepVolume : 0;
+
+    currentStepChart = new Chart(ctxCurrentStep, {
+      type: "doughnut",
+      data: {
+        labels: ["Đã đạt", "Chưa đạt"],
+        datasets: [
+          {
+            data: [currentStepVolume, remainderVolume],
+            backgroundColor: ["#0056b3", "#e2e8f0"], // Màu xanh dương đậm làm chủ đạo cho khâu hành tiến[cite: 1]
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        radius: "100%",
+        cutout: "70%", // Độ mỏng mượt tinh tế của vòng nhẫn[cite: 1]
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            formatter: (value) => {
+              let total = currentStepVolume + remainderVolume;
+              return total > 0
+                ? ((value / total) * 100).toFixed(1) + "%"
+                : "0%";
+            },
+            color: (context) =>
+              context.dataIndex === 0 ? "#ffffff" : "#475569",
+            font: { weight: "bold", size: 10 },
+          },
+        },
+      },
+    });
+  }
+
+  // 3. BIỂU ĐỒ TRÒN: TỶ LỆ CHỈNH LÝ MÉT TÀI LIỆU (GIỮ NGUYÊN)
   const clXong = data.chinhLyDaXong || 0;
   const clConLai = tongMet - clXong;
   clChart = new Chart(ctxCl, {
@@ -486,6 +577,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
     },
   });
 
+  // 4. BIỂU ĐỒ DOUGHNUT: TỶ LỆ ĐƯA LÊN PHẦN MỀM TỔNG THỂ (GIỮ NGUYÊN)
   if (ctxPm) {
     const pmXong = data.soHoaPhanMem || 0;
     const pmConLai = tongTrang - pmXong;

@@ -819,18 +819,55 @@
           transform: scale(1.2);
           background: #2563eb;
         }
+        /* CSS bổ sung giúp hiển thị rõ các điểm dấu chấm chia mốc ngày */
+        #timeline-ticks {
+          display: flex;
+          justify-content: space-between;
+          width: 100%;
+          padding: 0 10px;
+          box-sizing: border-box;
+          margin-top: -10px; /* Đẩy sát lên dưới thanh trượt */
+          margin-bottom: 10px;
+        }
+        #timeline-ticks option {
+          padding: 0;
+          /* Tạo hình dáng dấu chấm tròn nhỏ làm thang chia */
+          width: 4px;
+          height: 4px;
+          background: #94a3b8;
+          border-radius: 50%;
+          cursor: pointer;
+        }
       </style>
-      <!-- CẤU TRÚC DASHBOARD THU NHỎ GỌN GÀNG CỦA 3 KHỐI BIỂU ĐỒ CHÍNH -->
-      <section
-        class="charts-grid"
-        style="
+      <!-- 1. THAY ĐỔI LỚP KHUNG CHỨA CHÍNH ĐỂ MỞ RỘNG KHÔNG GIAN SANG 2 BÊN -->
+      <style>
+        .dashboard-container {
+          max-width: 95% !important; /* Mở rộng tối đa không gian hiển thị đạt 95% màn hình */
+          margin: 0 auto;
+          padding: 0 15px;
+          box-sizing: border-box;
+        }
+        .charts-grid-4column {
           display: grid;
-          grid-template-columns: 0.8fr 1.4fr 0.8fr;
-          gap: 20px;
+          grid-template-columns: 1fr 1.3fr 1fr 1fr; /* Tách thành 4 khối cân bằng */
+          gap: 15px;
           margin-top: 25px;
-        "
-      >
-        <!-- BIỂU ĐỒ 1: TỶ LỆ CHỈNH LÝ TÀI LIỆU -->
+        }
+        @media (max-width: 1100px) {
+          .charts-grid-4column {
+            grid-template-columns: 1fr 1fr; /* Tự co cụm về 2 dòng trên màn hình trung bình */
+          }
+        }
+        @media (max-width: 750px) {
+          .charts-grid-4column {
+            grid-template-columns: 1fr; /* 1 cột trên điện thoại */
+          }
+        }
+      </style>
+
+      <!-- 2. THAY THẾ KHỐI CŨ BẰNG CỤM 4 KHỐI BIỂU ĐỒ ĐỒNG BỘ MỚI HOÀN TOÀN -->
+      <section class="charts-grid-4column">
+        <!-- KHỐI 1: TỶ LỆ CHỈNH LÝ -->
         <div
           class="chart-box chart-box-pie"
           style="
@@ -839,13 +876,14 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             text-align: center;
+            box-sizing: border-box;
           "
         >
           <h3
             style="
               margin-top: 0;
               margin-bottom: 10px;
-              font-size: 14px;
+              font-size: 13px;
               color: #1e293b;
               font-weight: 700;
             "
@@ -856,7 +894,7 @@
             style="
               position: relative;
               width: 100%;
-              height: 180px;
+              height: 160px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -869,9 +907,9 @@
             style="
               display: flex;
               justify-content: center;
-              gap: 15px;
-              margin-top: 10px;
-              font-size: 11.5px;
+              gap: 10px;
+              margin-top: 8px;
+              font-size: 11px;
               font-weight: 600;
             "
           >
@@ -879,11 +917,11 @@
               <span
                 style="
                   display: inline-block;
-                  width: 12px;
-                  height: 12px;
+                  width: 10px;
+                  height: 10px;
                   background: #2b78e4;
-                  border-radius: 3px;
-                  margin-right: 5px;
+                  border-radius: 2px;
+                  margin-right: 4px;
                 "
               ></span
               >Đã xong
@@ -892,11 +930,11 @@
               <span
                 style="
                   display: inline-block;
-                  width: 12px;
-                  height: 12px;
+                  width: 10px;
+                  height: 10px;
                   background: #f27a1a;
-                  border-radius: 3px;
-                  margin-right: 5px;
+                  border-radius: 2px;
+                  margin-right: 4px;
                 "
               ></span
               >Còn lại
@@ -904,7 +942,7 @@
           </div>
         </div>
 
-        <!-- BIỂU ĐỒ 2: BIỂU ĐỒ TOÀN DIỆN CÁC BƯỚC SỐ HÓA (ĐÃ ĐƯỢC MỞ RỘNG & THU NHỎ) -->
+        <!-- KHỐI 2: BIỂU ĐỒ SO SÁNH KHỐI LƯỢNG 9 BƯỚC -->
         <div
           class="chart-box"
           style="
@@ -912,26 +950,27 @@
             padding: 15px;
             border-radius: 12px;
             border: 1px solid #e2e8f0;
+            box-sizing: border-box;
           "
         >
           <h3
             style="
               margin-top: 0;
               margin-bottom: 5px;
-              font-size: 14px;
+              font-size: 13px;
               color: #1e293b;
               font-weight: 700;
               text-align: center;
             "
           >
-            Biểu đồ So sánh Khối lượng các Bước Số hóa (Trang)
+            So sánh Tiến độ các Bước (Trang)
           </h3>
-          <div style="position: relative; width: 100%; height: 230px">
+          <div style="position: relative; width: 100%; height: 200px">
             <canvas id="scanChart"></canvas>
           </div>
         </div>
 
-        <!-- BIỂU ĐỒ 3: TỶ LỆ ĐƯA LÊN PHẦN MỀM -->
+        <!-- KHỐI 3: BIỂU ĐỒ NHẪN TIẾN ĐỘ BƯỚC HIỆN TẠI (THÊM MỚI THEO YÊU CẦU) -->
         <div
           class="chart-box chart-box-pie"
           style="
@@ -940,13 +979,93 @@
             border-radius: 12px;
             border: 1px solid #e2e8f0;
             text-align: center;
+            box-sizing: border-box;
+          "
+        >
+          <h3
+            id="current-step-chart-title"
+            style="
+              margin-top: 0;
+              margin-bottom: 10px;
+              font-size: 13px;
+              color: #0056b3;
+              font-weight: 700;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+            "
+          >
+            Tiến độ Bước Hiện tại
+          </h3>
+          <div
+            style="
+              position: relative;
+              width: 100%;
+              height: 160px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <canvas id="currentStepChart"></canvas>
+          </div>
+          <div
+            class="custom-legend"
+            style="
+              display: flex;
+              justify-content: center;
+              gap: 10px;
+              margin-top: 8px;
+              font-size: 11px;
+              font-weight: 600;
+            "
+          >
+            <div>
+              <span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  background: #0056b3;
+                  border-radius: 2px;
+                  margin-right: 4px;
+                "
+              ></span
+              >Đạt được
+            </div>
+            <div>
+              <span
+                style="
+                  display: inline-block;
+                  width: 10px;
+                  height: 10px;
+                  background: #e2e8f0;
+                  border-radius: 2px;
+                  margin-right: 4px;
+                "
+              ></span
+              >Chưa đạt
+            </div>
+          </div>
+        </div>
+
+        <!-- KHỐI 4: TỶ LỆ ĐƯA LÊN PHẦN MỀM -->
+        <div
+          class="chart-box chart-box-pie"
+          style="
+            background: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            text-align: center;
+            box-sizing: border-box;
           "
         >
           <h3
             style="
               margin-top: 0;
               margin-bottom: 10px;
-              font-size: 14px;
+              font-size: 13px;
               color: #1e293b;
               font-weight: 700;
             "
@@ -957,7 +1076,7 @@
             style="
               position: relative;
               width: 100%;
-              height: 180px;
+              height: 160px;
               display: flex;
               align-items: center;
               justify-content: center;
@@ -970,9 +1089,9 @@
             style="
               display: flex;
               justify-content: center;
-              gap: 15px;
-              margin-top: 10px;
-              font-size: 11.5px;
+              gap: 10px;
+              margin-top: 8px;
+              font-size: 11px;
               font-weight: 600;
             "
           >
@@ -980,11 +1099,11 @@
               <span
                 style="
                   display: inline-block;
-                  width: 12px;
-                  height: 12px;
+                  width: 10px;
+                  height: 10px;
                   background: #16a34a;
-                  border-radius: 3px;
-                  margin-right: 5px;
+                  border-radius: 2px;
+                  margin-right: 4px;
                 "
               ></span
               >Đã lên PM
@@ -993,11 +1112,11 @@
               <span
                 style="
                   display: inline-block;
-                  width: 12px;
-                  height: 12px;
+                  width: 10px;
+                  height: 10px;
                   background: #cbd5e1;
-                  border-radius: 3px;
-                  margin-right: 5px;
+                  border-radius: 2px;
+                  margin-right: 4px;
                 "
               ></span
               >Chưa lên
@@ -1217,8 +1336,12 @@
             max="0"
             value="0"
             class="range-input"
+            list="timeline-ticks"
             disabled
           />
+          <datalist id="timeline-ticks">
+            <!-- Các vạch mốc ngày sẽ được sinh tự động bằng Javascript -->
+          </datalist>
           <div
             style="
               display: flex;
