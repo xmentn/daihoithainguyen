@@ -215,20 +215,27 @@
         <!-- Cột 3: Bản đồ số các xã phường (Tích hợp Leaflet Map) -->
         <div class="grid-card">
           <h3 class="chart-box-title">TỔNG QUAN THEO ĐẢNG BỘ TRỰC THUỘC</h3>
-          <div id="map"></div>
-          <div class="map-legend">
-            <span class="legend-item"
-              ><span class="legend-color color-green"></span> > 80%</span
-            >
-            <span class="legend-item"
-              ><span class="legend-color color-yellow"></span> 60% - 80%</span
-            >
-            <span class="legend-item"
-              ><span class="legend-color color-orange"></span> 40% - 60%</span
-            >
-            <span class="legend-item"
-              ><span class="legend-color color-red"></span> < 40%</span
-            >
+
+          <!-- Tạo một khung bao ngoài relative để ghim chú giải lên trên map -->
+          <div class="map-wrapper" style="position: relative; width: 100%">
+            <div id="map"></div>
+
+            <!-- Chuyển chú giải vào đây để thiết lập đè lên góc phải bản đồ -->
+            <div class="map-legend-vertical">
+              <div class="legend-title">Tiến độ</div>
+              <span class="legend-item"
+                ><span class="legend-color color-green"></span> > 80%</span
+              >
+              <span class="legend-item"
+                ><span class="legend-color color-yellow"></span> 60% - 80%</span
+              >
+              <span class="legend-item"
+                ><span class="legend-color color-orange"></span> 40% - 60%</span
+              >
+              <span class="legend-item"
+                ><span class="legend-color color-red"></span> &lt; 40%</span
+              >
+            </div>
           </div>
         </div>
       </section>

@@ -53,17 +53,56 @@ firebase.auth().onAuthStateChanged((user) => {
 });
 
 // 2. Khởi tạo bản đồ nền
+// 2. Khởi tạo bản đồ nền
 function initMap() {
-  map = L.map("map").setView([21.59, 105.84], 9.5);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+  // Thiết lập tọa độ tâm Thái Nguyên và khóa giới hạn di chuyển (không cho kéo bản đồ ra ngoài tỉnh)
+  const thaiNguyenCenter = [21.59, 105.84];
 
+  map = L.map("map", {
+    center: thaiNguyenCenter,
+    zoom: 9,
+    minZoom: 6,
+    maxZoom: 12,
+    // Khóa vùng hiển thị để không bị kéo lệch sang tỉnh khác
+    maxBounds: L.latLngBounds([20.7, 105.0], [22.5, 106.8]),
+  });
+
+  // Tải ranh giới GeoJSON của Thái Nguyên
   fetch("ThaiNguyen_xaphuong.geojson")
     .then((res) => res.json())
     .then((data) => {
+      // KỸ THUẬT TẠO MẶT NẠ ĐÈ LÊN CÁC TỈNH XUNG QUANH
+      // Vẽ một hình chữ nhật khổng lồ bao quanh toàn bộ thế giới, trừ đi ranh giới Thái Nguyên
+      const worldCoords = [
+        [-90, -180],
+        [-90, 180],
+        [90, 180],
+        [90, -180],
+      ];
+
+      // Lấy danh sách tọa độ ranh giới ngoài cùng của tỉnh Thái Nguyên từ GeoJSON của anh
+      // (Giả sử GeoJSON có cấu trúc polygon bao quanh tỉnh)
+      const provincialBoundaries = data.features.map((f) => {
+        // Trích xuất tọa độ ranh giới của từng xã để tạo thành một đa giác đục lỗ khổng lồ
+        return f.geometry.coordinates;
+      });
+
+      // Tạo lớp phủ mờ che đi toàn bộ thế giới bên ngoài Thái Nguyên
+      L.polygon([worldCoords, ...provincialBoundaries], {
+        color: "none",
+        fillColor: "#f1f3f6", // Trùng khít với màu nền xám nhạt của trang web của anh
+        fillOpacity: 1, // Che phủ hoàn toàn 100% các tỉnh xung quanh
+        interactive: false, // Khóa tương tác chuột vào phần che phủ này
+      }).addTo(map);
+
+      // Vẽ ranh giới chi tiết các xã, phường của Thái Nguyên lên trên lớp mặt nạ
       geojsonLayer = L.geoJSON(data, {
         style: styleFeature,
         onEachFeature: onEachFeatureMap,
       }).addTo(map);
+
+      // Căn chỉnh bản đồ vừa khít khu vực ranh giới tỉnh Thái Nguyên
+      map.fitBounds(geojsonLayer.getBounds());
     })
     .catch((err) => console.error("Lỗi tải bản đồ ranh giới: ", err));
 }
