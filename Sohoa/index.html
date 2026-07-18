@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 
 <body>
@@ -334,20 +335,49 @@
         }
         // =========================================================================
 
-        // Lắng nghe dữ liệu thực tế từ Firebase
+        // Lắng nghe dữ liệu thực tế từ Firebase và tự động tính hàng TỔNG SỐ ở cuối bảng
         onSnapshot(collection(db, "SubUnitsData"), (snapshot) => {
           const tableBody = document.getElementById('dangbo-matrix-body');
           if (!tableBody) return;
 
           tableBody.innerHTML = '';
           let sttCounter = 1;
-          globalFirebaseCache = {}; // Xóa trống cache cũ khi có cập nhật mới từ real-time snapshot
+          globalFirebaseCache = {}; // Xóa trống cache cũ
+
+          // Khởi tạo các biến cộng dồn hàng tổng số
+          let totalClTong = 0, totalClXong = 0, totalClDang = 0, totalClChua = 0;
+          let totalShTong = 0, totalShMet = 0, totalShTrang = 0, totalShDang = 0, totalShChua = 0;
+          let countGiaoNop = 0; // Đếm tổng số các đơn vị Đã giao nộp
+
+          // Hàm nâng cấp: Bóc tách chuỗi số (đổi dấu phẩy thành dấu chấm) an toàn để tính toán và chạy đồ thị
+          const parseRawNum = (str) => {
+            if (!str || str === '0') return 0;
+            let cleanStr = String(str).replace(/\./g, '').replace(',', '.');
+            const n = parseFloat(cleanStr);
+            return isNaN(n) ? 0 : n;
+          };
 
           snapshot.forEach((docSnap) => {
             if (docSnap.id.startsWith(currentCampaign + "_")) {
               const item = docSnap.data();
               const uKey = docSnap.id.replace(currentCampaign + "_", "");
-              globalFirebaseCache[uKey] = item; // Đẩy dữ liệu thực tế vào cache bộ nhớ tạm
+              globalFirebaseCache[uKey] = item;
+
+              // Cộng dồn các chỉ số của từng hàng vào biến tổng
+              totalClTong += parseRawNum(item.clTong);
+              totalClXong += parseRawNum(item.clXong);
+              totalClDang += parseRawNum(item.clDang);
+              totalClChua += parseRawNum(item.clChua);
+
+              totalShTong += parseRawNum(item.shTong);
+              totalShMet += parseRawNum(item.shMet);
+              totalShTrang += parseRawNum(item.shTrang);
+              totalShDang += parseRawNum(item.shDang);
+              totalShChua += parseRawNum(item.shChua);
+
+              if (item.giaoNop === 'Đã giao nộp') {
+                countGiaoNop++; // Tăng biến đếm nếu trạng thái là Đã giao nộp
+              }
 
               // Cấu hình nhãn Badge hiển thị trạng thái Giao nộp
               const statusColor = item.giaoNop === 'Đã giao nộp' ? '#16a34a' : '#ef4444';
@@ -387,19 +417,53 @@
             }
           });
 
-          // ================= LOGIC XỬ LÝ DỮ LIỆU ĐỒ THỊ ĐỘNG CÁC ĐƠN VỊ =================
-          let chartDataList = [];
-          const parseNum = (str) => {
-            if (!str) return 0;
-            const n = parseFloat(String(str).replace(/[^0-9.-]/g, '').replace(',', '.'));
-            return isNaN(n) ? 0 : n;
-          };
+          // PHẦN THÊM MỚI: TỰ ĐỘNG SINH HÀNG TỔNG SỐ KHI CÓ DỮ LIỆU ĐƠN VỊ
+          if (sttCounter > 1) {
+            const formatTotal = (num) => {
+              if (!num || num === 0) return '0,0';
+              const fixedNum = num.toFixed(1);
+              const parts = fixedNum.split('.');
+              const integerPart = parseInt(parts[0]).toLocaleString('vi-VN'); // Tạo dấu chấm hàng nghìn
+              const decimalPart = parts[1] || '0';
+              return `${integerPart},${decimalPart}`;
+            };
+            const totalRow = document.createElement('tr');
 
+            totalRow.style.background = "#f1f5f9";
+            totalRow.style.fontWeight = "700";
+            totalRow.style.borderTop = "2px solid #cbd5e1";
+            totalRow.style.borderBottom = "2px solid #cbd5e1";
+
+            totalRow.innerHTML = `
+              <td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; color:#1e293b;">-</td>
+              <td style="padding: 10px; border: 1px solid #cbd5e1; color:#0056b3; text-transform: uppercase; font-size: 12px;">TỔNG SỐ CÁC ĐƠN VỊ</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#0056b3;">${formatTotal(totalClTong)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalClXong)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalClDang)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#64748b;">${formatTotal(totalClChua)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#16a34a;">${formatTotal(totalShTong)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalShMet)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color: #9b59b6;">${totalShTrang.toLocaleString('vi-VN')}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalShDang)}</td>
+              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#64748b;">${formatTotal(totalShChua)}</td>
+              <td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; color:#16a34a; font-size: 12px;">
+                <span style="background: #e6f4ea; padding: 4px 12px; border-radius: 50px; border: 1px solid #16a34a;">
+                  ${countGiaoNop} Đơn vị
+                </span>
+              </td>
+            `;
+            tableBody.appendChild(totalRow);
+          }
+
+          // =========================================================================
+          // LOGIC KHỞI TẠO VÀ RENDER 4 BIỂU ĐỒ TOP 5 DASHBOARD KHỐI ĐƠN VỊ
+          // =========================================================================
+          let chartDataList = [];
           Object.values(globalFirebaseCache).forEach(item => {
-            const clTongNum = parseNum(item.clTong);
-            const clXongNum = parseNum(item.clXong);
-            const shTongNum = parseNum(item.shTong);
-            const shMetNum = parseNum(item.shMet);
+            const clTongNum = parseRawNum(item.clTong);
+            const clXongNum = parseRawNum(item.clXong);
+            const shTongNum = parseRawNum(item.shTong);
+            const shMetNum = parseRawNum(item.shMet);
 
             chartDataList.push({
               name: item.name || 'Đơn vị chưa rõ',
@@ -408,7 +472,8 @@
             });
           });
 
-          const renderTopChart = (canvasId, labels, data, barColor) => {
+          // Định nghĩa hàm vẽ đồ thị thanh ngang động
+          const renderSubChart = (canvasId, labels, data, barColor) => {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
             if (window[canvasId + 'Instance']) { window[canvasId + 'Instance'].destroy(); }
@@ -421,21 +486,21 @@
                   data: data,
                   backgroundColor: barColor,
                   borderRadius: 4,
-                  barThickness: 12
+                  barThickness: 10
                 }]
               },
               options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { right: 40 } },
+                layout: { padding: { right: 35 } },
                 plugins: {
                   legend: { display: false },
                   datalabels: {
                     anchor: 'end',
                     align: 'right',
                     formatter: (v) => v + '%',
-                    font: { size: 10, weight: '700' },
+                    font: { size: 9, weight: '700' },
                     color: '#1e293b'
                   }
                 },
@@ -444,13 +509,11 @@
                   y: {
                     grid: { display: false },
                     ticks: {
-                      font: { size: 9.5, weight: '600' },
+                      font: { size: 9, weight: '600' },
                       color: '#1e293b',
                       callback: function (value, index) {
                         const label = this.getLabelForValue(value);
-                        const percentValue = data[index] !== undefined ? data[index] : 0;
-                        const shortLabel = label.length > 18 ? label.substr(0, 18) + '...' : label;
-                        return `${shortLabel} (${percentValue}%)`;
+                        return label.length > 12 ? label.substr(0, 12) + '...' : label;
                       }
                     }
                   }
@@ -460,17 +523,22 @@
             });
           };
 
+          // Thực hiện lọc cấu trúc Top 5 Cao/Thấp
           const sortedCl = [...chartDataList].sort((a, b) => b.clPercent - a.clPercent);
           const clTop5 = sortedCl.slice(0, 5);
           const clBottom5 = [...chartDataList].sort((a, b) => a.clPercent - b.clPercent).slice(0, 5);
+
           const sortedSh = [...chartDataList].sort((a, b) => b.shPercent - a.shPercent);
           const shTop5 = sortedSh.slice(0, 5);
           const shBottom5 = [...chartDataList].sort((a, b) => a.shPercent - b.shPercent).slice(0, 5);
 
-          renderTopChart('chart-cl-top', clTop5.map(d => d.name), clTop5.map(d => d.clPercent), '#16a34a');
-          renderTopChart('chart-cl-bottom', clBottom5.map(d => d.name), clBottom5.map(d => d.clPercent), '#dc2626');
-          renderTopChart('chart-sh-top', shTop5.map(d => d.name), shTop5.map(d => d.shPercent), '#0284c7');
-          renderTopChart('chart-sh-bottom', shBottom5.map(d => d.name), shBottom5.map(d => d.shPercent), '#e67e22');
+          // Render biểu đồ thông qua setTimeout để đảm bảo đồng bộ DOM an toàn
+          setTimeout(() => {
+            renderSubChart('chart-cl-top', clTop5.map(d => d.name), clTop5.map(d => d.clPercent), '#16a34a');
+            renderSubChart('chart-cl-bottom', clBottom5.map(d => d.name), clBottom5.map(d => d.clPercent), '#dc2626');
+            renderSubChart('chart-sh-top', shTop5.map(d => d.name), shTop5.map(d => d.shPercent), '#0284c7');
+            renderSubChart('chart-sh-bottom', shBottom5.map(d => d.name), shBottom5.map(d => d.shPercent), '#e67e22');
+          }, 100);
 
           if (sttCounter === 1) {
             tableBody.innerHTML = `
@@ -528,14 +596,12 @@
           const btnUpdate = document.querySelector("button[onclick*='openSubUnitModal']");
           const timeDisplay = document.getElementById('lock-time-display');
 
-          // Hàm bổ trợ chuyển đổi định dạng hiển thị thời gian trực quan (DD/MM HH:MM)
           const formatDateTime = (date) => {
             if (!date) return '';
             const pad = (n) => String(n).padStart(2, '0');
             return `${pad(date.getHours())}:${pad(date.getMinutes())} ngày ${pad(date.getDate())}/${pad(date.getMonth() + 1)}`;
           };
 
-          // Tự động hiển thị thời hạn lên dòng tiêu đề bảng nếu có cấu hình trên Firebase
           if (timeDisplay && startTime && endTime) {
             timeDisplay.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> (Thời hạn nhập liệu: Từ ${formatDateTime(startTime)} đến ${formatDateTime(endTime)})`;
           }
@@ -569,8 +635,6 @@
         window.saveSubUnitData = async function (event) {
           event.preventDefault();
           const unitKey = document.getElementById('pop-unit-select').value;
-
-          // Kế thừa trực tiếp Tên cơ quan từ cache động đã kéo từ Firestore về ban nãy
           const unitName = currentOrgUnitsCache[unitKey] || 'Đơn vị mới';
 
           const formatNum = (val) => (val && parseFloat(val) !== 0) ? parseFloat(val).toFixed(1).replace('.', ',') : '0';
@@ -648,7 +712,7 @@
             if (missingUnits.length === 0) {
               modalBody.innerHTML = `
                 <div style="text-align: center; padding: 15px; background: #e6f4ea; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 700; font-size: 13px;">
-                  <i class="fa-solid fa-circle-check" style="font-size: 16px; margin-right: 6px;"></i> Tuyệt vời! 100% các đơn vị trực thuộc đã hoàn thành báo cáo số liệu.
+                  <i class="fa-solid fa-circle-check" style="font-size: 16px; margin-right: 6px;"></i> 100% các đơn vị trực thuộc đã hoàn thành báo cáo số liệu.
                 </div>
               `;
             } else {
@@ -679,6 +743,113 @@
           }
         };
       }
+      // =========================================================================
+      // PHẦN THÊM MỚI: TỰ ĐỘNG XUẤT FILE PDF TỔNG HỢP THEO PHÂN LOẠI TRẠNG THÁI
+      // =========================================================================
+      window.exportSummaryPDF = function () {
+        const items = Object.values(globalFirebaseCache);
+        const totalUnits = items.length; // Tổng số đơn vị đã nhập liệu lên hệ thống
+
+        // Khởi tạo bộ đếm thống kê trạng thái
+        let clXong = 0, clDang = 0, clChua = 0;
+        let shXong = 0, shDang = 0, shChua = 0;
+        let countGiaoNop = 0;
+
+        const parseNum = (val) => {
+          if (!val || val === '0') return 0;
+          let n = parseFloat(String(val).replace(/\./g, '').replace(',', '.'));
+          return isNaN(n) ? 0 : n;
+        };
+
+        items.forEach(item => {
+          const clTong = parseNum(item.clTong);
+          const clDaXong = parseNum(item.clXong);
+          const shTong = parseNum(item.shTong);
+          const shDaXong = parseNum(item.shMet);
+
+          // Phân loại logic nghiệp vụ Chỉnh lý
+          if (clTong > 0 && clDaXong === clTong) clXong++;
+          else if (clDaXong === 0) clChua++;
+          else clDang++;
+
+          // Phân loại logic nghiệp vụ Số hóa
+          if (shTong > 0 && shDaXong === shTong) shXong++;
+          else if (shDaXong === 0) shChua++;
+          else shDang++;
+
+          // Đếm số đơn vị hoàn thành giao nộp
+          if (item.giaoNop === 'Đã giao nộp') countGiaoNop++;
+        });
+
+        // Lấy mốc thời gian ngày hiện tại để điền tự động vào tiêu đề báo cáo
+        const now = new Date();
+        const currentDateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+
+        // Tạo khung giao diện báo cáo ẩn giả lập đúng phom mẫu văn bản đồng chí gửi
+        const reportArea = document.createElement('div');
+        reportArea.style.padding = "30px 40px";
+        reportArea.style.background = "#ffffff";
+        reportArea.style.fontFamily = "Times New Roman, Times, serif";
+        reportArea.style.color = "#000000";
+
+        reportArea.innerHTML = `
+            <div style="text-align: center; margin-bottom: 25px; line-height: 1.6;">
+              <!-- Dòng 1: Tiêu đề chính viết IN HOA, đậm -->
+              <div style="font-size: 15px; font-weight: bold; text-transform: uppercase;">
+                BIỂU THỐNG KÊ SỐ LIỆU CHỈNH LÝ, SỐ HÓA TÀI LIỆU CỦA CÁC ĐƠN VỊ
+              </div>
+              <!-- Dòng 2: Mốc thời gian chữ thường, in nghiêng trong ngoặc đơn -->
+              <div style="font-size: 13.5px; font-weight: normal; font-style: italic; margin-top: 4px;">
+                (Tính đến ngày ${currentDateStr})
+              </div>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
+              <thead>
+                <tr style="text-align: center; font-weight: bold; background-color: #f2f2f2;">
+                  <th style="border: 1px solid #000000; padding: 10px; width: 50px;">STT</th>
+                  <th style="border: 1px solid #000000; padding: 10px; text-align: left; min-width: 150px;">Nội dung công việc</th>
+                  <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Tổng số đơn vị</th>
+                  <th style="border: 1px solid #000000; padding: 10px; width: 90px;">Đã xong</th>
+                  <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Đang thực hiện</th>
+                  <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Chưa thực hiện</th>
+                  <th style="border: 1px solid #000000; padding: 10px; width: 140px;">Các đơn vị đã giao nộp vào Lưu trữ lịch sử</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="text-align: center;">
+                  <td style="border: 1px solid #000000; padding: 12px;">1</td>
+                  <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Chỉnh lý</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${clXong}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${clDang}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${clChua}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
+                </tr>
+                <tr style="text-align: center;">
+                  <td style="border: 1px solid #000000; padding: 12px;">2</td>
+                  <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Số hóa</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${shXong}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${shDang}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${shChua}</td>
+                  <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+        // Cấu hình thông số xuất PDF của html2pdf
+        const configOpt = {
+          margin: 10,
+          filename: `Bao_cao_tong_hop_so_hoa_${currentDateStr.replace(/\//g, '_')}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } // Xuất khổ ngang khổ giấy A4 chuẩn hóa biểu mẫu
+        };
+
+        // Chạy lệnh ngầm chuyển đổi HTML sang file PDF download tự động
+        html2pdf().set(configOpt).from(reportArea).save();
+      };
     </script>
 
     <!-- ================= VÙNG CHỨA 1: KHỐI NỘI DUNG VĂN PHÒNG TỈNH ỦY (GIỮ NGUYÊN BẢN 100%) ================= -->
@@ -1332,7 +1503,7 @@
                     background: #0056b3;
                     border-radius: 2px;
                     margin-right: 4px;
-                  "></span>Đạt được
+                  "></span>Đã xong
             </div>
             <div>
               <span style="
@@ -1342,7 +1513,7 @@
                     background: #e2e8f0;
                     border-radius: 2px;
                     margin-right: 4px;
-                  "></span>Chưa đạt
+                  "></span>Còn lại
             </div>
           </div>
         </div>
@@ -1671,6 +1842,10 @@
             </h3>
             <!-- Thêm cụm nút điều hướng bên phải -->
             <div style="display: flex; gap: 8px;">
+              <button onclick="exportSummaryPDF()"
+                style="background: #0056b3; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,86,179,0.15);">
+                <i class="fa-solid fa-file-pdf"></i> Báo cáo
+              </button>
               <!-- NÚT MỚI: Kiểm tra các đơn vị chưa báo cáo -->
               <button onclick="checkMissingUnits()"
                 style="background: #e67e22; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(230,126,34,0.15);">
