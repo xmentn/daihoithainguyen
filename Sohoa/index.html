@@ -804,39 +804,43 @@
               </div>
             </div>
             
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
-              <thead>
-                <tr style="text-align: center; font-weight: bold; background-color: #f2f2f2;">
-                  <th style="border: 1px solid #000000; padding: 10px; width: 50px;">STT</th>
-                  <th style="border: 1px solid #000000; padding: 10px; text-align: left; min-width: 150px;">Nội dung công việc</th>
-                  <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Tổng số đơn vị</th>
-                  <th style="border: 1px solid #000000; padding: 10px; width: 90px;">Đã xong</th>
-                  <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Đang thực hiện</th>
-                  <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Chưa thực hiện</th>
-                  <th style="border: 1px solid #000000; padding: 10px; width: 140px;">Các đơn vị đã giao nộp vào Lưu trữ lịch sử</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="text-align: center;">
-                  <td style="border: 1px solid #000000; padding: 12px;">1</td>
-                  <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Chỉnh lý</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${clXong}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${clDang}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${clChua}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
-                </tr>
-                <tr style="text-align: center;">
-                  <td style="border: 1px solid #000000; padding: 12px;">2</td>
-                  <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Số hóa</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${shXong}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${shDang}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${shChua}</td>
-                  <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
-                </tr>
-              </tbody>
-            </table>
+            <!-- Thêm thẻ div bọc ngoài để cố định layout viền -->
+            <div style="width: 100%; box-sizing: border-box; background: #ffffff;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
+                <thead>
+                  <tr style="text-align: center; font-weight: bold; background-color: #f2f2f2;">
+                    <th style="border: 1px solid #000000; padding: 10px; width: 50px;">STT</th>
+                    <th style="border: 1px solid #000000; padding: 10px; text-align: left; min-width: 150px;">Nội dung công việc</th>
+                    <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Tổng số đơn vị</th>
+                    <th style="border: 1px solid #000000; padding: 10px; width: 90px;">Đã xong</th>
+                    <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Đang thực hiện</th>
+                    <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Chưa thực hiện</th>
+                    <th style="border: 1px solid #000000; padding: 10px; width: 140px;">Các đơn vị đã giao nộp vào Lưu trữ lịch sử</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="text-align: center;">
+                    <td style="border: 1px solid #000000; padding: 12px;">1</td>
+                    <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Chỉnh lý</td>
+                    <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
+                    <td style="border: 1px solid #000000; padding: 12px;">${clXong}</td>
+                    <td style="border: 1px solid #000000; padding: 12px;">${clDang}</td>
+                    <td style="border: 1px solid #000000; padding: 12px;">${clChua}</td>
+                    <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
+                  </tr>
+                  <!-- HÀNG SỐ 2: ÉP THÊM BORDER BOTTOM 1PX SOLID ĐEN CHO TỪNG Ô ĐỂ CHỐNG LỖI MẤT VIỀN ĐÁY -->
+                  <tr style="text-align: center;">
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">2</td>
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px; text-align: left; font-weight: bold;">Số hóa</td>
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${totalUnits}</td>
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shXong}</td>
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shDang}</td>
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shChua}</td>
+                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${countGiaoNop}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           `;
         // Bổ sung vùng đệm phía dưới bảng để không bao giờ bị mất viền hoặc cắt dòng cuối
         const extraSpacer = document.createElement('div');
