@@ -1,743 +1,1066 @@
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="images/Codang.png" />
-    <title>Tiến độ Số hóa - VP Tỉnh ủy Thái Nguyên</title>
-    <link rel="stylesheet" href="css/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
-  </head>
 
-  <body>
-    <header class="banner-header" style="position: relative">
-      <img
-        src="images/banner1.png"
-        alt="Hệ thống theo dõi tiến độ số hóa tài liệu lưu trữ Văn phòng Tỉnh ủy Thái Nguyên"
-        class="banner-img"
-      />
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="images/Codang.png" />
+  <title>Tiến độ Số hóa - VP Tỉnh ủy Thái Nguyên</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+</head>
 
-      <style>
-        .modern-nav-container {
-          position: absolute;
-          right: 24px;
-          top: 50%;
-          transform: translateY(-50%);
-          display: flex;
-          flex-direction: column;
-          align-items: flex-end;
-          gap: 8px;
-          z-index: 100;
-        }
+<body>
+  <header class="banner-header" style="position: relative">
+    <img src="images/banner1.png" alt="Hệ thống theo dõi tiến độ số hóa tài liệu lưu trữ Văn phòng Tỉnh ủy Thái Nguyên"
+      class="banner-img" />
 
-        .btn-admin-modern {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          height: 34px;
-          padding: 0 14px;
-          background: #0056b3;
-          color: #ffffff !important;
-          text-decoration: none;
-          border-radius: 6px;
-          font-size: 13px;
-          font-weight: 600;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          transition: all 0.2s ease;
-        }
+    <style>
+      .modern-nav-container {
+        position: absolute;
+        right: 24px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        z-index: 100;
+      }
 
-        .btn-admin-modern:hover {
-          background: #004494;
-        }
+      .btn-admin-modern {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 34px;
+        padding: 0 14px;
+        background: #0056b3;
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.2s ease;
+      }
 
-        /* Cấu trúc ẩn hiện menu khi di chuột vào Tên tài khoản */
-        .user-dropdown-wrapper {
-          position: relative;
-          display: none;
-          /* Khối này sẽ được file js/dashboard.js kích hoạt kích thước khi đăng nhập */
-        }
+      .btn-admin-modern:hover {
+        background: #004494;
+      }
 
-        .user-trigger-box {
-          font-weight: 600;
-          color: #334155;
-          font-size: 13px;
-          background: rgba(255, 255, 255, 0.95);
-          padding: 6px 12px;
-          border-radius: 6px;
-          border: 1px solid #cbd5e1;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
+      /* Cấu trúc ẩn hiện menu khi di chuột vào Tên tài khoản */
+      .user-dropdown-wrapper {
+        position: relative;
+        display: none;
+        /* Khối này sẽ được file js/dashboard.js kích hoạt kích thước khi đăng nhập */
+      }
 
-        .dropdown-content-box {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          margin-top: 4px;
-          background: #ffffff;
-          min-width: 130px;
-          border-radius: 6px;
-          box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e2e8f0;
-          opacity: 0;
-          visibility: hidden;
-          transform: translateY(-5px);
-          transition: all 0.2s ease;
-        }
+      .user-trigger-box {
+        font-weight: 600;
+        color: #334155;
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.95);
+        padding: 6px 12px;
+        border-radius: 6px;
+        border: 1px solid #cbd5e1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      }
 
-        .user-dropdown-wrapper:hover .dropdown-content-box {
-          opacity: 1;
-          visibility: visible;
-          transform: translateY(0);
-        }
+      .dropdown-content-box {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 4px;
+        background: #ffffff;
+        min-width: 130px;
+        border-radius: 6px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-5px);
+        transition: all 0.2s ease;
+      }
 
-        .btn-logout-modern {
-          width: 100%;
-          height: 36px;
-          border: none;
-          background: transparent;
-          color: #dc2626;
-          font-weight: 600;
-          font-size: 13px;
-          padding: 0 12px;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          cursor: pointer;
-          border-radius: 6px;
-          text-align: left;
-          box-sizing: border-box;
-        }
+      .user-dropdown-wrapper:hover .dropdown-content-box {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
 
-        .btn-logout-modern:hover {
-          background: #fef2f2;
-        }
-      </style>
+      .btn-logout-modern {
+        width: 100%;
+        height: 36px;
+        border: none;
+        background: transparent;
+        color: #dc2626;
+        font-weight: 600;
+        font-size: 13px;
+        padding: 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        border-radius: 6px;
+        text-align: left;
+        box-sizing: border-box;
+      }
 
-      <nav class="modern-nav-container">
-        <a href="login.html" id="btn-admin-link" class="btn-admin-modern">
-          <i class="fa-solid fa-arrow-right-to-bracket"></i> Khu vực Quản trị
-        </a>
+      .btn-logout-modern:hover {
+        background: #fef2f2;
+      }
 
-        <div id="user-dropdown-area" class="user-dropdown-wrapper">
-          <div class="user-trigger-box">
-            <span id="admin-name">Đang tải...</span>
-            <i
-              class="fa-solid fa-chevron-down"
-              style="font-size: 10px; color: #64748b"
-            ></i>
-          </div>
-          <div class="dropdown-content-box">
-            <button onclick="logoutUser()" class="btn-logout-modern">
-              <i class="fa-solid fa-power-off" style="font-size: 13px"></i> Đăng
-              xuất
-            </button>
-          </div>
+      /* CSS thiết kế cho cụm nút chuyển đổi giữa 2 phân hệ hệ thống */
+      .main-tab-btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        border: 1px solid transparent;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        border-radius: 8px 8px 0 0;
+        margin-bottom: -2px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .main-tab-btn.active-main-tab {
+        background: #ffffff !important;
+        color: #0056b3 !important;
+        border: 1px solid #e2e8f0 !important;
+        border-bottom-color: #ffffff !important;
+      }
+
+      .main-tab-btn:hover:not(.active-main-tab) {
+        color: #0f172a !important;
+        background: #f1f5f9 !important;
+        border-radius: 8px;
+      }
+
+      /* Thêm hiệu ứng cho Form điều khiển nhập liệu phân hệ Các đơn vị */
+      .modern-input-ctrl {
+        width: 100%;
+        height: 36px;
+        padding: 6px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        box-sizing: border-box;
+        font-size: 13px;
+        color: #0f172a;
+        background-color: #ffffff;
+        transition: all 0.2s ease;
+      }
+
+      .modern-input-ctrl:focus {
+        border-color: #0056b3;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.15);
+      }
+
+      .modern-field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+    </style>
+
+    <nav class="modern-nav-container">
+      <a href="login.html" id="btn-admin-link" class="btn-admin-modern">
+        <i class="fa-solid fa-arrow-right-to-bracket"></i> Khu vực Quản trị
+      </a>
+
+      <div id="user-dropdown-area" class="user-dropdown-wrapper">
+        <div class="user-trigger-box">
+          <span id="admin-name">Đang tải...</span>
+          <i class="fa-solid fa-chevron-down" style="font-size: 10px; color: #64748b"></i>
         </div>
-      </nav>
-    </header>
+        <div class="dropdown-content-box">
+          <button onclick="logoutUser()" class="btn-logout-modern">
+            <i class="fa-solid fa-power-off" style="font-size: 13px"></i> Đăng xuất
+          </button>
+        </div>
+      </div>
+    </nav>
+  </header>
 
-    <main class="dashboard-container">
-      <section
-        class="filter-section"
-        style="
-          background: #ffffff;
-          padding: 15px 20px;
-          border-radius: 12px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-          border: 1px solid #edf2f7;
-          margin-bottom: 25px;
-          display: flex;
-          align-items: center;
-          gap: 15px;
-        "
-      >
-        <label style="font-weight: 700; color: #2d3748; font-size: 14.5px"
-          ><i class="fa-solid fa-filter" style="color: #0056b3"></i> Chọn đợt số
-          hoa dữ liệu:</label
-        >
-        <select
-          id="select-campaign"
-          style="
-            padding: 8px 16px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-size: 14px;
-            font-weight: 600;
-            color: #1e293b;
-            background: #f8fafc;
-            cursor: pointer;
-            min-width: 200px;
-          "
-        ></select>
+  <main class="dashboard-container">
+
+    <!-- CỤM TABS ĐIỀU HƯỚNG CHÍNH ĐẶT TRÊN ĐẦU MAIN CONTAINER -->
+    <div class="sub-system-tabs"
+      style="display: flex; gap: 6px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; width: 100%;">
+      <button id="tab-btn-tinhuy" class="main-tab-btn active-main-tab" onclick="switchMainTab('tinhuy')">
+        <i class="fa-solid fa-building-flag"></i> Văn phòng Tỉnh ủy
+      </button>
+      <button id="tab-btn-dangbo" class="main-tab-btn" onclick="switchMainTab('dangbo')">
+        <i class="fa-solid fa-network-wired"></i> Các đơn vị trực thuộc
+      </button>
+    </div>
+
+    <!-- ĐOẠN 1: SCRIPT THƯỜNG - ĐIỀU KHIỂN GIAO DIỆN CHUYỂN TAB VÀ TRỪ LÙI SỐ LIỆU (LUÔN CHẠY) -->
+    <script>
+      // Hàm chuyển đổi Tab phân hệ
+      window.switchMainTab = function (tabName) {
+        const btnTinhUy = document.getElementById('tab-btn-tinhuy');
+        const btnDangBo = document.getElementById('tab-btn-dangbo');
+        const secTinhUy = document.getElementById('section-tinhuy-content');
+        const secDangBo = document.getElementById('section-dangbo-content');
+
+        if (tabName === 'tinhuy') {
+          btnTinhUy.classList.add('active-main-tab');
+          btnDangBo.classList.remove('active-main-tab');
+          secTinhUy.style.display = 'block';
+          secDangBo.style.display = 'none';
+        } else if (tabName === 'dangbo') {
+          btnDangBo.classList.add('active-main-tab');
+          btnTinhUy.classList.remove('active-main-tab');
+          secTinhUy.style.display = 'none';
+          secDangBo.style.display = 'block';
+        }
+      }
+
+      // Tự động trừ lùi chỉ số Chỉnh lý [4] = [1] - ([2] + [3]) chỉnh về 1 số thập phân
+      window.calcChinhLy = function () {
+        const tong = parseFloat(document.getElementById('pop-cl-tong').value) || 0;
+        const xong = parseFloat(document.getElementById('pop-cl-xong').value) || 0;
+        const dang = parseFloat(document.getElementById('pop-cl-dang').value) || 0;
+        const chua = Math.max(0, tong - (xong + dang));
+        document.getElementById('pop-cl-chua').value = chua ? chua.toFixed(1) : '0';
+      }
+
+      // Tự động trừ lùi chỉ số Số hóa [9] = [5] - ([6] + [8]) chỉnh về 1 số thập phân
+      window.calcSoHoa = function () {
+        const tong = parseFloat(document.getElementById('pop-sh-tong').value) || 0;
+        const xong = parseFloat(document.getElementById('pop-sh-met').value) || 0;
+        const dang = parseFloat(document.getElementById('pop-sh-dang').value) || 0;
+        const chua = Math.max(0, tong - (xong + dang));
+        document.getElementById('pop-sh-chua').value = chua ? chua.toFixed(1) : '0';
+      }
+
+      window.openSubUnitModal = function () {
+        const modalForm = document.querySelector('#subUnitModal form');
+        if (modalForm) {
+          modalForm.reset();
+          document.getElementById('pop-cl-chua').value = '0';
+          document.getElementById('pop-sh-chua').value = '0';
+          document.getElementById('pop-giao-nop').value = 'Chưa giao nộp';
+        }
+        document.getElementById('subUnitModal').style.display = 'flex';
+      }
+
+      window.closeSubUnitModal = function () {
+        document.getElementById('subUnitModal').style.display = 'none';
+      }
+    </script>
+
+    <!-- ĐOẠN 2: SCRIPT MODULE - XỬ LÝ ĐỒNG BỘ FIREBASE ĐỘNG + TỰ ĐỘNG ĐIỀN LẠI SỐ LIỆU CŨ -->
+    <script type="module">
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        onSnapshot,
+        collection,
+        getDocs
+      } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+      let globalFirebaseCache = {};// Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
+
+      // Chờ toàn bộ trang và tệp mã nguồn js/dashboard.js nạp xong để có cấu hình Firebase App
+      window.addEventListener('load', () => {
+        try {
+          const db = getFirestore();
+          initFirebaseSync(db);
+        } catch (e) {
+          console.error("Đợi Firebase App khởi tạo thất bại:", e);
+        }
+      });
+
+      const unitNameMapping = {
+        'noichinh': 'Ban Nội chính Tỉnh ủy',
+        'tochuc': 'Ban Tổ chức Tỉnh ủy',
+        'tuyengiao': 'Ban Tuyên giáo và Dân vận Tỉnh ủy',
+        'ubkt': 'UBKT Tỉnh ủy',
+        'mttq': 'MTTQ tỉnh',
+        'ldld': 'LĐLĐ tỉnh',
+        'hoinongdan': 'Hội Nông dân tỉnh'
+      };
+
+      const currentCampaign = "dot_1_2026";
+
+      function initFirebaseSync(db) {
+        // Lắng nghe dữ liệu thực tế từ Firebase
+        onSnapshot(collection(db, "SubUnitsData"), (snapshot) => {
+          const tableBody = document.getElementById('dangbo-matrix-body');
+          if (!tableBody) return;
+
+          tableBody.innerHTML = '';
+          let sttCounter = 1;
+          globalFirebaseCache = {}; // Xóa trống cache cũ khi có cập nhật mới từ real-time snapshot
+
+          snapshot.forEach((docSnap) => {
+            if (docSnap.id.startsWith(currentCampaign + "_")) {
+              const item = docSnap.data();
+              const uKey = docSnap.id.replace(currentCampaign + "_", "");
+              globalFirebaseCache[uKey] = item; // Đẩy dữ liệu thực tế vào cache bộ nhớ tạm
+
+              // Cấu hình nhãn Badge hiển thị trạng thái Giao nộp
+              const statusColor = item.giaoNop === 'Đã giao nộp' ? '#16a34a' : '#ef4444';
+              const statusBg = item.giaoNop === 'Đã giao nộp' ? '#e6f4ea' : '#fdf2f2';
+
+              const newRow = document.createElement('tr');
+              newRow.style.borderBottom = "1px solid #e2e8f0";
+              if (sttCounter % 2 === 0) newRow.style.background = "#f8fafc";
+
+              newRow.innerHTML = `
+                  <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; color:#64748b;">${sttCounter}</td>
+                  <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: 600; color:#1e293b;">${item.name || 'Đơn vị chưa rõ'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${item.clTong || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.clXong || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.clDang || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${item.clChua || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${item.shTong || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.shMet || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #9b59b6; font-weight: 700;">${item.shTrang || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.shDang || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${item.shChua || '0'}</td>
+                  <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; width: 140px;">
+                    <span style="display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; color: ${statusColor}; background: ${statusBg}; border: 1px solid ${statusColor}30;">
+                      ${item.giaoNop || 'Chưa giao nộp'}
+                    </span>
+                  </td>
+                `;
+              tableBody.appendChild(newRow);
+              sttCounter++;
+            }
+          });
+          // ================= LOGIC XỬ LÝ DỮ LIỆU ĐỒ THỊ ĐỘNG CÁC ĐƠN VỊ =================
+          let chartDataList = [];
+
+          // Hàm bóc tách chuỗi số định dạng tiếng Việt "64,5" -> số float
+          const parseNum = (str) => {
+            if (!str) return 0;
+            const n = parseFloat(String(str).replace(/[^0-9.-]/g, '').replace(',', '.'));
+            return isNaN(n) ? 0 : n;
+          };
+
+          // Duyệt qua toàn bộ cache để tính tỷ lệ % của từng cơ quan
+          Object.values(globalFirebaseCache).forEach(item => {
+            const clTongNum = parseNum(item.clTong);
+            const clXongNum = parseNum(item.clXong);
+            const shTongNum = parseNum(item.shTong);
+            const shMetNum = parseNum(item.shMet);
+
+            chartDataList.push({
+              name: item.name || 'Đơn vị chưa rõ',
+              clPercent: clTongNum > 0 ? parseFloat(((clXongNum / clTongNum) * 100).toFixed(1)) : 0,
+              shPercent: shTongNum > 0 ? parseFloat(((shMetNum / shTongNum) * 100).toFixed(1)) : 0
+            });
+          });
+
+          // Hàm tạo hoặc cập nhật biểu đồ thanh ngang (Bổ sung hiển thị % cạnh tên đơn vị)
+          const renderTopChart = (canvasId, labels, data, barColor) => {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+
+            if (window[canvasId + 'Instance']) {
+              window[canvasId + 'Instance'].destroy();
+            }
+
+            window[canvasId + 'Instance'] = new Chart(ctx, {
+              type: 'bar',
+              data: {
+                labels: labels,
+                datasets: [{
+                  data: data,
+                  backgroundColor: barColor,
+                  borderRadius: 4,
+                  barThickness: 12
+                }]
+              },
+              options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: {
+                  padding: {
+                    right: 40 // Chừa không gian rộng bên phải để con số % hiển thị không bị che khuất
+                  }
+                },
+                plugins: {
+                  legend: { display: false },
+                  datalabels: {
+                    anchor: 'end',
+                    align: 'right',
+                    formatter: (v) => v + '%',
+                    font: { size: 10, weight: '700' },
+                    color: '#1e293b'
+                  }
+                },
+                scales: {
+                  x: { max: 100, display: false, grid: { display: false } },
+                  y: {
+                    grid: { display: false },
+                    ticks: {
+                      font: { size: 9.5, weight: '600' },
+                      color: '#1e293b',
+                      callback: function (value, index) {
+                        const label = this.getLabelForValue(value);
+                        const percentValue = data[index] !== undefined ? data[index] : 0;
+                        // Rút gọn tên đơn vị nếu quá dài và đính kèm con số % ở sau
+                        const shortLabel = label.length > 18 ? label.substr(0, 18) + '...' : label;
+                        return `${shortLabel} (${percentValue}%)`;
+                      }
+                    }
+                  }
+                }
+              },
+              plugins: [ChartDataLabels]
+            });
+          };
+
+          // 1. Tính toán Top 5 Chỉnh lý Cao nhất / Thấp nhất
+          const sortedCl = [...chartDataList].sort((a, b) => b.clPercent - a.clPercent);
+          const clTop5 = sortedCl.slice(0, 5);
+          const clBottom5 = [...chartDataList].sort((a, b) => a.clPercent - b.clPercent).slice(0, 5);
+
+          // 2. Tính toán Top 5 Số hóa Cao nhất / Thấp nhất
+          const sortedSh = [...chartDataList].sort((a, b) => b.shPercent - a.shPercent);
+          const shTop5 = sortedSh.slice(0, 5);
+          const shBottom5 = [...chartDataList].sort((a, b) => a.shPercent - b.shPercent).slice(0, 5);
+
+          // 3. Vẽ 4 biểu đồ lên giao diện
+          renderTopChart('chart-cl-top', clTop5.map(d => d.name), clTop5.map(d => d.clPercent), '#16a34a');
+          renderTopChart('chart-cl-bottom', clBottom5.map(d => d.name), clBottom5.map(d => d.clPercent), '#dc2626');
+          renderTopChart('chart-sh-top', shTop5.map(d => d.name), shTop5.map(d => d.shPercent), '#0284c7');
+          renderTopChart('chart-sh-bottom', shBottom5.map(d => d.name), shBottom5.map(d => d.shPercent), '#e67e22');
+          if (sttCounter === 1) {
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="12" style="padding: 20px; text-align: center; color: #94a3b8; font-style: italic; background: #fdfdfe;">
+                  Chưa có dữ liệu đơn vị nào được cập nhật trên hệ thống.
+                </td>
+              </tr>
+            `;
+          }
+        });
+
+        // LOGIC CHẠY TỰ ĐỘNG ĐIỀN LẠI DỮ LIỆU CŨ KHI CHỌN ĐƠN VỊ TRÊN DROPDOWN MODAL
+        const unitSelect = document.getElementById('pop-unit-select');
+        if (unitSelect) {
+          unitSelect.addEventListener('change', (e) => {
+            const selectedKey = e.target.value;
+
+            if (selectedKey && globalFirebaseCache[selectedKey]) {
+              const oldData = globalFirebaseCache[selectedKey];
+
+              // Hàm chuyển chuỗi định dạng hiển thị tiếng Việt "64,50" -> Số float "64.5" để điền lại vào ô input
+              const parseViNum = (str) => str ? parseFloat(str.replace(/[^0-9,-]/g, '').replace(',', '.')) : '';
+              const parseViInt = (str) => str ? parseInt(str.replace(/[^0-9]/g, '')) : '';
+
+              document.getElementById('pop-cl-tong').value = parseViNum(oldData.clTong);
+              document.getElementById('pop-cl-xong').value = parseViNum(oldData.clXong);
+              document.getElementById('pop-cl-dang').value = parseViNum(oldData.clDang);
+              document.getElementById('pop-cl-chua').value = oldData.clChua || '0';
+
+              document.getElementById('pop-sh-tong').value = parseViNum(oldData.shTong);
+              document.getElementById('pop-sh-met').value = parseViNum(oldData.shMet);
+              document.getElementById('pop-sh-dang').value = parseViNum(oldData.shDang);
+              document.getElementById('pop-sh-chua').value = oldData.shChua || '0';
+              document.getElementById('pop-sh-trang').value = parseViInt(oldData.shTrang);
+
+              document.getElementById('pop-giao-nop').value = oldData.giaoNop || 'Chưa giao nộp';
+            } else {
+              // Nếu chuyển sang đơn vị chưa có dữ liệu, xóa trắng để nhập mới
+              const form = document.querySelector('#subUnitModal form');
+              if (form) {
+                const currentSel = unitSelect.value;
+                form.reset();
+                unitSelect.value = currentSel;
+                document.getElementById('pop-cl-chua').value = '0';
+                document.getElementById('pop-sh-chua').value = '0';
+                document.getElementById('pop-giao-nop').value = 'Chưa giao nộp';
+              }
+            }
+          });
+        }
+        // =========================================================================
+        // LOGIC CHẠY NGẦM REAL-TIME: TỰ ĐỘNG KHÓA/MỞ NÚT "CẬP NHẬT SỐ LIỆU" CỦA CÁC ĐƠN VỊ
+        // =========================================================================
+        onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
+          if (!docSnap.exists()) return;
+
+          const config = docSnap.data();
+          const startTime = config.startTime ? new Date(config.startTime) : null;
+          const endTime = config.endTime ? new Date(config.endTime) : null;
+
+          // Bắt chính xác nút "Cập nhật số liệu" theo thuộc tính hành động của đồng chí
+          const btnUpdate = document.querySelector("button[onclick*='openSubUnitModal']");
+
+          const checkLockStatus = () => {
+            if (!startTime || !endTime || !btnUpdate) return;
+            const now = new Date();
+
+            if (now < startTime || now > endTime) {
+              // TÌNH TRẠNG: NGOÀI KHUNG GIỜ -> TIẾN HÀNH KHÓA CỨNG
+              btnUpdate.disabled = true;
+              btnUpdate.style.setProperty("background", "#94a3b8", "important");
+              btnUpdate.style.cursor = "not-allowed";
+              btnUpdate.style.opacity = "0.75";
+              btnUpdate.style.boxShadow = "none";
+
+              // Đổi icon thành hình ổ khóa bảo mật và sửa chữ
+              btnUpdate.innerHTML = `<i class="fa-solid fa-lock"></i> Hết giờ cập nhật`;
+            } else {
+              // TÌNH TRẠNG: TRONG KHUNG GIỜ -> MỞ CỔNG HOẠT ĐỘNG BÌNH THƯỜNG
+              btnUpdate.disabled = false;
+              btnUpdate.style.setProperty("background", "#16a34a", "important");
+              btnUpdate.style.cursor = "pointer";
+              btnUpdate.style.opacity = "1";
+              btnUpdate.style.boxShadow = "0 2px 4px rgba(22,163,74,0.15)";
+
+              // Trả lại icon và chữ gốc ban đầu của đồng chí
+              btnUpdate.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Cập nhật số liệu`;
+            }
+          };
+
+          // Chạy kiểm tra ngay lập tức và thiết lập vòng quét lặp lại mỗi giây
+          checkLockStatus();
+          if (window.lockInterval) clearInterval(window.lockInterval);
+          window.lockInterval = setInterval(checkLockStatus, 1000);
+        });
+        // =========================================================================
+        // Hàm ghi đè dữ liệu lên Firebase
+        window.saveSubUnitData = async function (event) {
+          event.preventDefault();
+
+          const unitKey = document.getElementById('pop-unit-select').value;
+          const unitName = unitNameMapping[unitKey] || 'Đơn vị mới';
+
+          const formatNum = (val) => (val && parseFloat(val) !== 0) ? parseFloat(val).toFixed(1).replace('.', ',') : '0';
+          const formatInt = (val) => (val && parseInt(val) !== 0) ? parseInt(val).toLocaleString('vi-VN') : '0';
+
+          const clTong = formatNum(document.getElementById('pop-cl-tong').value);
+          const clXong = formatNum(document.getElementById('pop-cl-xong').value);
+          const clDang = formatNum(document.getElementById('pop-cl-dang').value);
+          const clChua = formatNum(document.getElementById('pop-cl-chua').value);
+
+          const shTong = formatNum(document.getElementById('pop-sh-tong').value);
+          const shMet = formatNum(document.getElementById('pop-sh-met').value);
+          const shTrang = formatInt(document.getElementById('pop-sh-trang').value);
+          const shDang = formatNum(document.getElementById('pop-sh-dang').value);
+          const shChua = formatNum(document.getElementById('pop-sh-chua').value);
+          const giaoNopStatus = document.getElementById('pop-giao-nop').value;
+
+          try {
+            await setDoc(doc(db, "SubUnitsData", `${currentCampaign}_${unitKey}`), {
+              unitKey: unitKey,
+              name: unitName,
+              clTong: clTong, clXong: clXong, clDang: clDang, clChua: clChua,
+              shTong: shTong, shMet: shMet, shTrang: shTrang, shDang: shDang, shChua: shChua,
+              giaoNop: giaoNopStatus,
+              updatedAt: new Date().toISOString()
+            });
+
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="position: fixed; top: 24px; right: 24px; background: #16a34a; color: #ffffff; padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; z-index: 10000; animation: toastSlideIn 0.3s ease forwards;">
+                  <i class="fa-solid fa-circle-check" style="font-size: 16px;"></i>
+                  <span>Cập nhật số liệu [${unitName}] lên hệ thống thành công!</span>
+                </div>
+                <style>
+                  @keyframes toastSlideIn {
+                    from { transform: translateY(-20px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                  }
+                </style>
+              `;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+
+            closeSubUnitModal();
+
+          } catch (error) {
+            console.error("Lỗi đồng bộ Firebase:", error);
+            alert("Có lỗi xảy ra trong quá trình đồng bộ đường truyền Firebase!");
+          }
+        }
+        // Thay thế hàm import ở dòng đầu để chắc chắn có getDocs
+        // import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } from "...";
+
+        window.checkMissingUnits = async function () {
+          const modal = document.getElementById('missingUnitsModal');
+          const modalBody = document.getElementById('missing-modal-body');
+          if (!modal || !modalBody) return;
+
+          // Hiển thị trạng thái chờ trong khi kéo dữ liệu
+          modalBody.innerHTML = `
+            <div style="text-align: center; padding: 20px; color: #64748b; font-weight: 600;">
+              <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #e67e22;"></i> Đang truy vấn danh sách cơ quan từ hệ thống...
+            </div>
+          `;
+          modal.style.display = 'flex';
+
+          try {
+            const db = getFirestore();
+            // 1. Lấy dữ liệu động từ collection gốc organization_units
+            const orgSnapshot = await getDocs(collection(db, "organization_units"));
+
+            let allUnits = [];
+            orgSnapshot.forEach((docSnap) => {
+              const data = docSnap.data();
+              if (data.unitName) {
+                allUnits.push({
+                  key: docSnap.id, // Ví dụ: 'unit_1', 'unit_10'
+                  name: data.unitName,
+                  stt: data.stt || 999
+                });
+              }
+            });
+
+            // Sắp xếp danh sách đơn vị theo thứ tự STT chuẩn
+            allUnits.sort((a, b) => a.stt - b.stt);
+
+            // 2. Lọc danh sách: Đối chiếu xem key của organization_units có nằm trong bộ đệm dữ liệu hiện tại không
+            // ĐOẠN MỚI CHUẨN HÓA: Đối chiếu chính xác theo tên gọi cơ quan
+            const reportedNames = Object.values(globalFirebaseCache).map(item => item.name ? item.name.trim() : "");
+            const missingUnits = allUnits.filter(unit => !reportedNames.includes(unit.name ? unit.name.trim() : ""));
+
+            // 3. Render giao diện động đổ vào Modal
+            if (missingUnits.length === 0) {
+              modalBody.innerHTML = `
+                <div style="text-align: center; padding: 15px; background: #e6f4ea; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 700; font-size: 13px;">
+                  <i class="fa-solid fa-circle-check" style="font-size: 16px; margin-right: 6px;"></i> Tuyệt vời! 100% các đơn vị trực thuộc đã hoàn thành báo cáo số liệu.
+                </div>
+              `;
+            } else {
+              let listHtml = `
+                <div style="margin-bottom: 12px; font-size: 13px; font-weight: 700; color: #334155;">
+                  Phát hiện <span style="color: #dc2626; font-size: 14px;">${missingUnits.length}</span> đơn vị chưa cập nhật dữ liệu:
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+              `;
+
+              missingUnits.forEach((unit, idx) => {
+                listHtml += `
+                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                    <span style="font-weight: 600; color: #1e293b; font-size: 12.5px;">${idx + 1}. ${unit.name}</span>
+                    <span style="font-size: 10.5px; font-weight: 700; background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 50px; border: 1px solid #fecaca;">Chưa báo cáo</span>
+                  </div>
+                `;
+              });
+
+              listHtml += `</div>`;
+              modalBody.innerHTML = listHtml;
+            }
+
+          } catch (error) {
+            console.error("Lỗi lấy danh sách organization_units:", error);
+            modalBody.innerHTML = `
+              <div style="text-align: center; padding: 15px; background: #fdf2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 8px; font-weight: 700; font-size: 12.5px;">
+                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Lỗi truy xuất đường truyền dữ liệu Firebase!
+              </div>
+            `;
+          }
+        };
+      }
+    </script>
+
+    <!-- ================= VÙNG CHỨA 1: KHỐI NỘI DUNG VĂN PHÒNG TỈNH ỦY (GIỮ NGUYÊN BẢN 100%) ================= -->
+    <div id="section-tinhuy-content" style="display: block; width: 100%;">
+      <section class="filter-section" style="
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #edf2f7;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+          ">
+        <label style="font-weight: 700; color: #2d3748; font-size: 14.5px"><i class="fa-solid fa-filter"
+            style="color: #0056b3"></i> Chọn đợt số hoa dữ liệu:</label>
+        <select id="select-campaign" style="
+              padding: 8px 16px;
+              border-radius: 6px;
+              border: 1px solid #cbd5e1;
+              font-size: 14px;
+              font-weight: 600;
+              color: #1e293b;
+              background: #f8fafc;
+              cursor: pointer;
+              min-width: 200px;
+            "></select>
       </section>
 
       <!-- KHU VỰC THÀNH TRƯỢT THẺ SỐ LIỆU QUY TRÌNH (9 BƯỚC + CHỈ TIÊU) -->
-      <section
-        class="carousel-container"
-        style="
-          position: relative;
-          margin-bottom: 25px;
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        "
-      >
-        <!-- Nút trượt sang trái -->
-        <button
-          id="slide-left-btn"
-          style="
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
+      <section class="carousel-container" style="
+            position: relative;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-            transition: all 0.2s;
-          "
-        >
-          <i
-            class="fa-solid fa-chevron-left"
-            style="color: #475569; font-size: 16px"
-          ></i>
+            gap: 10px;
+          ">
+        <!-- Nút trượt sang trái -->
+        <button id="slide-left-btn" style="
+              background: #ffffff;
+              border: 1px solid #cbd5e1;
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              z-index: 10;
+              transition: all 0.2s;
+            ">
+          <i class="fa-solid fa-chevron-left" style="color: #475569; font-size: 16px"></i>
         </button>
 
         <!-- Khung chứa các Card (Bị ẩn phần thừa ngoài khung) -->
-        <div
-          id="cards-carousel-wrapper"
-          style="
-            flex: 1;
-            overflow-hidden: hidden;
-            position: relative;
-            width: 100%;
-            height: auto;
-            overflow: hidden;
-            padding: 10px 5px;
-          "
-        >
-          <div
-            id="cards-track"
-            style="
-              display: flex;
-              gap: 20px;
-              transition: transform 0.4s ease-in-out;
-              width: max-content;
-            "
-          >
+        <div id="cards-carousel-wrapper" style="
+              flex: 1;
+              overflow-hidden: hidden;
+              position: relative;
+              width: 100%;
+              height: auto;
+              overflow: hidden;
+              padding: 10px 5px;
+            ">
+          <div id="cards-track" style="
+                display: flex;
+                gap: 20px;
+                transition: transform 0.4s ease-in-out;
+                width: max-content;
+              ">
             <!-- THẺ 0: CHỈ TIÊU TỔNG ĐỢT (Cố định ở vị trí đầu tiên) -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #475569;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #475569;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #475569;
+                ">
+              <div class="card-icon" style="
+                    background: #475569;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-calculator" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #475569"
-                  >CHỈ TIÊU TỔNG ĐỢT</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #475569">CHỈ TIÊU TỔNG ĐỢT</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="show-tong-met">0</span>
                   <span class="unit">m</span> |<br />
                   <span id="show-tong-trang">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span
-                    class="progress-text"
-                    id="show-ten-dot"
-                    style="font-weight: 700; color: #0056b3"
-                    >Đang tải...</span
-                  >
+                  <span class="progress-text" id="show-ten-dot" style="font-weight: 700; color: #0056b3">Đang
+                    tải...</span>
                 </div>
               </div>
             </div>
 
             <!-- THẺ CHỈNH LÝ (MÉT) -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #0056b3;
-              "
-            >
-              <div
-                class="card-icon blue-bg"
-                style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #0056b3;
+                ">
+              <div class="card-icon blue-bg" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-paperclip" style="color: white"></i>
               </div>
               <div class="card-info">
                 <span class="card-label blue-text">ĐÃ CHỈNH LÝ XONG</span>
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="cl-da-xong">0</span> <span class="unit">mét</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Hoàn thành <span id="cl-xong-percent">0</span>% (Còn
-                    <span id="cl-con-lai">0</span>m)</span
-                  >
+                  <span class="progress-text">Hoàn thành <span id="cl-xong-percent">0</span>% (Còn <span
+                      id="cl-con-lai">0</span>m)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-cl-xong"
-                      class="progress-bar blue-bg"
-                      style="width: 0%"
-                    ></div>
+                    <div id="bar-cl-xong" class="progress-bar blue-bg" style="width: 0%"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B1: SCAN TÀI LIỆU -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #10b981;
-              "
-            >
-              <div
-                class="card-icon green-bg"
-                style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #10b981;
+                ">
+              <div class="card-icon green-bg" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-print" style="color: white"></i>
               </div>
               <div class="card-info">
                 <span class="card-label green-text">B1: ĐÃ SCAN TÀI LIỆU</span>
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-scan">0</span> <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-scan-percent">0</span>% (Còn
-                    <span id="sh-scan-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-scan-percent">0</span>% (Còn <span
+                      id="sh-scan-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-scan"
-                      class="progress-bar green-bg"
-                      style="width: 0%"
-                    ></div>
+                    <div id="bar-sh-scan" class="progress-bar green-bg" style="width: 0%"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B2: CẮT FILE & BIÊN MỤC -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #06b6d4;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #06b6d4;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #06b6d4;
+                ">
+              <div class="card-icon" style="
+                    background: #06b6d4;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-scissors" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #06b6d4"
-                  >B2: CẮT & BIÊN MỤC</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #06b6d4">B2: CẮT & BIÊN MỤC</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-bienmuc">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-bienmuc-percent">0</span>% (Còn
-                    <span id="sh-bienmuc-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-bienmuc-percent">0</span>% (Còn <span
+                      id="sh-bienmuc-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-bienmuc"
-                      class="progress-bar"
-                      style="width: 0%; background: #06b6d4"
-                    ></div>
+                    <div id="bar-sh-bienmuc" class="progress-bar" style="width: 0%; background: #06b6d4"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B3: CHUẨN HÓA DỮ LIỆU -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #8b5cf6;
-              "
-            >
-              <div
-                class="card-icon purple-bg"
-                style="
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #8b5cf6;
+                ">
+              <div class="card-icon purple-bg" style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-database" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label purple-text"
-                  >B3: CHUẨN HÓA DỮ LIỆU</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label purple-text">B3: CHUẨN HÓA DỮ LIỆU</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-chuan-hoa">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-chuanhoa-percent">0</span>% (Còn
-                    <span id="sh-chuanhoa-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-chuanhoa-percent">0</span>% (Còn <span
+                      id="sh-chuanhoa-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-chuanhoa"
-                      class="progress-bar purple-bg"
-                      style="width: 0%"
-                    ></div>
+                    <div id="bar-sh-chuanhoa" class="progress-bar purple-bg" style="width: 0%"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B4: HIỆU CHỈNH DỮ LIỆU -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #ec4899;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #ec4899;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
-                <i
-                  class="fa-solid fa-wand-magic-sparkles"
-                  style="color: white"
-                ></i>
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #ec4899;
+                ">
+              <div class="card-icon" style="
+                    background: #ec4899;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #ec4899"
-                  >B4: HIỆU CHỈNH DL</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #ec4899">B4: HIỆU CHỈNH DL</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-hieuchinh">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-hieuchinh-percent">0</span>% (Còn
-                    <span id="sh-hieuchinh-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-hieuchinh-percent">0</span>% (Còn <span
+                      id="sh-hieuchinh-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-hieuchinh"
-                      class="progress-bar"
-                      style="width: 0%; background: #ec4899"
-                    ></div>
+                    <div id="bar-sh-hieuchinh" class="progress-bar" style="width: 0%; background: #ec4899"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B5: CHUYỂN ĐỔI PDF 2 LỚP -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #ef4444;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #ef4444;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #ef4444;
+                ">
+              <div class="card-icon" style="
+                    background: #ef4444;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-file-pdf" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #ef4444"
-                  >B5: PDF 2 LỚP</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #ef4444">B5: PDF 2 LỚP</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-pdf2lop">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-pdf2lop-percent">0</span>% (Còn
-                    <span id="sh-pdf2lop-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-pdf2lop-percent">0</span>% (Còn <span
+                      id="sh-pdf2lop-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-pdf2lop"
-                      class="progress-bar"
-                      style="width: 0%; background: #ef4444"
-                    ></div>
+                    <div id="bar-sh-pdf2lop" class="progress-bar" style="width: 0%; background: #ef4444"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B6: KÝ SỐ TÀI LIỆU -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #14b8a6;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #14b8a6;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #14b8a6;
+                ">
+              <div class="card-icon" style="
+                    background: #14b8a6;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-signature" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #14b8a6"
-                  >B6: KÝ SỐ HỒ SƠ</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #14b8a6">B6: KÝ SỐ HỒ SƠ</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-kyso">0</span> <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-kyso-percent">0</span>% (Còn
-                    <span id="sh-kyso-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-kyso-percent">0</span>% (Còn <span
+                      id="sh-kyso-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-kyso"
-                      class="progress-bar"
-                      style="width: 0%; background: #14b8a6"
-                    ></div>
+                    <div id="bar-sh-kyso" class="progress-bar" style="width: 0%; background: #14b8a6"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B7: HOÀN CHỈNH & NÉN DỮ LIỆU -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #f59e0b;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #f59e0b;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #f59e0b;
+                ">
+              <div class="card-icon" style="
+                    background: #f59e0b;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-file-zipper" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #f59e0b"
-                  >B7: NÉN DỮ LIỆU</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #f59e0b">B7: NÉN DỮ LIỆU</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-nendulieu">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-nendulieu-percent">0</span>% (Còn
-                    <span id="sh-nendulieu-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-nendulieu-percent">0</span>% (Còn <span
+                      id="sh-nendulieu-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-nendulieu"
-                      class="progress-bar"
-                      style="width: 0%; background: #f59e0b"
-                    ></div>
+                    <div id="bar-sh-nendulieu" class="progress-bar" style="width: 0%; background: #f59e0b"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B8: ĐÃ ĐƯA LÊN PHẦN MỀM -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #e67e22;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #e67e22;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #e67e22;
+                ">
+              <div class="card-icon" style="
+                    background: #e67e22;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-cloud-arrow-up" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #e67e22"
-                  >B8: LÊN PHẦN MỀM</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #e67e22">B8: LÊN PHẦN MỀM</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-len-phan-mem">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-pm-percent">0</span>% (Còn
-                    <span id="sh-pm-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-pm-percent">0</span>% (Còn <span
+                      id="sh-pm-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-pm"
-                      class="progress-bar"
-                      style="width: 0%; background: #e67e22"
-                    ></div>
+                    <div id="bar-sh-pm" class="progress-bar" style="width: 0%; background: #e67e22"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <!-- THẺ B9: HOÀN CHỈNH & BÀN GIAO -->
-            <div
-              class="card-new white-card"
-              style="
-                width: 250px;
-                flex-shrink: 0;
-                border-left: 4px solid #10b981;
-              "
-            >
-              <div
-                class="card-icon"
-                style="
-                  background: #10b981;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                "
-              >
+            <div class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #10b981;
+                ">
+              <div class="card-icon" style="
+                    background: #10b981;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                  ">
                 <i class="fa-solid fa-box-open" style="color: white"></i>
               </div>
               <div class="card-info">
-                <span class="card-label" style="color: #10b981"
-                  >B9: BÀN GIAO SẢN PHẨM</span
-                >
-                <p
-                  class="card-value"
-                  style="font-size: 18px; margin-top: 5px; font-weight: 700"
-                >
+                <span class="card-label" style="color: #10b981">B9: BÀN GIAO SẢN PHẨM</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
                   <span id="sh-da-bangiao">0</span>
                   <span class="unit">trang</span>
                 </p>
                 <div class="progress-container">
-                  <span class="progress-text"
-                    >Đạt <span id="sh-bangiao-percent">0</span>% (Còn
-                    <span id="sh-bangiao-conlai">0</span>tr)</span
-                  >
+                  <span class="progress-text">Đạt <span id="sh-bangiao-percent">0</span>% (Còn <span
+                      id="sh-bangiao-conlai">0</span>tr)</span>
                   <div class="progress-bar-bg">
-                    <div
-                      id="bar-sh-bangiao"
-                      class="progress-bar"
-                      style="width: 0%; background: #10b981"
-                    ></div>
+                    <div id="bar-sh-bangiao" class="progress-bar" style="width: 0%; background: #10b981"></div>
                   </div>
                 </div>
               </div>
@@ -746,29 +1069,24 @@
         </div>
 
         <!-- Nút trượt sang phải -->
-        <button
-          id="slide-right-btn"
-          style="
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-            transition: all 0.2s;
-          "
-        >
-          <i
-            class="fa-solid fa-chevron-right"
-            style="color: #475569; font-size: 16px"
-          ></i>
+        <button id="slide-right-btn" style="
+              background: #ffffff;
+              border: 1px solid #cbd5e1;
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+              z-index: 10;
+              transition: all 0.2s;
+            ">
+          <i class="fa-solid fa-chevron-right" style="color: #475569; font-size: 16px"></i>
         </button>
       </section>
+
       <style>
         .charts-grid {
           display: grid;
@@ -819,6 +1137,7 @@
           transform: scale(1.2);
           background: #2563eb;
         }
+
         /* CSS bổ sung giúp hiển thị rõ các điểm dấu chấm chia mốc ngày */
         #timeline-ticks {
           display: flex;
@@ -826,9 +1145,11 @@
           width: 100%;
           padding: 0 10px;
           box-sizing: border-box;
-          margin-top: -10px; /* Đẩy sát lên dưới thanh trượt */
+          margin-top: -10px;
+          /* Đẩy sát lên dưới thanh trượt */
           margin-bottom: 10px;
         }
+
         #timeline-ticks option {
           padding: 0;
           /* Tạo hình dáng dấu chấm tròn nhỏ làm thang chia */
@@ -839,28 +1160,35 @@
           cursor: pointer;
         }
       </style>
-      <!-- 1. THAY ĐỔI LỚP KHUNG CHỨA CHÍNH ĐỂ MỞ RỘNG KHÔNG GIAN SANG 2 BÊN -->
+
       <style>
         .dashboard-container {
-          max-width: 95% !important; /* Mở rộng tối đa không gian hiển thị đạt 95% màn hình */
+          max-width: 95% !important;
+          /* Mở rộng tối đa không gian hiển thị đạt 95% màn hình */
           margin: 0 auto;
           padding: 0 15px;
           box-sizing: border-box;
         }
+
         .charts-grid-4column {
           display: grid;
-          grid-template-columns: 1fr 1.3fr 1fr 1fr; /* Tách thành 4 khối cân bằng */
+          grid-template-columns: 1fr 1.3fr 1fr 1fr;
+          /* Tách thành 4 khối cân bằng */
           gap: 15px;
           margin-top: 25px;
         }
+
         @media (max-width: 1100px) {
           .charts-grid-4column {
-            grid-template-columns: 1fr 1fr; /* Tự co cụm về 2 dòng trên màn hình trung bình */
+            grid-template-columns: 1fr 1fr;
+            /* Tự co cụm về 2 dòng trên màn hình trung bình */
           }
         }
+
         @media (max-width: 750px) {
           .charts-grid-4column {
-            grid-template-columns: 1fr; /* 1 cột trên điện thoại */
+            grid-template-columns: 1fr;
+            /* 1 cột trên điện thoại */
           }
         }
       </style>
@@ -868,101 +1196,80 @@
       <!-- 2. THAY THẾ KHỐI CŨ BẰNG CỤM 4 KHỐI BIỂU ĐỒ ĐỒNG BỘ MỚI HOÀN TOÀN -->
       <section class="charts-grid-4column">
         <!-- KHỐI 1: TỶ LỆ CHỈNH LÝ -->
-        <div
-          class="chart-box chart-box-pie"
-          style="
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            box-sizing: border-box;
-          "
-        >
-          <h3
-            style="
-              margin-top: 0;
-              margin-bottom: 10px;
-              font-size: 13px;
-              color: #1e293b;
-              font-weight: 700;
-            "
-          >
+        <div class="chart-box chart-box-pie" style="
+              background: #ffffff;
+              padding: 15px;
+              border-radius: 12px;
+              border: 1px solid #e2e8f0;
+              text-align: center;
+              box-sizing: border-box;
+            ">
+          <h3 style="
+                margin-top: 0;
+                margin-bottom: 10px;
+                font-size: 13px;
+                color: #1e293b;
+                font-weight: 700;
+              ">
             Tỷ lệ Chỉnh lý Tài liệu (Mét)
           </h3>
-          <div
-            style="
-              position: relative;
-              width: 100%;
-              height: 160px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
+          <div style="
+                position: relative;
+                width: 100%;
+                height: 160px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
             <canvas id="clChart"></canvas>
           </div>
-          <div
-            class="custom-legend"
-            style="
-              display: flex;
-              justify-content: center;
-              gap: 10px;
-              margin-top: 8px;
-              font-size: 11px;
-              font-weight: 600;
-            "
-          >
+          <div class="custom-legend" style="
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 8px;
+                font-size: 11px;
+                font-weight: 600;
+              ">
             <div>
-              <span
-                style="
-                  display: inline-block;
-                  width: 10px;
-                  height: 10px;
-                  background: #2b78e4;
-                  border-radius: 2px;
-                  margin-right: 4px;
-                "
-              ></span
-              >Đã xong
+              <span style="
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    background: #2b78e4;
+                    border-radius: 2px;
+                    margin-right: 4px;
+                  "></span>Đã xong
             </div>
             <div>
-              <span
-                style="
-                  display: inline-block;
-                  width: 10px;
-                  height: 10px;
-                  background: #f27a1a;
-                  border-radius: 2px;
-                  margin-right: 4px;
-                "
-              ></span
-              >Còn lại
+              <span style="
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    background: #f27a1a;
+                    border-radius: 2px;
+                    margin-right: 4px;
+                  "></span>Còn lại
             </div>
           </div>
         </div>
 
         <!-- KHỐI 2: BIỂU ĐỒ SO SÁNH KHỐI LƯỢNG 9 BƯỚC -->
-        <div
-          class="chart-box"
-          style="
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-sizing: border-box;
-          "
-        >
-          <h3
-            style="
-              margin-top: 0;
-              margin-bottom: 5px;
-              font-size: 13px;
-              color: #1e293b;
-              font-weight: 700;
-              text-align: center;
-            "
-          >
+        <div class="chart-box" style="
+              background: #ffffff;
+              padding: 15px;
+              border-radius: 12px;
+              border: 1px solid #e2e8f0;
+              box-sizing: border-box;
+            ">
+          <h3 style="
+                margin-top: 0;
+                margin-bottom: 5px;
+                font-size: 13px;
+                color: #1e293b;
+                font-weight: 700;
+                text-align: center;
+              ">
             So sánh Tiến độ các Bước (Trang)
           </h3>
           <div style="position: relative; width: 100%; height: 200px">
@@ -970,156 +1277,123 @@
           </div>
         </div>
 
-        <!-- KHỐI 3: BIỂU ĐỒ NHẪN TIẾN ĐỘ BƯỚC HIỆN TẠI (THÊM MỚI THEO YÊU CẦU) -->
-        <div
-          class="chart-box chart-box-pie"
-          style="
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            box-sizing: border-box;
-          "
-        >
-          <h3
-            id="current-step-chart-title"
-            style="
-              margin-top: 0;
-              margin-bottom: 10px;
-              font-size: 13px;
-              color: #0056b3;
-              font-weight: 700;
-              white-space: nowrap;
-              overflow: hidden;
-              text-overflow: ellipsis;
-            "
-          >
+        <!-- KHỐI 3: BIỂU ĐỒ NHẪN TIẾN ĐỘ BƯỚC HIỆN TẠI -->
+        <div class="chart-box chart-box-pie" style="
+              background: #ffffff;
+              padding: 15px;
+              border-radius: 12px;
+              border: 1px solid #e2e8f0;
+              text-align: center;
+              box-sizing: border-box;
+            ">
+          <h3 id="current-step-chart-title" style="
+                margin-top: 0;
+                margin-bottom: 10px;
+                font-size: 13px;
+                color: #0056b3;
+                font-weight: 700;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              ">
             Tiến độ Bước Hiện tại
           </h3>
-          <div
-            style="
-              position: relative;
-              width: 100%;
-              height: 160px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
+          <div style="
+                position: relative;
+                width: 100%;
+                height: 160px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
             <canvas id="currentStepChart"></canvas>
           </div>
-          <div
-            class="custom-legend"
-            style="
-              display: flex;
-              justify-content: center;
-              gap: 10px;
-              margin-top: 8px;
-              font-size: 11px;
-              font-weight: 600;
-            "
-          >
+          <div class="custom-legend" style="
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 8px;
+                font-size: 11px;
+                font-weight: 600;
+              ">
             <div>
-              <span
-                style="
-                  display: inline-block;
-                  width: 10px;
-                  height: 10px;
-                  background: #0056b3;
-                  border-radius: 2px;
-                  margin-right: 4px;
-                "
-              ></span
-              >Đạt được
+              <span style="
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    background: #0056b3;
+                    border-radius: 2px;
+                    margin-right: 4px;
+                  "></span>Đạt được
             </div>
             <div>
-              <span
-                style="
-                  display: inline-block;
-                  width: 10px;
-                  height: 10px;
-                  background: #e2e8f0;
-                  border-radius: 2px;
-                  margin-right: 4px;
-                "
-              ></span
-              >Chưa đạt
+              <span style="
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    background: #e2e8f0;
+                    border-radius: 2px;
+                    margin-right: 4px;
+                  "></span>Chưa đạt
             </div>
           </div>
         </div>
 
         <!-- KHỐI 4: TỶ LỆ ĐƯA LÊN PHẦN MỀM -->
-        <div
-          class="chart-box chart-box-pie"
-          style="
-            background: #ffffff;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            text-align: center;
-            box-sizing: border-box;
-          "
-        >
-          <h3
-            style="
-              margin-top: 0;
-              margin-bottom: 10px;
-              font-size: 13px;
-              color: #1e293b;
-              font-weight: 700;
-            "
-          >
+        <div class="chart-box chart-box-pie" style="
+              background: #ffffff;
+              padding: 15px;
+              border-radius: 12px;
+              border: 1px solid #e2e8f0;
+              text-align: center;
+              box-sizing: border-box;
+            ">
+          <h3 style="
+                margin-top: 0;
+                margin-bottom: 10px;
+                font-size: 13px;
+                color: #1e293b;
+                font-weight: 700;
+              ">
             Tỷ lệ Đưa lên Phần mềm (Trang)
           </h3>
-          <div
-            style="
-              position: relative;
-              width: 100%;
-              height: 160px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            "
-          >
+          <div style="
+                position: relative;
+                width: 100%;
+                height: 160px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              ">
             <canvas id="pmChart"></canvas>
           </div>
-          <div
-            class="custom-legend"
-            style="
-              display: flex;
-              justify-content: center;
-              gap: 10px;
-              margin-top: 8px;
-              font-size: 11px;
-              font-weight: 600;
-            "
-          >
+          <div class="custom-legend" style="
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+                margin-top: 8px;
+                font-size: 11px;
+                font-weight: 600;
+              ">
             <div>
-              <span
-                style="
-                  display: inline-block;
-                  width: 10px;
-                  height: 10px;
-                  background: #16a34a;
-                  border-radius: 2px;
-                  margin-right: 4px;
-                "
-              ></span
-              >Đã lên PM
+              <span style="
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    background: #16a34a;
+                    border-radius: 2px;
+                    margin-right: 4px;
+                  "></span>Đã lên PM
             </div>
             <div>
-              <span
-                style="
-                  display: inline-block;
-                  width: 10px;
-                  height: 10px;
-                  background: #cbd5e1;
-                  border-radius: 2px;
-                  margin-right: 4px;
-                "
-              ></span
-              >Chưa lên
+              <span style="
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    background: #cbd5e1;
+                    border-radius: 2px;
+                    margin-right: 4px;
+                  "></span>Chưa lên
             </div>
           </div>
         </div>
@@ -1133,30 +1407,25 @@
           }
         }
       </style>
-      <!-- CHÈN ĐOẠN NÀY VÀO TRONG TRANG INDEX.HTML -->
-      <section
-        class="workflow-section"
-        style="
-          background: #ffffff;
-          padding: 25px;
-          border-radius: 12px;
-          border: 1px solid #e2e8f0;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-          margin-top: 25px;
-        "
-      >
-        <h3
-          style="
-            margin-top: 0;
-            margin-bottom: 20px;
-            color: #1e293b;
-            font-size: 16px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-          "
-        >
+
+      <section class="workflow-section" style="
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-top: 25px;
+          ">
+        <h3 style="
+              margin-top: 0;
+              margin-bottom: 20px;
+              color: #1e293b;
+              font-size: 16px;
+              font-weight: 700;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+            ">
           <i class="fa-solid fa-diagram-next" style="color: #0056b3"></i> DIỄN
           BIẾN TIẾN TRÌNH QUY TRÌNH SỐ HÓA (9 BƯỚC)
         </h3>
@@ -1282,86 +1551,355 @@
           }
         }
       </style>
+
       <section class="trend-chart-container" style="margin-top: 30px">
-        <div
-          class="chart-box trend-box"
-          style="
-            margin-bottom: 0;
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
-          "
-        >
+        <div class="chart-box trend-box" style="
+              margin-bottom: 0;
+              border-bottom-left-radius: 0;
+              border-bottom-right-radius: 0;
+            ">
           <h3>Biểu đồ Toàn diện - Diễn biến Tiến độ qua các kỳ báo cáo</h3>
           <canvas id="trendChart"></canvas>
         </div>
 
-        <div
-          class="timeline-slider-box"
-          style="
-            border-top: none;
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
-          "
-        >
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 5px;
-            "
-          >
-            <span style="font-size: 13.5px; font-weight: 700; color: #475569"
-              ><i class="fa-solid fa-clock"></i> Xem lịch sử tiến độ qua các mốc
-              ngày:</span
-            >
-            <span
-              id="txt-slider-date-status"
-              style="
-                font-size: 14px;
-                font-weight: 800;
-                color: #0056b3;
-                background: #eff6ff;
-                padding: 4px 12px;
-                border-radius: 6px;
-                border: 1px solid #bfdbfe;
-              "
-              >Đang xem: Mới nhất</span
-            >
+        <div class="timeline-slider-box" style="
+              border-top: none;
+              border-top-left-radius: 0;
+              border-top-right-radius: 0;
+            ">
+          <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 5px;
+              ">
+            <span style="font-size: 13.5px; font-weight: 700; color: #475569"><i class="fa-solid fa-clock"></i> Xem lịch
+              sử tiến độ qua các mốc ngày:</span>
+            <span id="txt-slider-date-status" style="
+                  font-size: 14px;
+                  font-weight: 800;
+                  color: #0056b3;
+                  background: #eff6ff;
+                  padding: 4px 12px;
+                  border-radius: 6px;
+                  border: 1px solid #bfdbfe;
+                ">Đang xem: Mới nhất</span>
           </div>
-          <input
-            type="range"
-            id="timelineRange"
-            min="0"
-            max="0"
-            value="0"
-            class="range-input"
-            list="timeline-ticks"
-            disabled
-          />
+          <input type="range" id="timelineRange" min="0" max="0" value="0" class="range-input" list="timeline-ticks"
+            disabled />
           <datalist id="timeline-ticks">
             <!-- Các vạch mốc ngày sẽ được sinh tự động bằng Javascript -->
           </datalist>
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              font-size: 11px;
-              color: #64748b;
-              font-weight: 600;
-            "
-          >
+          <div style="
+                display: flex;
+                justify-content: space-between;
+                font-size: 11px;
+                color: #64748b;
+                font-weight: 600;
+              ">
             <span id="txt-slider-start">Bắt đầu đợt</span>
-            <span style="color: #16a34a"
-              ><i class="fa-solid fa-circle-info"></i> Kéo thanh trượt và dừng
-              lại để xem số liệu quá khứ</span
-            >
+            <span style="color: #16a34a"><i class="fa-solid fa-circle-info"></i> Kéo thanh trượt và dừng lại để xem số
+              liệu quá khứ</span>
             <span id="txt-slider-end">Hiện tại</span>
           </div>
         </div>
       </section>
-    </main>
+    </div> <!-- ĐÓNG SECTION CHÍNH XÁC KẾT THÚC TAB TỈNH ỦY -->
 
-    <script type="module" src="js/dashboard.js"></script>
-  </body>
+    <!-- ================= VÙNG CHỨA 2: KHỐI NỘI DUNG CÁC ĐƠN VỊ TRỰC THUỘC (THIẾT KẾ PHÂN KHU TÁCH BIỆT) ================= -->
+    <div id="section-dangbo-content" style="display: none; width: 100%;">
+
+      <!-- Sử dụng Grid CSS chia hai phần: Trái (Dashboard) | Phải (Bảng ma trận) -->
+      <div
+        style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 20px; align-items: start; width: 100%; margin-top: 5px;">
+
+        <!-- KHU VỰC PHÍA BÊN TRÁI: DASHBOARD CÁC ĐƠN VỊ (CẬP NHẬT 4 BIỂU ĐỒ TOP 5) -->
+        <div
+          style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); display: flex; flex-direction: column; gap: 20px;">
+          <h3
+            style="margin-top: 0; margin-bottom: 5px; color: #0056b3; font-size: 14px; font-weight: 700; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
+            <i class="fa-solid fa-chart-pie"></i> DASHBOARD KHỐI ĐƠN VỊ (TOP TỶ LỆ HOÀN THÀNH %)
+          </h3>
+
+          <!-- BIỂU ĐỒ 1: TOP 5 CAO NHẤT CHỈNH LÝ -->
+          <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #16a34a; font-weight: 700;"><i
+                class="fa-solid fa-arrow-trend-up"></i> TOP 5 CAO NHẤT - TỶ LỆ CHỈNH LÝ XONG</h4>
+            <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-cl-top"></canvas></div>
+          </div>
+
+          <!-- BIỂU ĐỒ 2: TOP 5 THẤP NHẤT CHỈNH LÝ -->
+          <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #dc2626; font-weight: 700;"><i
+                class="fa-solid fa-arrow-trend-down"></i> TOP 5 THẤP NHẤT - TỶ LỆ CHỈNH LÝ XONG</h4>
+            <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-cl-bottom"></canvas></div>
+          </div>
+
+          <!-- BIỂU ĐỒ 3: TOP 5 CAO NHẤT SỐ HÓA -->
+          <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #0284c7; font-weight: 700;"><i
+                class="fa-solid fa-arrow-trend-up"></i> TOP 5 CAO NHẤT - TỶ LỆ SỐ HÓA XONG</h4>
+            <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-sh-top"></canvas></div>
+          </div>
+
+          <!-- BIỂU ĐỒ 4: TOP 5 THẤP NHẤT SỐ HÓA -->
+          <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #e67e22; font-weight: 700;"><i
+                class="fa-solid fa-arrow-trend-down"></i> TOP 5 THẤP NHẤT - TỶ LỆ SỐ HÓA XONG</h4>
+            <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-sh-bottom"></canvas></div>
+          </div>
+        </div>
+        <!-- KHU VỰC PHÍA BÊN PHẢI: BẢNG DỮ LIỆU CHUẨN MA TRẬN GOOGLE SHEET -->
+        <div
+          style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); overflow: hidden;">
+
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">
+            <h3 style="margin: 0; color: #1e293b; font-size: 14px; font-weight: 700;">
+              <i class="fa-solid fa-table-list"></i> BẢNG THEO DÕI KHỐI LƯỢNG SỐ HÓA CÁC ĐƠN VỊ TRỰC THUỘC
+            </h3>
+            <!-- Thêm cụm nút điều hướng bên phải -->
+            <div style="display: flex; gap: 8px;">
+              <!-- NÚT MỚI: Kiểm tra các đơn vị chưa báo cáo -->
+              <button onclick="checkMissingUnits()"
+                style="background: #e67e22; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(230,126,34,0.15);">
+                <i class="fa-solid fa-bell-slash"></i> Các đơn vị chưa báo cáo
+              </button>
+
+              <button onclick="openSubUnitModal()"
+                style="background: #16a34a; color: #ffffff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 4px rgba(22,163,74,0.15);">
+                <i class="fa-solid fa-file-circle-plus"></i> Cập nhật số liệu
+              </button>
+            </div>
+          </div>
+
+          <div style="overflow-x: auto; width: 100%;">
+            <table
+              style="width: 100%; border-collapse: collapse; font-size: 12.5px; text-align: left; min-width: 980px;">
+              <thead>
+                <!-- TẦNG TIÊU ĐỀ 1 -->
+                <tr
+                  style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: center; font-size: 11.5px;">
+                  <th
+                    style="padding: 10px; font-weight: 700; color: #334155; text-align: center; border: 1px solid #cbd5e1; width: 45px;"
+                    rowspan="2">STT</th>
+                  <th
+                    style="padding: 10px; font-weight: 700; color: #334155; text-align: left; border: 1px solid #cbd5e1; min-width: 180px;"
+                    rowspan="2">Cơ quan, đơn vị, địa phương</th>
+                  <th style="padding: 6px 5px; font-weight: 700; color: #0056b3; border: 1px solid #cbd5e1;"
+                    colspan="4">Chỉnh lý</th>
+                  <th style="padding: 6px 5px; font-weight: 700; color: #16a34a; border: 1px solid #cbd5e1;"
+                    colspan="5">Số hóa</th>
+                  <th style="padding: 10px; font-weight: 700; color: #475569; border: 1px solid #cbd5e1; width: 140px;"
+                    rowspan="2">Giao nộp LT lịch sử</th>
+                </tr>
+                <!-- TẦNG TIÊU ĐỀ 2 -->
+                <tr
+                  style="background: #f8fafc; border-bottom: 2px solid #cbd5e1; text-align: center; font-size: 11px; color: #475569;">
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1; font-weight: 700;">Tổng (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">1=2+3+4</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1;">Đã chỉnh lý (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">2</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1;">Đang thực hiện (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">3</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1;">Chưa chỉnh lý (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">4</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1; font-weight: 700;">Tổng (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">5=6+8+9</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1;">Đã số hóa (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">6</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1; color: #9b59b6; font-weight: 700;">Trang
+                    A4<br><span style="font-size:9.5px; font-weight:normal; font-style:italic;">7</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1;">Đang thực hiện (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">8</span></th>
+                  <th style="padding: 6px 4px; border: 1px solid #cbd5e1;">Chưa số hóa (mét)<br><span
+                      style="font-size:9.5px; font-weight:normal; font-style:italic;">9</span></th>
+                </tr>
+              </thead>
+              <tbody id="dangbo-matrix-body">
+                <!-- Dữ liệu trống hoàn toàn, tự động nạp từ Firebase -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= CỬA SỔ TRỰC TIẾP NHẬP DỮ LIỆU ĐƠN VỊ (MODAL POP-UP) ================= -->
+    <div id="subUnitModal"
+      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+      <div
+        style="background: #ffffff; width: 100%; max-width: 600px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;">
+
+        <div
+          style="background: #0056b3; color: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 15px; font-weight: 700;"><i class="fa-solid fa-file-pen"></i> CẬP NHẬT SỐ
+            LIỆU ĐƠN VỊ TRỰC THUỘC</h3>
+          <button onclick="closeSubUnitModal()"
+            style="background: transparent; border: none; color: white; font-size: 18px; cursor: pointer;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <form onsubmit="saveSubUnitData(event)"
+          style="padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; box-sizing: border-box;">
+
+          <div class="modern-field-group">
+            <label style="font-weight: 700; font-size: 13px; color: #334155;">Cơ quan, đơn vị, địa phương:</label>
+            <select id="pop-unit-select" required class="modern-input-ctrl" style="font-weight: 600;">
+              <option value="">-- Chọn đơn vị cần cập nhật --</option>
+              <option value="noichinh">Ban Nội chính Tỉnh ủy</option>
+              <option value="tochuc">Ban Tổ chức Tỉnh ủy</option>
+              <option value="tuyengiao">Ban Tuyên giáo và Dân vận Tỉnh ủy</option>
+              <option value="ubkt">UBKT Tỉnh ủy</option>
+              <option value="mttq">MTTQ tỉnh</option>
+              <option value="ldld">LĐLĐ tỉnh</option>
+              <option value="hoinongdan">Hội Nông dân tỉnh</option>
+            </select>
+          </div>
+
+          <!-- Phân khối chỉ số Chỉnh lý -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px;">
+            <span
+              style="font-weight: 700; font-size: 12px; color: #0056b3; text-transform: uppercase; display: block; margin-bottom: 10px;">
+              <i class="fa-solid fa-folder-minus"></i> Chỉ số khối Chỉnh lý (Mét)
+            </span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 600; color: #475569;">Tổng (mét) - [1]:</label>
+                <input type="number" step="0.01" id="pop-cl-tong" oninput="calcChinhLy()" class="modern-input-ctrl"
+                  required>
+              </div>
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 600; color: #475569;">Đã chỉnh lý - [2]:</label>
+                <input type="number" step="0.01" id="pop-cl-xong" oninput="calcChinhLy()" class="modern-input-ctrl">
+              </div>
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 600; color: #475569;">Đang thực hiện - [3]:</label>
+                <input type="number" step="0.01" id="pop-cl-dang" oninput="calcChinhLy()" class="modern-input-ctrl">
+              </div>
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 700; color: #64748b;">Chưa chỉnh lý - [4] (Tự trừ):</label>
+                <input type="text" id="pop-cl-chua" value="0" readonly class="modern-input-ctrl"
+                  style="background: #e2e8f0; color: #334155; font-weight: 700; cursor: not-allowed;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Phân khối chỉ số Số hóa -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px;">
+            <span
+              style="font-weight: 700; font-size: 12px; color: #16a34a; text-transform: uppercase; display: block; margin-bottom: 10px;">
+              <i class="fa-solid fa-laptop-code"></i> Chỉ số khối Số hóa
+            </span>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 600; color: #475569;">Tổng (mét) - [5]:</label>
+                <input type="number" step="0.01" id="pop-sh-tong" oninput="calcSoHoa()" class="modern-input-ctrl"
+                  required>
+              </div>
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 600; color: #475569;">Đã số hóa (mét) - [6]:</label>
+                <input type="number" step="0.01" id="pop-sh-met" oninput="calcSoHoa()" class="modern-input-ctrl">
+              </div>
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 600; color: #475569;">Đang thực hiện (mét) - [8]:</label>
+                <input type="number" step="0.01" id="pop-sh-dang" oninput="calcSoHoa()" class="modern-input-ctrl">
+              </div>
+              <div class="modern-field-group">
+                <label style="font-size: 12px; font-weight: 700; color: #64748b;">Chưa số hóa - [9] (Tự trừ):</label>
+                <input type="text" id="pop-sh-chua" value="0" readonly class="modern-input-ctrl"
+                  style="background: #e2e8f0; color: #334155; font-weight: 700; cursor: not-allowed;">
+              </div>
+
+              <!-- TRƯỜNG SỐ TRANG A4 ĐÃ ĐƯỢC CHUYỂN XUỐNG CUỐI CÙNG VÀ TRẢI DÀI HẾT CHIỀU NGANG -->
+              <div class="modern-field-group"
+                style="grid-column: span 2; border-top: 1px dashed #cbd5e1; padding-top: 10px; margin-top: 4px;">
+                <label style="font-size: 12.5px; font-weight: 700; color: #9b59b6;">
+                  <i class="fa-solid fa-file-lines"></i> Số trang A4 quét được - [7]:
+                </label>
+                <input type="number" id="pop-sh-trang" placeholder="Nhập tổng số trang A4..." class="modern-input-ctrl"
+                  style="border-color: #d8b4fe; background: #faf5ff; font-weight: 600;">
+              </div>
+            </div>
+          </div>
+
+          <!-- PHÂN KHỐI TRƯỜNG THÔNG TIN MỚI: GIAO NỘP LƯU TRỮ LỊCH SỬ -->
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 14px; border-radius: 8px;">
+            <div class="modern-field-group">
+              <label style="font-weight: 700; font-size: 13px; color: #475569;"><i class="fa-solid fa-box-archive"></i>
+                Tình trạng Giao nộp LT lịch sử:</label>
+              <select id="pop-giao-nop" class="modern-input-ctrl" style="font-weight: 600;">
+                <option value="Chưa giao nộp">Chưa giao nộp</option>
+                <option value="Đã giao nộp">Đã giao nộp</option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #edf2f7; padding-top: 15px; margin-top: 5px;">
+            <button type="button" onclick="closeSubUnitModal()"
+              style="height: 36px; padding: 0 16px; border: 1px solid #cbd5e1; background: white; color: #475569; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 13px;">Hủy
+              bỏ</button>
+            <button type="submit"
+              style="height: 36px; padding: 0 20px; background: #16a34a; color: white; border: none; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu số liệu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- ================= CỬA SỔ HIỂN THỊ ĐƠN VỊ CHƯA BÁO CÁO (CUSTOM MODAL) ================= -->
+    <div id="missingUnitsModal"
+      style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.6); z-index: 10000; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box;">
+      <div
+        style="background: #ffffff; width: 100%; max-width: 500px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; max-height: 80vh; overflow: hidden; animation: modalFadeIn 0.25s ease;">
+
+        <!-- Header Modal -->
+        <div
+          style="background: #e67e22; color: #ffffff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="margin: 0; font-size: 14.5px; font-weight: 700;">
+            <i class="fa-solid fa-bell-slash"></i> CÁC ĐƠN VỊ CHƯA BÁO CÁO SỐ LIỆU
+          </h3>
+          <button onclick="document.getElementById('missingUnitsModal').style.display = 'none'"
+            style="background: transparent; border: none; color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center;">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Body hiển thị danh sách dạng cuộn dọc -->
+        <div id="missing-modal-body"
+          style="padding: 20px; overflow-y: auto; box-sizing: border-box; background: #f8fafc;">
+          <!-- Danh sách đơn vị sẽ tự động đổ vào đây -->
+        </div>
+
+        <!-- Footer Modal -->
+        <div
+          style="display: flex; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #edf2f7; background: #ffffff;">
+          <button onclick="document.getElementById('missingUnitsModal').style.display = 'none'"
+            style="height: 32px; padding: 0 16px; background: #64748b; color: white; border: none; font-weight: 600; border-radius: 6px; cursor: pointer; font-size: 12.5px;">
+            Đóng lại
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      @keyframes modalFadeIn {
+        from {
+          transform: translateY(-15px);
+          opacity: 0;
+        }
+
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+    </style>
+  </main>
+
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+
 </html>

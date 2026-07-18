@@ -1,16 +1,17 @@
 import { db, auth } from "./firebase-config.js";
+// THAY THẾ CỤM IMPORT FIRESTORE Ở ĐẦU FILE BẰNG KHỐI GỘP CHUẨN NÀY:
 import {
   collection,
   addDoc,
   doc,
-  setDoc,
+  setDoc,      // Đã gộp lên đây
   getDoc,
-  query,
-  orderBy,
+  query,       // Đã gộp lên đây
+  orderBy,     // Đã gộp lên đây
   onSnapshot,
   updateDoc,
   deleteDoc,
-  getDocs,
+  getDocs,     // Đã gộp lên đây
   where,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
@@ -610,33 +611,41 @@ window.deleteProgress = async (docId) => {
   });
 };
 
+// THAY THẾ TOÀN BỘ ĐOẠN KHỞI CHẠY CUỐI FILE js/admin.js BẰNG KHỐI LỆNH NÀY:
+
 function initAdminPage() {
   // CƠ CHẾ DỰ PHÒNG: Tự lưu token vào RAM nếu trình duyệt bật Tracking Prevention chặn Storage
   import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js").then(
     (authModule) => {
       auth.setPersistence(
-        authModule.browserSessionPersistence || authModule.inMemoryPersistence,
+        authModule.browserSessionPersistence || authModule.inMemoryPersistence
       );
-    },
+    }
   );
 
   onAuthStateChanged(auth, async (user) => {
     if (user) {
       const nameContainer = document.getElementById("admin-name");
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().role === "admin") {
-        if (userDoc.data().fullName && nameContainer) {
-          nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> Xin chào, ${userDoc.data().fullName}`;
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().role === "admin") {
+          if (userDoc.data().fullName && nameContainer) {
+            nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> Xin chào, ${userDoc.data().fullName}`;
+          }
+          // Gọi kích hoạt nạp toàn bộ cấu trúc dữ liệu đợt số hóa và lịch sử tiến độ
+          setupAdminData();
+          setTimeout(loadOrganizationUnits, 500);
+        } else {
+          Swal.fire({
+            title: "Từ chối quyền",
+            text: "Tài khoản không có quyền quản trị.",
+            icon: "error",
+          }).then(() => {
+            window.location.href = "index.html";
+          });
         }
-        setupAdminData();
-      } else {
-        Swal.fire({
-          title: "Từ chối quyền",
-          text: "Tài khoản không có quyền quản trị.",
-          icon: "error",
-        }).then(() => {
-          window.location.href = "index.html";
-        });
+      } catch (err) {
+        console.error("Lỗi xác thực quyền: ", err);
       }
     } else {
       window.location.href = "login.html";
@@ -644,4 +653,126 @@ function initAdminPage() {
   });
 }
 
+// KHỞI CHẠY NGAY LẬP TỨC KHÔNG PHỤ THUỘC LUỒNG ĐỂ TRÁNH BỊ CHẶN TRẠNG THÁI
+initAdminPage();
+
 document.addEventListener("DOMContentLoaded", initAdminPage);
+
+// 1. HÀM ĐỌC FILE EXCEL VÀ ĐẨY LÊN FIREBASE KHỚP THEO 2 CỘT (STT, TÊN ĐƠN VỊ)
+window.handleExcelUpload = function (event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const fileNameDisplay = document.getElementById("file-name-display");
+  if (fileNameDisplay) fileNameDisplay.innerText = file.name;
+
+  const reader = new FileReader();
+  reader.onload = async function (e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+
+      // Chuyển sheet sang dạng mảng mảng (Array of Arrays) để dễ kiểm soát hàng
+      const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+      // Lọc bỏ hàng tiêu đề đầu tiên, chỉ lấy từ hàng thứ 2
+      const unitRows = rawRows.slice(1).filter(row => row && row[1]);
+
+      if (unitRows.length === 0) {
+        Swal.fire("Thông báo", "File Excel trống hoặc không đúng định dạng (Cột 2 phải là Tên đơn vị)!", "warning");
+        return;
+      }
+
+      Swal.fire({
+        title: 'Đang xử lý dữ liệu...',
+        text: `Đang nạp ${unitRows.length} đơn vị lên hệ thống`,
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+      });
+
+      // Thực hiện vòng lặp nạp hàng loạt đơn vị vào collection 'organization_units'
+      for (const row of unitRows) {
+        const stt = parseInt(row[0]) || 0;
+        const unitName = String(row[1]).trim();
+
+        // Tạo slug/id sạch từ tên để làm ID tài liệu
+        const unitId = "unit_" + stt;
+
+        await setDoc(doc(db, "organization_units", unitId), {
+          stt: stt,
+          unitName: unitName,
+          createdAt: new Date()
+        });
+      }
+
+      Swal.fire("Thành công", `Đã cập nhật thành công ${unitRows.length} đơn vị trực thuộc lên Firebase!`, "success");
+      loadOrganizationUnits(); // Tải lại bảng danh sách đơn vị công khai
+
+    } catch (error) {
+      console.error("Lỗi đọc Excel: ", error);
+      Swal.fire("Lỗi", "Không thể đọc dữ liệu file Excel, vui lòng kiểm tra lại cấu trúc file!", "error");
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+// 2. HÀM TẢI VÀ HIỂN THỊ DANH SÁCH ĐƠN VỊ HIỆN CÓ TRÊN FIREBASE
+async function loadOrganizationUnits() {
+  const tbody = document.getElementById("units-table-body");
+  if (!tbody) return;
+
+  try {
+    const q = query(collection(db, "organization_units"), orderBy("stt", "asc"));
+    const querySnapshot = await getDocs(q);
+
+    tbody.innerHTML = "";
+    if (querySnapshot.empty) {
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Chưa có đơn vị nào được nạp. Vui lòng chọn file Excel để upload.</td></tr>`;
+      return;
+    }
+
+    querySnapshot.forEach((docSnap) => {
+      const u = docSnap.data();
+      const id = docSnap.id;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td style="text-align: center; font-weight: 600;">${u.stt}</td>
+        <td style="font-weight: 600; color: #1e293b;">${u.unitName}</td>
+        <td style="text-align: center;">
+          <button class="modern-btn-secondary" onclick="deleteUnit('${id}')" style="color: #e53e3e; border-color: #fed7d7; background: #fff5f5; padding: 4px 10px; height: auto; font-size: 12px;">
+            <i class="fa-solid fa-trash-can"></i> Xóa
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (error) {
+    console.error("Lỗi tải đơn vị: ", error);
+  }
+}
+
+// 3. HÀM XÓA ĐƠN VỊ LẺ KHI CẦN THIẾT
+window.deleteUnit = async function (id) {
+  const result = await Swal.fire({
+    title: 'Xác nhận xóa?',
+    text: "Hành động này không thể hoàn tác!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Đồng ý xóa'
+  });
+
+  if (result.isConfirmed) {
+    await deleteDoc(doc(db, "organization_units", id));
+    Swal.fire('Đã xóa!', 'Đơn vị đã được gỡ bỏ khỏi hệ thống.', 'success');
+    loadOrganizationUnits();
+  }
+};
+
+// Tự động tải danh sách đơn vị khi mở trang admin
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(loadOrganizationUnits, 1500);
+});
