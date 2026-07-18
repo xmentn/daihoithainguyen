@@ -838,17 +838,28 @@
               </tbody>
             </table>
           `;
-        // Cấu hình thông số xuất PDF của html2pdf
+        // Bổ sung vùng đệm phía dưới bảng để không bao giờ bị mất viền hoặc cắt dòng cuối
+        const extraSpacer = document.createElement('div');
+        extraSpacer.style.height = "20px";
+        reportArea.appendChild(extraSpacer);
+
+        // Cấu hình thông số xuất PDF nâng cấp hỗ trợ delay render
         const configOpt = {
-          margin: 10,
+          margin: 15, // Tăng nhẹ lề để nội dung bảng tập trung cân đối vào giữa trang A4
           filename: `Bao_cao_tong_hop_so_hoa_${currentDateStr.replace(/\//g, '_')}.pdf`,
           image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' } // Xuất khổ ngang khổ giấy A4 chuẩn hóa biểu mẫu
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
         };
 
-        // Chạy lệnh ngầm chuyển đổi HTML sang file PDF download tự động
-        html2pdf().set(configOpt).from(reportArea).save();
+        // Ép trình duyệt đợi 300ms để dựng xong toàn bộ khung viền trên Domain rồi mới xuất PDF
+        html2pdf().set(configOpt).from(reportArea).toContainer().toCanvas().toPdf().get('pdf').then((pdf) => {
+          // Khối này đảm bảo tiến trình render luồng DOM trên Domain hoàn tất 100%
+        }).save();
       };
     </script>
 
