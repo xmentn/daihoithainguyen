@@ -271,7 +271,8 @@
         getDocs
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-      let globalFirebaseCache = {};// Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
+      let globalFirebaseCache = {}; // Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
+      let currentOrgUnitsCache = {}; // Lưu trữ bộ đệm động để đối chiếu Mã đơn vị -> Tên đơn vị khi lưu dữ liệu
 
       // Chờ toàn bộ trang và tệp mã nguồn js/dashboard.js nạp xong để có cấu hình Firebase App
       window.addEventListener('load', () => {
@@ -283,19 +284,56 @@
         }
       });
 
-      const unitNameMapping = {
-        'noichinh': 'Ban Nội chính Tỉnh ủy',
-        'tochuc': 'Ban Tổ chức Tỉnh ủy',
-        'tuyengiao': 'Ban Tuyên giáo và Dân vận Tỉnh ủy',
-        'ubkt': 'UBKT Tỉnh ủy',
-        'mttq': 'MTTQ tỉnh',
-        'ldld': 'LĐLĐ tỉnh',
-        'hoinongdan': 'Hội Nông dân tỉnh'
-      };
-
       const currentCampaign = "dot_1_2026";
 
-      function initFirebaseSync(db) {
+      // BỔ SUNG TỪ KHÓA ASYNC Ở ĐÂY ĐỂ ĐÁNH TAN LỖI UNCAUGHT SYNTAXERROR
+      async function initFirebaseSync(db) {
+
+        // =========================================================================
+        // LOGIC TỰ ĐỘNG NẠP DANH SÁCH ĐƠN VỊ TỪ FIREBASE VÀO DROPDOWN MODAL
+        // =========================================================================
+        const dynamicUnitSelect = document.getElementById('pop-unit-select');
+
+        try {
+          // Lấy dữ liệu động từ collection organization_units
+          const orgSnapshot = await getDocs(collection(db, "organization_units"));
+          let rawUnits = [];
+
+          // Xóa bỏ trạng thái nhập cứng cũ, chỉ chừa lại dòng tiêu đề mặc định
+          if (dynamicUnitSelect) {
+            dynamicUnitSelect.innerHTML = '<option value="">-- Chọn đơn vị cần cập nhật --</option>';
+          }
+
+          orgSnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data.unitName) {
+              rawUnits.push({
+                key: docSnap.id,
+                name: data.unitName,
+                stt: data.stt || 999
+              });
+              // Đồng bộ thông tin vào bộ đệm cache toàn cục phục vụ hàm saveSubUnitData
+              currentOrgUnitsCache[docSnap.id] = data.unitName;
+            }
+          });
+
+          // Sắp xếp danh sách đơn vị theo thứ tự STT chuẩn cấu hình
+          rawUnits.sort((a, b) => a.stt - b.stt);
+
+          // Render động các tùy chọn vào thẻ Select Dropdown
+          if (dynamicUnitSelect) {
+            rawUnits.forEach(unit => {
+              const opt = document.createElement('option');
+              opt.value = unit.key;
+              opt.textContent = unit.name;
+              dynamicUnitSelect.appendChild(opt);
+            });
+          }
+        } catch (error) {
+          console.error("Lỗi nạp danh sách cơ quan vào dropdown modal:", error);
+        }
+        // =========================================================================
+
         // Lắng nghe dữ liệu thực tế từ Firebase
         onSnapshot(collection(db, "SubUnitsData"), (snapshot) => {
           const tableBody = document.getElementById('dangbo-matrix-body');
@@ -315,6 +353,13 @@
               const statusColor = item.giaoNop === 'Đã giao nộp' ? '#16a34a' : '#ef4444';
               const statusBg = item.giaoNop === 'Đã giao nộp' ? '#e6f4ea' : '#fdf2f2';
 
+              // Hàm bổ trợ gọt số thập phân về đúng 1 chữ số khi hiển thị ra bảng ma trận
+              const formatViewNum = (str) => {
+                if (!str || str === '0') return '0';
+                let num = parseFloat(String(str).replace(',', '.'));
+                return isNaN(num) ? '0' : num.toFixed(1).replace('.', ',');
+              };
+
               const newRow = document.createElement('tr');
               newRow.style.borderBottom = "1px solid #e2e8f0";
               if (sttCounter % 2 === 0) newRow.style.background = "#f8fafc";
@@ -322,15 +367,15 @@
               newRow.innerHTML = `
                   <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; color:#64748b;">${sttCounter}</td>
                   <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: 600; color:#1e293b;">${item.name || 'Đơn vị chưa rõ'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${item.clTong || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.clXong || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.clDang || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${item.clChua || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${item.shTong || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.shMet || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${formatViewNum(item.clTong)}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.clXong)}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.clDang)}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${formatViewNum(item.clChua)}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${formatViewNum(item.shTong)}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.shMet)}</td>
                   <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #9b59b6; font-weight: 700;">${item.shTrang || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${item.shDang || '0'}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${item.shChua || '0'}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.shDang)}</td>
+                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${formatViewNum(item.shChua)}</td>
                   <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; width: 140px;">
                     <span style="display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; color: ${statusColor}; background: ${statusBg}; border: 1px solid ${statusColor}30;">
                       ${item.giaoNop || 'Chưa giao nộp'}
@@ -341,17 +386,15 @@
               sttCounter++;
             }
           });
+
           // ================= LOGIC XỬ LÝ DỮ LIỆU ĐỒ THỊ ĐỘNG CÁC ĐƠN VỊ =================
           let chartDataList = [];
-
-          // Hàm bóc tách chuỗi số định dạng tiếng Việt "64,5" -> số float
           const parseNum = (str) => {
             if (!str) return 0;
             const n = parseFloat(String(str).replace(/[^0-9.-]/g, '').replace(',', '.'));
             return isNaN(n) ? 0 : n;
           };
 
-          // Duyệt qua toàn bộ cache để tính tỷ lệ % của từng cơ quan
           Object.values(globalFirebaseCache).forEach(item => {
             const clTongNum = parseNum(item.clTong);
             const clXongNum = parseNum(item.clXong);
@@ -365,14 +408,10 @@
             });
           });
 
-          // Hàm tạo hoặc cập nhật biểu đồ thanh ngang (Bổ sung hiển thị % cạnh tên đơn vị)
           const renderTopChart = (canvasId, labels, data, barColor) => {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
-
-            if (window[canvasId + 'Instance']) {
-              window[canvasId + 'Instance'].destroy();
-            }
+            if (window[canvasId + 'Instance']) { window[canvasId + 'Instance'].destroy(); }
 
             window[canvasId + 'Instance'] = new Chart(ctx, {
               type: 'bar',
@@ -389,11 +428,7 @@
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: {
-                  padding: {
-                    right: 40 // Chừa không gian rộng bên phải để con số % hiển thị không bị che khuất
-                  }
-                },
+                layout: { padding: { right: 40 } },
                 plugins: {
                   legend: { display: false },
                   datalabels: {
@@ -414,7 +449,6 @@
                       callback: function (value, index) {
                         const label = this.getLabelForValue(value);
                         const percentValue = data[index] !== undefined ? data[index] : 0;
-                        // Rút gọn tên đơn vị nếu quá dài và đính kèm con số % ở sau
                         const shortLabel = label.length > 18 ? label.substr(0, 18) + '...' : label;
                         return `${shortLabel} (${percentValue}%)`;
                       }
@@ -426,21 +460,18 @@
             });
           };
 
-          // 1. Tính toán Top 5 Chỉnh lý Cao nhất / Thấp nhất
           const sortedCl = [...chartDataList].sort((a, b) => b.clPercent - a.clPercent);
           const clTop5 = sortedCl.slice(0, 5);
           const clBottom5 = [...chartDataList].sort((a, b) => a.clPercent - b.clPercent).slice(0, 5);
-
-          // 2. Tính toán Top 5 Số hóa Cao nhất / Thấp nhất
           const sortedSh = [...chartDataList].sort((a, b) => b.shPercent - a.shPercent);
           const shTop5 = sortedSh.slice(0, 5);
           const shBottom5 = [...chartDataList].sort((a, b) => a.shPercent - b.shPercent).slice(0, 5);
 
-          // 3. Vẽ 4 biểu đồ lên giao diện
           renderTopChart('chart-cl-top', clTop5.map(d => d.name), clTop5.map(d => d.clPercent), '#16a34a');
           renderTopChart('chart-cl-bottom', clBottom5.map(d => d.name), clBottom5.map(d => d.clPercent), '#dc2626');
           renderTopChart('chart-sh-top', shTop5.map(d => d.name), shTop5.map(d => d.shPercent), '#0284c7');
           renderTopChart('chart-sh-bottom', shBottom5.map(d => d.name), shBottom5.map(d => d.shPercent), '#e67e22');
+
           if (sttCounter === 1) {
             tableBody.innerHTML = `
               <tr>
@@ -452,16 +483,13 @@
           }
         });
 
-        // LOGIC CHẠY TỰ ĐỘNG ĐIỀN LẠI DỮ LIỆU CŨ KHI CHỌN ĐƠN VỊ TRÊN DROPDOWN MODAL
+        // LOGIC CHẠT TỰ ĐỘNG ĐIỀN LẠI DỮ LIỆU CŨ KHI CHỌN ĐƠN VỊ TRÊN DROPDOWN MODAL
         const unitSelect = document.getElementById('pop-unit-select');
         if (unitSelect) {
           unitSelect.addEventListener('change', (e) => {
             const selectedKey = e.target.value;
-
             if (selectedKey && globalFirebaseCache[selectedKey]) {
               const oldData = globalFirebaseCache[selectedKey];
-
-              // Hàm chuyển chuỗi định dạng hiển thị tiếng Việt "64,50" -> Số float "64.5" để điền lại vào ô input
               const parseViNum = (str) => str ? parseFloat(str.replace(/[^0-9,-]/g, '').replace(',', '.')) : '';
               const parseViInt = (str) => str ? parseInt(str.replace(/[^0-9]/g, '')) : '';
 
@@ -469,16 +497,13 @@
               document.getElementById('pop-cl-xong').value = parseViNum(oldData.clXong);
               document.getElementById('pop-cl-dang').value = parseViNum(oldData.clDang);
               document.getElementById('pop-cl-chua').value = oldData.clChua || '0';
-
               document.getElementById('pop-sh-tong').value = parseViNum(oldData.shTong);
               document.getElementById('pop-sh-met').value = parseViNum(oldData.shMet);
               document.getElementById('pop-sh-dang').value = parseViNum(oldData.shDang);
               document.getElementById('pop-sh-chua').value = oldData.shChua || '0';
               document.getElementById('pop-sh-trang').value = parseViInt(oldData.shTrang);
-
               document.getElementById('pop-giao-nop').value = oldData.giaoNop || 'Chưa giao nộp';
             } else {
-              // Nếu chuyển sang đơn vị chưa có dữ liệu, xóa trắng để nhập mới
               const form = document.querySelector('#subUnitModal form');
               if (form) {
                 const currentSel = unitSelect.value;
@@ -491,58 +516,62 @@
             }
           });
         }
+
         // =========================================================================
-        // LOGIC CHẠY NGẦM REAL-TIME: TỰ ĐỘNG KHÓA/MỞ NÚT "CẬP NHẬT SỐ LIỆU" CỦA CÁC ĐƠN VỊ
+        // LOGIC CHẠY NGẦM REAL-TIME: KHÓA/MỚI NÚT + HIỂN THỊ THỜI HẠN NHẬP LIỆU
         // =========================================================================
         onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
           if (!docSnap.exists()) return;
-
           const config = docSnap.data();
           const startTime = config.startTime ? new Date(config.startTime) : null;
           const endTime = config.endTime ? new Date(config.endTime) : null;
-
-          // Bắt chính xác nút "Cập nhật số liệu" theo thuộc tính hành động của đồng chí
           const btnUpdate = document.querySelector("button[onclick*='openSubUnitModal']");
+          const timeDisplay = document.getElementById('lock-time-display');
+
+          // Hàm bổ trợ chuyển đổi định dạng hiển thị thời gian trực quan (DD/MM HH:MM)
+          const formatDateTime = (date) => {
+            if (!date) return '';
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${pad(date.getHours())}:${pad(date.getMinutes())} ngày ${pad(date.getDate())}/${pad(date.getMonth() + 1)}`;
+          };
+
+          // Tự động hiển thị thời hạn lên dòng tiêu đề bảng nếu có cấu hình trên Firebase
+          if (timeDisplay && startTime && endTime) {
+            timeDisplay.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> (Thời hạn nhập liệu: Từ ${formatDateTime(startTime)} đến ${formatDateTime(endTime)})`;
+          }
 
           const checkLockStatus = () => {
             if (!startTime || !endTime || !btnUpdate) return;
             const now = new Date();
-
             if (now < startTime || now > endTime) {
-              // TÌNH TRẠNG: NGOÀI KHUNG GIỜ -> TIẾN HÀNH KHÓA CỨNG
               btnUpdate.disabled = true;
               btnUpdate.style.setProperty("background", "#94a3b8", "important");
               btnUpdate.style.cursor = "not-allowed";
               btnUpdate.style.opacity = "0.75";
               btnUpdate.style.boxShadow = "none";
-
-              // Đổi icon thành hình ổ khóa bảo mật và sửa chữ
               btnUpdate.innerHTML = `<i class="fa-solid fa-lock"></i> Hết giờ cập nhật`;
             } else {
-              // TÌNH TRẠNG: TRONG KHUNG GIỜ -> MỞ CỔNG HOẠT ĐỘNG BÌNH THƯỜNG
               btnUpdate.disabled = false;
               btnUpdate.style.setProperty("background", "#16a34a", "important");
               btnUpdate.style.cursor = "pointer";
               btnUpdate.style.opacity = "1";
               btnUpdate.style.boxShadow = "0 2px 4px rgba(22,163,74,0.15)";
-
-              // Trả lại icon và chữ gốc ban đầu của đồng chí
               btnUpdate.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Cập nhật số liệu`;
             }
           };
 
-          // Chạy kiểm tra ngay lập tức và thiết lập vòng quét lặp lại mỗi giây
           checkLockStatus();
           if (window.lockInterval) clearInterval(window.lockInterval);
           window.lockInterval = setInterval(checkLockStatus, 1000);
         });
-        // =========================================================================
+
         // Hàm ghi đè dữ liệu lên Firebase
         window.saveSubUnitData = async function (event) {
           event.preventDefault();
-
           const unitKey = document.getElementById('pop-unit-select').value;
-          const unitName = unitNameMapping[unitKey] || 'Đơn vị mới';
+
+          // Kế thừa trực tiếp Tên cơ quan từ cache động đã kéo từ Firestore về ban nãy
+          const unitName = currentOrgUnitsCache[unitKey] || 'Đơn vị mới';
 
           const formatNum = (val) => (val && parseFloat(val) !== 0) ? parseFloat(val).toFixed(1).replace('.', ',') : '0';
           const formatInt = (val) => (val && parseInt(val) !== 0) ? parseInt(val).toLocaleString('vi-VN') : '0';
@@ -551,7 +580,6 @@
           const clXong = formatNum(document.getElementById('pop-cl-xong').value);
           const clDang = formatNum(document.getElementById('pop-cl-dang').value);
           const clChua = formatNum(document.getElementById('pop-cl-chua').value);
-
           const shTong = formatNum(document.getElementById('pop-sh-tong').value);
           const shMet = formatNum(document.getElementById('pop-sh-met').value);
           const shTrang = formatInt(document.getElementById('pop-sh-trang').value);
@@ -584,23 +612,18 @@
               `;
             document.body.appendChild(toast);
             setTimeout(() => { toast.remove(); }, 3000);
-
             closeSubUnitModal();
-
           } catch (error) {
             console.error("Lỗi đồng bộ Firebase:", error);
             alert("Có lỗi xảy ra trong quá trình đồng bộ đường truyền Firebase!");
           }
-        }
-        // Thay thế hàm import ở dòng đầu để chắc chắn có getDocs
-        // import { getFirestore, doc, setDoc, onSnapshot, collection, getDocs } from "...";
+        };
 
         window.checkMissingUnits = async function () {
           const modal = document.getElementById('missingUnitsModal');
           const modalBody = document.getElementById('missing-modal-body');
           if (!modal || !modalBody) return;
 
-          // Hiển thị trạng thái chờ trong khi kéo dữ liệu
           modalBody.innerHTML = `
             <div style="text-align: center; padding: 20px; color: #64748b; font-weight: 600;">
               <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #e67e22;"></i> Đang truy vấn danh sách cơ quan từ hệ thống...
@@ -609,31 +632,19 @@
           modal.style.display = 'flex';
 
           try {
-            const db = getFirestore();
-            // 1. Lấy dữ liệu động từ collection gốc organization_units
             const orgSnapshot = await getDocs(collection(db, "organization_units"));
-
             let allUnits = [];
             orgSnapshot.forEach((docSnap) => {
               const data = docSnap.data();
               if (data.unitName) {
-                allUnits.push({
-                  key: docSnap.id, // Ví dụ: 'unit_1', 'unit_10'
-                  name: data.unitName,
-                  stt: data.stt || 999
-                });
+                allUnits.push({ key: docSnap.id, name: data.unitName, stt: data.stt || 999 });
               }
             });
 
-            // Sắp xếp danh sách đơn vị theo thứ tự STT chuẩn
             allUnits.sort((a, b) => a.stt - b.stt);
-
-            // 2. Lọc danh sách: Đối chiếu xem key của organization_units có nằm trong bộ đệm dữ liệu hiện tại không
-            // ĐOẠN MỚI CHUẨN HÓA: Đối chiếu chính xác theo tên gọi cơ quan
             const reportedNames = Object.values(globalFirebaseCache).map(item => item.name ? item.name.trim() : "");
             const missingUnits = allUnits.filter(unit => !reportedNames.includes(unit.name ? unit.name.trim() : ""));
 
-            // 3. Render giao diện động đổ vào Modal
             if (missingUnits.length === 0) {
               modalBody.innerHTML = `
                 <div style="text-align: center; padding: 15px; background: #e6f4ea; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 700; font-size: 13px;">
@@ -647,7 +658,6 @@
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px;">
               `;
-
               missingUnits.forEach((unit, idx) => {
                 listHtml += `
                   <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
@@ -656,11 +666,9 @@
                   </div>
                 `;
               });
-
               listHtml += `</div>`;
               modalBody.innerHTML = listHtml;
             }
-
           } catch (error) {
             console.error("Lỗi lấy danh sách organization_units:", error);
             modalBody.innerHTML = `
@@ -1657,6 +1665,9 @@
             style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">
             <h3 style="margin: 0; color: #1e293b; font-size: 14px; font-weight: 700;">
               <i class="fa-solid fa-table-list"></i> BẢNG THEO DÕI KHỐI LƯỢNG SỐ HÓA CÁC ĐƠN VỊ TRỰC THUỘC
+              <!-- Đoạn thêm mới bên dưới để hiện thời gian -->
+              <span id="lock-time-display"
+                style="font-size: 12px; font-weight: 600; color: #dd6b20; margin-left: 10px; display: inline-block;"></span>
             </h3>
             <!-- Thêm cụm nút điều hướng bên phải -->
             <div style="display: flex; gap: 8px;">
@@ -1748,13 +1759,6 @@
             <label style="font-weight: 700; font-size: 13px; color: #334155;">Cơ quan, đơn vị, địa phương:</label>
             <select id="pop-unit-select" required class="modern-input-ctrl" style="font-weight: 600;">
               <option value="">-- Chọn đơn vị cần cập nhật --</option>
-              <option value="noichinh">Ban Nội chính Tỉnh ủy</option>
-              <option value="tochuc">Ban Tổ chức Tỉnh ủy</option>
-              <option value="tuyengiao">Ban Tuyên giáo và Dân vận Tỉnh ủy</option>
-              <option value="ubkt">UBKT Tỉnh ủy</option>
-              <option value="mttq">MTTQ tỉnh</option>
-              <option value="ldld">LĐLĐ tỉnh</option>
-              <option value="hoinongdan">Hội Nông dân tỉnh</option>
             </select>
           </div>
 
