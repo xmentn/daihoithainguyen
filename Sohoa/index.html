@@ -456,24 +456,55 @@
           }
 
           // =========================================================================
-          // LOGIC KHỞI TẠO VÀ RENDER 4 BIỂU ĐỒ TOP 5 DASHBOARD KHỐI ĐƠN VỊ
+          // CẬP NHẬT: LOGIC TÍNH TOÁN VÀ VẼ BIỂU ĐỒ HÌNH TRÒN CƠ CẤU % TỔNG
           // =========================================================================
-          let chartDataList = [];
-          Object.values(globalFirebaseCache).forEach(item => {
-            const clTongNum = parseRawNum(item.clTong);
-            const clXongNum = parseRawNum(item.clXong);
-            const shTongNum = parseRawNum(item.shTong);
-            const shMetNum = parseRawNum(item.shMet);
 
-            chartDataList.push({
-              name: item.name || 'Đơn vị chưa rõ',
-              clPercent: clTongNum > 0 ? parseFloat(((clXongNum / clTongNum) * 100).toFixed(1)) : 0,
-              shPercent: shTongNum > 0 ? parseFloat(((shMetNum / shTongNum) * 100).toFixed(1)) : 0
+          // 1. Tính toán % cơ cấu tổng thể từ các biến cộng dồn hàng tổng số
+          const totalCl = totalClTong > 0 ? totalClTong : 1;
+          const pClXong = parseFloat(((totalClXong / totalCl) * 100).toFixed(1));
+          const pClDang = parseFloat(((totalClDang / totalCl) * 100).toFixed(1));
+          const pClChua = parseFloat(((totalClChua / totalCl) * 100).toFixed(1));
+
+          const totalSh = totalShTong > 0 ? totalShTong : 1;
+          const pShXong = parseFloat(((totalShMet / totalSh) * 100).toFixed(1));
+          const pShDang = parseFloat(((totalShDang / totalSh) * 100).toFixed(1));
+          const pShChua = parseFloat(((totalShChua / totalSh) * 100).toFixed(1));
+
+          // 2. Hàm vẽ biểu đồ tròn (Doughnut) cho Chỉnh lý và Số hóa tổng thể
+          const renderPieChart = (canvasId, dataValues, colors) => {
+            const ctx = document.getElementById(canvasId);
+            if (!ctx) return;
+            if (window[canvasId + 'Instance']) { window[canvasId + 'Instance'].destroy(); }
+
+            window[canvasId + 'Instance'] = new Chart(ctx, {
+              type: 'doughnut',
+              data: {
+                labels: ['Đã xong', 'Đang thực hiện', 'Chưa thực hiện'],
+                datasets: [{
+                  data: dataValues,
+                  backgroundColor: colors,
+                  borderWidth: 1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  datalabels: {
+                    formatter: (value) => value > 0 ? value + '%' : '',
+                    color: '#ffffff',
+                    font: { size: 10, weight: '700' }
+                  }
+                },
+                cutout: '60%' // Tạo phom hình nhẫn hiện đại
+              },
+              plugins: [ChartDataLabels]
             });
-          });
+          };
 
-          // Định nghĩa hàm vẽ đồ thị thanh ngang động
-          const renderSubChart = (canvasId, labels, data, barColor) => {
+          // 3. Hàm nâng cấp cấu hình vẽ đồ thị thanh ngang cho các biểu đồ Top 5 Thấp nhất
+          const renderSubBarChart = (canvasId, labels, data, barColor) => {
             const ctx = document.getElementById(canvasId);
             if (!ctx) return;
             if (window[canvasId + 'Instance']) { window[canvasId + 'Instance'].destroy(); }
@@ -482,18 +513,18 @@
               type: 'bar',
               data: {
                 labels: labels,
-                datasets: [{
-                  data: data,
-                  backgroundColor: barColor,
-                  borderRadius: 4,
-                  barThickness: 10
-                }]
+                datasets: [{ data: data, backgroundColor: barColor, borderRadius: 4, barThickness: 10 }]
               },
               options: {
                 indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
-                layout: { padding: { right: 35 } },
+                layout: {
+                  padding: {
+                    right: 35,
+                    left: 10 // Đệm lề trái nhỏ để chữ không dính sát viền khối
+                  }
+                },
                 plugins: {
                   legend: { display: false },
                   datalabels: {
@@ -511,9 +542,10 @@
                     ticks: {
                       font: { size: 9, weight: '600' },
                       color: '#1e293b',
-                      callback: function (value, index) {
+                      // Giải pháp 1: Nới rộng độ dài hiển thị tối đa từ 12 ký tự lên 22 ký tự giúp tên đơn vị dài không bị khuất
+                      callback: function (value) {
                         const label = this.getLabelForValue(value);
-                        return label.length > 12 ? label.substr(0, 12) + '...' : label;
+                        return label.length > 22 ? label.substr(0, 22) + '...' : label;
                       }
                     }
                   }
@@ -523,23 +555,39 @@
             });
           };
 
-          // Thực hiện lọc cấu trúc Top 5 Cao/Thấp
-          const sortedCl = [...chartDataList].sort((a, b) => b.clPercent - a.clPercent);
-          const clTop5 = sortedCl.slice(0, 5);
-          const clBottom5 = [...chartDataList].sort((a, b) => a.clPercent - b.clPercent).slice(0, 5);
+          // Lọc dữ liệu phục vụ biểu đồ Top 5 thấp nhất (Đã gọt chữ "Đảng ủy")
+          let chartDataList = [];
+          Object.values(globalFirebaseCache).forEach(item => {
+            const clTongNum = parseRawNum(item.clTong);
+            const clXongNum = parseRawNum(item.clXong);
+            const shTongNum = parseRawNum(item.shTong);
+            const shMetNum = parseRawNum(item.shMet);
 
-          const sortedSh = [...chartDataList].sort((a, b) => b.shPercent - a.shPercent);
-          const shTop5 = sortedSh.slice(0, 5);
+            // Giải pháp 2: Tự động phát hiện và cắt bỏ từ "Đảng ủy" ở đầu tên cơ quan cho gọn
+            let cleanName = item.name || 'Đơn vị chưa rõ';
+            cleanName = cleanName.replace(/^(Đảng ủy xã|Đảng ủy phường|Đảng ủy)\s+/i, '');
+
+            chartDataList.push({
+              name: cleanName,
+              clPercent: clTongNum > 0 ? parseFloat(((clXongNum / clTongNum) * 100).toFixed(1)) : 0,
+              shPercent: shTongNum > 0 ? parseFloat(((shMetNum / shTongNum) * 100).toFixed(1)) : 0
+            });
+          });
+          const clBottom5 = [...chartDataList].sort((a, b) => a.clPercent - b.clPercent).slice(0, 5);
           const shBottom5 = [...chartDataList].sort((a, b) => a.shPercent - b.shPercent).slice(0, 5);
 
-          // Render biểu đồ thông qua setTimeout để đảm bảo đồng bộ DOM an toàn
+          // Kích hoạt hiển thị đồng bộ lên giao diện web
           setTimeout(() => {
-            renderSubChart('chart-cl-top', clTop5.map(d => d.name), clTop5.map(d => d.clPercent), '#16a34a');
-            renderSubChart('chart-cl-bottom', clBottom5.map(d => d.name), clBottom5.map(d => d.clPercent), '#dc2626');
-            renderSubChart('chart-sh-top', shTop5.map(d => d.name), shTop5.map(d => d.shPercent), '#0284c7');
-            renderSubChart('chart-sh-bottom', shBottom5.map(d => d.name), shBottom5.map(d => d.shPercent), '#e67e22');
+            // Vẽ 2 biểu đồ hình tròn mới đại diện cho phần trăm tổng
+            renderPieChart('chart-cl-top', [pClXong, pClDang, pClChua], ['#16a34a', '#e67e22', '#dc2626']);
+            renderPieChart('chart-sh-top', [pShXong, pShDang, pShChua], ['#0284c7', '#e67e22', '#dc2626']);
+
+            // Vẽ 2 biểu đồ dạng thanh ngang thấp nhất ổn định như cũ
+            renderSubBarChart('chart-cl-bottom', clBottom5.map(d => d.name), clBottom5.map(d => d.clPercent), '#dc2626');
+            renderSubBarChart('chart-sh-bottom', shBottom5.map(d => d.name), shBottom5.map(d => d.shPercent), '#e67e22');
           }, 100);
 
+          // Giữ lại logic xử lý hiển thị khi không có hàng dữ liệu nào
           if (sttCounter === 1) {
             tableBody.innerHTML = `
               <tr>
@@ -632,11 +680,52 @@
         });
 
         // Hàm ghi đè dữ liệu lên Firebase
+        // Hàm ghi đè và lưu dữ liệu lên Firebase (Đã tích hợp bộ kiểm tra chặn số liệu lỗi)
         window.saveSubUnitData = async function (event) {
           event.preventDefault();
+
           const unitKey = document.getElementById('pop-unit-select').value;
+          if (!unitKey) {
+            alert("Vui lòng chọn đơn vị cần cập nhật số liệu!");
+            return;
+          }
           const unitName = currentOrgUnitsCache[unitKey] || 'Đơn vị mới';
 
+          // 1. LẤY SỐ LIỆU THÔ TỪ CÁC Ô NHẬP LIỆU ĐỂ KIỂM TRA LOGIC TOÁN HỌC
+          const clTongVal = parseFloat(document.getElementById('pop-cl-tong').value) || 0;
+          const clXongVal = parseFloat(document.getElementById('pop-cl-xong').value) || 0;
+          const clDangVal = parseFloat(document.getElementById('pop-cl-dang').value) || 0;
+
+          const shTongVal = parseFloat(document.getElementById('pop-sh-tong').value) || 0;
+          const shMetVal = parseFloat(document.getElementById('pop-sh-met').value) || 0;
+          const shDangVal = parseFloat(document.getElementById('pop-sh-dang').value) || 0;
+
+          // 2. BỘ KIỂM TRA LOGIC CHẶN SỐ LIỆU BẤT HỢP LÝ
+          // Kiểm tra phân hệ Chỉnh lý
+          if ((clXongVal + clDangVal) > clTongVal) {
+            alert(`[CẢNH BÁO SỐ LIỆU CHỈNH LÝ]: \nĐơn vị: ${unitName}\nSố liệu không hợp lệ! Tổng số mét đã chỉnh lý (${clXongVal}) và đang thực hiện (${clDangVal}) cộng lại là ${clXongVal + clDangVal} mét, vượt quá Tổng số mét cần chỉnh lý là ${clTongVal} mét.`);
+            return; // Chặn đứng tiến trình, không cho lưu dữ liệu lên Firebase
+          }
+
+          // Kiểm tra phân hệ Số hóa
+          // [KIỂM TRA LOGIC CHỈNH LÝ]: Thay thế alert của window bằng giao diện mới
+          if ((clXongVal + clDangVal) > clTongVal) {
+            showCustomAlert(
+              "Cảnh báo số liệu chỉnh lý",
+              `Đơn vị: <b>${unitName}</b><br><br>Số liệu nhập vào không hợp lệ! Tổng số mét đã chỉnh lý (${clXongVal.toString().replace('.', ',')}) và đang thực hiện (${clDangVal.toString().replace('.', ',')}) cộng lại vượt quá <b>Tổng số mét cần chỉnh lý</b> (${clTongVal.toString().replace('.', ',')} m).`
+            );
+            return; // Chặn lưu lên Firebase
+          }
+
+          // [KIỂM TRA LOGIC SỐ HÓA]: Thay thế alert của window bằng giao diện mới
+          if ((shMetVal + shDangVal) > shTongVal) {
+            showCustomAlert(
+              "Cảnh báo số liệu số hóa",
+              `Đơn vị: <b>${unitName}</b><br><br>Số liệu nhập vào không hợp lệ! Tổng số mét đã số hóa (${shMetVal.toString().replace('.', ',')}) và đang thực hiện (${shDangVal.toString().replace('.', ',')}) cộng lại vượt quá <b>Tổng số mét cần số hóa</b> (${shTongVal.toString().replace('.', ',')} m).`
+            );
+            return; // Chặn lưu lên Firebase
+          }
+          // 3. TIẾN TRÌNH ĐỊNH DẠNG VÀ ĐỒNG BỘ DỮ LIỆU KHI ĐÃ HỢP LỆ (Giữ nguyên cấu trúc cũ ổn định)
           const formatNum = (val) => (val && parseFloat(val) !== 0) ? parseFloat(val).toFixed(1).replace('.', ',') : '0';
           const formatInt = (val) => (val && parseInt(val) !== 0) ? parseInt(val).toLocaleString('vi-VN') : '0';
 
@@ -644,6 +733,7 @@
           const clXong = formatNum(document.getElementById('pop-cl-xong').value);
           const clDang = formatNum(document.getElementById('pop-cl-dang').value);
           const clChua = formatNum(document.getElementById('pop-cl-chua').value);
+
           const shTong = formatNum(document.getElementById('pop-sh-tong').value);
           const shMet = formatNum(document.getElementById('pop-sh-met').value);
           const shTrang = formatInt(document.getElementById('pop-sh-trang').value);
@@ -661,6 +751,7 @@
               updatedAt: new Date().toISOString()
             });
 
+            // Hiển thị thông báo Toast thành công
             const toast = document.createElement('div');
             toast.innerHTML = `
                 <div style="position: fixed; top: 24px; right: 24px; background: #16a34a; color: #ffffff; padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; z-index: 10000; animation: toastSlideIn 0.3s ease forwards;">
@@ -864,6 +955,24 @@
         html2pdf().set(configOpt).from(reportArea).toContainer().toCanvas().toPdf().get('pdf').then((pdf) => {
           // Khối này đảm bảo tiến trình render luồng DOM trên Domain hoàn tất 100%
         }).save();
+      };
+      // Hàm kích hoạt mở cửa sổ thông báo tùy biến thay thế Window.Alert
+      window.showCustomAlert = function (title, message) {
+        const modal = document.getElementById('customAlertModal');
+        const titleEl = document.getElementById('customAlertTitle');
+        const msgEl = document.getElementById('customAlertMessage');
+
+        if (modal && titleEl && msgEl) {
+          titleEl.textContent = title;
+          msgEl.innerHTML = message;
+          modal.style.display = 'flex';
+        }
+      };
+
+      // Hàm đóng cửa sổ thông báo
+      window.closeCustomAlert = function () {
+        const modal = document.getElementById('customAlertModal');
+        if (modal) modal.style.display = 'none';
       };
     </script>
 
@@ -1812,14 +1921,31 @@
           style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02); display: flex; flex-direction: column; gap: 20px;">
           <h3
             style="margin-top: 0; margin-bottom: 5px; color: #0056b3; font-size: 14px; font-weight: 700; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-            <i class="fa-solid fa-chart-pie"></i> DASHBOARD KHỐI ĐƠN VỊ (TOP TỶ LỆ HOÀN THÀNH %)
+            <i class="fa-solid fa-chart-pie"></i> DASHBOARD KHỐI ĐƠN VỊ
           </h3>
 
-          <!-- BIỂU ĐỒ 1: TOP 5 CAO NHẤT CHỈNH LÝ -->
-          <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
-            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #16a34a; font-weight: 700;"><i
-                class="fa-solid fa-arrow-trend-up"></i> TOP 5 CAO NHẤT - TỶ LỆ CHỈNH LÝ XONG</h4>
-            <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-cl-top"></canvas></div>
+          <div
+            style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9; text-align: center;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #0056b3; font-weight: 700;">
+              <i class="fa-solid fa-chart-pie"></i> TỔNG THỂ TỶ LỆ TIẾN ĐỘ CHỈNH LÝ
+            </h4>
+            <div
+              style="position: relative; height: 160px; width: 100%; display: flex; align-items: center; justify-content: center;">
+              <canvas id="chart-cl-top"></canvas>
+            </div>
+            <!-- Chú giải biểu đồ -->
+            <div
+              style="display: flex; justify-content: center; gap: 8px; margin-top: 8px; font-size: 10px; font-weight: 600;">
+              <div><span
+                  style="display:inline-block;width:8px;height:8px;background:#16a34a;margin-right:3px;border-radius:2px;"></span>Đã
+                xong</div>
+              <div><span
+                  style="display:inline-block;width:8px;height:8px;background:#e67e22;margin-right:3px;border-radius:2px;"></span>Đang
+                làm</div>
+              <div><span
+                  style="display:inline-block;width:8px;height:8px;background:#dc2626;margin-right:3px;border-radius:2px;"></span>Chưa
+                làm</div>
+            </div>
           </div>
 
           <!-- BIỂU ĐỒ 2: TOP 5 THẤP NHẤT CHỈNH LÝ -->
@@ -1829,11 +1955,29 @@
             <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-cl-bottom"></canvas></div>
           </div>
 
-          <!-- BIỂU ĐỒ 3: TOP 5 CAO NHẤT SỐ HÓA -->
-          <div style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9;">
-            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #0284c7; font-weight: 700;"><i
-                class="fa-solid fa-arrow-trend-up"></i> TOP 5 CAO NHẤT - TỶ LỆ SỐ HÓA XONG</h4>
-            <div style="position: relative; height: 140px; width: 100%;"><canvas id="chart-sh-top"></canvas></div>
+          <!-- BIỂU ĐỒ 3: ĐÃ ĐỔI THÀNH TỔNG THỂ TỶ LỆ SỐ HÓA -->
+          <div
+            style="background: #fafafa; padding: 12px; border-radius: 8px; border: 1px solid #f1f5f9; text-align: center;">
+            <h4 style="margin: 0 0 10px 0; font-size: 11.5px; color: #0284c7; font-weight: 700;">
+              <i class="fa-solid fa-chart-pie"></i> TỔNG THỂ TỶ LỆ TIẾN ĐỘ SỐ HÓA
+            </h4>
+            <div
+              style="position: relative; height: 160px; width: 100%; display: flex; align-items: center; justify-content: center;">
+              <canvas id="chart-sh-top"></canvas>
+            </div>
+            <!-- Chú giải biểu đồ -->
+            <div
+              style="display: flex; justify-content: center; gap: 8px; margin-top: 8px; font-size: 10px; font-weight: 600;">
+              <div><span
+                  style="display:inline-block;width:8px;height:8px;background:#0284c7;margin-right:3px;border-radius:2px;"></span>Đã
+                số hóa</div>
+              <div><span
+                  style="display:inline-block;width:8px;height:8px;background:#e67e22;margin-right:3px;border-radius:2px;"></span>Đang
+                làm</div>
+              <div><span
+                  style="display:inline-block;width:8px;height:8px;background:#dc2626;margin-right:3px;border-radius:2px;"></span>Chưa
+                làm</div>
+            </div>
           </div>
 
           <!-- BIỂU ĐỒ 4: TOP 5 THẤP NHẤT SỐ HÓA -->
@@ -2092,8 +2236,53 @@
       }
     </style>
   </main>
+  <!-- KHỐI DIALOG THÔNG BÁO CHUYÊN NGHIỆP DÙNG CHUNG -->
+  <div id="customAlertModal"
+    style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 99999; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <div
+      style="background: #ffffff; width: 100%; max-width: 460px; border-radius: 12px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); overflow: hidden; animation: dialogSlideIn 0.2s ease-out forwards; border: 1px solid #e2e8f0;">
+      <!-- Nội dung thông báo -->
+      <div style="padding: 28px 24px; text-align: center;">
+        <!-- Biểu tượng Cảnh báo trực quan -->
+        <div
+          style="display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; background: #fff7ed; color: #ea580c; border-radius: 50%; margin-bottom: 16px; border: 1px solid #ffedd5;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px;"></i>
+        </div>
+        <!-- Tiêu đề Thông báo -->
+        <h3 id="customAlertTitle"
+          style="margin: 0 0 10px 0; font-size: 16px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.5px;">
+          Cảnh báo hệ thống</h3>
+        <!-- Chi tiết nội dung số liệu -->
+        <p id="customAlertMessage"
+          style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.6; text-align: left; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border-left: 4px solid #ea580c; max-height: 200px; overflow-y: auto;">
+          Nội dung thông báo lỗi...
+        </p>
+      </div>
+      <!-- Nút tương tác chân trang -->
+      <div style="padding: 12px 24px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: right;">
+        <button onclick="closeCustomAlert()"
+          style="background: #0f172a; color: #ffffff; border: none; padding: 8.5px 22px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; box-shadow: 0 2px 4px rgba(15,23,42,0.15);">
+          Xác nhận
+        </button>
+      </div>
+    </div>
+  </div>
 
+  <style>
+    @keyframes dialogSlideIn {
+      from {
+        transform: scale(0.96) translateY(-10px);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
   <script type="module" src="js/dashboard.js"></script>
+
 </body>
 
 </html>
