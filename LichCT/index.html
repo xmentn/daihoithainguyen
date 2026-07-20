@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lịch công tác - Phòng Chuyển đổi số - Cơ yếu</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <header class="banner-header">
+      <img
+        src="./images/banner_lich_cong_tac.png"
+        alt="Lịch công tác Phòng Chuyển đổi số - Cơ yếu"
+        class="banner-image"
+      />
+    </header>
+
+    <nav class="main-nav">
+      <div class="main-nav-inner">
+        <a class="active" href="./index.html">Lịch chung</a>
+        <a href="./lichcanhan.html">Lịch cá nhân</a>
+        <a href="./login.html">Quản trị cán bộ</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <section class="statistics">
+        <div class="stat-card">
+          <div class="stat-title">Tổng số lịch</div>
+          <div class="stat-number" id="totalSchedules">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Lịch hôm nay</div>
+          <div class="stat-number" id="todaySchedules">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Chưa thực hiện</div>
+          <div class="stat-number" id="pendingSchedules">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Đã hoàn thành</div>
+          <div class="stat-number" id="completedSchedules">0</div>
+        </div>
+      </section>
+
+      <section class="panel week-panel">
+        <div class="panel-header week-header">
+          <div>
+            <div class="small-title">LỊCH TUẦN</div>
+            <h2 id="weekTitle">Lịch công tác tuần</h2>
+          </div>
+          <div class="week-actions">
+            <button
+              class="button button-secondary"
+              id="previousWeekButton"
+              type="button"
+            >
+              ← Tuần trước
+            </button>
+            <button
+              class="button button-secondary"
+              id="currentWeekButton"
+              type="button"
+            >
+              Tuần hiện tại
+            </button>
+            <button
+              class="button button-secondary"
+              id="nextWeekButton"
+              type="button"
+            >
+              Tuần sau →
+            </button>
+            <button
+              class="button button-primary"
+              id="printWeekButton"
+              type="button"
+            >
+              In lịch tuần
+            </button>
+          </div>
+        </div>
+        <div class="week-grid" id="weekGrid"></div>
+      </section>
+
+      <section class="panel" id="scheduleFormPanel">
+        <div class="panel-header">
+          <div>
+            <div class="small-title">CẬP NHẬT DỮ LIỆU</div>
+            <h2 id="formTitle">Thêm lịch công tác</h2>
+          </div>
+        </div>
+
+        <form id="scheduleForm">
+          <input type="hidden" id="scheduleId" />
+
+          <div class="form-grid">
+            <div class="form-group form-full">
+              <label for="noiDung"
+                >Nội dung công tác <span class="required">*</span></label
+              >
+              <input
+                id="noiDung"
+                type="text"
+                placeholder="Ví dụ: Họp giao ban tuần"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="ngay"
+                >Ngày thực hiện <span class="required">*</span></label
+              >
+              <input id="ngay" type="date" required />
+            </div>
+
+            <div class="form-group">
+              <label for="gioBatDau"
+                >Giờ bắt đầu <span class="required">*</span></label
+              >
+              <input id="gioBatDau" type="time" required />
+            </div>
+
+            <div class="form-group">
+              <label for="gioKetThuc">Giờ kết thúc</label>
+              <input id="gioKetThuc" type="time" />
+            </div>
+
+            <div class="form-group">
+              <label for="diaDiem">Địa điểm</label>
+              <input
+                id="diaDiem"
+                type="text"
+                placeholder="Ví dụ: Phòng họp tầng 3"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="canBoId">Cán bộ thực hiện</label>
+              <select id="canBoId">
+                <option value="">-- Chọn cán bộ --</option>
+              </select>
+              <small class="field-note">
+                Danh sách được quản lý tại trang Quản trị cán bộ.
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="trangThai">Trạng thái</label>
+              <select id="trangThai">
+                <option value="Chưa thực hiện">Chưa thực hiện</option>
+                <option value="Đang thực hiện">Đang thực hiện</option>
+                <option value="Đã hoàn thành">Đã hoàn thành</option>
+              </select>
+            </div>
+
+            <div class="form-group form-full">
+              <label for="ghiChu">Ghi chú</label>
+              <textarea
+                id="ghiChu"
+                rows="3"
+                placeholder="Nhập nội dung chuẩn bị hoặc ghi chú khác"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="form-buttons">
+            <button type="submit" class="button button-primary" id="saveButton">
+              Lưu lịch công tác
+            </button>
+            <button
+              type="button"
+              class="button button-secondary hidden"
+              id="cancelEditButton"
+            >
+              Hủy chỉnh sửa
+            </button>
+          </div>
+        </form>
+
+        <div class="message hidden" id="message"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header schedule-list-header">
+          <div>
+            <div class="small-title">DANH SÁCH</div>
+            <h2>Lịch công tác</h2>
+          </div>
+
+          <div class="filters filters-five">
+            <input
+              type="search"
+              id="searchInput"
+              placeholder="Tìm nội dung, địa điểm, cán bộ"
+            />
+            <input type="date" id="dateFilter" />
+            <select id="staffFilter">
+              <option value="">Tất cả cán bộ</option>
+            </select>
+            <select id="statusFilter">
+              <option value="">Tất cả trạng thái</option>
+              <option value="Chưa thực hiện">Chưa thực hiện</option>
+              <option value="Đang thực hiện">Đang thực hiện</option>
+              <option value="Đã hoàn thành">Đã hoàn thành</option>
+            </select>
+            <button
+              type="button"
+              class="button button-secondary"
+              id="clearFilterButton"
+            >
+              Xóa lọc
+            </button>
+          </div>
+        </div>
+
+        <div class="loading" id="loading">Đang tải dữ liệu...</div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Nội dung</th>
+                <th>Địa điểm</th>
+                <th>Cán bộ thực hiện</th>
+                <th>Trạng thái</th>
+                <th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="scheduleTableBody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state hidden" id="emptyState">
+          Chưa có lịch công tác phù hợp.
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Phòng Chuyển đổi số - Cơ yếu, Văn phòng Tỉnh ủy
+    </footer>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lịch công tác cá nhân</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <header class="banner-header">
+      <img
+        src="./images/banner_lich_cong_tac.png"
+        alt="Lịch công tác Phòng Chuyển đổi số - Cơ yếu"
+        class="banner-image"
+      />
+    </header>
+    <nav class="main-nav">
+      <div class="main-nav-inner">
+        <a href="./index.html">Lịch chung</a>
+        <a class="active" href="./lichcanhan.html">Lịch cá nhân</a>
+        <a href="./admin.html">Quản trị cán bộ</a>
+      </div>
+    </nav>
+
+    <main class="container">
+      <section class="panel personal-selector-panel">
+        <div>
+          <div class="small-title">CHỌN CÁN BỘ</div>
+          <h2>Xem lịch công tác cá nhân</h2>
+        </div>
+
+        <div class="personal-select-wrap">
+          <select id="personalStaffSelect">
+            <option value="">-- Chọn cán bộ --</option>
+          </select>
+          <button
+            type="button"
+            class="button button-primary"
+            id="printPersonalButton"
+          >
+            In lịch cá nhân
+          </button>
+        </div>
+      </section>
+
+      <section class="statistics">
+        <div class="stat-card">
+          <div class="stat-title">Tổng số lịch</div>
+          <div class="stat-number" id="personalTotal">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Lịch hôm nay</div>
+          <div class="stat-number" id="personalToday">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Chưa thực hiện</div>
+          <div class="stat-number" id="personalPending">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-title">Đã hoàn thành</div>
+          <div class="stat-number" id="personalCompleted">0</div>
+        </div>
+      </section>
+
+      <section class="panel week-panel">
+        <div class="panel-header week-header">
+          <div>
+            <div class="small-title">LỊCH CÁ NHÂN THEO TUẦN</div>
+            <h2 id="personalWeekTitle">Vui lòng chọn cán bộ</h2>
+          </div>
+          <div class="week-actions">
+            <button
+              class="button button-secondary"
+              id="previousWeekButton"
+              type="button"
+            >
+              ← Tuần trước
+            </button>
+            <button
+              class="button button-secondary"
+              id="currentWeekButton"
+              type="button"
+            >
+              Tuần hiện tại
+            </button>
+            <button
+              class="button button-secondary"
+              id="nextWeekButton"
+              type="button"
+            >
+              Tuần sau →
+            </button>
+          </div>
+        </div>
+        <div class="week-grid" id="personalWeekGrid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header schedule-list-header">
+          <div>
+            <div class="small-title">DANH SÁCH CÁ NHÂN</div>
+            <h2 id="personalListTitle">Lịch công tác</h2>
+          </div>
+          <div class="filters personal-filters">
+            <input
+              type="search"
+              id="personalSearchInput"
+              placeholder="Tìm nội dung, địa điểm"
+            />
+            <input type="date" id="personalDateFilter" />
+            <select id="personalStatusFilter">
+              <option value="">Tất cả trạng thái</option>
+              <option value="Chưa thực hiện">Chưa thực hiện</option>
+              <option value="Đang thực hiện">Đang thực hiện</option>
+              <option value="Đã hoàn thành">Đã hoàn thành</option>
+            </select>
+            <button
+              type="button"
+              class="button button-secondary"
+              id="clearPersonalFilterButton"
+            >
+              Xóa lọc
+            </button>
+          </div>
+        </div>
+
+        <div id="personalLoading" class="loading">Đang tải dữ liệu...</div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Thời gian</th>
+                <th>Nội dung</th>
+                <th>Địa điểm</th>
+                <th>Trạng thái</th>
+                <th>Ghi chú</th>
+              </tr>
+            </thead>
+            <tbody id="personalTableBody"></tbody>
+          </table>
+        </div>
+
+        <div id="personalEmptyState" class="empty-state hidden">
+          Chưa có lịch công tác cá nhân phù hợp.
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Phòng Chuyển đổi số - Cơ yếu, Văn phòng Tỉnh ủy
+    </footer>
+    <script type="module" src="./js/personal.js"></script>
+  </body>
+</html>
