@@ -204,8 +204,26 @@
               <span class="config-lbl">🎛️ CẤU HÌNH VÙNG QUÉT A4:</span>
               <div class="input-row">
                 <div class="fld">
-                  <label>Rộng %</label
-                  ><input
+                  <label>Trang quét</label>
+                  <select
+                    id="a4_page"
+                    style="
+                      padding: 8px;
+                      border: 1px solid #cbd5e1;
+                      border-radius: 6px;
+                      font-weight: 700;
+                      color: #0f172a;
+                      background: white;
+                    "
+                    onchange="loadDemoPageFromInput('A4')"
+                  >
+                    <option value="1" selected>Trang 1</option>
+                    <option value="2">Trang 2</option>
+                  </select>
+                </div>
+                <div class="fld">
+                  <label>Rộng %</label>
+                  <input
                     type="number"
                     id="a4_w"
                     value="23"
@@ -213,8 +231,8 @@
                   />
                 </div>
                 <div class="fld">
-                  <label>Cao %</label
-                  ><input
+                  <label>Cao %</label>
+                  <input
                     type="number"
                     id="a4_h"
                     value="7"
@@ -222,8 +240,8 @@
                   />
                 </div>
                 <div class="fld">
-                  <label>X %</label
-                  ><input
+                  <label>X %</label>
+                  <input
                     type="number"
                     id="a4_x"
                     value="3"
@@ -231,8 +249,8 @@
                   />
                 </div>
                 <div class="fld">
-                  <label>Y %</label
-                  ><input
+                  <label>Y %</label>
+                  <input
                     type="number"
                     id="a4_y"
                     value="87"
@@ -350,8 +368,26 @@
               <span class="config-lbl">🎛️ CẤU HÌNH VÙNG QUÉT A3:</span>
               <div class="input-row">
                 <div class="fld">
-                  <label>Rộng %</label
-                  ><input
+                  <label>Trang quét</label>
+                  <select
+                    id="a3_page"
+                    style="
+                      padding: 8px;
+                      border: 1px solid #cbd5e1;
+                      border-radius: 6px;
+                      font-weight: 700;
+                      color: #0f172a;
+                      background: white;
+                    "
+                    onchange="loadDemoPageFromInput('A3')"
+                  >
+                    <option value="1" selected>Trang 1</option>
+                    <option value="2">Trang 2</option>
+                  </select>
+                </div>
+                <div class="fld">
+                  <label>Rộng %</label>
+                  <input
                     type="number"
                     id="a3_w"
                     value="15"
@@ -359,8 +395,8 @@
                   />
                 </div>
                 <div class="fld">
-                  <label>Cao %</label
-                  ><input
+                  <label>Cao %</label>
+                  <input
                     type="number"
                     id="a3_h"
                     value="9"
@@ -368,8 +404,8 @@
                   />
                 </div>
                 <div class="fld">
-                  <label>X %</label
-                  ><input
+                  <label>X %</label>
+                  <input
                     type="number"
                     id="a3_x"
                     value="76"
@@ -377,8 +413,8 @@
                   />
                 </div>
                 <div class="fld">
-                  <label>Y %</label
-                  ><input
+                  <label>Y %</label>
+                  <input
                     type="number"
                     id="a3_y"
                     value="74"
@@ -510,6 +546,7 @@
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
       let timerInterval = null;
       let isLockedMap = { A4: false, A3: false };
+      let currentDemoPdf = { A4: null, A3: null }; // Lưu giữ file PDF mẫu đã nạp
       let demoImages = { A4: null, A3: null };
       let demoOriginalSizes = { A4: null, A3: null };
       let dragData = {
@@ -552,15 +589,39 @@
         if (!file) return;
         try {
           const arrayBuffer = await readFileAsArrayBuffer(file);
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer.slice(0) })
-            .promise;
-          const page = await pdf.getPage(1);
+          currentDemoPdf[type] = await pdfjsLib.getDocument({
+            data: arrayBuffer.slice(0),
+          }).promise;
+          await renderDemoPage(type);
+        } catch (e) {
+          alert("Lỗi nạp file mẫu: " + e.message);
+        }
+      }
+
+      async function loadDemoPageFromInput(type) {
+        if (currentDemoPdf[type]) {
+          await renderDemoPage(type);
+        }
+      }
+
+      async function renderDemoPage(type) {
+        if (!currentDemoPdf[type]) return;
+        try {
+          const pageNumSelect =
+            parseInt(
+              document.getElementById(`${type.toLowerCase()}_page`).value,
+            ) || 1;
+          const totalPages = currentDemoPdf[type].numPages;
+          const targetPageNum = Math.min(pageNumSelect, totalPages);
+
+          const page = await currentDemoPdf[type].getPage(targetPageNum);
           const viewport = page.getViewport({ scale: 2.0 });
           const canvas = document.createElement("canvas");
           const ctx = canvas.getContext("2d");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
           const img = new Image();
           img.onload = function () {
             demoImages[type] = img;
@@ -572,7 +633,7 @@
           };
           img.src = canvas.toDataURL();
         } catch (e) {
-          alert("Lỗi nạp file mẫu: " + e.message);
+          console.error("Lỗi vẽ trang mẫu:", e);
         }
       }
 
@@ -584,6 +645,7 @@
         const textLabel = document.getElementById(`dropText${type}`);
         const fileInput = document.getElementById(`fileInputNhỏ${type}`);
         const flds = [
+          document.getElementById(type.toLowerCase() + "_page"), // 👈 Bổ sung ô chọn trang
           document.getElementById(type.toLowerCase() + "_w"),
           document.getElementById(type.toLowerCase() + "_h"),
           document.getElementById(type.toLowerCase() + "_x"),
@@ -875,17 +937,22 @@
         const statusId = `statusStep2${type}`;
         const timerDigits = document.getElementById(`timerDigits${type}`);
         const timerCard = document.getElementById(`timerCard${type}`);
+
         if (fileInput.files.length === 0) return;
+
         timerCard.style.display = "flex";
         document.getElementById(`totalPage${type}`).innerText =
           fileInput.files.length;
+
         let successCount = 0;
         let failCount = 0;
         let startTime = Date.now();
+
         timerInterval = setInterval(() => {
           timerDigits.innerText =
             ((Date.now() - startTime) / 1000).toFixed(2) + "s";
         }, 50);
+
         const uw =
           parseFloat(document.getElementById(type.toLowerCase() + "_w").value) /
           100;
@@ -898,38 +965,60 @@
         const uy =
           parseFloat(document.getElementById(type.toLowerCase() + "_y").value) /
           100;
+
+        // 📄 Lấy số trang người dùng chọn (Mặc định là 1 nếu không chọn)
+        const pageSelectEl = document.getElementById(
+          type.toLowerCase() + "_page",
+        );
+        const selectedPageNum = pageSelectEl
+          ? parseInt(pageSelectEl.value) || 1
+          : 1;
+
         updateStatus(statusId, "⏳ Đang nhận diện OCR...", "loading");
+
         const logBox = document.getElementById(logId);
         logBox.innerHTML = "";
         logBox.style.display = "block";
+
         const zip = new JSZip();
+
         try {
           const worker = await Tesseract.createWorker("eng", 1);
           await worker.setParameters({
             tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
             tessedit_pageseg_mode: "6",
           });
+
           for (let file of fileInput.files) {
             if (!file.name.toLowerCase().endsWith(".pdf")) continue;
+
             try {
               const originalBuffer = await readFileAsArrayBuffer(file);
               const arrayBufferForPDFJS = originalBuffer.slice(0);
               const arrayBufferForZip = originalBuffer.slice(0);
+
               const pdf = await pdfjsLib.getDocument({
                 data: arrayBufferForPDFJS,
               }).promise;
-              const page = await pdf.getPage(1);
+
+              // 🔍 Lấy đúng trang cần quét (Nếu file ít trang hơn lựa chọn thì lấy trang cuối cùng)
+              const targetPage = Math.min(selectedPageNum, pdf.numPages);
+              const page = await pdf.getPage(targetPage);
+
               const viewport = page.getViewport({ scale: 2.5 });
               const canvas = document.createElement("canvas");
               const ctx = canvas.getContext("2d");
               canvas.width = viewport.width;
               canvas.height = viewport.height;
+
               await page.render({ canvasContext: ctx, viewport: viewport })
                 .promise;
+
               const cropX = canvas.width * ux;
               const cropY = canvas.height * uy;
               const cropW = canvas.width * uw;
               const cropH = canvas.height * uh;
+
               const finalCanvas = document.getElementById("pdfCanvas");
               finalCanvas.width = cropW;
               finalCanvas.height = cropH;
@@ -946,12 +1035,15 @@
                   cropW,
                   cropH,
                 );
+
               const {
                 data: { text },
               } = await worker.recognize(finalCanvas.toDataURL());
+
               const cleanText = text.replace(/\s+/g, "").toUpperCase();
               let finalFileName = "";
               const match = cleanText.match(/([A-Z]{2})(\d{6,8})/);
+
               if (match) {
                 finalFileName = match[1] + " " + match[2];
                 addLog(
@@ -969,6 +1061,7 @@
                 );
                 failCount++;
               }
+
               document.getElementById(`successOcr${type}`).innerText =
                 successCount;
               document.getElementById(`failOcr${type}`).innerText = failCount;
@@ -979,25 +1072,25 @@
               addLog(logId, `💥 Lỗi file ${file.name}`, true);
             }
           }
+
           await worker.terminate();
           clearInterval(timerInterval);
+
           const blob = await zip.generateAsync({ type: "blob" });
           const link = document.createElement("a");
           link.href = URL.createObjectURL(blob);
-          link.download = `Ket_Qua_Doi_Tên_${type}.zip`;
+          link.download = `Ket_Qua_Doi_Ten_${type}.zip`;
           link.click();
+
           updateStatus(statusId, "🎉 XỬ LÝ HOÀN TẤT THÀNH CÔNG!", "success");
 
-          // ➕ Cộng dồn 1 lượt chạy và toàn bộ số file nhận diện thành công lên Firebase
-          // ➕ Cộng dồn 1 lượt chạy và toàn bộ số file nhận diện thành công lên Firebase
+          // ➕ Cộng dồn số lượt và số file lên Firebase
           database.ref("counter/total_runs").transaction((c) => (c || 0) + 1);
           if (successCount > 0) {
-            // Cộng dồn tổng số tệp chung
             database
               .ref("counter/total_files_processed")
               .transaction((c) => (c || 0) + successCount);
 
-            // Phân loại đếm riêng theo tab đang xử lý (A4 hoặc A3)
             if (type === "A4") {
               database
                 .ref("counter/total_files_a4")
