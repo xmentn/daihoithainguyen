@@ -307,958 +307,1116 @@
 
       <!-- ĐOẠN 2: SCRIPT MODULE - XỬ LÝ ĐỒNG BỘ FIREBASE ĐỘNG + TỰ ĐỘNG ĐIỀN LẠI SỐ LIỆU CŨ -->
       <script type="module">
-        import {
-          getFirestore,
-          doc,
-          setDoc,
-          onSnapshot,
-          collection,
-          getDocs,
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-        let globalFirebaseCache = {}; // Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
-        let currentOrgUnitsCache = {}; // Lưu trữ bộ đệm động để đối chiếu Mã đơn vị -> Tên đơn vị khi lưu dữ liệu
-
-        // Chờ toàn bộ trang và tệp mã nguồn js/dashboard.js nạp xong để có cấu hình Firebase App
-        window.addEventListener("load", () => {
-          try {
-            const db = getFirestore();
-            initFirebaseSync(db);
-          } catch (e) {
-            console.error("Đợi Firebase App khởi tạo thất bại:", e);
-          }
-        });
-
-        const currentCampaign = "dot_1_2026";
-
-        // BỔ SUNG TỪ KHÓA ASYNC Ở ĐÂY ĐỂ ĐÁNH TAN LỖI UNCAUGHT SYNTAXERROR
-        async function initFirebaseSync(db) {
-          // =========================================================================
-          // LOGIC TỰ ĐỘNG NẠP DANH SÁCH ĐƠN VỊ TỪ FIREBASE VÀO DROPDOWN MODAL
-          // =========================================================================
-          const dynamicUnitSelect = document.getElementById("pop-unit-select");
-
-          try {
-            // Lấy dữ liệu động từ collection organization_units
-            const orgSnapshot = await getDocs(
-              collection(db, "organization_units"),
-            );
-            let rawUnits = [];
-
-            // Xóa bỏ trạng thái nhập cứng cũ, chỉ chừa lại dòng tiêu đề mặc định
-            if (dynamicUnitSelect) {
-              dynamicUnitSelect.innerHTML =
-                '<option value="">-- Chọn đơn vị cần cập nhật --</option>';
-            }
-
-            orgSnapshot.forEach((docSnap) => {
-              const data = docSnap.data();
-              if (data.unitName) {
-                rawUnits.push({
-                  key: docSnap.id,
-                  name: data.unitName,
-                  stt: data.stt || 999,
-                });
-                // Đồng bộ thông tin vào bộ đệm cache toàn cục phục vụ hàm saveSubUnitData
-                currentOrgUnitsCache[docSnap.id] = data.unitName;
-              }
-            });
-
-            // Sắp xếp danh sách đơn vị theo thứ tự STT chuẩn cấu hình
-            rawUnits.sort((a, b) => a.stt - b.stt);
-
-            // Render động các tùy chọn vào thẻ Select Dropdown
-            if (dynamicUnitSelect) {
-              rawUnits.forEach((unit) => {
-                const opt = document.createElement("option");
-                opt.value = unit.key;
-                opt.textContent = unit.name;
-                dynamicUnitSelect.appendChild(opt);
-              });
-            }
-          } catch (error) {
-            console.error(
-              "Lỗi nạp danh sách cơ quan vào dropdown modal:",
-              error,
-            );
-          }
-          // =========================================================================
-
-          // Lắng nghe dữ liệu thực tế từ Firebase và tự động tính hàng TỔNG SỐ ở cuối bảng
-          onSnapshot(collection(db, "SubUnitsData"), (snapshot) => {
-            const tableBody = document.getElementById("dangbo-matrix-body");
-            if (!tableBody) return;
-
-            tableBody.innerHTML = "";
-            let sttCounter = 1;
-            globalFirebaseCache = {}; // Xóa trống cache cũ
-
-            // Khởi tạo các biến cộng dồn hàng tổng số
-            let totalClTong = 0,
-              totalClXong = 0,
-              totalClDang = 0,
-              totalClChua = 0;
-            let totalShTong = 0,
-              totalShMet = 0,
-              totalShTrang = 0,
-              totalShDang = 0,
-              totalShChua = 0;
-            let countGiaoNop = 0; // Đếm tổng số các đơn vị Đã giao nộp
-
-            // Hàm nâng cấp: Bóc tách chuỗi số (đổi dấu phẩy thành dấu chấm) an toàn để tính toán và chạy đồ thị
-            const parseRawNum = (str) => {
-              if (!str || str === "0") return 0;
-              let cleanStr = String(str).replace(/\./g, "").replace(",", ".");
-              const n = parseFloat(cleanStr);
-              return isNaN(n) ? 0 : n;
-            };
-
-            snapshot.forEach((docSnap) => {
-              if (docSnap.id.startsWith(currentCampaign + "_")) {
-                const item = docSnap.data();
-                const uKey = docSnap.id.replace(currentCampaign + "_", "");
-                globalFirebaseCache[uKey] = item;
-
-                // Cộng dồn các chỉ số của từng hàng vào biến tổng
-                totalClTong += parseRawNum(item.clTong);
-                totalClXong += parseRawNum(item.clXong);
-                totalClDang += parseRawNum(item.clDang);
-                totalClChua += parseRawNum(item.clChua);
-
-                totalShTong += parseRawNum(item.shTong);
-                totalShMet += parseRawNum(item.shMet);
-                totalShTrang += parseRawNum(item.shTrang);
-                totalShDang += parseRawNum(item.shDang);
-                totalShChua += parseRawNum(item.shChua);
-
-                if (item.giaoNop === "Đã giao nộp") {
-                  countGiaoNop++; // Tăng biến đếm nếu trạng thái là Đã giao nộp
-                }
-
-                // Cấu hình nhãn Badge hiển thị trạng thái Giao nộp
-                const statusColor =
-                  item.giaoNop === "Đã giao nộp" ? "#16a34a" : "#ef4444";
-                const statusBg =
-                  item.giaoNop === "Đã giao nộp" ? "#e6f4ea" : "#fdf2f2";
-
-                // Hàm bổ trợ gọt số thập phân về đúng 1 chữ số khi hiển thị ra bảng ma trận
-                const formatViewNum = (str) => {
-                  if (!str || str === "0") return "0";
-                  let num = parseFloat(String(str).replace(",", "."));
-                  return isNaN(num) ? "0" : num.toFixed(1).replace(".", ",");
-                };
-
-                const newRow = document.createElement("tr");
-                newRow.style.borderBottom = "1px solid #e2e8f0";
-                if (sttCounter % 2 === 0) newRow.style.background = "#f8fafc";
-
-                newRow.innerHTML = `
-                  <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; color:#64748b;">${sttCounter}</td>
-                  <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: 600; color:#1e293b;">${item.name || "Đơn vị chưa rõ"}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${formatViewNum(item.clTong)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.clXong)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.clDang)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${formatViewNum(item.clChua)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${formatViewNum(item.shTong)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.shMet)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #9b59b6; font-weight: 700;">${item.shTrang || "0"}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.shDang)}</td>
-                  <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${formatViewNum(item.shChua)}</td>
-                  <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; width: 140px;">
-                    <span style="display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; color: ${statusColor}; background: ${statusBg}; border: 1px solid ${statusColor}30;">
-                      ${item.giaoNop || "Chưa giao nộp"}
-                    </span>
-                  </td>
-                `;
-                tableBody.appendChild(newRow);
-                sttCounter++;
-              }
-            });
-
-            // PHẦN THÊM MỚI: TỰ ĐỘNG SINH HÀNG TỔNG SỐ KHI CÓ DỮ LIỆU ĐƠN VỊ
-            if (sttCounter > 1) {
-              const formatTotal = (num) => {
-                if (!num || num === 0) return "0,0";
-                const fixedNum = num.toFixed(1);
-                const parts = fixedNum.split(".");
-                const integerPart = parseInt(parts[0]).toLocaleString("vi-VN"); // Tạo dấu chấm hàng nghìn
-                const decimalPart = parts[1] || "0";
-                return `${integerPart},${decimalPart}`;
-              };
-              const totalRow = document.createElement("tr");
-
-              totalRow.style.background = "#f1f5f9";
-              totalRow.style.fontWeight = "700";
-              totalRow.style.borderTop = "2px solid #cbd5e1";
-              totalRow.style.borderBottom = "2px solid #cbd5e1";
-
-              totalRow.innerHTML = `
-              <td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; color:#1e293b;">-</td>
-              <td style="padding: 10px; border: 1px solid #cbd5e1; color:#0056b3; text-transform: uppercase; font-size: 12px;">TỔNG SỐ CÁC ĐƠN VỊ</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#0056b3;">${formatTotal(totalClTong)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalClXong)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalClDang)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#64748b;">${formatTotal(totalClChua)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#16a34a;">${formatTotal(totalShTong)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalShMet)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color: #9b59b6;">${totalShTrang.toLocaleString("vi-VN")}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalShDang)}</td>
-              <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#64748b;">${formatTotal(totalShChua)}</td>
-              <td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; color:#16a34a; font-size: 12px;">
-                <span style="background: #e6f4ea; padding: 4px 12px; border-radius: 50px; border: 1px solid #16a34a;">
-                  ${countGiaoNop} Đơn vị
-                </span>
-              </td>
-            `;
-              tableBody.appendChild(totalRow);
-            }
-
-            // =========================================================================
-            // CẬP NHẬT: LOGIC TÍNH TOÁN VÀ VẼ BIỂU ĐỒ HÌNH TRÒN CƠ CẤU % TỔNG
-            // =========================================================================
-
-            // 1. Tính toán % cơ cấu tổng thể từ các biến cộng dồn hàng tổng số
-            const totalCl = totalClTong > 0 ? totalClTong : 1;
-            const pClXong = parseFloat(
-              ((totalClXong / totalCl) * 100).toFixed(1),
-            );
-            const pClDang = parseFloat(
-              ((totalClDang / totalCl) * 100).toFixed(1),
-            );
-            const pClChua = parseFloat(
-              ((totalClChua / totalCl) * 100).toFixed(1),
-            );
-
-            const totalSh = totalShTong > 0 ? totalShTong : 1;
-            const pShXong = parseFloat(
-              ((totalShMet / totalSh) * 100).toFixed(1),
-            );
-            const pShDang = parseFloat(
-              ((totalShDang / totalSh) * 100).toFixed(1),
-            );
-            const pShChua = parseFloat(
-              ((totalShChua / totalSh) * 100).toFixed(1),
-            );
-
-            // 2. Hàm vẽ biểu đồ tròn (Doughnut) cho Chỉnh lý và Số hóa tổng thể
-            const renderPieChart = (canvasId, dataValues, colors) => {
-              const ctx = document.getElementById(canvasId);
-              if (!ctx) return;
-              if (window[canvasId + "Instance"]) {
-                window[canvasId + "Instance"].destroy();
-              }
-
-              window[canvasId + "Instance"] = new Chart(ctx, {
-                type: "doughnut",
-                data: {
-                  labels: ["Đã xong", "Đang thực hiện", "Chưa thực hiện"],
-                  datasets: [
-                    {
-                      data: dataValues,
-                      backgroundColor: colors,
-                      borderWidth: 1,
-                    },
-                  ],
-                },
-                options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                      formatter: (value) => (value > 0 ? value + "%" : ""),
-                      color: "#ffffff",
-                      font: { size: 10, weight: "700" },
-                    },
-                  },
-                  cutout: "60%", // Tạo phom hình nhẫn hiện đại
-                },
-                plugins: [ChartDataLabels],
-              });
-            };
-
-            // 3. Hàm nâng cấp cấu hình vẽ đồ thị thanh ngang cho các biểu đồ Top 5 Thấp nhất
-            const renderSubBarChart = (canvasId, labels, data, barColor) => {
-              const ctx = document.getElementById(canvasId);
-              if (!ctx) return;
-              if (window[canvasId + "Instance"]) {
-                window[canvasId + "Instance"].destroy();
-              }
-
-              window[canvasId + "Instance"] = new Chart(ctx, {
-                type: "bar",
-                data: {
-                  labels: labels,
-                  datasets: [
-                    {
-                      data: data,
-                      backgroundColor: barColor,
-                      borderRadius: 4,
-                      barThickness: 10,
-                    },
-                  ],
-                },
-                options: {
-                  indexAxis: "y",
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  layout: {
-                    padding: {
-                      right: 35,
-                      left: 10, // Đệm lề trái nhỏ để chữ không dính sát viền khối
-                    },
-                  },
-                  plugins: {
-                    legend: { display: false },
-                    datalabels: {
-                      anchor: "end",
-                      align: "right",
-                      formatter: (v) => v + "%",
-                      font: { size: 9, weight: "700" },
-                      color: "#1e293b",
-                    },
-                  },
-                  scales: {
-                    x: { max: 100, display: false, grid: { display: false } },
-                    y: {
-                      grid: { display: false },
-                      ticks: {
-                        font: { size: 9, weight: "600" },
-                        color: "#1e293b",
-                        // Giải pháp 1: Nới rộng độ dài hiển thị tối đa từ 12 ký tự lên 22 ký tự giúp tên đơn vị dài không bị khuất
-                        callback: function (value) {
-                          const label = this.getLabelForValue(value);
-                          return label.length > 22
-                            ? label.substr(0, 22) + "..."
-                            : label;
-                        },
-                      },
-                    },
-                  },
-                },
-                plugins: [ChartDataLabels],
-              });
-            };
-
-            // Lọc dữ liệu phục vụ biểu đồ Top 5 thấp nhất (Đã gọt chữ "Đảng ủy")
-            let chartDataList = [];
-            Object.values(globalFirebaseCache).forEach((item) => {
-              const clTongNum = parseRawNum(item.clTong);
-              const clXongNum = parseRawNum(item.clXong);
-              const shTongNum = parseRawNum(item.shTong);
-              const shMetNum = parseRawNum(item.shMet);
-
-              // Giải pháp 2: Tự động phát hiện và cắt bỏ từ "Đảng ủy" ở đầu tên cơ quan cho gọn
-              let cleanName = item.name || "Đơn vị chưa rõ";
-              cleanName = cleanName.replace(
-                /^(Đảng ủy xã|Đảng ủy phường|Đảng ủy)\s+/i,
-                "",
-              );
-
-              chartDataList.push({
-                name: cleanName,
-                clPercent:
-                  clTongNum > 0
-                    ? parseFloat(((clXongNum / clTongNum) * 100).toFixed(1))
-                    : 0,
-                shPercent:
-                  shTongNum > 0
-                    ? parseFloat(((shMetNum / shTongNum) * 100).toFixed(1))
-                    : 0,
-              });
-            });
-            const clBottom5 = [...chartDataList]
-              .sort((a, b) => a.clPercent - b.clPercent)
-              .slice(0, 5);
-            const shBottom5 = [...chartDataList]
-              .sort((a, b) => a.shPercent - b.shPercent)
-              .slice(0, 5);
-
-            // Kích hoạt hiển thị đồng bộ lên giao diện web
-            setTimeout(() => {
-              // Vẽ 2 biểu đồ hình tròn mới đại diện cho phần trăm tổng
-              renderPieChart(
-                "chart-cl-top",
-                [pClXong, pClDang, pClChua],
-                ["#16a34a", "#e67e22", "#dc2626"],
-              );
-              renderPieChart(
-                "chart-sh-top",
-                [pShXong, pShDang, pShChua],
-                ["#0284c7", "#e67e22", "#dc2626"],
-              );
-
-              // Vẽ 2 biểu đồ dạng thanh ngang thấp nhất ổn định như cũ
-              renderSubBarChart(
-                "chart-cl-bottom",
-                clBottom5.map((d) => d.name),
-                clBottom5.map((d) => d.clPercent),
-                "#dc2626",
-              );
-              renderSubBarChart(
-                "chart-sh-bottom",
-                shBottom5.map((d) => d.name),
-                shBottom5.map((d) => d.shPercent),
-                "#e67e22",
-              );
-            }, 100);
-
-            // Giữ lại logic xử lý hiển thị khi không có hàng dữ liệu nào
-            if (sttCounter === 1) {
-              tableBody.innerHTML = `
-              <tr>
-                <td colspan="12" style="padding: 20px; text-align: center; color: #94a3b8; font-style: italic; background: #fdfdfe;">
-                  Chưa có dữ liệu đơn vị nào được cập nhật trên hệ thống.
-                </td>
-              </tr>
-            `;
-            }
-          });
-
-          // LOGIC CHẠT TỰ ĐỘNG ĐIỀN LẠI DỮ LIỆU CŨ KHI CHỌN ĐƠN VỊ TRÊN DROPDOWN MODAL
-          const unitSelect = document.getElementById("pop-unit-select");
-          if (unitSelect) {
-            unitSelect.addEventListener("change", (e) => {
-              const selectedKey = e.target.value;
-              if (selectedKey && globalFirebaseCache[selectedKey]) {
-                const oldData = globalFirebaseCache[selectedKey];
-                const parseViNum = (str) =>
-                  str
-                    ? parseFloat(str.replace(/[^0-9,-]/g, "").replace(",", "."))
-                    : "";
-                const parseViInt = (str) =>
-                  str ? parseInt(str.replace(/[^0-9]/g, "")) : "";
-
-                document.getElementById("pop-cl-tong").value = parseViNum(
-                  oldData.clTong,
-                );
-                document.getElementById("pop-cl-xong").value = parseViNum(
-                  oldData.clXong,
-                );
-                document.getElementById("pop-cl-dang").value = parseViNum(
-                  oldData.clDang,
-                );
-                document.getElementById("pop-cl-chua").value =
-                  oldData.clChua || "0";
-                document.getElementById("pop-sh-tong").value = parseViNum(
-                  oldData.shTong,
-                );
-                document.getElementById("pop-sh-met").value = parseViNum(
-                  oldData.shMet,
-                );
-                document.getElementById("pop-sh-dang").value = parseViNum(
-                  oldData.shDang,
-                );
-                document.getElementById("pop-sh-chua").value =
-                  oldData.shChua || "0";
-                document.getElementById("pop-sh-trang").value = parseViInt(
-                  oldData.shTrang,
-                );
-                document.getElementById("pop-giao-nop").value =
-                  oldData.giaoNop || "Chưa giao nộp";
-              } else {
-                const form = document.querySelector("#subUnitModal form");
-                if (form) {
-                  const currentSel = unitSelect.value;
-                  form.reset();
-                  unitSelect.value = currentSel;
-                  document.getElementById("pop-cl-chua").value = "0";
-                  document.getElementById("pop-sh-chua").value = "0";
-                  document.getElementById("pop-giao-nop").value =
-                    "Chưa giao nộp";
-                }
-              }
-            });
-            // =========================================================================
-            // THÊM MỚI: LOGIC TỰ ĐỘNG LỌC NHANH TÊN ĐƠN VỊ KHI GÕ TỪ KHÓA TÌM KIẾM
-            // =========================================================================
-            const unitSearchInput = document.getElementById("pop-unit-search");
-            if (unitSearchInput && unitSelect) {
-              unitSearchInput.addEventListener("input", (e) => {
-                const keyword = e.target.value.toLowerCase().trim();
-                const options = unitSelect.options;
-
-                for (let i = 1; i < options.length; i++) {
-                  // Bỏ qua option đầu tiên (Tiêu đề mặc định)
-                  const optionText = options[i].textContent.toLowerCase();
-                  if (optionText.includes(keyword)) {
-                    options[i].style.display = ""; // Hiển thị nếu khớp từ khóa
-                  } else {
-                    options[i].style.display = "none"; // Ẩn nếu không khớp
-                  }
-                }
-              });
-            }
-          }
-
-          // =========================================================================
-          // LOGIC CHẠY NGẦM REAL-TIME: KHÓA/MỚI NÚT + HIỂN THỊ THỜI HẠN NHẬP LIỆU
-          // =========================================================================
-          onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
-            if (!docSnap.exists()) return;
-            const config = docSnap.data();
-            const startTime = config.startTime
-              ? new Date(config.startTime)
-              : null;
-            const endTime = config.endTime ? new Date(config.endTime) : null;
-            const btnUpdate = document.querySelector(
-              "button[onclick*='openSubUnitModal']",
-            );
-            const timeDisplay = document.getElementById("lock-time-display");
-
-            const formatDateTime = (date) => {
-              if (!date) return "";
-              const pad = (n) => String(n).padStart(2, "0");
-              return `${pad(date.getHours())}:${pad(date.getMinutes())} ngày ${pad(date.getDate())}/${pad(date.getMonth() + 1)}`;
-            };
-
-            if (timeDisplay && startTime && endTime) {
-              timeDisplay.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> (Thời hạn nhập liệu: Từ ${formatDateTime(startTime)} đến ${formatDateTime(endTime)})`;
-            }
-
-            const checkLockStatus = () => {
-              if (!startTime || !endTime || !btnUpdate) return;
-              const now = new Date();
-              if (now < startTime || now > endTime) {
-                btnUpdate.disabled = true;
-                btnUpdate.style.setProperty(
-                  "background",
-                  "#94a3b8",
-                  "important",
-                );
-                btnUpdate.style.cursor = "not-allowed";
-                btnUpdate.style.opacity = "0.75";
-                btnUpdate.style.boxShadow = "none";
-                btnUpdate.innerHTML = `<i class="fa-solid fa-lock"></i> Hết giờ cập nhật`;
-              } else {
-                btnUpdate.disabled = false;
-                btnUpdate.style.setProperty(
-                  "background",
-                  "#16a34a",
-                  "important",
-                );
-                btnUpdate.style.cursor = "pointer";
-                btnUpdate.style.opacity = "1";
-                btnUpdate.style.boxShadow = "0 2px 4px rgba(22,163,74,0.15)";
-                btnUpdate.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Cập nhật số liệu`;
-              }
-            };
-
-            checkLockStatus();
-            if (window.lockInterval) clearInterval(window.lockInterval);
-            window.lockInterval = setInterval(checkLockStatus, 1000);
-          });
-
-          // Hàm ghi đè dữ liệu lên Firebase
-          // Hàm ghi đè và lưu dữ liệu lên Firebase (Đã tích hợp bộ kiểm tra chặn số liệu lỗi)
-          window.saveSubUnitData = async function (event) {
-            event.preventDefault();
-
-            const unitKey = document.getElementById("pop-unit-select").value;
-            if (!unitKey) {
-              alert("Vui lòng chọn đơn vị cần cập nhật số liệu!");
-              return;
-            }
-            const unitName = currentOrgUnitsCache[unitKey] || "Đơn vị mới";
-
-            // 1. LẤY SỐ LIỆU THÔ TỪ CÁC Ô NHẬP LIỆU ĐỂ KIỂM TRA LOGIC TOÁN HỌC
-            const clTongVal =
-              parseFloat(document.getElementById("pop-cl-tong").value) || 0;
-            const clXongVal =
-              parseFloat(document.getElementById("pop-cl-xong").value) || 0;
-            const clDangVal =
-              parseFloat(document.getElementById("pop-cl-dang").value) || 0;
-
-            const shTongVal =
-              parseFloat(document.getElementById("pop-sh-tong").value) || 0;
-            const shMetVal =
-              parseFloat(document.getElementById("pop-sh-met").value) || 0;
-            const shDangVal =
-              parseFloat(document.getElementById("pop-sh-dang").value) || 0;
-
-            // 2. BỘ KIỂM TRA LOGIC CHẶN SỐ LIỆU BẤT HỢP LÝ
-            // Kiểm tra phân hệ Chỉnh lý
-            if (clXongVal + clDangVal > clTongVal) {
-              alert(
-                `[CẢNH BÁO SỐ LIỆU CHỈNH LÝ]: \nĐơn vị: ${unitName}\nSố liệu không hợp lệ! Tổng số mét đã chỉnh lý (${clXongVal}) và đang thực hiện (${clDangVal}) cộng lại là ${clXongVal + clDangVal} mét, vượt quá Tổng số mét cần chỉnh lý là ${clTongVal} mét.`,
-              );
-              return; // Chặn đứng tiến trình, không cho lưu dữ liệu lên Firebase
-            }
-
-            // Kiểm tra phân hệ Số hóa
-            // [KIỂM TRA LOGIC CHỈNH LÝ]: Thay thế alert của window bằng giao diện mới
-            if (clXongVal + clDangVal > clTongVal) {
-              showCustomAlert(
-                "Cảnh báo số liệu chỉnh lý",
-                `Đơn vị: <b>${unitName}</b><br><br>Số liệu nhập vào không hợp lệ! Tổng số mét đã chỉnh lý (${clXongVal.toString().replace(".", ",")}) và đang thực hiện (${clDangVal.toString().replace(".", ",")}) cộng lại vượt quá <b>Tổng số mét cần chỉnh lý</b> (${clTongVal.toString().replace(".", ",")} m).`,
-              );
-              return; // Chặn lưu lên Firebase
-            }
-
-            // [KIỂM TRA LOGIC SỐ HÓA]: Thay thế alert của window bằng giao diện mới
-            if (shMetVal + shDangVal > shTongVal) {
-              showCustomAlert(
-                "Cảnh báo số liệu số hóa",
-                `Đơn vị: <b>${unitName}</b><br><br>Số liệu nhập vào không hợp lệ! Tổng số mét đã số hóa (${shMetVal.toString().replace(".", ",")}) và đang thực hiện (${shDangVal.toString().replace(".", ",")}) cộng lại vượt quá <b>Tổng số mét cần số hóa</b> (${shTongVal.toString().replace(".", ",")} m).`,
-              );
-              return; // Chặn lưu lên Firebase
-            }
-            // 3. TIẾN TRÌNH ĐỊNH DẠNG VÀ ĐỒNG BỘ DỮ LIỆU KHI ĐÃ HỢP LỆ (Giữ nguyên cấu trúc cũ ổn định)
-            const formatNum = (val) =>
-              val && parseFloat(val) !== 0
-                ? parseFloat(val).toFixed(1).replace(".", ",")
-                : "0";
-            const formatInt = (val) =>
-              val && parseInt(val) !== 0
-                ? parseInt(val).toLocaleString("vi-VN")
-                : "0";
-
-            const clTong = formatNum(
-              document.getElementById("pop-cl-tong").value,
-            );
-            const clXong = formatNum(
-              document.getElementById("pop-cl-xong").value,
-            );
-            const clDang = formatNum(
-              document.getElementById("pop-cl-dang").value,
-            );
-            const clChua = formatNum(
-              document.getElementById("pop-cl-chua").value,
-            );
-
-            const shTong = formatNum(
-              document.getElementById("pop-sh-tong").value,
-            );
-            const shMet = formatNum(
-              document.getElementById("pop-sh-met").value,
-            );
-            const shTrang = formatInt(
-              document.getElementById("pop-sh-trang").value,
-            );
-            const shDang = formatNum(
-              document.getElementById("pop-sh-dang").value,
-            );
-            const shChua = formatNum(
-              document.getElementById("pop-sh-chua").value,
-            );
-            const giaoNopStatus = document.getElementById("pop-giao-nop").value;
-
-            try {
-              await setDoc(
-                doc(db, "SubUnitsData", `${currentCampaign}_${unitKey}`),
-                {
-                  unitKey: unitKey,
-                  name: unitName,
-                  clTong: clTong,
-                  clXong: clXong,
-                  clDang: clDang,
-                  clChua: clChua,
-                  shTong: shTong,
-                  shMet: shMet,
-                  shTrang: shTrang,
-                  shDang: shDang,
-                  shChua: shChua,
-                  giaoNop: giaoNopStatus,
-                  updatedAt: new Date().toISOString(),
-                },
-              );
-
-              // Hiển thị thông báo Toast thành công
-              const toast = document.createElement("div");
-              toast.innerHTML = `
-                <div style="position: fixed; top: 24px; right: 24px; background: #16a34a; color: #ffffff; padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; z-index: 10000; animation: toastSlideIn 0.3s ease forwards;">
-                  <i class="fa-solid fa-circle-check" style="font-size: 16px;"></i>
-                  <span>Cập nhật số liệu [${unitName}] lên hệ thống thành công!</span>
-                </div>
-                <style>
-                  @keyframes toastSlideIn {
-                    from { transform: translateY(-20px); opacity: 0; }
-                    to { transform: translateY(0); opacity: 1; }
-                  }
-                </style>
-              `;
-              document.body.appendChild(toast);
-              setTimeout(() => {
-                toast.remove();
-              }, 3000);
-              closeSubUnitModal();
-            } catch (error) {
-              console.error("Lỗi đồng bộ Firebase:", error);
-              alert(
-                "Có lỗi xảy ra trong quá trình đồng bộ đường truyền Firebase!",
-              );
-            }
-          };
-
-          window.checkMissingUnits = async function () {
-            const modal = document.getElementById("missingUnitsModal");
-            const modalBody = document.getElementById("missing-modal-body");
-            if (!modal || !modalBody) return;
-
-            modalBody.innerHTML = `
-            <div style="text-align: center; padding: 20px; color: #64748b; font-weight: 600;">
-              <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #e67e22;"></i> Đang truy vấn danh sách cơ quan từ hệ thống...
-            </div>
-          `;
-
-            modal.style.display = "flex";
-
-            try {
-              const orgSnapshot = await getDocs(
-                collection(db, "organization_units"),
-              );
-              let allUnits = [];
-              orgSnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                if (data.unitName) {
-                  allUnits.push({
-                    key: docSnap.id,
-                    name: data.unitName,
-                    stt: data.stt || 999,
-                  });
-                }
-              });
-
-              allUnits.sort((a, b) => a.stt - b.stt);
-              const reportedNames = Object.values(globalFirebaseCache).map(
-                (item) => (item.name ? item.name.trim() : ""),
-              );
-              const missingUnits = allUnits.filter(
-                (unit) =>
-                  !reportedNames.includes(unit.name ? unit.name.trim() : ""),
-              );
-
-              if (missingUnits.length === 0) {
-                modalBody.innerHTML = `
-                <div style="text-align: center; padding: 15px; background: #e6f4ea; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 700; font-size: 13px;">
-                  <i class="fa-solid fa-circle-check" style="font-size: 16px; margin-right: 6px;"></i> 100% các đơn vị trực thuộc đã hoàn thành báo cáo số liệu.
-                </div>
-              `;
-              } else {
-                let listHtml = `
-                <div style="margin-bottom: 12px; font-size: 13px; font-weight: 700; color: #334155;">
-                  Phát hiện <span style="color: #dc2626; font-size: 14px;">${missingUnits.length}</span> đơn vị chưa cập nhật dữ liệu:
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 6px;">
-              `;
-                missingUnits.forEach((unit, idx) => {
-                  listHtml += `
-                  <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                    <span style="font-weight: 600; color: #1e293b; font-size: 12.5px;">${idx + 1}. ${unit.name}</span>
-                    <span style="font-size: 10.5px; font-weight: 700; background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 50px; border: 1px solid #fecaca;">Chưa báo cáo</span>
-                  </div>
-                `;
-                });
-                listHtml += `</div>`;
-                modalBody.innerHTML = listHtml;
-              }
-            } catch (error) {
-              console.error("Lỗi lấy danh sách organization_units:", error);
-              modalBody.innerHTML = `
-              <div style="text-align: center; padding: 15px; background: #fdf2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 8px; font-weight: 700; font-size: 12.5px;">
-                <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Lỗi truy xuất đường truyền dữ liệu Firebase!
-              </div>
-            `;
-            }
-          };
-          const tableSearchInput = document.getElementById("table-unit-search");
-          const countBadge = document.getElementById("search-count-badge");
-
-          if (tableSearchInput) {
-            tableSearchInput.addEventListener("input", (e) => {
-              const keyword = e.target.value.toLowerCase().trim();
-              const tableBody = document.getElementById("dangbo-matrix-body");
-              if (!tableBody) return;
-
-              const rows = Array.from(tableBody.getElementsByTagName("tr"));
-              let visibleCount = 0;
-              let hasDataRow = false;
-
-              rows.forEach((row) => {
-                const isTotalRow =
-                  row.textContent.includes("TỔNG SỐ CÁC ĐƠN VỊ");
-
-                if (!isTotalRow) {
-                  const unitNameCell = row.getElementsByTagName("td")[1];
-                  if (unitNameCell) {
-                    hasDataRow = true;
-                    const unitName = unitNameCell.textContent.toLowerCase();
-
-                    if (unitName.includes(keyword)) {
-                      row.style.display = "";
-                      visibleCount++;
-                    } else {
-                      row.style.display = "none";
-                    }
-                  }
-                }
-              });
-
-              if (countBadge && hasDataRow) {
-                if (keyword !== "") {
-                  countBadge.textContent = `Tìm thấy: ${visibleCount} đơn vị`;
-                  countBadge.style.display = "inline-block";
-                } else {
-                  countBadge.style.display = "none";
-                }
-              }
-            });
-          }
-        }
+           import {
+             getFirestore,
+             doc,
+             setDoc,
+             onSnapshot,
+             collection,
+             getDocs,
+           } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+           let globalFirebaseCache = {}; // Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
+           let currentOrgUnitsCache = {}; // Lưu trữ bộ đệm động để đối chiếu Mã đơn vị -> Tên đơn vị khi lưu dữ liệu
+
+           // Chờ toàn bộ trang và tệp mã nguồn js/dashboard.js nạp xong để có cấu hình Firebase App
+           window.addEventListener("load", () => {
+             try {
+               const db = getFirestore();
+               initFirebaseSync(db);
+             } catch (e) {
+               console.error("Đợi Firebase App khởi tạo thất bại:", e);
+             }
+           });
+
+           const currentCampaign = "dot_1_2026";
+
+           // BỔ SUNG TỪ KHÓA ASYNC Ở ĐÂY ĐỂ ĐÁNH TAN LỖI UNCAUGHT SYNTAXERROR
+           async function initFirebaseSync(db) {
+             // =========================================================================
+             // LOGIC TỰ ĐỘNG NẠP DANH SÁCH ĐƠN VỊ TỪ FIREBASE VÀO DROPDOWN MODAL
+             // =========================================================================
+             const dynamicUnitSelect = document.getElementById("pop-unit-select");
+
+             try {
+               // Lấy dữ liệu động từ collection organization_units
+               const orgSnapshot = await getDocs(
+                 collection(db, "organization_units"),
+               );
+               let rawUnits = [];
+
+               // Xóa bỏ trạng thái nhập cứng cũ, chỉ chừa lại dòng tiêu đề mặc định
+               if (dynamicUnitSelect) {
+                 dynamicUnitSelect.innerHTML =
+                   '<option value="">-- Chọn đơn vị cần cập nhật --</option>';
+               }
+
+               orgSnapshot.forEach((docSnap) => {
+                 const data = docSnap.data();
+                 if (data.unitName) {
+                   rawUnits.push({
+                     key: docSnap.id,
+                     name: data.unitName,
+                     stt: data.stt || 999,
+                   });
+                   // Đồng bộ thông tin vào bộ đệm cache toàn cục phục vụ hàm saveSubUnitData
+                   currentOrgUnitsCache[docSnap.id] = data.unitName;
+                 }
+               });
+
+               // Sắp xếp danh sách đơn vị theo thứ tự STT chuẩn cấu hình
+               rawUnits.sort((a, b) => a.stt - b.stt);
+
+               // Render động các tùy chọn vào thẻ Select Dropdown
+               if (dynamicUnitSelect) {
+                 rawUnits.forEach((unit) => {
+                   const opt = document.createElement("option");
+                   opt.value = unit.key;
+                   opt.textContent = unit.name;
+                   dynamicUnitSelect.appendChild(opt);
+                 });
+               }
+             } catch (error) {
+               console.error(
+                 "Lỗi nạp danh sách cơ quan vào dropdown modal:",
+                 error,
+               );
+             }
+             // =========================================================================
+
+             // Lắng nghe dữ liệu thực tế từ Firebase và tự động tính hàng TỔNG SỐ ở cuối bảng
+             onSnapshot(collection(db, "SubUnitsData"), (snapshot) => {
+               const tableBody = document.getElementById("dangbo-matrix-body");
+               if (!tableBody) return;
+
+               tableBody.innerHTML = "";
+               let sttCounter = 1;
+               globalFirebaseCache = {}; // Xóa trống cache cũ
+
+               // Khởi tạo các biến cộng dồn hàng tổng số
+               let totalClTong = 0,
+                 totalClXong = 0,
+                 totalClDang = 0,
+                 totalClChua = 0;
+               let totalShTong = 0,
+                 totalShMet = 0,
+                 totalShTrang = 0,
+                 totalShDang = 0,
+                 totalShChua = 0;
+               let countGiaoNop = 0; // Đếm tổng số các đơn vị Đã giao nộp
+
+               // Hàm nâng cấp: Bóc tách chuỗi số (đổi dấu phẩy thành dấu chấm) an toàn để tính toán và chạy đồ thị
+               const parseRawNum = (str) => {
+                 if (!str || str === "0") return 0;
+                 let cleanStr = String(str).replace(/\./g, "").replace(",", ".");
+                 const n = parseFloat(cleanStr);
+                 return isNaN(n) ? 0 : n;
+               };
+
+               snapshot.forEach((docSnap) => {
+                 if (docSnap.id.startsWith(currentCampaign + "_")) {
+                   const item = docSnap.data();
+                   const uKey = docSnap.id.replace(currentCampaign + "_", "");
+                   globalFirebaseCache[uKey] = item;
+
+                   // Cộng dồn các chỉ số của từng hàng vào biến tổng
+                   totalClTong += parseRawNum(item.clTong);
+                   totalClXong += parseRawNum(item.clXong);
+                   totalClDang += parseRawNum(item.clDang);
+                   totalClChua += parseRawNum(item.clChua);
+
+                   totalShTong += parseRawNum(item.shTong);
+                   totalShMet += parseRawNum(item.shMet);
+                   totalShTrang += parseRawNum(item.shTrang);
+                   totalShDang += parseRawNum(item.shDang);
+                   totalShChua += parseRawNum(item.shChua);
+
+                   if (item.giaoNop === "Đã giao nộp") {
+                     countGiaoNop++; // Tăng biến đếm nếu trạng thái là Đã giao nộp
+                   }
+
+                   // Cấu hình nhãn Badge hiển thị trạng thái Giao nộp
+                   const statusColor =
+                     item.giaoNop === "Đã giao nộp" ? "#16a34a" : "#ef4444";
+                   const statusBg =
+                     item.giaoNop === "Đã giao nộp" ? "#e6f4ea" : "#fdf2f2";
+
+                   // Hàm bổ trợ gọt số thập phân về đúng 1 chữ số khi hiển thị ra bảng ma trận
+                   const formatViewNum = (str) => {
+                     if (!str || str === "0") return "0";
+                     let num = parseFloat(String(str).replace(",", "."));
+                     return isNaN(num) ? "0" : num.toFixed(1).replace(".", ",");
+                   };
+
+                   const newRow = document.createElement("tr");
+                   newRow.style.borderBottom = "1px solid #e2e8f0";
+                   if (sttCounter % 2 === 0) newRow.style.background = "#f8fafc";
+
+                   newRow.innerHTML = `
+                     <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; color:#64748b;">${sttCounter}</td>
+                     <td style="padding: 8px; border: 1px solid #e2e8f0; font-weight: 600; color:#1e293b;">${item.name || "Đơn vị chưa rõ"}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${formatViewNum(item.clTong)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.clXong)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.clDang)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${formatViewNum(item.clChua)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; font-weight: 700;">${formatViewNum(item.shTong)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.shMet)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #9b59b6; font-weight: 700;">${item.shTrang || "0"}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0;">${formatViewNum(item.shDang)}</td>
+                     <td style="padding: 8px; text-align: right; border: 1px solid #e2e8f0; color: #64748b; background: #f8fafc;">${formatViewNum(item.shChua)}</td>
+                     <td style="padding: 8px; text-align: center; border: 1px solid #e2e8f0; width: 140px;">
+                       <span style="display: inline-block; padding: 4px 10px; border-radius: 50px; font-size: 11px; font-weight: 700; color: ${statusColor}; background: ${statusBg}; border: 1px solid ${statusColor}30;">
+                         ${item.giaoNop || "Chưa giao nộp"}
+                       </span>
+                     </td>
+                   `;
+                   tableBody.appendChild(newRow);
+                   sttCounter++;
+                 }
+               });
+
+               // PHẦN THÊM MỚI: TỰ ĐỘNG SINH HÀNG TỔNG SỐ KHI CÓ DỮ LIỆU ĐƠN VỊ
+               if (sttCounter > 1) {
+                 const formatTotal = (num) => {
+                   if (!num || num === 0) return "0,0";
+                   const fixedNum = num.toFixed(1);
+                   const parts = fixedNum.split(".");
+                   const integerPart = parseInt(parts[0]).toLocaleString("vi-VN"); // Tạo dấu chấm hàng nghìn
+                   const decimalPart = parts[1] || "0";
+                   return `${integerPart},${decimalPart}`;
+                 };
+                 const totalRow = document.createElement("tr");
+
+                 totalRow.style.background = "#f1f5f9";
+                 totalRow.style.fontWeight = "700";
+                 totalRow.style.borderTop = "2px solid #cbd5e1";
+                 totalRow.style.borderBottom = "2px solid #cbd5e1";
+
+                 totalRow.innerHTML = `
+                 <td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; color:#1e293b;">-</td>
+                 <td style="padding: 10px; border: 1px solid #cbd5e1; color:#0056b3; text-transform: uppercase; font-size: 12px;">TỔNG SỐ CÁC ĐƠN VỊ</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#0056b3;">${formatTotal(totalClTong)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalClXong)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalClDang)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#64748b;">${formatTotal(totalClChua)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#16a34a;">${formatTotal(totalShTong)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalShMet)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color: #9b59b6;">${totalShTrang.toLocaleString("vi-VN")}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1;">${formatTotal(totalShDang)}</td>
+                 <td style="padding: 10px; text-align: right; border: 1px solid #cbd5e1; color:#64748b;">${formatTotal(totalShChua)}</td>
+                 <td style="padding: 10px; text-align: center; border: 1px solid #cbd5e1; color:#16a34a; font-size: 12px;">
+                   <span style="background: #e6f4ea; padding: 4px 12px; border-radius: 50px; border: 1px solid #16a34a;">
+                     ${countGiaoNop} Đơn vị
+                   </span>
+                 </td>
+               `;
+                 tableBody.appendChild(totalRow);
+               }
+
+               // =========================================================================
+               // CẬP NHẬT: LOGIC TÍNH TOÁN VÀ VẼ BIỂU ĐỒ HÌNH TRÒN CƠ CẤU % TỔNG
+               // =========================================================================
+
+               // 1. Tính toán % cơ cấu tổng thể từ các biến cộng dồn hàng tổng số
+               const totalCl = totalClTong > 0 ? totalClTong : 1;
+               const pClXong = parseFloat(
+                 ((totalClXong / totalCl) * 100).toFixed(1),
+               );
+               const pClDang = parseFloat(
+                 ((totalClDang / totalCl) * 100).toFixed(1),
+               );
+               const pClChua = parseFloat(
+                 ((totalClChua / totalCl) * 100).toFixed(1),
+               );
+
+               const totalSh = totalShTong > 0 ? totalShTong : 1;
+               const pShXong = parseFloat(
+                 ((totalShMet / totalSh) * 100).toFixed(1),
+               );
+               const pShDang = parseFloat(
+                 ((totalShDang / totalSh) * 100).toFixed(1),
+               );
+               const pShChua = parseFloat(
+                 ((totalShChua / totalSh) * 100).toFixed(1),
+               );
+
+               // 2. Hàm vẽ biểu đồ tròn (Doughnut) cho Chỉnh lý và Số hóa tổng thể
+               const renderPieChart = (canvasId, dataValues, colors) => {
+                 const ctx = document.getElementById(canvasId);
+                 if (!ctx) return;
+                 if (window[canvasId + "Instance"]) {
+                   window[canvasId + "Instance"].destroy();
+                 }
+
+                 window[canvasId + "Instance"] = new Chart(ctx, {
+                   type: "doughnut",
+                   data: {
+                     labels: ["Đã xong", "Đang thực hiện", "Chưa thực hiện"],
+                     datasets: [
+                       {
+                         data: dataValues,
+                         backgroundColor: colors,
+                         borderWidth: 1,
+                       },
+                     ],
+                   },
+                   options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     plugins: {
+                       legend: { display: false },
+                       datalabels: {
+                         formatter: (value) => (value > 0 ? value + "%" : ""),
+                         color: "#ffffff",
+                         font: { size: 10, weight: "700" },
+                       },
+                     },
+                     cutout: "60%", // Tạo phom hình nhẫn hiện đại
+                   },
+                   plugins: [ChartDataLabels],
+                 });
+               };
+
+               // 3. Hàm nâng cấp cấu hình vẽ đồ thị thanh ngang cho các biểu đồ Top 5 Thấp nhất
+               const renderSubBarChart = (canvasId, labels, data, barColor) => {
+                 const ctx = document.getElementById(canvasId);
+                 if (!ctx) return;
+                 if (window[canvasId + "Instance"]) {
+                   window[canvasId + "Instance"].destroy();
+                 }
+
+                 window[canvasId + "Instance"] = new Chart(ctx, {
+                   type: "bar",
+                   data: {
+                     labels: labels,
+                     datasets: [
+                       {
+                         data: data,
+                         backgroundColor: barColor,
+                         borderRadius: 4,
+                         barThickness: 10,
+                       },
+                     ],
+                   },
+                   options: {
+                     indexAxis: "y",
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     layout: {
+                       padding: {
+                         right: 35,
+                         left: 10, // Đệm lề trái nhỏ để chữ không dính sát viền khối
+                       },
+                     },
+                     plugins: {
+                       legend: { display: false },
+                       datalabels: {
+                         anchor: "end",
+                         align: "right",
+                         formatter: (v) => v + "%",
+                         font: { size: 9, weight: "700" },
+                         color: "#1e293b",
+                       },
+                     },
+                     scales: {
+                       x: { max: 100, display: false, grid: { display: false } },
+                       y: {
+                         grid: { display: false },
+                         ticks: {
+                           font: { size: 9, weight: "600" },
+                           color: "#1e293b",
+                           // Giải pháp 1: Nới rộng độ dài hiển thị tối đa từ 12 ký tự lên 22 ký tự giúp tên đơn vị dài không bị khuất
+                           callback: function (value) {
+                             const label = this.getLabelForValue(value);
+                             return label.length > 22
+                               ? label.substr(0, 22) + "..."
+                               : label;
+                           },
+                         },
+                       },
+                     },
+                   },
+                   plugins: [ChartDataLabels],
+                 });
+               };
+
+               // Lọc dữ liệu phục vụ biểu đồ Top 5 thấp nhất (Đã gọt chữ "Đảng ủy")
+               let chartDataList = [];
+               Object.values(globalFirebaseCache).forEach((item) => {
+                 const clTongNum = parseRawNum(item.clTong);
+                 const clXongNum = parseRawNum(item.clXong);
+                 const shTongNum = parseRawNum(item.shTong);
+                 const shMetNum = parseRawNum(item.shMet);
+
+                 // Giải pháp 2: Tự động phát hiện và cắt bỏ từ "Đảng ủy" ở đầu tên cơ quan cho gọn
+                 let cleanName = item.name || "Đơn vị chưa rõ";
+                 cleanName = cleanName.replace(
+                   /^(Đảng ủy xã|Đảng ủy phường|Đảng ủy)\s+/i,
+                   "",
+                 );
+
+                 chartDataList.push({
+                   name: cleanName,
+                   clPercent:
+                     clTongNum > 0
+                       ? parseFloat(((clXongNum / clTongNum) * 100).toFixed(1))
+                       : 0,
+                   shPercent:
+                     shTongNum > 0
+                       ? parseFloat(((shMetNum / shTongNum) * 100).toFixed(1))
+                       : 0,
+                 });
+               });
+               const clBottom5 = [...chartDataList]
+                 .sort((a, b) => a.clPercent - b.clPercent)
+                 .slice(0, 5);
+               const shBottom5 = [...chartDataList]
+                 .sort((a, b) => a.shPercent - b.shPercent)
+                 .slice(0, 5);
+
+               // Kích hoạt hiển thị đồng bộ lên giao diện web
+               setTimeout(() => {
+                 // Vẽ 2 biểu đồ hình tròn mới đại diện cho phần trăm tổng
+                 renderPieChart(
+                   "chart-cl-top",
+                   [pClXong, pClDang, pClChua],
+                   ["#16a34a", "#e67e22", "#dc2626"],
+                 );
+                 renderPieChart(
+                   "chart-sh-top",
+                   [pShXong, pShDang, pShChua],
+                   ["#0284c7", "#e67e22", "#dc2626"],
+                 );
+
+                 // Vẽ 2 biểu đồ dạng thanh ngang thấp nhất ổn định như cũ
+                 renderSubBarChart(
+                   "chart-cl-bottom",
+                   clBottom5.map((d) => d.name),
+                   clBottom5.map((d) => d.clPercent),
+                   "#dc2626",
+                 );
+                 renderSubBarChart(
+                   "chart-sh-bottom",
+                   shBottom5.map((d) => d.name),
+                   shBottom5.map((d) => d.shPercent),
+                   "#e67e22",
+                 );
+               }, 100);
+
+               // Giữ lại logic xử lý hiển thị khi không có hàng dữ liệu nào
+               if (sttCounter === 1) {
+                 tableBody.innerHTML = `
+                 <tr>
+                   <td colspan="12" style="padding: 20px; text-align: center; color: #94a3b8; font-style: italic; background: #fdfdfe;">
+                     Chưa có dữ liệu đơn vị nào được cập nhật trên hệ thống.
+                   </td>
+                 </tr>
+               `;
+               }
+             });
+
+             // LOGIC CHẠT TỰ ĐỘNG ĐIỀN LẠI DỮ LIỆU CŨ KHI CHỌN ĐƠN VỊ TRÊN DROPDOWN MODAL
+             const unitSelect = document.getElementById("pop-unit-select");
+             if (unitSelect) {
+               unitSelect.addEventListener("change", (e) => {
+                 const selectedKey = e.target.value;
+                 if (selectedKey && globalFirebaseCache[selectedKey]) {
+                   const oldData = globalFirebaseCache[selectedKey];
+                   const parseViNum = (str) =>
+                     str
+                       ? parseFloat(str.replace(/[^0-9,-]/g, "").replace(",", "."))
+                       : "";
+                   const parseViInt = (str) =>
+                     str ? parseInt(str.replace(/[^0-9]/g, "")) : "";
+
+                   document.getElementById("pop-cl-tong").value = parseViNum(
+                     oldData.clTong,
+                   );
+                   document.getElementById("pop-cl-xong").value = parseViNum(
+                     oldData.clXong,
+                   );
+                   document.getElementById("pop-cl-dang").value = parseViNum(
+                     oldData.clDang,
+                   );
+                   document.getElementById("pop-cl-chua").value =
+                     oldData.clChua || "0";
+                   document.getElementById("pop-sh-tong").value = parseViNum(
+                     oldData.shTong,
+                   );
+                   document.getElementById("pop-sh-met").value = parseViNum(
+                     oldData.shMet,
+                   );
+                   document.getElementById("pop-sh-dang").value = parseViNum(
+                     oldData.shDang,
+                   );
+                   document.getElementById("pop-sh-chua").value =
+                     oldData.shChua || "0";
+                   document.getElementById("pop-sh-trang").value = parseViInt(
+                     oldData.shTrang,
+                   );
+                   document.getElementById("pop-giao-nop").value =
+                     oldData.giaoNop || "Chưa giao nộp";
+                 } else {
+                   const form = document.querySelector("#subUnitModal form");
+                   if (form) {
+                     const currentSel = unitSelect.value;
+                     form.reset();
+                     unitSelect.value = currentSel;
+                     document.getElementById("pop-cl-chua").value = "0";
+                     document.getElementById("pop-sh-chua").value = "0";
+                     document.getElementById("pop-giao-nop").value =
+                       "Chưa giao nộp";
+                   }
+                 }
+               });
+               // =========================================================================
+               // THÊM MỚI: LOGIC TỰ ĐỘNG LỌC NHANH TÊN ĐƠN VỊ KHI GÕ TỪ KHÓA TÌM KIẾM
+               // =========================================================================
+               const unitSearchInput = document.getElementById("pop-unit-search");
+               if (unitSearchInput && unitSelect) {
+                 unitSearchInput.addEventListener("input", (e) => {
+                   const keyword = e.target.value.toLowerCase().trim();
+                   const options = unitSelect.options;
+
+                   for (let i = 1; i < options.length; i++) {
+                     // Bỏ qua option đầu tiên (Tiêu đề mặc định)
+                     const optionText = options[i].textContent.toLowerCase();
+                     if (optionText.includes(keyword)) {
+                       options[i].style.display = ""; // Hiển thị nếu khớp từ khóa
+                     } else {
+                       options[i].style.display = "none"; // Ẩn nếu không khớp
+                     }
+                   }
+                 });
+               }
+             }
+
+             // =========================================================================
+             // LOGIC CHẠY NGẦM REAL-TIME: KHÓA/MỞ NÚT + PHÂN QUYỀN ĐẶC CÁCH CHO ADMIN
+             // =========================================================================
+             onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
+               if (!docSnap.exists()) return;
+               const config = docSnap.data();
+               const startTime = config.startTime
+                 ? new Date(config.startTime)
+                 : null;
+               const endTime = config.endTime ? new Date(config.endTime) : null;
+               const btnUpdate = document.querySelector(
+                 "button[onclick*='openSubUnitModal']",
+               );
+               const timeDisplay = document.getElementById("lock-time-display");
+
+               // Hàm bổ trợ định dạng hiển thị thời gian
+               const formatDateTime = (date) => {
+                 if (!date) return "";
+                 const pad = (n) => String(n).padStart(2, "0");
+                 return `${pad(date.getHours())}:${pad(date.getMinutes())} ngày ${pad(date.getDate())}/${pad(date.getMonth() + 1)}`;
+               };
+
+               // Hiển thị thời hạn nhập liệu lên tiêu đề bảng
+               if (timeDisplay && startTime && endTime) {
+                 timeDisplay.innerHTML = `<i class="fa-solid fa-clock-rotate-left"></i> (Thời hạn nhập liệu: Từ ${formatDateTime(startTime)} đến ${formatDateTime(endTime)})`;
+               }
+
+               const checkLockStatus = () => {
+                 if (!btnUpdate) return;
+
+                 // 1. KIỂM TRA ĐĂNG NHẬP CHÍNH XÁC THEO KEY FIREBASE THỰC TẾ
+                 // Quét kiểm tra Key Firebase Auth trong localStorage/sessionStorage
+                 const firebaseAuthInLocal = localStorage.getItem(
+                   "firebase:authUser:AIzaSyBPS9z4MOtXInL0hnslj82kdINd5vxix7g:[DEFAULT]",
+                 );
+                 const firebaseAuthInSession = sessionStorage.getItem(
+                   "firebase:authUser:AIzaSyBPS9z4MOtXInL0hnslj82kdINd5vxix7g:[DEFAULT]",
+                 );
+
+                 // Quét thêm nhãn góc phải màn hình
+                 const userDropdown = document.getElementById("admin-name");
+                 const hasUserInHeader =
+                   userDropdown &&
+                   userDropdown.textContent &&
+                   !userDropdown.textContent.includes("Đang tải");
+
+                 // Xác nhận trạng thái đăng nhập Quản trị
+                 const isLoggedInAdmin =
+                   hasUserInHeader ||
+                   !!firebaseAuthInLocal ||
+                   !!firebaseAuthInSession;
+
+                 const now = new Date();
+                 const isOutOfTime =
+                   startTime && endTime ? now < startTime || now > endTime : false;
+
+                 // 2. NẾU ĐÃ ĐĂNG NHẬP TÀI KHOẢN QUẢN TRỊ: Luôn luôn MỞ KHÓA
+                 if (isLoggedInAdmin) {
+                   btnUpdate.disabled = false;
+                   btnUpdate.style.setProperty(
+                     "background",
+                     "#16a34a",
+                     "important",
+                   );
+                   btnUpdate.style.cursor = "pointer";
+                   btnUpdate.style.opacity = "1";
+                   btnUpdate.style.boxShadow = "0 2px 4px rgba(22,163,74,0.15)";
+
+                   if (isOutOfTime) {
+                     btnUpdate.innerHTML = `<i class="fa-solid fa-user-shield"></i> Cập nhật số liệu (Admin)`;
+                   } else {
+                     btnUpdate.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Cập nhật số liệu`;
+                   }
+                   return; // Mở khóa thành công và thoát hàm
+                 }
+
+                 // 3. NẾU LÀ KHÁCH CHƯA ĐĂNG NHẬP: Áp dụng khóa giờ tiêu chuẩn
+                 if (isOutOfTime) {
+                   btnUpdate.disabled = true;
+                   btnUpdate.style.setProperty(
+                     "background",
+                     "#94a3b8",
+                     "important",
+                   );
+                   btnUpdate.style.cursor = "not-allowed";
+                   btnUpdate.style.opacity = "0.75";
+                   btnUpdate.style.boxShadow = "none";
+                   btnUpdate.innerHTML = `<i class="fa-solid fa-lock"></i> Hết giờ cập nhật`;
+                 } else {
+                   btnUpdate.disabled = false;
+                   btnUpdate.style.setProperty(
+                     "background",
+                     "#16a34a",
+                     "important",
+                   );
+                   btnUpdate.style.cursor = "pointer";
+                   btnUpdate.style.opacity = "1";
+                   btnUpdate.style.boxShadow = "0 2px 4px rgba(22,163,74,0.15)";
+                   btnUpdate.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Cập nhật số liệu`;
+                 }
+               };
+               checkLockStatus();
+               if (window.lockInterval) clearInterval(window.lockInterval);
+               window.lockInterval = setInterval(checkLockStatus, 1000);
+             });
+
+             // Hàm ghi đè dữ liệu lên Firebase
+             // Hàm ghi đè và lưu dữ liệu lên Firebase (Đã tích hợp bộ kiểm tra chặn số liệu lỗi)
+             window.saveSubUnitData = async function (event) {
+               event.preventDefault();
+
+               const unitKey = document.getElementById("pop-unit-select").value;
+               if (!unitKey) {
+                 alert("Vui lòng chọn đơn vị cần cập nhật số liệu!");
+                 return;
+               }
+               const unitName = currentOrgUnitsCache[unitKey] || "Đơn vị mới";
+
+               // 1. LẤY SỐ LIỆU THÔ TỪ CÁC Ô NHẬP LIỆU ĐỂ KIỂM TRA LOGIC TOÁN HỌC
+               const clTongVal =
+                 parseFloat(document.getElementById("pop-cl-tong").value) || 0;
+               const clXongVal =
+                 parseFloat(document.getElementById("pop-cl-xong").value) || 0;
+               const clDangVal =
+                 parseFloat(document.getElementById("pop-cl-dang").value) || 0;
+
+               const shTongVal =
+                 parseFloat(document.getElementById("pop-sh-tong").value) || 0;
+               const shMetVal =
+                 parseFloat(document.getElementById("pop-sh-met").value) || 0;
+               const shDangVal =
+                 parseFloat(document.getElementById("pop-sh-dang").value) || 0;
+
+               // 2. BỘ KIỂM TRA LOGIC CHẶN SỐ LIỆU BẤT HỢP LÝ
+               // Kiểm tra phân hệ Chỉnh lý
+               if (clXongVal + clDangVal > clTongVal) {
+                 alert(
+                   `[CẢNH BÁO SỐ LIỆU CHỈNH LÝ]: \nĐơn vị: ${unitName}\nSố liệu không hợp lệ! Tổng số mét đã chỉnh lý (${clXongVal}) và đang thực hiện (${clDangVal}) cộng lại là ${clXongVal + clDangVal} mét, vượt quá Tổng số mét cần chỉnh lý là ${clTongVal} mét.`,
+                 );
+                 return; // Chặn đứng tiến trình, không cho lưu dữ liệu lên Firebase
+               }
+
+               // Kiểm tra phân hệ Số hóa
+               // [KIỂM TRA LOGIC CHỈNH LÝ]: Thay thế alert của window bằng giao diện mới
+               if (clXongVal + clDangVal > clTongVal) {
+                 showCustomAlert(
+                   "Cảnh báo số liệu chỉnh lý",
+                   `Đơn vị: <b>${unitName}</b><br><br>Số liệu nhập vào không hợp lệ! Tổng số mét đã chỉnh lý (${clXongVal.toString().replace(".", ",")}) và đang thực hiện (${clDangVal.toString().replace(".", ",")}) cộng lại vượt quá <b>Tổng số mét cần chỉnh lý</b> (${clTongVal.toString().replace(".", ",")} m).`,
+                 );
+                 return; // Chặn lưu lên Firebase
+               }
+
+               // [KIỂM TRA LOGIC SỐ HÓA]: Thay thế alert của window bằng giao diện mới
+               if (shMetVal + shDangVal > shTongVal) {
+                 showCustomAlert(
+                   "Cảnh báo số liệu số hóa",
+                   `Đơn vị: <b>${unitName}</b><br><br>Số liệu nhập vào không hợp lệ! Tổng số mét đã số hóa (${shMetVal.toString().replace(".", ",")}) và đang thực hiện (${shDangVal.toString().replace(".", ",")}) cộng lại vượt quá <b>Tổng số mét cần số hóa</b> (${shTongVal.toString().replace(".", ",")} m).`,
+                 );
+                 return; // Chặn lưu lên Firebase
+               }
+               // 3. TIẾN TRÌNH ĐỊNH DẠNG VÀ ĐỒNG BỘ DỮ LIỆU KHI ĐÃ HỢP LỆ (Giữ nguyên cấu trúc cũ ổn định)
+               const formatNum = (val) =>
+                 val && parseFloat(val) !== 0
+                   ? parseFloat(val).toFixed(1).replace(".", ",")
+                   : "0";
+               const formatInt = (val) =>
+                 val && parseInt(val) !== 0
+                   ? parseInt(val).toLocaleString("vi-VN")
+                   : "0";
+
+               const clTong = formatNum(
+                 document.getElementById("pop-cl-tong").value,
+               );
+               const clXong = formatNum(
+                 document.getElementById("pop-cl-xong").value,
+               );
+               const clDang = formatNum(
+                 document.getElementById("pop-cl-dang").value,
+               );
+               const clChua = formatNum(
+                 document.getElementById("pop-cl-chua").value,
+               );
+
+               const shTong = formatNum(
+                 document.getElementById("pop-sh-tong").value,
+               );
+               const shMet = formatNum(
+                 document.getElementById("pop-sh-met").value,
+               );
+               const shTrang = formatInt(
+                 document.getElementById("pop-sh-trang").value,
+               );
+               const shDang = formatNum(
+                 document.getElementById("pop-sh-dang").value,
+               );
+               const shChua = formatNum(
+                 document.getElementById("pop-sh-chua").value,
+               );
+               const giaoNopStatus = document.getElementById("pop-giao-nop").value;
+
+               try {
+                 await setDoc(
+                   doc(db, "SubUnitsData", `${currentCampaign}_${unitKey}`),
+                   {
+                     unitKey: unitKey,
+                     name: unitName,
+                     clTong: clTong,
+                     clXong: clXong,
+                     clDang: clDang,
+                     clChua: clChua,
+                     shTong: shTong,
+                     shMet: shMet,
+                     shTrang: shTrang,
+                     shDang: shDang,
+                     shChua: shChua,
+                     giaoNop: giaoNopStatus,
+                     updatedAt: new Date().toISOString(),
+                   },
+                 );
+
+                 // Hiển thị thông báo Toast thành công
+                 const toast = document.createElement("div");
+                 toast.innerHTML = `
+                   <div style="position: fixed; top: 24px; right: 24px; background: #16a34a; color: #ffffff; padding: 12px 24px; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 10px; font-size: 13.5px; font-weight: 600; z-index: 10000; animation: toastSlideIn 0.3s ease forwards;">
+                     <i class="fa-solid fa-circle-check" style="font-size: 16px;"></i>
+                     <span>Cập nhật số liệu [${unitName}] lên hệ thống thành công!</span>
+                   </div>
+                   <style>
+                     @keyframes toastSlideIn {
+                       from { transform: translateY(-20px); opacity: 0; }
+                       to { transform: translateY(0); opacity: 1; }
+                     }
+                   </style>
+                 `;
+                 document.body.appendChild(toast);
+                 setTimeout(() => {
+                   toast.remove();
+                 }, 3000);
+                 closeSubUnitModal();
+               } catch (error) {
+                 console.error("Lỗi đồng bộ Firebase:", error);
+                 alert(
+                   "Có lỗi xảy ra trong quá trình đồng bộ đường truyền Firebase!",
+                 );
+               }
+             };
+
         // =========================================================================
-        // PHẦN THÊM MỚI: TỰ ĐỘNG XUẤT FILE PDF TỔNG HỢP THEO PHÂN LOẠI TRẠNG THÁI
-        // =========================================================================
-        window.exportSummaryPDF = function () {
-          const items = Object.values(globalFirebaseCache);
-          const totalUnits = items.length; // Tổng số đơn vị đã nhập liệu lên hệ thống
+           // NÂNG CẤP: LỌC DANH SÁCH ĐƠN VỊ CHƯA BÁO CÁO THEO MỐC THỜI GIAN MỞ CỔNG TUẦN NÀY
+           // =========================================================================
+           window.checkMissingUnits = async function () {
+             const modal = document.getElementById("missingUnitsModal");
+             const modalBody = document.getElementById("missing-modal-body");
+             if (!modal || !modalBody) return;
 
-          // Khởi tạo bộ đếm thống kê trạng thái
-          let clXong = 0,
-            clDang = 0,
-            clChua = 0;
-          let shXong = 0,
-            shDang = 0,
-            shChua = 0;
-          let countGiaoNop = 0;
+             modalBody.innerHTML = `
+               <div style="text-align: center; padding: 20px; color: #64748b; font-weight: 600;">
+                 <i class="fa-solid fa-spinner fa-spin" style="margin-right: 6px; color: #e67e22;"></i> Đang đối soát dữ liệu báo cáo tuần này...
+               </div>
+             `;
+             modal.style.display = "flex";
 
-          const parseNum = (val) => {
-            if (!val || val === "0") return 0;
-            let n = parseFloat(
-              String(val).replace(/\./g, "").replace(",", "."),
-            );
-            return isNaN(n) ? 0 : n;
-          };
+             try {
+               // 1. Lấy mốc thời gian bắt đầu mở cổng tuần này (startTime)
+               const configSnap = await getDoc(doc(db, "campaigns", "lock_config"));
+               let campaignStartTime = null;
+               if (configSnap.exists() && configSnap.data().startTime) {
+                 campaignStartTime = new Date(configSnap.data().startTime);
+               }
 
-          items.forEach((item) => {
-            const clTong = parseNum(item.clTong);
-            const clDaXong = parseNum(item.clXong);
-            const shTong = parseNum(item.shTong);
-            const shDaXong = parseNum(item.shMet);
+               // 2. Truy vấn danh sách toàn bộ 108 đơn vị chuẩn
+               const orgSnapshot = await getDocs(collection(db, "organization_units"));
+               let allUnits = [];
+               orgSnapshot.forEach((docSnap) => {
+                 const data = docSnap.data();
+                 if (data.unitName) {
+                   allUnits.push({
+                     key: docSnap.id,
+                     name: data.unitName,
+                     stt: data.stt || 999
+                   });
+                 }
+               });
+               allUnits.sort((a, b) => a.stt - b.stt);
 
-            // Phân loại logic nghiệp vụ Chỉnh lý
-            if (clTong > 0 && clDaXong === clTong) clXong++;
-            else if (clDaXong === 0) clChua++;
-            else clDang++;
+               // 3. Lọc danh sách các đơn vị CHƯA CẬP NHẬT trong đợt mở tuần này
+               const missingUnits = [];
+               let updatedCount = 0;
 
-            // Phân loại logic nghiệp vụ Số hóa
-            if (shTong > 0 && shDaXong === shTong) shXong++;
-            else if (shDaXong === 0) shChua++;
-            else shDang++;
+               allUnits.forEach((unit) => {
+                 // Tìm bản ghi dữ liệu tương ứng trong Cache
+                 const unitData = Object.values(globalFirebaseCache).find(item => item.unitKey === unit.key);
 
-            // Đếm số đơn vị hoàn thành giao nộp
-            if (item.giaoNop === "Đã giao nộp") countGiaoNop++;
-          });
+                 let hasUpdatedThisWeek = false;
 
-          // Lấy mốc thời gian ngày hiện tại để điền tự động vào tiêu đề báo cáo
-          const now = new Date();
-          const currentDateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+                 if (unitData && unitData.updatedAt) {
+                   const lastUpdatedTime = new Date(unitData.updatedAt);
+                   // Điều kiện: Nếu ngày cập nhật >= ngày bắt đầu mở cổng tuần này -> Đã báo cáo
+                   if (campaignStartTime && lastUpdatedTime >= campaignStartTime) {
+                     hasUpdatedThisWeek = true;
+                   }
+                 }
 
-          // Tạo khung giao diện báo cáo ẩn giả lập đúng phom mẫu văn bản đồng chí gửi
-          const reportArea = document.createElement("div");
-          reportArea.style.padding = "30px 40px";
-          reportArea.style.background = "#ffffff";
-          reportArea.style.fontFamily = "Times New Roman, Times, serif";
-          reportArea.style.color = "#000000";
+                 if (hasUpdatedThisWeek) {
+                   updatedCount++;
+                 } else {
+                   missingUnits.push(unit); // Chưa báo cáo đợt này
+                 }
+               });
 
-          reportArea.innerHTML = `
-            <div style="text-align: center; margin-bottom: 25px; line-height: 1.6;">
-              <!-- Dòng 1: Tiêu đề chính viết IN HOA, đậm -->
-              <div style="font-size: 15px; font-weight: bold; text-transform: uppercase;">
-                BIỂU THỐNG KÊ SỐ LIỆU CHỈNH LÝ, SỐ HÓA TÀI LIỆU CỦA CÁC ĐƠN VỊ
-              </div>
-              <!-- Dòng 2: Mốc thời gian chữ thường, in nghiêng trong ngoặc đơn -->
-              <div style="font-size: 13.5px; font-weight: normal; font-style: italic; margin-top: 4px;">
-                (Tính đến ngày ${currentDateStr})
-              </div>
-            </div>
-            
-            <!-- Thêm thẻ div bọc ngoài để cố định layout viền -->
-            <div style="width: 100%; box-sizing: border-box; background: #ffffff;">
-              <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
-                <thead>
-                  <tr style="text-align: center; font-weight: bold; background-color: #f2f2f2;">
-                    <th style="border: 1px solid #000000; padding: 10px; width: 50px;">STT</th>
-                    <th style="border: 1px solid #000000; padding: 10px; text-align: left; min-width: 150px;">Nội dung công việc</th>
-                    <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Tổng số đơn vị</th>
-                    <th style="border: 1px solid #000000; padding: 10px; width: 90px;">Đã xong</th>
-                    <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Đang thực hiện</th>
-                    <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Chưa thực hiện</th>
-                    <th style="border: 1px solid #000000; padding: 10px; width: 140px;">Các đơn vị đã giao nộp vào Lưu trữ lịch sử</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style="text-align: center;">
-                    <td style="border: 1px solid #000000; padding: 12px;">1</td>
-                    <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Chỉnh lý</td>
-                    <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
-                    <td style="border: 1px solid #000000; padding: 12px;">${clXong}</td>
-                    <td style="border: 1px solid #000000; padding: 12px;">${clDang}</td>
-                    <td style="border: 1px solid #000000; padding: 12px;">${clChua}</td>
-                    <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
-                  </tr>
-                  <!-- HÀNG SỐ 2: ÉP THÊM BORDER BOTTOM 1PX SOLID ĐEN CHO TỪNG Ô ĐỂ CHỐNG LỖI MẤT VIỀN ĐÁY -->
-                  <tr style="text-align: center;">
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">2</td>
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px; text-align: left; font-weight: bold;">Số hóa</td>
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${totalUnits}</td>
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shXong}</td>
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shDang}</td>
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shChua}</td>
-                    <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${countGiaoNop}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          `;
-          // Bổ sung vùng đệm phía dưới bảng để không bao giờ bị mất viền hoặc cắt dòng cuối
-          const extraSpacer = document.createElement("div");
-          extraSpacer.style.height = "20px";
-          reportArea.appendChild(extraSpacer);
+               // 4. Hiển thị giao diện tổng hợp kết quả
+               if (missingUnits.length === 0) {
+                 modalBody.innerHTML = `
+                   <div style="text-align: center; padding: 30px 20px;">
+                     <div style="width: 50px; height: 50px; background: #dcfce7; color: #16a34a; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 12px;">
+                       <i class="fa-solid fa-check"></i>
+                     </div>
+                     <h4 style="margin: 0 0 6px 0; color: #15803d; font-size: 16px; font-weight: 700;">HOÀN THÀNH 100%</h4>
+                     <p style="margin: 0; color: #475569; font-size: 13px;">Tất cả ${allUnits.length} đơn vị đều đã thực hiện cập nhật số liệu trong đợt tuần này!</p>
+                   </div>
+                 `;
+               } else {
+                 let listHtml = `
+                   <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fff7ed; padding: 10px 14px; border-radius: 8px; border: 1px solid #ffedd5;">
+                     <span style="font-size: 13px; color: #9a3412; font-weight: 600;">
+                       <i class="fa-solid fa-chart-pie"></i> Tiến độ tuần này: <b>${updatedCount}/${allUnits.length}</b> đơn vị đã báo cáo
+                     </span>
+                     <span style="font-size: 12.5px; color: #dc2626; font-weight: 700; background: #fee2e2; padding: 2px 8px; border-radius: 4px;">
+                       Còn thiếu: ${missingUnits.length} đơn vị
+                     </span>
+                   </div>
+                   <div style="max-height: 320px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 6px;">
+                     <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                       <thead>
+                         <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; text-align: left; color: #475569;">
+                           <th style="padding: 8px 12px; width: 50px; text-align: center;">STT</th>
+                           <th style="padding: 8px 12px;">Tên cơ quan, đơn vị, địa phương</th>
+                           <th style="padding: 8px 12px; text-align: center; width: 110px;">Trạng thái</th>
+                         </tr>
+                       </thead>
+                       <tbody>
+                 `;
 
-          // Cấu hình thông số xuất PDF nâng cấp hỗ trợ delay render
-          const configOpt = {
-            margin: 15, // Tăng nhẹ lề để nội dung bảng tập trung cân đối vào giữa trang A4
-            filename: `Bao_cao_tong_hop_so_hoa_${currentDateStr.replace(/\//g, "_")}.pdf`,
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: {
-              scale: 2,
-              useCORS: true,
-              logging: false,
-            },
-            jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
-          };
+                 missingUnits.forEach((u, index) => {
+                   listHtml += `
+                     <tr style="border-bottom: 1px solid #f1f5f9;">
+                       <td style="padding: 8px 12px; text-align: center; color: #64748b;">${index + 1}</td>
+                       <td style="padding: 8px 12px; font-weight: 600; color: #1e293b;">${u.name}</td>
+                       <td style="padding: 8px 12px; text-align: center;">
+                         <span style="background: #fef2f2; color: #dc2626; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; border: 1px solid #fee2e2; display: inline-block;">Chưa cập nhật</span>
+                       </td>
+                     </tr>
+                   `;
+                 });
 
-          // Ép trình duyệt đợi 300ms để dựng xong toàn bộ khung viền trên Domain rồi mới xuất PDF
-          html2pdf()
-            .set(configOpt)
-            .from(reportArea)
-            .toContainer()
-            .toCanvas()
-            .toPdf()
-            .get("pdf")
-            .then((pdf) => {
-              // Khối này đảm bảo tiến trình render luồng DOM trên Domain hoàn tất 100%
-            })
-            .save();
-        };
-        // Hàm kích hoạt mở cửa sổ thông báo tùy biến thay thế Window.Alert
-        window.showCustomAlert = function (title, message) {
-          const modal = document.getElementById("customAlertModal");
-          const titleEl = document.getElementById("customAlertTitle");
-          const msgEl = document.getElementById("customAlertMessage");
+                 listHtml += `
+                       </tbody>
+                     </table>
+                   </div>
+                 `;
+                 modalBody.innerHTML = listHtml;
+               }
+             } catch (error) {
+               console.error("Lỗi đối soát đơn vị chưa báo cáo:", error);
+               modalBody.innerHTML = `<div style="color: #dc2626; padding: 15px; text-align: center;">Có lỗi xảy ra trong quá trình đối soát dữ liệu!</div>`;
+             }
+           };
 
-          if (modal && titleEl && msgEl) {
-            titleEl.textContent = title;
-            msgEl.innerHTML = message;
-            modal.style.display = "flex";
-          }
-        };
+               modal.style.display = "flex";
 
-        // Hàm đóng cửa sổ thông báo
-        window.closeCustomAlert = function () {
-          const modal = document.getElementById("customAlertModal");
-          if (modal) modal.style.display = "none";
-        };
+               try {
+                 const orgSnapshot = await getDocs(
+                   collection(db, "organization_units"),
+                 );
+                 let allUnits = [];
+                 orgSnapshot.forEach((docSnap) => {
+                   const data = docSnap.data();
+                   if (data.unitName) {
+                     allUnits.push({
+                       key: docSnap.id,
+                       name: data.unitName,
+                       stt: data.stt || 999,
+                     });
+                   }
+                 });
+
+                 allUnits.sort((a, b) => a.stt - b.stt);
+                 const reportedNames = Object.values(globalFirebaseCache).map(
+                   (item) => (item.name ? item.name.trim() : ""),
+                 );
+                 const missingUnits = allUnits.filter(
+                   (unit) =>
+                     !reportedNames.includes(unit.name ? unit.name.trim() : ""),
+                 );
+
+                 if (missingUnits.length === 0) {
+                   modalBody.innerHTML = `
+                   <div style="text-align: center; padding: 15px; background: #e6f4ea; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 700; font-size: 13px;">
+                     <i class="fa-solid fa-circle-check" style="font-size: 16px; margin-right: 6px;"></i> 100% các đơn vị trực thuộc đã hoàn thành báo cáo số liệu.
+                   </div>
+                 `;
+                 } else {
+                   let listHtml = `
+                   <div style="margin-bottom: 12px; font-size: 13px; font-weight: 700; color: #334155;">
+                     Phát hiện <span style="color: #dc2626; font-size: 14px;">${missingUnits.length}</span> đơn vị chưa cập nhật dữ liệu:
+                   </div>
+                   <div style="display: flex; flex-direction: column; gap: 6px;">
+                 `;
+                   missingUnits.forEach((unit, idx) => {
+                     listHtml += `
+                     <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
+                       <span style="font-weight: 600; color: #1e293b; font-size: 12.5px;">${idx + 1}. ${unit.name}</span>
+                       <span style="font-size: 10.5px; font-weight: 700; background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 50px; border: 1px solid #fecaca;">Chưa báo cáo</span>
+                     </div>
+                   `;
+                   });
+                   listHtml += `</div>`;
+                   modalBody.innerHTML = listHtml;
+                 }
+               } catch (error) {
+                 console.error("Lỗi lấy danh sách organization_units:", error);
+                 modalBody.innerHTML = `
+                 <div style="text-align: center; padding: 15px; background: #fdf2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 8px; font-weight: 700; font-size: 12.5px;">
+                   <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Lỗi truy xuất đường truyền dữ liệu Firebase!
+                 </div>
+               `;
+               }
+             };
+             const tableSearchInput = document.getElementById("table-unit-search");
+             const countBadge = document.getElementById("search-count-badge");
+
+             if (tableSearchInput) {
+               tableSearchInput.addEventListener("input", (e) => {
+                 const keyword = e.target.value.toLowerCase().trim();
+                 const tableBody = document.getElementById("dangbo-matrix-body");
+                 if (!tableBody) return;
+
+                 const rows = Array.from(tableBody.getElementsByTagName("tr"));
+                 let visibleCount = 0;
+                 let hasDataRow = false;
+
+                 rows.forEach((row) => {
+                   const isTotalRow =
+                     row.textContent.includes("TỔNG SỐ CÁC ĐƠN VỊ");
+
+                   if (!isTotalRow) {
+                     const unitNameCell = row.getElementsByTagName("td")[1];
+                     if (unitNameCell) {
+                       hasDataRow = true;
+                       const unitName = unitNameCell.textContent.toLowerCase();
+
+                       if (unitName.includes(keyword)) {
+                         row.style.display = "";
+                         visibleCount++;
+                       } else {
+                         row.style.display = "none";
+                       }
+                     }
+                   }
+                 });
+
+                 if (countBadge && hasDataRow) {
+                   if (keyword !== "") {
+                     countBadge.textContent = `Tìm thấy: ${visibleCount} đơn vị`;
+                     countBadge.style.display = "inline-block";
+                   } else {
+                     countBadge.style.display = "none";
+                   }
+                 }
+               });
+             }
+           }
+           // =========================================================================
+           // PHẦN THÊM MỚI: TỰ ĐỘNG XUẤT FILE PDF TỔNG HỢP THEO PHÂN LOẠI TRẠNG THÁI
+           // =========================================================================
+           window.exportSummaryPDF = function () {
+             const items = Object.values(globalFirebaseCache);
+             const totalUnits = items.length; // Tổng số đơn vị đã nhập liệu lên hệ thống
+
+             // Khởi tạo bộ đếm thống kê trạng thái
+             let clXong = 0,
+               clDang = 0,
+               clChua = 0;
+             let shXong = 0,
+               shDang = 0,
+               shChua = 0;
+             let countGiaoNop = 0;
+
+             const parseNum = (val) => {
+               if (!val || val === "0") return 0;
+               let n = parseFloat(
+                 String(val).replace(/\./g, "").replace(",", "."),
+               );
+               return isNaN(n) ? 0 : n;
+             };
+
+             items.forEach((item) => {
+               const clTong = parseNum(item.clTong);
+               const clDaXong = parseNum(item.clXong);
+               const shTong = parseNum(item.shTong);
+               const shDaXong = parseNum(item.shMet);
+
+               // Phân loại logic nghiệp vụ Chỉnh lý
+               if (clTong > 0 && clDaXong === clTong) clXong++;
+               else if (clDaXong === 0) clChua++;
+               else clDang++;
+
+               // Phân loại logic nghiệp vụ Số hóa
+               if (shTong > 0 && shDaXong === shTong) shXong++;
+               else if (shDaXong === 0) shChua++;
+               else shDang++;
+
+               // Đếm số đơn vị hoàn thành giao nộp
+               if (item.giaoNop === "Đã giao nộp") countGiaoNop++;
+             });
+
+             // Lấy mốc thời gian ngày hiện tại để điền tự động vào tiêu đề báo cáo
+             const now = new Date();
+             const currentDateStr = `${now.getDate()}/${now.getMonth() + 1}/${now.getFullYear()}`;
+
+             // Tạo khung giao diện báo cáo ẩn giả lập đúng phom mẫu văn bản đồng chí gửi
+             const reportArea = document.createElement("div");
+             reportArea.style.padding = "30px 40px";
+             reportArea.style.background = "#ffffff";
+             reportArea.style.fontFamily = "Times New Roman, Times, serif";
+             reportArea.style.color = "#000000";
+
+             reportArea.innerHTML = `
+               <div style="text-align: center; margin-bottom: 25px; line-height: 1.6;">
+                 <!-- Dòng 1: Tiêu đề chính viết IN HOA, đậm -->
+                 <div style="font-size: 15px; font-weight: bold; text-transform: uppercase;">
+                   BIỂU THỐNG KÊ SỐ LIỆU CHỈNH LÝ, SỐ HÓA TÀI LIỆU CỦA CÁC ĐƠN VỊ
+                 </div>
+                 <!-- Dòng 2: Mốc thời gian chữ thường, in nghiêng trong ngoặc đơn -->
+                 <div style="font-size: 13.5px; font-weight: normal; font-style: italic; margin-top: 4px;">
+                   (Tính đến ngày ${currentDateStr})
+                 </div>
+               </div>
+
+               <!-- Thêm thẻ div bọc ngoài để cố định layout viền -->
+               <div style="width: 100%; box-sizing: border-box; background: #ffffff;">
+                 <table style="width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'Times New Roman', Times, serif;">
+                   <thead>
+                     <tr style="text-align: center; font-weight: bold; background-color: #f2f2f2;">
+                       <th style="border: 1px solid #000000; padding: 10px; width: 50px;">STT</th>
+                       <th style="border: 1px solid #000000; padding: 10px; text-align: left; min-width: 150px;">Nội dung công việc</th>
+                       <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Tổng số đơn vị</th>
+                       <th style="border: 1px solid #000000; padding: 10px; width: 90px;">Đã xong</th>
+                       <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Đang thực hiện</th>
+                       <th style="border: 1px solid #000000; padding: 10px; width: 100px;">Chưa thực hiện</th>
+                       <th style="border: 1px solid #000000; padding: 10px; width: 140px;">Các đơn vị đã giao nộp vào Lưu trữ lịch sử</th>
+                     </tr>
+                   </thead>
+                   <tbody>
+                     <tr style="text-align: center;">
+                       <td style="border: 1px solid #000000; padding: 12px;">1</td>
+                       <td style="border: 1px solid #000000; padding: 12px; text-align: left; font-weight: bold;">Chỉnh lý</td>
+                       <td style="border: 1px solid #000000; padding: 12px;">${totalUnits}</td>
+                       <td style="border: 1px solid #000000; padding: 12px;">${clXong}</td>
+                       <td style="border: 1px solid #000000; padding: 12px;">${clDang}</td>
+                       <td style="border: 1px solid #000000; padding: 12px;">${clChua}</td>
+                       <td style="border: 1px solid #000000; padding: 12px;">${countGiaoNop}</td>
+                     </tr>
+                     <!-- HÀNG SỐ 2: ÉP THÊM BORDER BOTTOM 1PX SOLID ĐEN CHO TỪNG Ô ĐỂ CHỐNG LỖI MẤT VIỀN ĐÁY -->
+                     <tr style="text-align: center;">
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">2</td>
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px; text-align: left; font-weight: bold;">Số hóa</td>
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${totalUnits}</td>
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shXong}</td>
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shDang}</td>
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${shChua}</td>
+                       <td style="border: 1px solid #000000; border-bottom: 1px solid #000000 !important; padding: 12px;">${countGiaoNop}</td>
+                     </tr>
+                   </tbody>
+                 </table>
+               </div>
+             `;
+             // Bổ sung vùng đệm phía dưới bảng để không bao giờ bị mất viền hoặc cắt dòng cuối
+             const extraSpacer = document.createElement("div");
+             extraSpacer.style.height = "20px";
+             reportArea.appendChild(extraSpacer);
+
+             // Cấu hình thông số xuất PDF nâng cấp hỗ trợ delay render
+             const configOpt = {
+               margin: 15, // Tăng nhẹ lề để nội dung bảng tập trung cân đối vào giữa trang A4
+               filename: `Bao_cao_tong_hop_so_hoa_${currentDateStr.replace(/\//g, "_")}.pdf`,
+               image: { type: "jpeg", quality: 0.98 },
+               html2canvas: {
+                 scale: 2,
+                 useCORS: true,
+                 logging: false,
+               },
+               jsPDF: { unit: "mm", format: "a4", orientation: "landscape" },
+             };
+
+             // Ép trình duyệt đợi 300ms để dựng xong toàn bộ khung viền trên Domain rồi mới xuất PDF
+             html2pdf()
+               .set(configOpt)
+               .from(reportArea)
+               .toContainer()
+               .toCanvas()
+               .toPdf()
+               .get("pdf")
+               .then((pdf) => {
+                 // Khối này đảm bảo tiến trình render luồng DOM trên Domain hoàn tất 100%
+               })
+               .save();
+           };
+           // Hàm kích hoạt mở cửa sổ thông báo tùy biến thay thế Window.Alert
+           window.showCustomAlert = function (title, message) {
+             const modal = document.getElementById("customAlertModal");
+             const titleEl = document.getElementById("customAlertTitle");
+             const msgEl = document.getElementById("customAlertMessage");
+
+             if (modal && titleEl && msgEl) {
+               titleEl.textContent = title;
+               msgEl.innerHTML = message;
+               modal.style.display = "flex";
+             }
+           };
+
+           // Hàm đóng cửa sổ thông báo
+           window.closeCustomAlert = function () {
+             const modal = document.getElementById("customAlertModal");
+             if (modal) modal.style.display = "none";
+           };
       </script>
 
       <!-- ================= VÙNG CHỨA 1: KHỐI NỘI DUNG VĂN PHÒNG TỈNH ỦY (GIỮ NGUYÊN BẢN 100%) ================= -->
@@ -2804,6 +2962,7 @@
                   "
                 ></span>
               </h3>
+
               <!-- Thêm cụm nút điều hướng bên phải -->
               <div style="display: flex; gap: 8px">
                 <button
@@ -2845,7 +3004,6 @@
                 >
                   <i class="fa-solid fa-bell-slash"></i> Các đơn vị chưa báo cáo
                 </button>
-
                 <button
                   onclick="openSubUnitModal()"
                   style="
@@ -2867,15 +3025,19 @@
                 </button>
               </div>
             </div>
+
+            <!-- KHỐI BỘ LỌC TÌM KIẾM & CHỌN ĐỢT BÁO CÁO NẰM SONG SONG (ĐÃ XÓA THẺ DIV THỪA) -->
             <div
               style="
                 margin-bottom: 12px;
                 display: flex;
                 align-items: center;
-                gap: 8px;
+                justify-content: space-between;
+                gap: 12px;
               "
             >
-              <div style="position: relative; flex: 1; max-width: 400px">
+              <!-- 1. Thanh tìm kiếm nhanh tên đơn vị bên trái -->
+              <div style="position: relative; flex: 1; max-width: 420px">
                 <i
                   class="fa-solid fa-magnifying-glass"
                   style="
@@ -2893,7 +3055,7 @@
                   placeholder="Tìm kiếm nhanh tên cơ quan, đơn vị, địa phương..."
                   style="
                     width: 100%;
-                    height: 34px;
+                    height: 36px;
                     padding: 6px 12px 6px 34px;
                     border: 1px solid #cbd5e1;
                     border-radius: 6px;
@@ -2902,21 +3064,73 @@
                     color: #0f172a;
                     background-color: #ffffff;
                     transition: all 0.2s ease;
+                    outline: none;
                   "
                 />
               </div>
-              <span
-                id="search-count-badge"
-                style="
-                  font-size: 12px;
-                  font-weight: 600;
-                  color: #64748b;
-                  background: #f1f5f9;
-                  padding: 4px 10px;
-                  border-radius: 50px;
-                  display: none;
-                "
-              ></span>
+
+              <!-- Khối chứa Badge thông số số lượng kết quả (nếu có) + Dropdown chọn đợt -->
+              <div style="display: flex; align-items: center; gap: 10px">
+                <span
+                  id="search-count-badge"
+                  style="
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: #0284c7;
+                    background: #e0f2fe;
+                    padding: 4px 10px;
+                    border-radius: 50px;
+                    display: none;
+                  "
+                ></span>
+
+                <!-- 2. Dropdown chọn đợt báo cáo nằm ngay bên phải thanh tìm kiếm -->
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    background: #ffffff;
+                    padding: 0 10px;
+                    height: 36px;
+                    border-radius: 6px;
+                    border: 1px solid #cbd5e1;
+                    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+                  "
+                >
+                  <i
+                    class="fa-solid fa-calendar-week"
+                    style="color: #0284c7; font-size: 13.5px"
+                  ></i>
+                  <label
+                    for="select-campaign-period"
+                    style="
+                      font-size: 12.5px;
+                      font-weight: 700;
+                      color: #334155;
+                      white-space: nowrap;
+                    "
+                    >Đợt báo cáo:</label
+                  >
+                  <select
+                    id="select-campaign-period"
+                    onchange="switchCampaignPeriod(this.value)"
+                    style="
+                      border: none;
+                      background: transparent;
+                      font-weight: 700;
+                      font-size: 12.5px;
+                      color: #0284c7;
+                      cursor: pointer;
+                      outline: none;
+                      padding-right: 4px;
+                    "
+                  >
+                    <option value="current">Đợt hiện tại (Mới nhất)</option>
+                    <!-- Danh sách các đợt lịch sử sẽ nạp tự động vào đây -->
+                  </select>
+                </div>
+              </div>
             </div>
             <div style="overflow-x: auto; width: 100%">
               <table
