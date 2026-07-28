@@ -3,25 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Trang quản trị - Số hóa Đảng viên Thái Nguyên</title>
+    <title>
+      Trang quản trị - Cổng thông tin Chuyển đổi số Ngành Tổ chức xây dựng Đảng
+    </title>
 
     <!-- CSS Thư viện -->
     <link
       rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-weight/6.4.0/css/all.min.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <!-- CSS Tự định nghĩa (Sử dụng chung style của hệ thống) -->
-    <link rel="stylesheet" href="css/style.css" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
     />
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- CSS Hệ thống -->
+    <link rel="stylesheet" href="css/style.css" />
+
     <style>
-      /* CSS bổ sung dành riêng cho trang Admin */
+      /* CSS Bổ sung cho trang Admin */
       .login-container {
         max-width: 400px;
-        margin: 100px auto;
+        margin: 80px auto;
         background: #fff;
         padding: 30px;
         border-radius: 8px;
@@ -38,7 +41,7 @@
         padding: 10px;
         border: 1px solid #ccc;
         border-radius: 4px;
-        font-size: 15px;
+        font-size: 14px;
       }
       .btn {
         padding: 10px 20px;
@@ -66,23 +69,26 @@
 
       .admin-panel {
         display: none;
-      } /* Ẩn đi khi chưa đăng nhập */
+      }
 
       .data-table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 20px;
+        margin-top: 15px;
         background: #fff;
+        font-size: 13px;
       }
       .data-table th,
       .data-table td {
         border: 1px solid #ddd;
-        padding: 12px;
+        padding: 10px 12px;
         text-align: left;
       }
       .data-table th {
         background-color: #f8f9fa;
+        font-weight: bold;
       }
+
       .header-admin {
         display: flex;
         justify-content: space-between;
@@ -91,18 +97,71 @@
         flex-wrap: wrap;
         gap: 15px;
       }
+
+      /* Style cho Thanh Chuyển đổi Phân hệ Admin */
+      .admin-module-bar {
+        background: #fff;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+      }
+
+      .admin-tab-btn {
+        padding: 9px 18px;
+        font-size: 13px;
+        font-weight: bold;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        background: #f8fafc;
+        color: #475569;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.25s ease;
+      }
+
+      .admin-tab-btn.active {
+        background: #cc0000;
+        color: #fff;
+        border-color: #cc0000;
+        box-shadow: 0 2px 6px rgba(204, 0, 0, 0.25);
+      }
+
+      .admin-tab-content {
+        display: none;
+      }
+      .admin-tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     </style>
   </head>
   <body>
-    <!-- DÙNG CHUNG BANNER VỚI TRANG CHỦ -->
+    <!-- Banner tràn viền -->
     <header class="banner-container">
       <img src="images/banner.png" alt="Banner Hệ Thống" />
     </header>
 
-    <!-- Khối đăng nhập bảo mật -->
+    <!-- KHỐI ĐĂNG NHẬP ADMIN -->
     <div id="login-section" class="login-container">
-      <h3 style="text-align: center; margin-bottom: 20px; color: #0056b3">
-        <i class="fa-solid fa-lock"></i> ĐĂNG NHẬP ADMIN
+      <h3 style="text-align: center; margin-bottom: 20px; color: #cc0000">
+        <i class="fa-solid fa-lock"></i> ĐĂNG NHẬP QUẢN TRỊ
       </h3>
       <div class="form-group">
         <label>Email quản trị:</label>
@@ -129,25 +188,25 @@
       </button>
     </div>
 
-    <!-- Khối quản lý dữ liệu (Chỉ hiện sau khi đăng nhập thành công) -->
+    <!-- KHỐI BẢNG ĐIỀU HÀNH QUẢN TRỊ (Hiện khi đăng nhập thành công) -->
     <main id="admin-section" class="container admin-panel">
+      <!-- Header Admin -->
       <div class="header-admin">
         <div>
-          <h2>Hệ thống quản trị số liệu</h2>
-          <!-- KHU VỰC HIỂN THỊ PHIÊN ĐĂNG NHẬP -->
+          <h2 style="color: #1e293b">Hệ thống quản trị số liệu</h2>
           <span
             id="admin-user-info"
             style="
-              font-size: 14px;
-              color: #555;
+              font-size: 13px;
+              color: #64748b;
               display: block;
-              margin-top: 5px;
+              margin-top: 4px;
             "
           >
             <i class="fa-solid fa-circle-user"></i> Đang kết nối...
           </span>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center">
+        <div style="display: flex; gap: 10px">
           <a href="index.html" class="btn btn-secondary">
             <i class="fa-solid fa-house"></i> Quay lại Trang chủ
           </a>
@@ -157,108 +216,474 @@
         </div>
       </div>
 
-      <!-- Form Cập nhật tiến độ -->
-      <section class="control-panel">
-        <h3>Cập nhật tiến độ cho Đảng bộ</h3>
-        <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee" />
-
-        <form
-          id="progress-form"
-          style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-          "
+      <!-- THANH NÚT CHUYỂN ĐỔI PHÂN HỆ QUẢN TRỊ (CHỈ GIỮ 1 HÀNG DUY NHẤT) -->
+      <div class="admin-module-bar">
+        <div
+          style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap"
         >
-          <div class="form-group" style="grid-column: span 2">
-            <label for="admin-select-dangbo">Chọn Đảng bộ:</label>
-            <select id="admin-select-dangbo" required>
-              <option value="">-- Chọn một Đảng bộ trực thuộc --</option>
-              <!-- 94 Đảng bộ tự động nạp từ Firebase -->
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Số hồ sơ cần số hóa:</label>
-            <input
-              type="number"
-              id="input-can-so-hoa"
-              min="0"
-              required
-              value="0"
-            />
-          </div>
-          <div class="form-group">
-            <label>Số đã chỉnh lý, chuẩn hóa:</label>
-            <input
-              type="number"
-              id="input-chinh-ly"
-              min="0"
-              required
-              value="0"
-            />
-          </div>
-          <div class="form-group">
-            <label>Số hồ sơ đã ký số:</label>
-            <input type="number" id="input-ky-so" min="0" required value="0" />
-          </div>
-          <div class="form-group">
-            <label>Số đã đưa lên phần mềm:</label>
-            <input
-              type="number"
-              id="input-phan-mem"
-              min="0"
-              required
-              value="0"
-            />
-          </div>
+          <button class="admin-tab-btn active" data-admin-tab="admin-tab-sohoa">
+            <i class="fa-solid fa-folder-tree"></i> 1. Số hóa hồ sơ đảng viên
+          </button>
+          <button class="admin-tab-btn" data-admin-tab="admin-tab-tcdang">
+            <i class="fa-solid fa-users-gear"></i> 2. Tổ chức đảng, đảng viên
+          </button>
+          <button class="admin-tab-btn" data-admin-tab="admin-tab-noibo">
+            <i class="fa-solid fa-list-check"></i> 3. Quản lý nội bộ
+          </button>
+        </div>
+      </div>
 
-          <div
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 1: QUẢN LÝ SỐ HÓA HỒ SƠ ĐẢNG VIÊN                         -->
+      <!-- ================================================================= -->
+      <div id="admin-tab-sohoa" class="admin-tab-content active">
+        <!-- Form nhập liệu Số hóa -->
+        <section class="control-panel">
+          <h3 style="color: #0056b3">
+            <i class="fa-solid fa-pen-to-square"></i> Cập nhật tiến độ Số hóa
+            cho Đảng bộ
+          </h3>
+          <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
+
+          <form
+            id="form-sohoa"
             style="
-              grid-column: span 2;
-              display: flex;
-              gap: 10px;
-              margin-top: 15px;
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+              gap: 15px;
             "
           >
-            <button type="submit" class="btn btn-primary">
-              <i class="fa-solid fa-floppy-disk"></i> Lưu dữ liệu
-            </button>
-            <button type="button" id="btn-reset-form" class="btn btn-secondary">
-              Làm lại
-            </button>
-          </div>
-        </form>
-      </section>
+            <div class="form-group" style="grid-column: span 2">
+              <label for="select-dangbo-sohoa">Chọn Đảng bộ:</label>
+              <select id="select-dangbo-sohoa" required>
+                <option value="">-- Chọn một Đảng bộ trực thuộc --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Số hồ sơ cần số hóa:</label>
+              <input
+                type="number"
+                id="sohoa-can-so-hoa"
+                min="0"
+                required
+                value="0"
+              />
+            </div>
+            <div class="form-group">
+              <label>Số đã chuẩn hóa:</label>
+              <input
+                type="number"
+                id="sohoa-chinh-ly"
+                min="0"
+                required
+                value="0"
+              />
+            </div>
+            <div class="form-group">
+              <label>Số đã ký số:</label>
+              <input
+                type="number"
+                id="sohoa-ky-so"
+                min="0"
+                required
+                value="0"
+              />
+            </div>
+            <div class="form-group">
+              <label>Số đã đưa lên phần mềm:</label>
+              <input
+                type="number"
+                id="sohoa-phan-mem"
+                min="0"
+                required
+                value="0"
+              />
+            </div>
 
-      <!-- Danh sách hiển thị để đối soát và xóa -->
-      <section class="control-panel" style="margin-top: 30px">
-        <h3>Danh sách tiến độ đã nhập</h3>
-        <div style="overflow-x: auto">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Tên Đảng bộ</th>
-                <th>Cần số hóa</th>
-                <th>Đã chỉnh lý</th>
-                <th>Đã ký số</th>
-                <th>Đưa lên phần mềm</th>
-                <th style="width: 120px; text-align: center">Hành động</th>
-              </tr>
-            </thead>
-            <tbody id="table-data-body">
-              <!-- Dữ liệu tiến độ tải từ Firebase sẽ render tại đây -->
-            </tbody>
-          </table>
-        </div>
-      </section>
+            <div
+              style="
+                grid-column: span 2;
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+              "
+            >
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-floppy-disk"></i> Lưu dữ liệu Số hóa
+              </button>
+              <button type="button" class="btn btn-secondary btn-reset-form">
+                Làm lại
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Bảng đối soát Tiến độ Số hóa -->
+        <section class="control-panel" style="margin-top: 25px">
+          <h3>
+            <i class="fa-solid fa-table-list"></i> Danh sách tiến độ Số hóa đã
+            nhập
+          </h3>
+          <div style="overflow-x: auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tên Đảng bộ</th>
+                  <th>Cần số hóa</th>
+                  <th>Đã chuẩn hóa</th>
+                  <th>Đã ký số</th>
+                  <th>Đưa lên phần mềm</th>
+                  <th style="width: 100px; text-align: center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="table-sohoa-body">
+                <!-- Render tự động -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 2: QUẢN LÝ TỔ CHỨC ĐẢNG VÀ ĐẢNG VIÊN                        -->
+      <!-- ================================================================= -->
+      <div id="admin-tab-tcdang" class="admin-tab-content">
+        <!-- Form nhập liệu Tổ chức đảng & Đảng viên -->
+        <section class="control-panel">
+          <h3 style="color: #16a34a">
+            <i class="fa-solid fa-users-rectangle"></i> Cập nhật số liệu Tổ chức
+            đảng & Đảng viên
+          </h3>
+          <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
+
+          <form
+            id="form-tcdang"
+            style="display: flex; flex-direction: column; gap: 15px"
+          >
+            <!-- HÀNG 1: Chọn đơn vị & Số liệu Tổ chức, Loại Đảng viên -->
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 15px;
+              "
+            >
+              <div class="form-group" style="grid-column: span 2">
+                <label for="select-dangbo-tcdang">Chọn Đảng bộ:</label>
+                <select id="select-dangbo-tcdang" required>
+                  <option value="">-- Chọn một Đảng bộ trực thuộc --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Số TCCSĐ trực thuộc:</label
+                ><input
+                  type="number"
+                  id="tc-so-tccs-dang"
+                  min="0"
+                  required
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>Tổng số Chi bộ:</label
+                ><input
+                  type="number"
+                  id="tc-so-chi-bo"
+                  min="0"
+                  required
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>Tổng số Đảng viên:</label
+                ><input
+                  type="number"
+                  id="tc-tong-dang-vien"
+                  min="0"
+                  required
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>Đảng viên chính thức:</label
+                ><input
+                  type="number"
+                  id="tc-dang-vien-chinh-thuc"
+                  min="0"
+                  required
+                  value="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>Đảng viên dự bị:</label
+                ><input
+                  type="number"
+                  id="tc-dang-vien-du-bi"
+                  min="0"
+                  required
+                  value="0"
+                />
+              </div>
+            </div>
+
+            <!-- HÀNG 2: KHỐI NHẬP CƠ CẤU ĐỘ TUỔI -->
+            <div
+              style="
+                background: #f8fafc;
+                padding: 12px 15px;
+                border-radius: 6px;
+                border: 1px dashed #cbd5e1;
+                margin-top: 5px;
+              "
+            >
+              <span
+                style="
+                  font-size: 13px;
+                  font-weight: bold;
+                  color: #334155;
+                  display: block;
+                  margin-bottom: 10px;
+                "
+              >
+                <i class="fa-solid fa-chart-pie" style="color: #16a34a"></i> CƠ
+                CẤU ĐẢNG VIÊN THEO ĐỘ TUỔI:
+              </span>
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(4, 1fr);
+                  gap: 15px;
+                "
+              >
+                <div class="form-group">
+                  <label style="color: #0284c7; font-weight: bold"
+                    >Dưới 30 tuổi:</label
+                  ><input
+                    type="number"
+                    id="tc-tuoi-under30"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label style="color: #16a34a; font-weight: bold"
+                    >Từ 30 - 45 tuổi:</label
+                  ><input
+                    type="number"
+                    id="tc-tuoi-30to45"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label style="color: #ea580c; font-weight: bold"
+                    >Từ 46 - 60 tuổi:</label
+                  ><input
+                    type="number"
+                    id="tc-tuoi-46to60"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label style="color: #9333ea; font-weight: bold"
+                    >Trên 60 tuổi:</label
+                  ><input
+                    type="number"
+                    id="tc-tuoi-over60"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- HÀNG 3: NÚT THAO TÁC -->
+            <div style="display: flex; gap: 10px; margin-top: 5px">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="background-color: #16a34a"
+              >
+                <i class="fa-solid fa-floppy-disk"></i> Lưu dữ liệu TCĐ & Đảng
+                viên
+              </button>
+              <button type="button" class="btn btn-secondary btn-reset-form">
+                Làm lại
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Bảng đối soát Tổ chức đảng & Đảng viên -->
+        <section class="control-panel" style="margin-top: 25px">
+          <h3>
+            <i class="fa-solid fa-table-list"></i> Danh sách số liệu Tổ chức
+            đảng & Đảng viên
+          </h3>
+          <div style="overflow-x: auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Tên Đảng bộ</th>
+                  <th>Số TCCSĐ</th>
+                  <th>Tổng Chi bộ</th>
+                  <th>Tổng Đảng viên</th>
+                  <th>Chính thức</th>
+                  <th>Dự bị</th>
+                  <th style="width: 100px; text-align: center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="table-tcdang-body">
+                <!-- Render tự động -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - NHẬP TIẾN ĐỘ NHIỆM VỤ                   -->
+      <!-- ================================================================= -->
+      <div id="admin-tab-noibo" class="admin-tab-content">
+        <!-- Form thêm / cập nhật Nhiệm vụ -->
+        <section class="control-panel">
+          <h3 style="color: #0284c7">
+            <i class="fa-solid fa-square-plus"></i> Cập nhật Nhiệm vụ nội bộ
+          </h3>
+          <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
+
+          <form
+            id="form-task"
+            style="display: flex; flex-direction: column; gap: 15px"
+          >
+            <input type="hidden" id="task-id-hidden" value="" />
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 2fr 1fr 1fr;
+                gap: 15px;
+              "
+            >
+              <div class="form-group">
+                <label>Tên nhiệm vụ / Nội dung công việc:</label>
+                <input
+                  type="text"
+                  id="task-name"
+                  placeholder="Nhập tên nhiệm vụ..."
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Cán bộ / Đơn vị chủ trì:</label>
+                <input
+                  type="text"
+                  id="task-assignee"
+                  placeholder="Ví dụ: Phòng Tổ chức đảng, đảng viên"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Thời hạn hoàn thành:</label>
+                <input type="date" id="task-deadline" required />
+              </div>
+            </div>
+
+            <div
+              style="
+                display: grid;
+                grid-template-columns: 1fr 1fr 2fr;
+                gap: 15px;
+              "
+            >
+              <div class="form-group">
+                <label>Tiến độ thực hiện (%):</label>
+                <input
+                  type="number"
+                  id="task-progress"
+                  min="0"
+                  max="100"
+                  value="0"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Trạng thái công việc:</label>
+                <select id="task-status" required>
+                  <option value="Đang thực hiện">Đang thực hiện</option>
+                  <option value="Đã hoàn thành">Đã hoàn thành</option>
+                  <option value="Chậm tiến độ">Chậm tiến độ</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Ghi chú / Ý kiến đôn đốc:</label>
+                <input
+                  type="text"
+                  id="task-note"
+                  placeholder="Ghi chú chi tiết tiến độ..."
+                />
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 5px">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="background-color: #0284c7"
+              >
+                <i class="fa-solid fa-floppy-disk"></i> Lưu thông tin Nhiệm vụ
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary btn-reset-task-form"
+              >
+                Làm mới Form
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Bảng danh sách các Nhiệm vụ đã tạo -->
+        <section class="control-panel" style="margin-top: 25px">
+          <h3>
+            <i class="fa-solid fa-list-ul"></i> Danh sách các nhiệm vụ đang quản
+            lý
+          </h3>
+          <div style="overflow-x: auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center">STT</th>
+                  <th>Tên Nhiệm vụ</th>
+                  <th>Người / Đơn vị chủ trì</th>
+                  <th style="text-align: center">Thời hạn</th>
+                  <th style="text-align: center">Tiến độ</th>
+                  <th style="text-align: center">Trạng thái</th>
+                  <th>Ghi chú</th>
+                  <th style="width: 110px; text-align: center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody id="table-task-body">
+                <!-- Render tự động từ Firebase -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
     </main>
 
     <!-- Nhúng Firebase v9 (compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Script nghiệp vụ -->
+    <!-- Script quản trị -->
     <script src="js/firebase-config.js"></script>
     <script src="js/admin.js"></script>
   </body>

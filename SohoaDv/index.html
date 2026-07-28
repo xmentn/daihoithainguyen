@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
-      Hệ thống theo dõi tiến độ số hóa hồ sơ Đảng viên - Thái Nguyên
+      Hệ thống thông tin Chuyển đổi số Ngành Tổ chức xây dựng Đảng - Thái Nguyên
     </title>
 
     <!-- CSS Thư viện -->
@@ -25,131 +25,69 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <!-- Banner tràn viền tích hợp thông tin tài khoản đăng nhập góc trên bên phải -->
+    <!-- Banner tràn viền tích hợp thông tin phiên đăng nhập & nút Admin -->
     <header class="banner-container">
       <img src="images/banner.png" alt="Banner Hệ Thống" />
 
-      <!-- Khối thông tin tài khoản admin & ngày tháng góc trên bên phải giống thiết kế -->
+      <!-- Khối thông tin tài khoản trên banner (Có đính kèm Popup Menu) -->
       <div class="banner-user-info" id="user-session-info">
-        <div class="user-profile">
+        <div class="user-profile" id="user-profile-trigger">
           <div class="user-avatar">
             <i class="fa-solid fa-circle-user"></i>
           </div>
           <div class="user-meta">
-            <span class="user-name" id="session-email">Khách vãng lai</span>
+            <span class="user-name" id="session-email">Guest</span>
             <span class="user-role" id="session-role">Chỉ xem</span>
           </div>
-          <i class="fa-solid fa-chevron-down toggle-icon"></i>
+          <i
+            class="fa-solid fa-chevron-down toggle-icon"
+            id="user-dropdown-icon"
+          ></i>
         </div>
+
         <div class="current-date">
           <i class="fa-solid fa-calendar-days"></i>
-          <span id="live-date">Thứ Năm, 16/07/2026</span>
+          <span id="live-date">Thứ Ba, 28/07/2026</span>
+        </div>
+
+        <!-- POPUP DROPDOWN MENU KHI DI CHUỘT / CLICK -->
+        <div class="user-dropdown-menu" id="user-dropdown-menu">
+          <button id="btn-home-logout" class="dropdown-logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
+          </button>
         </div>
       </div>
 
-      <!-- Nút lối tắt vào Trang Quản Trị đặt tinh tế góc dưới bên phải banner -->
       <a href="admin.html" class="btn-admin-overlay">
         <i class="fa-solid fa-user-gear"></i> Quản trị
       </a>
     </header>
 
     <main class="dashboard-wrapper">
-      <!-- 1. Hàng thẻ số liệu chính (5 Thẻ chỉ số kèm biểu tượng trực quan) -->
-      <section class="metrics-grid">
-        <!-- Thẻ 1: Cần số hóa -->
-        <div class="metric-card card-blue">
-          <div class="card-header-icon">
-            <i class="fa-solid fa-folder-closed"></i>
-          </div>
-          <div class="card-data">
-            <span class="card-title">SỐ HỒ SƠ CẦN SỐ HÓA</span>
-            <span class="card-number" id="val-can-so-hoa">14.654</span>
-            <span class="card-subtext text-up">
-              <i class="fa-solid fa-arrow-trend-up"></i> 2,5%
-              <span class="subtext-light">so với tuần trước</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Thẻ 2: Đã chuẩn hóa -->
-        <div class="metric-card card-orange">
-          <div class="card-header-icon">
-            <i class="fa-solid fa-file-signature"></i>
-          </div>
-          <div class="card-data">
-            <span class="card-title">ĐÃ CHUẨN HÓA</span>
-            <span class="card-number" id="val-da-chinh-ly">2.327</span>
-            <span class="card-subtext text-up">
-              <i class="fa-solid fa-arrow-trend-up"></i> 3,1%
-              <span class="subtext-light">so với tuần trước</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Thẻ 3: Đã ký số -->
-        <div class="metric-card card-purple">
-          <div class="card-header-icon">
-            <i class="fa-solid fa-signature"></i>
-          </div>
-          <div class="card-data">
-            <span class="card-title">ĐÃ KÝ SỐ</span>
-            <span class="card-number" id="val-da-ky-so">1.690</span>
-            <span class="card-subtext text-up">
-              <i class="fa-solid fa-arrow-trend-up"></i> 2,8%
-              <span class="subtext-light">so với tuần trước</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Thẻ 4: Đã đưa lên phần mềm -->
-        <div class="metric-card card-green">
-          <div class="card-header-icon">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-          </div>
-          <div class="card-data">
-            <span class="card-title">ĐÃ ĐƯA LÊN PHẦN MỀM</span>
-            <span class="card-number" id="val-da-phan-mem">1.500</span>
-            <span class="card-subtext text-up">
-              <i class="fa-solid fa-arrow-trend-up"></i> 2,0%
-              <span class="subtext-light">so với tuần trước</span>
-            </span>
-          </div>
-        </div>
-
-        <!-- Thẻ 5: Tỷ lệ hoàn thành -->
-        <div class="metric-card card-red">
-          <div class="card-header-icon">
-            <i class="fa-solid fa-chart-pie"></i>
-          </div>
-          <div class="card-data">
-            <span class="card-title">TỶ LỆ HOÀN THÀNH</span>
-            <span class="card-number" id="val-ty-le-hoan-thanh">10,2%</span>
-            <span class="card-subtext text-up">
-              <i class="fa-solid fa-arrow-trend-up"></i> 2,0%
-              <span class="subtext-light">so với tuần trước</span>
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <!-- 2. Hàng bộ lọc dữ liệu đơn vị (Dropdown) -->
+      <!-- Thanh Bộ lọc chung & Nút chuyển đổi Phân hệ -->
       <section class="filter-bar">
         <div class="filter-left">
-          <span class="filter-icon"
-            ><i class="fa-solid fa-filter"></i> BỘ LỌC DỮ LIỆU</span
-          >
+          <!-- THANH CHUYỂN ĐỔI CÁC PHÂN HỆ ĐỒNG CẤP -->
+          <div class="module-tabs">
+            <button class="tab-btn active" data-tab="tab-so-hoa">
+              <i class="fa-solid fa-folder-tree"></i> Số hóa hồ sơ đảng viên
+            </button>
+            <button class="tab-btn" data-tab="tab-tc-dang-vien">
+              <i class="fa-solid fa-users-gear"></i> Tổ chức đảng, đảng viên
+            </button>
+            <button class="tab-btn" data-tab="tab-quan-ly-noi-bo">
+              <i class="fa-solid fa-list-check"></i> Quản lý nội bộ
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-right" id="filter-dangbo-wrapper">
           <div class="select-wrapper">
-            <label for="select-dangbo">Chọn đơn vị:</label>
+            <label for="select-dangbo">Đơn vị:</label>
             <select id="select-dangbo">
               <option value="ALL">ĐẢNG BỘ TỈNH THÁI NGUYÊN</option>
             </select>
           </div>
-        </div>
-        <div class="filter-right">
-          <span class="update-time"
-            >Dữ liệu cập nhật đến:
-            <strong id="update-timestamp">16/07/2026 - 16:00</strong></span
-          >
           <button
             class="btn-refresh"
             id="btn-reload-data"
@@ -160,131 +98,537 @@
         </div>
       </section>
 
-      <!-- 3. Khu vực Biểu đồ Chi tiết & Bản đồ số -->
-      <section class="charts-grid-three">
-        <!-- Cột 1: Tiến độ chi tiết từng công đoạn (Biểu đồ Doughnut tròn rỗng ruột) -->
-        <div class="grid-card">
-          <h3 class="chart-box-title">TIẾN ĐỘ CHI TIẾT TỪNG CÔNG ĐOẠN</h3>
-          <div class="doughnut-charts-container">
-            <div class="doughnut-item">
-              <div class="chart-circle-wrapper">
-                <canvas id="chart-chinh-ly"></canvas>
-                <div class="chart-center-value" id="pct-chinh-ly">0%</div>
-              </div>
-              <span class="doughnut-label text-orange">ĐÃ CHUẨN HÓA</span>
-              <span class="doughnut-ratio" id="ratio-chinh-ly">0 / 0</span>
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 1: SỐ HÓA HỒ SƠ ĐẢNG VIÊN                                 -->
+      <!-- ================================================================= -->
+      <div id="tab-so-hoa" class="tab-content active">
+        <!-- 5 Thẻ chỉ số số hóa -->
+        <section class="metrics-grid">
+          <div class="metric-card card-blue">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-folder-closed"></i>
             </div>
-
-            <div class="doughnut-item">
-              <div class="chart-circle-wrapper">
-                <canvas id="chart-ky-so"></canvas>
-                <div class="chart-center-value" id="pct-ky-so">0%</div>
-              </div>
-              <span class="doughnut-label text-purple">ĐÃ KÝ SỐ</span>
-              <span class="doughnut-ratio" id="ratio-ky-so">0 / 0</span>
-            </div>
-
-            <div class="doughnut-item">
-              <div class="chart-circle-wrapper">
-                <canvas id="chart-phan-mem"></canvas>
-                <div class="chart-center-value" id="pct-phan-mem">0%</div>
-              </div>
-              <span class="doughnut-label text-green">ĐÃ ĐƯA LÊN PM</span>
-              <span class="doughnut-ratio" id="ratio-phan-mem">0 / 0</span>
-            </div>
-
-            <div class="doughnut-item">
-              <div class="chart-circle-wrapper">
-                <canvas id="chart-hoan-thanh"></canvas>
-                <div class="chart-center-value" id="pct-hoan-thanh">0%</div>
-              </div>
-              <span class="doughnut-label text-red">TỶ LỆ HOÀN THÀNH</span>
-              <span class="doughnut-ratio" id="ratio-hoan-thanh">0 / 0</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cột 2: Tiến độ theo thời gian (Biểu đồ đường Line Chart) -->
-        <div class="grid-card">
-          <h3 class="chart-box-title">TIẾN ĐỘ THEO THỜI GIAN</h3>
-          <div class="line-chart-container">
-            <canvas id="timeLineChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Cột 3: Bản đồ số các xã phường (Tích hợp Leaflet Map) -->
-        <div class="grid-card">
-          <h3 class="chart-box-title">TỔNG QUAN THEO ĐẢNG BỘ TRỰC THUỘC</h3>
-
-          <!-- Tạo một khung bao ngoài relative để ghim chú giải lên trên map -->
-          <div class="map-wrapper" style="position: relative; width: 100%">
-            <div id="map"></div>
-
-            <!-- Chuyển chú giải vào đây để thiết lập đè lên góc phải bản đồ -->
-            <div class="map-legend-vertical">
-              <div class="legend-title">Tiến độ</div>
-              <span class="legend-item"
-                ><span class="legend-color color-green"></span> > 80%</span
-              >
-              <span class="legend-item"
-                ><span class="legend-color color-yellow"></span> 60% - 80%</span
-              >
-              <span class="legend-item"
-                ><span class="legend-color color-orange"></span> 40% - 60%</span
-              >
-              <span class="legend-item"
-                ><span class="legend-color color-red"></span> &lt; 40%</span
+            <div class="card-data">
+              <span class="card-title">SỐ HỒ SƠ CẦN SỐ HÓA</span>
+              <span class="card-number" id="val-can-so-hoa">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-arrow-trend-up"></i> 2,5%
+                <span class="subtext-light">so với tuần trước</span></span
               >
             </div>
           </div>
-        </div>
-      </section>
+          <div class="metric-card card-orange">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-file-signature"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ CHUẨN HÓA</span>
+              <span class="card-number" id="val-da-chinh-ly">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-arrow-trend-up"></i> 3,1%
+                <span class="subtext-light">so với tuần trước</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-purple">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-signature"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ KÝ SỐ</span>
+              <span class="card-number" id="val-da-ky-so">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-arrow-trend-up"></i> 2,8%
+                <span class="subtext-light">so với tuần trước</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-green">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ ĐƯA LÊN PHẦN MỀM</span>
+              <span class="card-number" id="val-da-phan-mem">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-arrow-trend-up"></i> 2,0%
+                <span class="subtext-light">so với tuần trước</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-red">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">TỶ LỆ HOÀN THÀNH</span>
+              <span class="card-number" id="val-ty-le-hoan-thanh">0%</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-arrow-trend-up"></i> 2,0%
+                <span class="subtext-light">so với tuần trước</span></span
+              >
+            </div>
+          </div>
+        </section>
 
-      <!-- 4. Khu vực Xếp hạng và Bảng số liệu chi tiết -->
-      <section class="charts-grid-bottom">
-        <!-- Bên trái: Bảng xếp hạng dẫn đầu & cần đôn đốc -->
-        <div class="bottom-left-panel">
-          <div class="rank-card">
-            <h4 class="rank-title text-green">
-              <i class="fa-solid fa-award"></i> TOP 5 ĐẢNG BỘ TRỰC THUỘC DẪN ĐẦU
-            </h4>
-            <div class="rank-list" id="rank-top-list">
-              <!-- Tự động nạp bằng JS -->
+        <!-- Biểu đồ & Bản đồ phân hệ số hóa -->
+        <section class="charts-grid-three">
+          <div class="grid-card">
+            <h3 class="chart-box-title">TIẾN ĐỘ CHI TIẾT TỪNG CÔNG ĐOẠN</h3>
+            <div class="doughnut-charts-container">
+              <div class="doughnut-item">
+                <div class="chart-circle-wrapper">
+                  <canvas id="chart-chinh-ly"></canvas>
+                  <div class="chart-center-value" id="pct-chinh-ly">0%</div>
+                </div>
+                <span class="doughnut-label text-orange">ĐÃ CHUẨN HÓA</span>
+                <span class="doughnut-ratio" id="ratio-chinh-ly">0 / 0</span>
+              </div>
+              <div class="doughnut-item">
+                <div class="chart-circle-wrapper">
+                  <canvas id="chart-ky-so"></canvas>
+                  <div class="chart-center-value" id="pct-ky-so">0%</div>
+                </div>
+                <span class="doughnut-label text-purple">ĐÃ KÝ SỐ</span>
+                <span class="doughnut-ratio" id="ratio-ky-so">0 / 0</span>
+              </div>
+              <div class="doughnut-item">
+                <div class="chart-circle-wrapper">
+                  <canvas id="chart-phan-mem"></canvas>
+                  <div class="chart-center-value" id="pct-phan-mem">0%</div>
+                </div>
+                <span class="doughnut-label text-green">ĐÃ ĐƯA LÊN PM</span>
+                <span class="doughnut-ratio" id="ratio-phan-mem">0 / 0</span>
+              </div>
+              <div class="doughnut-item">
+                <div class="chart-circle-wrapper">
+                  <canvas id="chart-hoan-thanh"></canvas>
+                  <div class="chart-center-value" id="pct-hoan-thanh">0%</div>
+                </div>
+                <span class="doughnut-label text-red">TỶ LỆ HOÀN THÀNH</span>
+                <span class="doughnut-ratio" id="ratio-hoan-thanh">0 / 0</span>
+              </div>
             </div>
           </div>
 
-          <div class="rank-card" style="margin-top: 15px">
-            <h4 class="rank-title text-orange">
-              <i class="fa-solid fa-triangle-exclamation"></i> 5 ĐẢNG BỘ TRỰC
-              THUỘC CẦN ĐÔN ĐỐC
-            </h4>
-            <div class="rank-list" id="rank-low-list">
-              <!-- Tự động nạp bằng JS -->
+          <div class="grid-card">
+            <h3 class="chart-box-title">TIẾN ĐỘ THEO THỜI GIAN</h3>
+            <div class="line-chart-container">
+              <canvas id="timeLineChart"></canvas>
             </div>
           </div>
-        </div>
 
-        <!-- Bên phải: Bảng thống kê chi tiết toàn bộ Đảng bộ -->
-        <div class="bottom-right-panel">
-          <div class="table-header-row">
+          <div class="grid-card">
+            <h3 class="chart-box-title">TỔNG QUAN THEO ĐẢNG BỘ TRỰC THUỘC</h3>
+            <div class="map-wrapper">
+              <div id="map"></div>
+              <div class="map-legend-vertical">
+                <div class="legend-title">Tiến độ</div>
+                <span class="legend-item"
+                  ><span class="legend-color color-green"></span> > 80%</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-color color-yellow"></span> 60% -
+                  80%</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-color color-orange"></span> 40% -
+                  60%</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-color color-red"></span> &lt; 40%</span
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Xếp hạng & Bảng số liệu Số hóa -->
+        <section class="charts-grid-bottom">
+          <div class="bottom-left-panel">
+            <div class="rank-card">
+              <h4 class="rank-title text-green">
+                <i class="fa-solid fa-award"></i> TOP 5 ĐẢNG BỘ TRỰC THUỘC DẪN
+                ĐẦU
+              </h4>
+              <div class="rank-list" id="rank-top-list"></div>
+            </div>
+            <div class="rank-card" style="margin-top: 15px">
+              <h4 class="rank-title text-orange">
+                <i class="fa-solid fa-triangle-exclamation"></i> 5 ĐẢNG BỘ TRỰC
+                THUỘC CẦN ĐÔN ĐỐC
+              </h4>
+              <div class="rank-list" id="rank-low-list"></div>
+            </div>
+          </div>
+
+          <div class="bottom-right-panel">
+            <div class="table-header-row">
+              <h3 class="chart-box-title">
+                TIẾN ĐỘ CHI TIẾT THEO ĐẢNG BỘ TRỰC THUỘC
+              </h3>
+              <div class="table-actions">
+                <div class="search-box-wrapper">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input
+                    type="text"
+                    id="table-search"
+                    placeholder="Tìm kiếm đơn vị..."
+                  />
+                </div>
+                <button class="btn-action btn-excel" id="btn-export-excel">
+                  <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </button>
+                <button class="btn-action btn-pdf" id="btn-export-pdf">
+                  <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+                </button>
+              </div>
+            </div>
+
+            <div class="table-scroll-wrapper">
+              <table class="report-table">
+                <thead>
+                  <tr>
+                    <th style="width: 50px; text-align: center">STT</th>
+                    <th>ĐẢNG BỘ</th>
+                    <th style="text-align: right">SỐ HỒ SƠ CẦN SỐ HÓA</th>
+                    <th
+                      colspan="2"
+                      style="text-align: center; border-left: 1px solid #ddd"
+                    >
+                      ĐÃ CHUẨN HÓA
+                    </th>
+                    <th
+                      colspan="2"
+                      style="text-align: center; border-left: 1px solid #ddd"
+                    >
+                      ĐÃ KÝ SỐ
+                    </th>
+                    <th
+                      colspan="2"
+                      style="text-align: center; border-left: 1px solid #ddd"
+                    >
+                      ĐÃ ĐƯA LÊN PM
+                    </th>
+                    <th style="text-align: center; border-left: 1px solid #ddd">
+                      TỶ LỆ HOÀN THÀNH
+                    </th>
+                  </tr>
+                  <tr class="sub-header-table">
+                    <th></th>
+                    <th></th>
+                    <th></th>
+                    <th style="border-left: 1px solid #ddd; text-align: right">
+                      Số lượng
+                    </th>
+                    <th style="text-align: center">Tỷ lệ</th>
+                    <th style="border-left: 1px solid #ddd; text-align: right">
+                      Số lượng
+                    </th>
+                    <th style="text-align: center">Tỷ lệ</th>
+                    <th style="border-left: 1px solid #ddd; text-align: right">
+                      Số lượng
+                    </th>
+                    <th style="text-align: center">Tỷ lệ</th>
+                    <th
+                      style="border-left: 1px solid #ddd; text-align: center"
+                    ></th>
+                  </tr>
+                </thead>
+                <tbody id="main-report-tbody"></tbody>
+                <tfoot>
+                  <tr class="total-row-summary" id="total-row-summary">
+                    <td style="text-align: center"></td>
+                    <td><b>Tổng cộng</b></td>
+                    <td
+                      id="foot-can-so-hoa"
+                      style="text-align: right; font-weight: bold"
+                    >
+                      0
+                    </td>
+                    <td
+                      id="foot-sl-chinh-ly"
+                      style="
+                        text-align: right;
+                        font-weight: bold;
+                        border-left: 1px solid #ddd;
+                      "
+                    >
+                      0
+                    </td>
+                    <td
+                      id="foot-tl-chinh-ly"
+                      style="text-align: center; font-weight: bold"
+                    >
+                      0%
+                    </td>
+                    <td
+                      id="foot-sl-ky-so"
+                      style="
+                        text-align: right;
+                        font-weight: bold;
+                        border-left: 1px solid #ddd;
+                      "
+                    >
+                      0
+                    </td>
+                    <td
+                      id="foot-tl-ky-so"
+                      style="text-align: center; font-weight: bold"
+                    >
+                      0%
+                    </td>
+                    <td
+                      id="foot-sl-phan-mem"
+                      style="
+                        text-align: right;
+                        font-weight: bold;
+                        border-left: 1px solid #ddd;
+                      "
+                    >
+                      0
+                    </td>
+                    <td
+                      id="foot-tl-phan-mem"
+                      style="text-align: center; font-weight: bold"
+                    >
+                      0%
+                    </td>
+                    <td
+                      id="foot-tl-hoan-thanh"
+                      style="
+                        text-align: center;
+                        font-weight: bold;
+                        border-left: 1px solid #ddd;
+                        color: #cc0000;
+                      "
+                    >
+                      0%
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 2: TỔ CHỨC ĐẢNG, ĐẢNG VIÊN                                 -->
+      <!-- ================================================================= -->
+      <div id="tab-tc-dang-vien" class="tab-content">
+        <!-- 5 Thẻ chỉ số tổng quan Tổ chức Đảng & Đảng viên -->
+        <section class="metrics-grid">
+          <div class="metric-card card-blue">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-sitemap"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">TỔ CHỨC CƠ SỞ ĐẢNG</span>
+              <span class="card-number" id="val-tc-tccs">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-check-double"></i> 100%
+                <span class="subtext-light">hoạt động tốt</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-orange">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-building-flag"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">TỔNG SỐ CHI BỘ</span>
+              <span class="card-number" id="val-tc-chibo">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-plus"></i> Hoạt động
+                <span class="subtext-light">thường xuyên</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-purple">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-users-viewfinder"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">TỔNG SỐ ĐẢNG VIÊN</span>
+              <span class="card-number" id="val-tc-tong-dv">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-arrow-trend-up"></i> Quản lý
+                <span class="subtext-light">hệ thống</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-green">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-user-check"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐẢNG VIÊN CHÍNH THỨC</span>
+              <span class="card-number" id="val-tc-dv-chinhthuc">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-percent"></i>
+                <span id="pct-tc-dv-chinhthuc">0%</span>
+                <span class="subtext-light">trên tổng số</span></span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-red">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-user-clock"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐẢNG VIÊN DỰ BỊ</span>
+              <span class="card-number" id="val-tc-dv-dubi">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-clock"></i>
+                <span id="pct-tc-dv-dubi">0%</span>
+                <span class="subtext-light">thử thách</span></span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- Khối thống kê cơ cấu & tình hình phát triển Đảng viên -->
+        <section
+          class="charts-grid-bottom"
+          style="grid-template-columns: 1fr 1fr; margin-top: 15px"
+        >
+          <div class="grid-card">
             <h3 class="chart-box-title">
-              TIẾN ĐỘ CHI TIẾT THEO ĐẢNG BỘ TRỰC THUỘC
+              <i class="fa-solid fa-chart-pie"></i> CƠ CẤU ĐẢNG VIÊN THEO ĐỘ
+              TUỔI
+            </h3>
+            <div style="height: 280px; position: relative">
+              <canvas id="ageStructureChart"></canvas>
+            </div>
+          </div>
+          <div class="grid-card">
+            <h3 class="chart-box-title">
+              <i class="fa-solid fa-chart-column"></i> TỔNG QUAN ĐẢNG VIÊN THEO
+              ĐƠN VỊ
+            </h3>
+
+            <div
+              class="chart-scroll-wrapper"
+              style="
+                position: relative;
+                height: 280px;
+                overflow-x: auto;
+                overflow-y: hidden;
+              "
+            >
+              <div
+                id="bar-chart-container"
+                style="position: relative; height: 240px; min-width: 100%"
+              >
+                <canvas id="admissionChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 3: QUẢN LÝ NỘI BỘ (TAB CON: TIẾN ĐỘ CÁC NHIỆM VỤ)          -->
+      <!-- ================================================================= -->
+      <div id="tab-quan-ly-noi-bo" class="tab-content">
+        <!-- Thanh Sub-tabs / Tab con nội bộ -->
+        <div
+          class="sub-module-tabs"
+          style="
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            gap: 15px;
+          "
+        >
+          <button
+            class="sub-tab-btn active"
+            style="
+              padding: 8px 16px;
+              border: none;
+              background: none;
+              border-bottom: 3px solid #cc0000;
+              font-weight: bold;
+              color: #cc0000;
+              cursor: pointer;
+            "
+          >
+            <i class="fa-solid fa-tasks"></i> Tiến độ các nhiệm vụ
+          </button>
+        </div>
+
+        <!-- 4 Thẻ chỉ số tổng quan Nhiệm vụ -->
+        <section
+          class="metrics-grid"
+          style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px"
+        >
+          <div class="metric-card card-blue">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-list-ul"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">TỔNG SỐ NHIỆM VỤ</span>
+              <span class="card-number" id="val-task-total">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-bars-progress"></i> Đang theo dõi</span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-green">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ HOÀN THÀNH</span>
+              <span class="card-number" id="val-task-done">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-check"></i> Đúng tiến độ</span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-orange">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐANG THỰC HIỆN</span>
+              <span class="card-number" id="val-task-doing">0</span>
+              <span class="card-subtext text-up"
+                ><i class="fa-solid fa-spinner"></i> Đang triển khai</span
+              >
+            </div>
+          </div>
+          <div class="metric-card card-red">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">CHẬM TIẾN ĐỘ / QUÁ HẠN</span>
+              <span class="card-number" id="val-task-late">0</span>
+              <span class="card-subtext text-up" style="color: #dc2626"
+                ><i class="fa-solid fa-bell"></i> Cần đôn đốc</span
+              >
+            </div>
+          </div>
+        </section>
+
+        <!-- Bảng danh sách Nhiệm vụ chi tiết -->
+        <section class="grid-card">
+          <div class="table-header-row" style="margin-bottom: 15px">
+            <h3 class="chart-box-title">
+              <i class="fa-solid fa-clipboard-list"></i> BẢNG THEO DÕI TIẾN ĐỘ
+              CÁC NHIỆM VỤ TRỌNG TÂM
             </h3>
             <div class="table-actions">
               <div class="search-box-wrapper">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input
                   type="text"
-                  id="table-search"
-                  placeholder="Tìm kiếm đơn vị..."
+                  id="task-search"
+                  placeholder="Tìm kiếm nhiệm vụ, người phụ trách..."
                 />
               </div>
-              <button class="btn-action btn-excel" id="btn-export-excel">
-                <i class="fa-solid fa-file-excel"></i> Xuất Excel
-              </button>
-              <button class="btn-action btn-pdf" id="btn-export-pdf">
-                <i class="fa-solid fa-file-pdf"></i> Xuất PDF
-              </button>
             </div>
           </div>
 
@@ -293,144 +637,32 @@
               <thead>
                 <tr>
                   <th style="width: 50px; text-align: center">STT</th>
-                  <th>ĐẢNG BỘ</th>
-                  <th style="text-align: right">SỐ HỒ SƠ CẦN SỐ HÓA</th>
-                  <th
-                    colspan="2"
-                    style="text-align: center; border-left: 1px solid #ddd"
-                  >
-                    ĐÃ CHUẨN HÓA
-                  </th>
-                  <th
-                    colspan="2"
-                    style="text-align: center; border-left: 1px solid #ddd"
-                  >
-                    ĐÃ KÝ SỐ
-                  </th>
-                  <th
-                    colspan="2"
-                    style="text-align: center; border-left: 1px solid #ddd"
-                  >
-                    ĐÃ ĐƯA LÊN PM
-                  </th>
-                  <th style="text-align: center; border-left: 1px solid #ddd">
-                    TỶ LỆ HOÀN THÀNH
-                  </th>
-                </tr>
-                <tr class="sub-header-table">
-                  <th></th>
-                  <th></th>
-                  <th></th>
-                  <th style="border-left: 1px solid #ddd; text-align: right">
-                    Số lượng
-                  </th>
-                  <th style="text-align: center">Tỷ lệ</th>
-                  <th style="border-left: 1px solid #ddd; text-align: right">
-                    Số lượng
-                  </th>
-                  <th style="text-align: center">Tỷ lệ</th>
-                  <th style="border-left: 1px solid #ddd; text-align: right">
-                    Số lượng
-                  </th>
-                  <th style="text-align: center">Tỷ lệ</th>
-                  <th
-                    style="border-left: 1px solid #ddd; text-align: center"
-                  ></th>
+                  <th>TÊN NHIỆM VỤ / NỘI DUNG CÔNG VIỆC</th>
+                  <th style="width: 160px">ĐƠN VỊ / CÁN BỘ CHỦ TRÌ</th>
+                  <th style="width: 120px; text-align: center">THỜI HẠN</th>
+                  <th style="width: 140px; text-align: center">TIẾN ĐỘ (%)</th>
+                  <th style="width: 150px; text-align: center">TRẠNG THÁI</th>
+                  <th>GHI CHÚ / ĐÔN ĐỐC</th>
                 </tr>
               </thead>
-              <tbody id="main-report-tbody">
-                <!-- Nạp danh sách thời gian thực qua JS -->
+              <tbody id="task-report-tbody">
+                <!-- Render dữ liệu Realtime từ Firebase -->
               </tbody>
-              <tfoot>
-                <tr class="total-row-footer" id="total-row-summary">
-                  <td style="text-align: center"></td>
-                  <td><b>Tổng cộng</b></td>
-                  <td
-                    id="foot-can-so-hoa"
-                    style="text-align: right; font-weight: bold"
-                  >
-                    0
-                  </td>
-                  <td
-                    id="foot-sl-chinh-ly"
-                    style="
-                      text-align: right;
-                      font-weight: bold;
-                      border-left: 1px solid #ddd;
-                    "
-                  >
-                    0
-                  </td>
-                  <td
-                    id="foot-tl-chinh-ly"
-                    style="text-align: center; font-weight: bold"
-                  >
-                    0%
-                  </td>
-                  <td
-                    id="foot-sl-ky-so"
-                    style="
-                      text-align: right;
-                      font-weight: bold;
-                      border-left: 1px solid #ddd;
-                    "
-                  >
-                    0
-                  </td>
-                  <td
-                    id="foot-tl-ky-so"
-                    style="text-align: center; font-weight: bold"
-                  >
-                    0%
-                  </td>
-                  <td
-                    id="foot-sl-phan-mem"
-                    style="
-                      text-align: right;
-                      font-weight: bold;
-                      border-left: 1px solid #ddd;
-                    "
-                  >
-                    0
-                  </td>
-                  <td
-                    id="foot-tl-phan-mem"
-                    style="text-align: center; font-weight: bold"
-                  >
-                    0%
-                  </td>
-                  <td
-                    id="foot-tl-hoan-thanh"
-                    style="
-                      text-align: center;
-                      font-weight: bold;
-                      border-left: 1px solid #ddd;
-                      color: #cc0000;
-                    "
-                  >
-                    0%
-                  </td>
-                </tr>
-              </tfoot>
             </table>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
 
-    <!-- Nhúng Firebase v9 (compat) -->
+    <!-- Nhúng thư viện JS -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-    <!-- Thư viện Biểu đồ Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Thư viện Bản đồ Leaflet -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Thư viện Thông báo SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Script dự án -->
+    <!-- Script ứng dụng -->
     <script src="js/firebase-config.js"></script>
     <script src="js/app.js"></script>
   </body>
