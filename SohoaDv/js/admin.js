@@ -1,6 +1,7 @@
-// Tham chiếu Realtime Database
+// Tham chiếu Realtime Database các nhánh
 const dangBoRef = database.ref("dang_bo");
 const tasksRef = database.ref("tasks");
+
 // Khai báo DOM Elements
 const loginSection = document.getElementById("login-section");
 const adminSection = document.getElementById("admin-section");
@@ -11,14 +12,16 @@ const adminUserInfo = document.getElementById("admin-user-info");
 // Cache lưu tên đơn vị
 let dangBoCache = {};
 
-// 1. Khởi tạo dữ liệu và gán sự kiện khi trang tải xong
+// 1. KHỞI TẠO DỮ LIỆU & GÁN SỰ KIỆN KHI TRANG TẢI XONG
 document.addEventListener("DOMContentLoaded", () => {
   initAdminTabs();
+  initTcSubTabs(); // Khởi tạo tab con trong Phân hệ 2
   initAdminData();
-  setupDropdownChangeEvents(); // Gán sự kiện Fill tự động khi chọn Dropdown
+  setupDropdownChangeEvents();
+  initKetNapEvents(); // Khởi tạo xử lý Kết nạp Đảng viên
 });
 
-// 2. Chuyển đổi Tab giữa các phân hệ quản trị
+// 2. CHUYỂN ĐỔI TAB GIỮA CÁC PHÂN HỆ QUẢN TRỊ CHÍNH
 function initAdminTabs() {
   const tabBtns = document.querySelectorAll(".admin-tab-btn");
   const tabContents = document.querySelectorAll(".admin-tab-content");
@@ -41,7 +44,37 @@ function initAdminTabs() {
   });
 }
 
-// 3. Theo dõi phiên đăng nhập
+// 2.1 CHUYỂN ĐỔI TAB CON TRONG PHÂN HỆ 2 (SỐ LIỆU CHUNG & KẾT NẠP)
+function initTcSubTabs() {
+  const subBtns = document.querySelectorAll(".sub-tc-tab-btn");
+  const subContents = document.querySelectorAll(".tc-subtab-content");
+
+  subBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-tc-tab");
+
+      subBtns.forEach((b) => {
+        b.classList.remove("active");
+        b.style.borderBottomColor = "transparent";
+        b.style.color = "#64748b";
+      });
+
+      btn.classList.add("active");
+      btn.style.borderBottomColor = "#16a34a";
+      btn.style.color = "#16a34a";
+
+      subContents.forEach((c) => {
+        if (c.id === target) {
+          c.style.display = "block";
+        } else {
+          c.style.display = "none";
+        }
+      });
+    });
+  });
+}
+
+// 3. THEO DÕI PHIÊN ĐĂNG NHẬP
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     loginSection.style.display = "none";
@@ -104,15 +137,21 @@ btnLogout.addEventListener("click", () => {
   });
 });
 
-// 4. Nạp danh sách Đảng bộ vào Dropdown cả 2 phân hệ & Load Bảng
+// 4. NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẢNG
 function initAdminData() {
   const selectSoHoa = document.getElementById("select-dangbo-sohoa");
   const selectTcDang = document.getElementById("select-dangbo-tcdang");
+  const selectKetNap = document.getElementById("select-dangbo-ketnap");
 
-  selectSoHoa.innerHTML =
-    '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
-  selectTcDang.innerHTML =
-    '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
+  if (selectSoHoa)
+    selectSoHoa.innerHTML =
+      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
+  if (selectTcDang)
+    selectTcDang.innerHTML =
+      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
+  if (selectKetNap)
+    selectKetNap.innerHTML =
+      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
   dangBoCache = {};
 
   dangBoRef.once("value", (snapshot) => {
@@ -121,15 +160,26 @@ function initAdminData() {
       const data = child.val();
       dangBoCache[key] = data.ten;
 
-      const opt1 = document.createElement("option");
-      opt1.value = key;
-      opt1.textContent = data.ten;
-      selectSoHoa.appendChild(opt1);
+      if (selectSoHoa) {
+        const opt1 = document.createElement("option");
+        opt1.value = key;
+        opt1.textContent = data.ten;
+        selectSoHoa.appendChild(opt1);
+      }
 
-      const opt2 = document.createElement("option");
-      opt2.value = key;
-      opt2.textContent = data.ten;
-      selectTcDang.appendChild(opt2);
+      if (selectTcDang) {
+        const opt2 = document.createElement("option");
+        opt2.value = key;
+        opt2.textContent = data.ten;
+        selectTcDang.appendChild(opt2);
+      }
+
+      if (selectKetNap) {
+        const opt3 = document.createElement("option");
+        opt3.value = key;
+        opt3.textContent = data.ten;
+        selectKetNap.appendChild(opt3);
+      }
     });
 
     loadProgressTables();
@@ -138,7 +188,6 @@ function initAdminData() {
 
 // 5. TỰ ĐỘNG FILL DỮ LIỆU CỦA ĐƠN VỊ ĐÃ LƯU KHI CHỌN TỪ DROPDOWN
 function setupDropdownChangeEvents() {
-  // 5.1 Fill dữ liệu Phân hệ 1: Số hóa hồ sơ
   const selectSoHoa = document.getElementById("select-dangbo-sohoa");
   if (selectSoHoa) {
     selectSoHoa.addEventListener("change", (e) => {
@@ -166,7 +215,6 @@ function setupDropdownChangeEvents() {
     });
   }
 
-  // 5.2 Fill dữ liệu Phân hệ 2: Tổ chức đảng & Đảng viên
   const selectTcDang = document.getElementById("select-dangbo-tcdang");
   if (selectTcDang) {
     selectTcDang.addEventListener("change", (e) => {
@@ -179,7 +227,6 @@ function setupDropdownChangeEvents() {
       dangBoRef.child(selectedId).once("value", (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          // Fill số liệu Tổ chức
           document.getElementById("tc-so-tccs-dang").value =
             data.soTccsDang || 0;
           document.getElementById("tc-so-chi-bo").value = data.soChiBo || 0;
@@ -190,7 +237,6 @@ function setupDropdownChangeEvents() {
           document.getElementById("tc-dang-vien-du-bi").value =
             data.dvDuBi || 0;
 
-          // Fill số liệu Cơ cấu Độ tuổi
           document.getElementById("tc-tuoi-under30").value =
             data.tuoiUnder30 || 0;
           document.getElementById("tc-tuoi-30to45").value =
@@ -215,266 +261,431 @@ function setupDropdownChangeEvents() {
     });
   }
 }
-// 6. Xử lý LƯU DỮ LIỆU - Phân hệ 1: Số hóa hồ sơ (Có kiểm tra Logic)
-document.getElementById("form-sohoa").addEventListener("submit", (e) => {
-  e.preventDefault();
 
-  const id = document.getElementById("select-dangbo-sohoa").value;
-  const canSoHoa =
-    parseInt(document.getElementById("sohoa-can-so-hoa").value) || 0;
-  const chinhLy =
-    parseInt(document.getElementById("sohoa-chinh-ly").value) || 0;
-  const kySo = parseInt(document.getElementById("sohoa-ky-so").value) || 0;
-  const phanMem =
-    parseInt(document.getElementById("sohoa-phan-mem").value) || 0;
+// 6. XỬ LÝ LƯU DỮ LIỆU - PHÂN HỆ 1: SỐ HÓA HỒ SƠ
+const formSoHoa = document.getElementById("form-sohoa");
+if (formSoHoa) {
+  formSoHoa.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  if (!id) {
-    Swal.fire({
-      icon: "warning",
-      title: "Chưa chọn đơn vị",
-      text: "Vui lòng chọn một Đảng bộ trực thuộc!",
-    });
-    return;
-  }
+    const id = document.getElementById("select-dangbo-sohoa").value;
+    const canSoHoa =
+      parseInt(document.getElementById("sohoa-can-so-hoa").value) || 0;
+    const chinhLy =
+      parseInt(document.getElementById("sohoa-chinh-ly").value) || 0;
+    const kySo = parseInt(document.getElementById("sohoa-ky-so").value) || 0;
+    const phanMem =
+      parseInt(document.getElementById("sohoa-phan-mem").value) || 0;
 
-  // --- KIỂM TRA LOGIC PHÂN HỆ SỐ HÓA ---
-  if (canSoHoa < 0 || chinhLy < 0 || kySo < 0 || phanMem < 0) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: "Các con số nhập vào phải lớn hơn hoặc bằng 0!",
-    });
-    return;
-  }
-
-  if (chinhLy > canSoHoa) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: "Số hồ sơ đã chuẩn hóa không được lớn hơn Tổng số hồ sơ cần số hóa!",
-    });
-    return;
-  }
-
-  if (kySo > chinhLy) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: "Số hồ sơ đã ký số không được lớn hơn Số hồ sơ đã chuẩn hóa!",
-    });
-    return;
-  }
-
-  if (phanMem > kySo) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: "Số hồ sơ đã đưa lên phần mềm không được lớn hơn Số hồ sơ đã ký số!",
-    });
-    return;
-  }
-
-  // Nếu tất cả điều kiện đều hợp lệ -> Tiến hành lưu
-  dangBoRef
-    .child(id)
-    .update({
-      tongHoSo: canSoHoa,
-      daChinhLy: chinhLy,
-      daKySo: kySo,
-      daCapNhat: phanMem,
-    })
-    .then(() => {
+    if (!id) {
       Swal.fire({
-        icon: "success",
-        title: "Đã lưu thành công",
-        text: `Đã cập nhật tiến độ số hóa cho ${dangBoCache[id]}.`,
-        timer: 1500,
-        showConfirmButton: false,
+        icon: "warning",
+        title: "Chưa chọn đơn vị",
+        text: "Vui lòng chọn một Đảng bộ trực thuộc!",
+      });
+      return;
+    }
+
+    if (canSoHoa < 0 || chinhLy < 0 || kySo < 0 || phanMem < 0) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: "Số liệu nhập vào phải lớn hơn hoặc bằng 0!",
+      });
+      return;
+    }
+
+    if (chinhLy > canSoHoa || kySo > chinhLy || phanMem > kySo) {
+      Swal.fire({
+        icon: "error",
+        title: "Số liệu không hợp lệ",
+        text: "Tiến độ khâu sau không được lớn hơn khâu trước!",
+      });
+      return;
+    }
+
+    dangBoRef
+      .child(id)
+      .update({
+        tongHoSo: canSoHoa,
+        daChinhLy: chinhLy,
+        daKySo: kySo,
+        daCapNhat: phanMem,
+      })
+      .then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Đã lưu thành công",
+          text: `Đã cập nhật tiến độ số hóa cho ${dangBoCache[id]}.`,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      });
+  });
+}
+
+// 7. XỬ LÝ LƯU DỮ LIỆU - PHÂN HỆ 2: TỔ CHỨC ĐẢNG & ĐẢNG VIÊN
+const formTcDang = document.getElementById("form-tcdang");
+if (formTcDang) {
+  formTcDang.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const id = document.getElementById("select-dangbo-tcdang").value;
+    const soTccsDang =
+      parseInt(document.getElementById("tc-so-tccs-dang").value) || 0;
+    const soChiBo =
+      parseInt(document.getElementById("tc-so-chi-bo").value) || 0;
+    const tongDangVien =
+      parseInt(document.getElementById("tc-tong-dang-vien").value) || 0;
+    const dvChinhThuc =
+      parseInt(document.getElementById("tc-dang-vien-chinh-thuc").value) || 0;
+    const dvDuBi =
+      parseInt(document.getElementById("tc-dang-vien-du-bi").value) || 0;
+
+    const tuoiUnder30 =
+      parseInt(document.getElementById("tc-tuoi-under30").value) || 0;
+    const tuoi30to45 =
+      parseInt(document.getElementById("tc-tuoi-30to45").value) || 0;
+    const tuoi46to60 =
+      parseInt(document.getElementById("tc-tuoi-46to60").value) || 0;
+    const tuoiOver60 =
+      parseInt(document.getElementById("tc-tuoi-over60").value) || 0;
+
+    if (!id) {
+      Swal.fire({
+        icon: "warning",
+        title: "Chưa chọn đơn vị",
+        text: "Vui lòng chọn một Đảng bộ trực thuộc!",
+      });
+      return;
+    }
+
+    if (
+      soTccsDang < 0 ||
+      soChiBo < 0 ||
+      tongDangVien < 0 ||
+      dvChinhThuc < 0 ||
+      dvDuBi < 0 ||
+      tuoiUnder30 < 0 ||
+      tuoi30to45 < 0 ||
+      tuoi46to60 < 0 ||
+      tuoiOver60 < 0
+    ) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: "Tất cả các số liệu phải lớn hơn hoặc bằng 0!",
+      });
+      return;
+    }
+
+    if (dvChinhThuc + dvDuBi !== tongDangVien) {
+      Swal.fire({
+        icon: "error",
+        title: "Số liệu không khớp",
+        text: `Đảng viên chính thức + Dự bị phải bằng Tổng số Đảng viên (${tongDangVien})!`,
+      });
+      return;
+    }
+
+    if (tuoiUnder30 + tuoi30to45 + tuoi46to60 + tuoiOver60 !== tongDangVien) {
+      Swal.fire({
+        icon: "error",
+        title: "Cơ cấu độ tuổi không khớp",
+        text: `Tổng 4 khung độ tuổi phải bằng Tổng số Đảng viên (${tongDangVien})!`,
+      });
+      return;
+    }
+
+    dangBoRef
+      .child(id)
+      .update({
+        soTccsDang: soTccsDang,
+        soChiBo: soChiBo,
+        tongDangVien: tongDangVien,
+        dvChinhThuc: dvChinhThuc,
+        dvDuBi: dvDuBi,
+        tuoiUnder30: tuoiUnder30,
+        tuoi30to45: tuoi30to45,
+        tuoi46to60: tuoi46to60,
+        tuoiOver60: tuoiOver60,
+      })
+      .then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Đã lưu thành công",
+          text: `Đã cập nhật số liệu cho ${dangBoCache[id]}.`,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      });
+  });
+}
+
+// 7.1 XỬ LÝ LƯU & CẬP NHẬT TAB CON: KẾT NẠP ĐẢNG VIÊN
+// =================================================================
+// 7.1 TỰ ĐỘNG TÍNH TOÁN REALTIME & XỬ LÝ KẾT NẠP ĐẢNG VIÊN
+// =================================================================
+function initKetNapEvents() {
+  const formKetNap = document.getElementById("form-ketnap");
+  const selectKetNap = document.getElementById("select-dangbo-ketnap");
+
+  // 1. Tự động tính Tỷ lệ %
+  function calcTyLe() {
+    const chiTieu =
+      parseFloat(document.getElementById("ketnap-chi-tieu").value) || 0;
+    const tongSo =
+      parseFloat(document.getElementById("ketnap-tong-so").value) || 0;
+    const tyLeInput = document.getElementById("ketnap-ty-le");
+
+    if (chiTieu > 0) {
+      const pct = ((tongSo / chiTieu) * 100).toFixed(2);
+      tyLeInput.value = pct + "%";
+    } else {
+      tyLeInput.value = "0.00%";
+    }
+  }
+
+  // 2. Tự động tính Tổng HSSV
+  function calcHSSV() {
+    const hocSinh =
+      parseInt(document.getElementById("ketnap-hoc-sinh").value) || 0;
+    const sinhVien =
+      parseInt(document.getElementById("ketnap-sinh-vien").value) || 0;
+    document.getElementById("ketnap-tong-hssv").value = hocSinh + sinhVien;
+  }
+
+  // 3. Tự động tính Tổng ĐV Doanh nghiệp
+  function calcDN() {
+    const dnNhaNuoc =
+      parseInt(document.getElementById("ketnap-dn-nha-nuoc").value) || 0;
+    const dnNgoaiNN =
+      parseInt(document.getElementById("ketnap-dn-ngoai-nn").value) || 0;
+    const nldKdc =
+      parseInt(document.getElementById("ketnap-nld-kdc").value) || 0;
+    const htx = parseInt(document.getElementById("ketnap-htx").value) || 0;
+
+    document.getElementById("ketnap-tong-dn").value =
+      dnNhaNuoc + dnNgoaiNN + nldKdc + htx;
+  }
+
+  // Bắt sự kiện gõ phím 'input' để tự động tính toán tức thì
+  document
+    .getElementById("ketnap-chi-tieu")
+    ?.addEventListener("input", calcTyLe);
+  document
+    .getElementById("ketnap-tong-so")
+    ?.addEventListener("input", calcTyLe);
+
+  document.querySelectorAll(".input-calc-hssv").forEach((el) => {
+    el.addEventListener("input", calcHSSV);
+  });
+
+  document.querySelectorAll(".input-calc-dn").forEach((el) => {
+    el.addEventListener("input", calcDN);
+  });
+
+  // Load số liệu cũ khi chọn Đơn vị từ Dropdown
+  if (selectKetNap) {
+    selectKetNap.addEventListener("change", (e) => {
+      const id = e.target.value;
+      if (!id) {
+        if (formKetNap) formKetNap.reset();
+        calcTyLe();
+        calcHSSV();
+        calcDN();
+        return;
+      }
+
+      dangBoRef.child(id).once("value", (snapshot) => {
+        if (snapshot.exists()) {
+          const d = snapshot.val();
+          document.getElementById("ketnap-chi-tieu").value =
+            d.chiTieuKetNap || 0;
+          document.getElementById("ketnap-tong-so").value = d.daKetNap || 0;
+          document.getElementById("ketnap-hoc-sinh").value = d.hocSinh || 0;
+          document.getElementById("ketnap-sinh-vien").value = d.sinhVien || 0;
+          document.getElementById("ketnap-dn-nha-nuoc").value =
+            d.dnNhaNuoc || 0;
+          document.getElementById("ketnap-dn-ngoai-nn").value =
+            d.dnNgoaiNN || 0;
+          document.getElementById("ketnap-nld-kdc").value = d.nldKdc || 0;
+          document.getElementById("ketnap-htx").value = d.htx || 0;
+          document.getElementById("ketnap-dtts").value = d.dtts || 0;
+          document.getElementById("ketnap-ton-giao").value = d.tonGiao || 0;
+
+          // Chạy lại các hàm tính toán tự động
+          calcTyLe();
+          calcHSSV();
+          calcDN();
+        }
       });
     });
-});
-
-// 7. Xử lý LƯU DỮ LIỆU - Phân hệ 2: Tổ chức đảng & Đảng viên (Có kiểm tra Logic)
-document.getElementById("form-tcdang").addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const id = document.getElementById("select-dangbo-tcdang").value;
-  const soTccsDang =
-    parseInt(document.getElementById("tc-so-tccs-dang").value) || 0;
-  const soChiBo = parseInt(document.getElementById("tc-so-chi-bo").value) || 0;
-  const tongDangVien =
-    parseInt(document.getElementById("tc-tong-dang-vien").value) || 0;
-  const dvChinhThuc =
-    parseInt(document.getElementById("tc-dang-vien-chinh-thuc").value) || 0;
-  const dvDuBi =
-    parseInt(document.getElementById("tc-dang-vien-du-bi").value) || 0;
-
-  const tuoiUnder30 =
-    parseInt(document.getElementById("tc-tuoi-under30").value) || 0;
-  const tuoi30to45 =
-    parseInt(document.getElementById("tc-tuoi-30to45").value) || 0;
-  const tuoi46to60 =
-    parseInt(document.getElementById("tc-tuoi-46to60").value) || 0;
-  const tuoiOver60 =
-    parseInt(document.getElementById("tc-tuoi-over60").value) || 0;
-
-  if (!id) {
-    Swal.fire({
-      icon: "warning",
-      title: "Chưa chọn đơn vị",
-      text: "Vui lòng chọn một Đảng bộ trực thuộc!",
-    });
-    return;
   }
 
-  // --- KIỂM TRA LOGIC PHÂN HỆ TỔ CHỨC ĐẢNG & ĐẢNG VIÊN ---
+  // Xử lý Submit Form Lưu thông tin đầy đủ các trường
+  if (formKetNap) {
+    formKetNap.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const id = selectKetNap.value;
+      if (!id) {
+        Swal.fire({
+          icon: "warning",
+          title: "Chưa chọn đơn vị",
+          text: "Vui lòng chọn một Đảng bộ trực thuộc!",
+        });
+        return;
+      }
 
-  // 1. Kiểm tra số âm
-  if (
-    soTccsDang < 0 ||
-    soChiBo < 0 ||
-    tongDangVien < 0 ||
-    dvChinhThuc < 0 ||
-    dvDuBi < 0 ||
-    tuoiUnder30 < 0 ||
-    tuoi30to45 < 0 ||
-    tuoi46to60 < 0 ||
-    tuoiOver60 < 0
-  ) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: "Tất cả các số liệu nhập vào phải lớn hơn hoặc bằng 0!",
+      const saveData = {
+        chiTieuKetNap:
+          parseInt(document.getElementById("ketnap-chi-tieu").value) || 0,
+        daKetNap:
+          parseInt(document.getElementById("ketnap-tong-so").value) || 0,
+        hocSinh:
+          parseInt(document.getElementById("ketnap-hoc-sinh").value) || 0,
+        sinhVien:
+          parseInt(document.getElementById("ketnap-sinh-vien").value) || 0,
+        tongHSSV:
+          parseInt(document.getElementById("ketnap-tong-hssv").value) || 0,
+        dnNhaNuoc:
+          parseInt(document.getElementById("ketnap-dn-nha-nuoc").value) || 0,
+        dnNgoaiNN:
+          parseInt(document.getElementById("ketnap-dn-ngoai-nn").value) || 0,
+        nldKdc: parseInt(document.getElementById("ketnap-nld-kdc").value) || 0,
+        htx: parseInt(document.getElementById("ketnap-htx").value) || 0,
+        tongDN: parseInt(document.getElementById("ketnap-tong-dn").value) || 0,
+        dtts: parseInt(document.getElementById("ketnap-dtts").value) || 0,
+        tonGiao:
+          parseInt(document.getElementById("ketnap-ton-giao").value) || 0,
+      };
+
+      dangBoRef
+        .child(id)
+        .update(saveData)
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Đã lưu thành công",
+            text: `Đã cập nhật chi tiết số liệu kết nạp cho ${dangBoCache[id]}.`,
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        });
     });
-    return;
   }
 
-  // 2. Kiểm tra Đảng viên chính thức / dự bị không được vượt quá tổng số
-  if (dvChinhThuc > tongDangVien) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: `Số lượng Đảng viên chính thức (${dvChinhThuc}) không được lớn hơn Tổng số Đảng viên (${tongDangVien})!`,
+  const btnResetKetNap = document.querySelector(".btn-reset-form-ketnap");
+  if (btnResetKetNap) {
+    btnResetKetNap.addEventListener("click", () => {
+      if (formKetNap) formKetNap.reset();
+      calcTyLe();
+      calcHSSV();
+      calcDN();
     });
-    return;
   }
+}
 
-  if (dvDuBi > tongDangVien) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không hợp lệ",
-      text: `Số lượng Đảng viên dự bị (${dvDuBi}) không được lớn hơn Tổng số Đảng viên (${tongDangVien})!`,
-    });
-    return;
-  }
-
-  // 3. Kiểm tra logic: Chính thức + Dự bị phải BẰNG Tổng số Đảng viên
-  const sumLoaiDV = dvChinhThuc + dvDuBi;
-  if (sumLoaiDV !== tongDangVien) {
-    Swal.fire({
-      icon: "error",
-      title: "Số liệu không khớp",
-      html: `Tổng số Đảng viên (<b>${tongDangVien}</b>) không bằng tổng của Đảng viên chính thức (<b>${dvChinhThuc}</b>) + Đảng viên dự bị (<b>${dvDuBi}</b>) = <b>${sumLoaiDV}</b>!`,
-    });
-    return;
-  }
-
-  // 4. Kiểm tra logic: Tổng 4 độ tuổi phải BẰNG Tổng số Đảng viên
-  const sumDoTuoi = tuoiUnder30 + tuoi30to45 + tuoi46to60 + tuoiOver60;
-  if (sumDoTuoi !== tongDangVien) {
-    Swal.fire({
-      icon: "error",
-      title: "Cơ cấu độ tuổi không khớp",
-      html: `Tổng số Đảng viên theo 4 độ tuổi cộng lại (<b>${sumDoTuoi}</b>) không bằng Tổng số Đảng viên hiện có (<b>${tongDangVien}</b>)!<br><br><small>Chi tiết: ${tuoiUnder30} + ${tuoi30to45} + ${tuoi46to60} + ${tuoiOver60} = ${sumDoTuoi}</small>`,
-    });
-    return;
-  }
-
-  // Nếu tất cả logic kiểm tra đều hợp lệ -> Tiến hành lưu lên Firebase
-  dangBoRef
-    .child(id)
-    .update({
-      soTccsDang: soTccsDang,
-      soChiBo: soChiBo,
-      tongDangVien: tongDangVien,
-      dvChinhThuc: dvChinhThuc,
-      dvDuBi: dvDuBi,
-      tuoiUnder30: tuoiUnder30,
-      tuoi30to45: tuoi30to45,
-      tuoi46to60: tuoi46to60,
-      tuoiOver60: tuoiOver60,
-    })
-    .then(() => {
-      Swal.fire({
-        icon: "success",
-        title: "Đã lưu thành công",
-        text: `Đã cập nhật số liệu TCĐ & Đảng viên cho ${dangBoCache[id]}.`,
-        timer: 1500,
-        showConfirmButton: false,
-      });
-    });
-});
-
-// Nút làm lại form
+// Nút làm lại form chung
 document.querySelectorAll(".btn-reset-form").forEach((btn) => {
   btn.addEventListener("click", (e) => {
     e.target.closest("form").reset();
   });
 });
 
-// 8. Đọc Realtime & Nạp số liệu vào Bảng ở cả 2 phân hệ
+// 8. ĐỌC REALTIME & NẠP SỐ LIỆU VÀO TẤT CẢ CÁC BẢNG (SỐ HÓA, TCĐ, KẾT NẠP)
 function loadProgressTables() {
   const tbodySoHoa = document.getElementById("table-sohoa-body");
   const tbodyTcDang = document.getElementById("table-tcdang-body");
+  const tbodyKetNap = document.getElementById("table-ketnap-body");
 
   dangBoRef.on("value", (snapshot) => {
-    tbodySoHoa.innerHTML = "";
-    tbodyTcDang.innerHTML = "";
+    if (tbodySoHoa) tbodySoHoa.innerHTML = "";
+    if (tbodyTcDang) tbodyTcDang.innerHTML = "";
+    if (tbodyKetNap) tbodyKetNap.innerHTML = "";
 
     if (!snapshot.exists()) return;
+
+    let indexKetNap = 1;
 
     snapshot.forEach((child) => {
       const key = child.key;
       const data = child.val();
       const ten = data.ten || `Đảng bộ ${key}`;
 
-      // 8.1 Render dòng bảng Số hóa
-      const tr1 = document.createElement("tr");
-      tr1.innerHTML = `
-        <td><b>${ten}</b></td>
-        <td>${Number(data.tongHoSo || 0).toLocaleString()}</td>
-        <td>${Number(data.daChinhLy || 0).toLocaleString()}</td>
-        <td>${Number(data.daKySo || 0).toLocaleString()}</td>
-        <td>${Number(data.daCapNhat || 0).toLocaleString()}</td>
-        <td style="text-align: center;">
-          <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editSoHoa('${key}', ${data.tongHoSo || 0}, ${data.daChinhLy || 0}, ${data.daKySo || 0}, ${data.daCapNhat || 0})">
-            Sửa
-          </button>
-        </td>
-      `;
-      tbodySoHoa.appendChild(tr1);
+      // Bảng Số hóa
+      if (tbodySoHoa) {
+        const tr1 = document.createElement("tr");
+        tr1.innerHTML = `
+          <td><b>${ten}</b></td>
+          <td>${Number(data.tongHoSo || 0).toLocaleString()}</td>
+          <td>${Number(data.daChinhLy || 0).toLocaleString()}</td>
+          <td>${Number(data.daKySo || 0).toLocaleString()}</td>
+          <td>${Number(data.daCapNhat || 0).toLocaleString()}</td>
+          <td style="text-align: center;">
+            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editSoHoa('${key}', ${data.tongHoSo || 0}, ${data.daChinhLy || 0}, ${data.daKySo || 0}, ${data.daCapNhat || 0})">
+              Sửa
+            </button>
+          </td>
+        `;
+        tbodySoHoa.appendChild(tr1);
+      }
 
-      // 8.2 Render dòng bảng Tổ chức đảng & Đảng viên
-      const tr2 = document.createElement("tr");
-      tr2.innerHTML = `
-        <td><b>${ten}</b></td>
-        <td>${Number(data.soTccsDang || 0).toLocaleString()}</td>
-        <td>${Number(data.soChiBo || 0).toLocaleString()}</td>
-        <td>${Number(data.tongDangVien || 0).toLocaleString()}</td>
-        <td>${Number(data.dvChinhThuc || 0).toLocaleString()}</td>
-        <td>${Number(data.dvDuBi || 0).toLocaleString()}</td>
-        <td style="text-align: center;">
-          <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; background-color: #16a34a;" onclick="editTcDang('${key}', ${data.soTccsDang || 0}, ${data.soChiBo || 0}, ${data.tongDangVien || 0}, ${data.dvChinhThuc || 0}, ${data.dvDuBi || 0}, ${data.tuoiUnder30 || 0}, ${data.tuoi30to45 || 0}, ${data.tuoi46to60 || 0}, ${data.tuoiOver60 || 0})">
-            Sửa
-          </button>
-        </td>
-      `;
-      tbodyTcDang.appendChild(tr2);
+      // Bảng Tổ chức đảng & Đảng viên
+      if (tbodyTcDang) {
+        const tr2 = document.createElement("tr");
+        tr2.innerHTML = `
+          <td><b>${ten}</b></td>
+          <td>${Number(data.soTccsDang || 0).toLocaleString()}</td>
+          <td>${Number(data.soChiBo || 0).toLocaleString()}</td>
+          <td>${Number(data.tongDangVien || 0).toLocaleString()}</td>
+          <td>${Number(data.dvChinhThuc || 0).toLocaleString()}</td>
+          <td>${Number(data.dvDuBi || 0).toLocaleString()}</td>
+          <td style="text-align: center;">
+            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px; background-color: #16a34a;" onclick="editTcDang('${key}', ${data.soTccsDang || 0}, ${data.soChiBo || 0}, ${data.tongDangVien || 0}, ${data.dvChinhThuc || 0}, ${data.dvDuBi || 0}, ${data.tuoiUnder30 || 0}, ${data.tuoi30to45 || 0}, ${data.tuoi46to60 || 0}, ${data.tuoiOver60 || 0})">
+              Sửa
+            </button>
+          </td>
+        `;
+        tbodyTcDang.appendChild(tr2);
+      }
+
+      // Bảng Kết nạp Đảng viên
+      // Bảng Kết nạp Đảng viên (Thay thế khối tr3 cũ bằng khối này)
+      if (tbodyKetNap) {
+        const chiTieu = Number(data.chiTieuKetNap || 0);
+        const daKetNap = Number(data.daKetNap || 0);
+        const pct =
+          chiTieu > 0 ? ((daKetNap / chiTieu) * 100).toFixed(2) : "0.00";
+
+        const tr3 = document.createElement("tr");
+        tr3.innerHTML = `
+          <td style="text-align: center">${indexKetNap++}</td>
+          <td><b>${ten}</b></td>
+          <td style="text-align: right">${chiTieu.toLocaleString()}</td>
+          <td style="text-align: right; font-weight: bold; color: #0056b3;">${daKetNap.toLocaleString()}</td>
+          <td style="text-align: center; font-weight: bold; color: ${pct >= 100 ? "#16a34a" : "#dc2626"};">${pct}%</td>
+          <td style="text-align: right; background: #f0f9ff; font-weight: bold;">${Number(data.tongHSSV || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.hocSinh || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.sinhVien || 0).toLocaleString()}</td>
+          <td style="text-align: right; background: #f0fdf4; font-weight: bold;">${Number(data.tongDN || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.dnNhaNuoc || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.dnNgoaiNN || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.nldKdc || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.htx || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.dtts || 0).toLocaleString()}</td>
+          <td style="text-align: right">${Number(data.tonGiao || 0).toLocaleString()}</td>
+          <td style="text-align: center;">
+            <button class="btn btn-primary" style="padding: 3px 6px; font-size: 11px; background-color: #0284c7;" onclick="editKetNapFull('${key}')">Sửa</button>
+          </td>
+        `;
+        tbodyKetNap.appendChild(tr3);
+      }
     });
   });
 }
 
-// Hàm đẩy số liệu cũ lên Form khi sửa (Phân hệ Số hóa)
+// Hàm gán lại dữ liệu cũ khi click nút Sửa
 window.editSoHoa = function (id, canSoHoa, chinhLy, kySo, phanMem) {
   document.getElementById("select-dangbo-sohoa").value = id;
   document.getElementById("sohoa-can-so-hoa").value = canSoHoa;
@@ -484,7 +695,6 @@ window.editSoHoa = function (id, canSoHoa, chinhLy, kySo, phanMem) {
   document.getElementById("form-sohoa").scrollIntoView({ behavior: "smooth" });
 };
 
-// Hàm đẩy số liệu cũ lên Form khi sửa (Phân hệ Tổ chức đảng)
 window.editTcDang = function (
   id,
   soTccs,
@@ -511,78 +721,94 @@ window.editTcDang = function (
 
   document.getElementById("form-tcdang").scrollIntoView({ behavior: "smooth" });
 };
-document.getElementById("form-task").addEventListener("submit", (e) => {
-  e.preventDefault();
 
-  const taskId = document.getElementById("task-id-hidden").value;
-  const taskName = document.getElementById("task-name").value.trim();
-  const assignee = document.getElementById("task-assignee").value.trim();
-  const deadline = document.getElementById("task-deadline").value;
-  const progress =
-    parseInt(document.getElementById("task-progress").value) || 0;
-  const status = document.getElementById("task-status").value;
-  const note = document.getElementById("task-note").value.trim();
-
-  if (progress < 0 || progress > 100) {
-    Swal.fire({
-      icon: "error",
-      title: "Lỗi",
-      text: "Tiến độ phải nằm trong khoảng từ 0% đến 100%!",
-    });
-    return;
+window.editKetNapFull = function (id) {
+  const select = document.getElementById("select-dangbo-ketnap");
+  if (select) {
+    select.value = id;
+    select.dispatchEvent(new Event("change"));
+    document
+      .getElementById("form-ketnap")
+      .scrollIntoView({ behavior: "smooth" });
   }
+};
 
-  const taskData = {
-    name: taskName,
-    assignee: assignee,
-    deadline: deadline,
-    progress: progress,
-    status: status,
-    note: note,
-    updatedAt: firebase.database.ServerValue.TIMESTAMP,
-  };
+// =================================================================
+// 9. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (XỬ LÝ REALTIME)
+// =================================================================
+const formTask = document.getElementById("form-task");
+if (formTask) {
+  formTask.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-  if (taskId) {
-    // Cập nhật nhiệm vụ cũ
-    tasksRef
-      .child(taskId)
-      .update(taskData)
-      .then(() => {
+    const taskId = document.getElementById("task-id-hidden").value;
+    const taskName = document.getElementById("task-name").value.trim();
+    const assignee = document.getElementById("task-assignee").value.trim();
+    const deadline = document.getElementById("task-deadline").value;
+    const progress =
+      parseInt(document.getElementById("task-progress").value) || 0;
+    const status = document.getElementById("task-status").value;
+    const note = document.getElementById("task-note").value.trim();
+
+    if (progress < 0 || progress > 100) {
+      Swal.fire({
+        icon: "error",
+        title: "Lỗi",
+        text: "Tiến độ phải nằm trong khoảng từ 0% đến 100%!",
+      });
+      return;
+    }
+
+    const taskData = {
+      name: taskName,
+      assignee: assignee,
+      deadline: deadline,
+      progress: progress,
+      status: status,
+      note: note,
+      updatedAt: firebase.database.ServerValue.TIMESTAMP,
+    };
+
+    if (taskId) {
+      tasksRef
+        .child(taskId)
+        .update(taskData)
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Thành công",
+            text: "Đã cập nhật nhiệm vụ!",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          resetTaskForm();
+        });
+    } else {
+      tasksRef.push(taskData).then(() => {
         Swal.fire({
           icon: "success",
           title: "Thành công",
-          text: "Đã cập nhật nhiệm vụ!",
+          text: "Đã thêm nhiệm vụ mới!",
           timer: 1500,
           showConfirmButton: false,
         });
         resetTaskForm();
       });
-  } else {
-    // Tạo mới nhiệm vụ
-    tasksRef.push(taskData).then(() => {
-      Swal.fire({
-        icon: "success",
-        title: "Thành công",
-        text: "Đã thêm nhiệm vụ mới!",
-        timer: 1500,
-        showConfirmButton: false,
-      });
-      resetTaskForm();
-    });
-  }
-});
-
-// Nút làm mới Form Nhiệm vụ
-document
-  .querySelector(".btn-reset-task-form")
-  .addEventListener("click", resetTaskForm);
-
-function resetTaskForm() {
-  document.getElementById("form-task").reset();
-  document.getElementById("task-id-hidden").value = "";
+    }
+  });
 }
 
-// Tải danh sách Nhiệm vụ lên bảng Admin Realtime
+const btnResetTask = document.querySelector(".btn-reset-task-form");
+if (btnResetTask) btnResetTask.addEventListener("click", resetTaskForm);
+
+function resetTaskForm() {
+  const form = document.getElementById("form-task");
+  if (form) form.reset();
+  const hiddenInput = document.getElementById("task-id-hidden");
+  if (hiddenInput) hiddenInput.value = "";
+}
+
+// Tải danh sách Nhiệm vụ lên bảng Realtime
 tasksRef.on("value", (snapshot) => {
   const tbody = document.getElementById("table-task-body");
   if (!tbody) return;
@@ -620,7 +846,6 @@ tasksRef.on("value", (snapshot) => {
   });
 });
 
-// Hàm Sửa & Xóa Nhiệm vụ
 window.editTask = function (key) {
   tasksRef.child(key).once("value", (snapshot) => {
     if (snapshot.exists()) {

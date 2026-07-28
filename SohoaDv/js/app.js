@@ -1,43 +1,122 @@
 // Tham chiếu cơ sở dữ liệu Firebase
 const dangBoRef = database.ref("dang_bo");
 const tasksRefHome = database.ref("tasks");
+
 // Lưu trữ đối tượng các Chart để hủy khi vẽ lại
 let chartChinhLy, chartKySo, chartPhanMem, chartHoAnThanh, timeLineChartObj;
 let ageChartObj, admissionChartObj;
+let knDoughnutChartInstance = null; // Biểu đồ vành khăn Kết nạp
 let map;
 let geojsonLayer;
 let fullDataList = []; // Chứa toàn bộ bản ghi dữ liệu phục vụ bộ lọc/sắp xếp
 let globalAgeData = [0, 0, 0, 0]; // Biến toàn cục lưu dữ liệu độ tuổi hiện tại
 
+// 1. KHỞI TẠO TẤT CẢ CÁC SỰ KIỆN KHI TRANG TẢI XONG
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
   loadDangBoList();
   fetchStatistics();
+  fetchTasksData();
+  initTcHomeSubTabs(); // Khởi tạo tab phụ ở Phân hệ 2
+  initTabSwitchers(); // Khởi tạo tab chính toàn trang
+  initLogoutEvents(); // Khởi tạo sự kiện đăng xuất
 
   // Xử lý sự kiện thay đổi đơn vị trên dropdown bộ lọc
-  document.getElementById("select-dangbo").addEventListener("change", (e) => {
-    fetchStatistics(e.target.value);
-  });
+  const selectDangBo = document.getElementById("select-dangbo");
+  if (selectDangBo) {
+    selectDangBo.addEventListener("change", (e) => {
+      fetchStatistics(e.target.value);
+    });
+  }
 
   // Sự kiện làm mới dữ liệu
-  document.getElementById("btn-reload-data").addEventListener("click", () => {
-    fetchStatistics(document.getElementById("select-dangbo").value);
-    Swal.fire({
-      icon: "success",
-      title: "Đã cập nhật",
-      text: "Số liệu hệ thống vừa được tải lại thời gian thực.",
-      timer: 1200,
-      showConfirmButton: false,
+  const btnReload = document.getElementById("btn-reload-data");
+  if (btnReload) {
+    btnReload.addEventListener("click", () => {
+      fetchStatistics(document.getElementById("select-dangbo").value);
+      Swal.fire({
+        icon: "success",
+        title: "Đã cập nhật",
+        text: "Số liệu hệ thống vừa được tải lại thời gian thực.",
+        timer: 1200,
+        showConfirmButton: false,
+      });
     });
-  });
+  }
 
   // Lắng nghe sự kiện tìm kiếm trên bảng
-  document.getElementById("table-search").addEventListener("input", (e) => {
-    renderTable(e.target.value);
-  });
+  const tableSearch = document.getElementById("table-search");
+  if (tableSearch) {
+    tableSearch.addEventListener("input", (e) => {
+      renderTable(e.target.value);
+    });
+  }
 });
 
-// 1. Kiểm tra trạng thái đăng nhập để hiển thị phiên tại banner
+// LOGIC CHUYỂN TAB PHỤ (1. Số liệu chung - 2. Kết nạp đảng viên)
+function initTcHomeSubTabs() {
+  const btns = document.querySelectorAll(".sub-tc-home-btn");
+  const contents = document.querySelectorAll(".tc-home-tab-content");
+
+  btns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const target = btn.getAttribute("data-tc-home-tab");
+
+      btns.forEach((b) => {
+        b.classList.remove("active");
+        b.style.borderBottomColor = "transparent";
+        b.style.color = "#64748b";
+      });
+
+      btn.classList.add("active");
+      btn.style.borderBottomColor = "#16a34a";
+      btn.style.color = "#16a34a";
+
+      contents.forEach((c) => {
+        if (c.id === target) {
+          c.style.display = "block";
+        } else {
+          c.style.display = "none";
+        }
+      });
+    });
+  });
+}
+
+// KHỞI TẠO CHUYỂN TAB CHÍNH TOÀN TRANG
+function initTabSwitchers() {
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabContents = document.querySelectorAll(".tab-content");
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetTab = btn.getAttribute("data-tab");
+
+      tabBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      tabContents.forEach((content) => {
+        if (content.id === targetTab) {
+          content.classList.add("active");
+        } else {
+          content.classList.remove("active");
+        }
+      });
+
+      if (targetTab === "tab-so-hoa" && map) {
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 200);
+      }
+
+      if (targetTab === "tab-tc-dang-vien") {
+        renderTcDangVienCharts(globalAgeData);
+      }
+    });
+  });
+}
+
+// KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP TẠI BANNER
 firebase.auth().onAuthStateChanged((user) => {
   const sessionEmail = document.getElementById("session-email");
   const sessionRole = document.getElementById("session-role");
@@ -45,24 +124,22 @@ firebase.auth().onAuthStateChanged((user) => {
   const dropdownIcon = document.getElementById("user-dropdown-icon");
 
   if (user) {
-    // Trường hợp ĐÃ ĐĂNG NHẬP
-    sessionEmail.textContent = user.email.split("@")[0];
-    sessionRole.textContent = "Quản trị hệ thống";
+    if (sessionEmail) sessionEmail.textContent = user.email.split("@")[0];
+    if (sessionRole) sessionRole.textContent = "Quản trị hệ thống";
 
     if (dropdownIcon) dropdownIcon.style.display = "inline-block";
     if (dropdownMenu) dropdownMenu.style.display = "";
   } else {
-    // Trường hợp CHƯA ĐĂNG NHẬP
-    sessionEmail.textContent = "Guest";
-    sessionRole.textContent = "";
+    if (sessionEmail) sessionEmail.textContent = "Guest";
+    if (sessionRole) sessionRole.textContent = "";
 
     if (dropdownIcon) dropdownIcon.style.display = "none";
     if (dropdownMenu) dropdownMenu.style.display = "none";
   }
 });
 
-// Xử lý nút Đăng xuất trên banner trang chủ
-document.addEventListener("DOMContentLoaded", () => {
+// NÚT ĐĂNG XUẤT TRÊN BANNER
+function initLogoutEvents() {
   const btnHomeLogout = document.getElementById("btn-home-logout");
   if (btnHomeLogout) {
     btnHomeLogout.addEventListener("click", () => {
@@ -92,11 +169,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
-});
+}
 
-// 2. Khởi tạo bản đồ nền Leaflet
+// 2. KHỞI TẠO BẢN ĐỒ NỀN LEAFLET
 function initMap() {
   const thaiNguyenCenter = [21.59, 105.84];
+  const mapElement = document.getElementById("map");
+  if (!mapElement) return;
 
   map = L.map("map", {
     center: thaiNguyenCenter,
@@ -116,9 +195,9 @@ function initMap() {
         [90, -180],
       ];
 
-      const provincialBoundaries = data.features.map((f) => {
-        return f.geometry.coordinates;
-      });
+      const provincialBoundaries = data.features.map(
+        (f) => f.geometry.coordinates,
+      );
 
       L.polygon([worldCoords, ...provincialBoundaries], {
         color: "none",
@@ -155,9 +234,11 @@ function onEachFeatureMap(feature, layer) {
   }
 }
 
-// 3. Nạp danh sách Đảng bộ vào bộ lọc Dropdown
+// 3. NẠP DANH SÁCH ĐẢNG BỘ VÀO BỘ LỌC DROPDOWN
 function loadDangBoList() {
   const dropdown = document.getElementById("select-dangbo");
+  if (!dropdown) return;
+
   dangBoRef.once("value", (snapshot) => {
     dropdown.innerHTML =
       '<option value="ALL">ĐẢNG BỘ TỈNH THÁI NGUYÊN</option>';
@@ -171,25 +252,20 @@ function loadDangBoList() {
   });
 }
 
-// 4. Đọc dữ liệu từ Firebase & Cập nhật Dashboard cả 2 Phân hệ
+// 4. ĐỌC DỮ LIỆU TỪ FIREBASE & CẬP NHẬT DASHBOARD
 function fetchStatistics(selectedKey = "ALL") {
-  dangBoRef.once("value", (snapshot) => {
+  dangBoRef.on("value", (snapshot) => {
     fullDataList = [];
 
-    // Biến cộng dồn Phân hệ 1: Số hóa hồ sơ
     let tCanSoHoa = 0,
       tChinhLy = 0,
       tKySo = 0,
       tPhanMem = 0;
-
-    // Biến cộng dồn Phân hệ 2: Tổ chức đảng & Đảng viên
     let tSoTccs = 0,
       tSoChiBo = 0,
       tTongDv = 0,
       tDvChinhThuc = 0,
       tDvDuBi = 0;
-
-    // Biến cộng dồn Độ tuổi Toàn tỉnh
     let tU30 = 0,
       t30to45 = 0,
       t46to60 = 0,
@@ -200,18 +276,15 @@ function fetchStatistics(selectedKey = "ALL") {
       const item = {
         key: childSnapshot.key,
         ten: data.ten,
-        // Phân hệ 1
         tongHoSo: Number(data.tongHoSo || 0),
         daChinhLy: Number(data.daChinhLy || 0),
         daKySo: Number(data.daKySo || 0),
         daCapNhat: Number(data.daCapNhat || 0),
-        // Phân hệ 2
         soTccsDang: Number(data.soTccsDang || 0),
         soChiBo: Number(data.soChiBo || 0),
         tongDangVien: Number(data.tongDangVien || 0),
         dvChinhThuc: Number(data.dvChinhThuc || 0),
         dvDuBi: Number(data.dvDuBi || 0),
-        // Cơ cấu độ tuổi
         tuoiUnder30: Number(data.tuoiUnder30 || 0),
         tuoi30to45: Number(data.tuoi30to45 || 0),
         tuoi46to60: Number(data.tuoi46to60 || 0),
@@ -219,20 +292,17 @@ function fetchStatistics(selectedKey = "ALL") {
       };
       fullDataList.push(item);
 
-      // Cộng dồn Phân hệ 1
       tCanSoHoa += item.tongHoSo;
       tChinhLy += item.daChinhLy;
       tKySo += item.daKySo;
       tPhanMem += item.daCapNhat;
 
-      // Cộng dồn Phân hệ 2
       tSoTccs += item.soTccsDang;
       tSoChiBo += item.soChiBo;
       tTongDv += item.tongDangVien;
       tDvChinhThuc += item.dvChinhThuc;
       tDvDuBi += item.dvDuBi;
 
-      // Cộng dồn độ tuổi
       tU30 += item.tuoiUnder30;
       t30to45 += item.tuoi30to45;
       t46to60 += item.tuoi46to60;
@@ -240,12 +310,10 @@ function fetchStatistics(selectedKey = "ALL") {
     });
 
     if (selectedKey === "ALL") {
-      // Đổ số liệu Toàn tỉnh
       updateDashboard(tCanSoHoa, tChinhLy, tKySo, tPhanMem);
       updateTcDangDashboard(tSoTccs, tSoChiBo, tTongDv, tDvChinhThuc, tDvDuBi);
       globalAgeData = [tU30, t30to45, t46to60, tO60];
     } else {
-      // Đổ số liệu đơn vị cụ thể
       const target = fullDataList.find((x) => x.key === selectedKey);
       if (target) {
         updateDashboard(
@@ -273,73 +341,91 @@ function fetchStatistics(selectedKey = "ALL") {
     renderTable();
     renderRankings();
     renderLineChart();
-    renderTcDangVienCharts(globalAgeData); // Vẽ lại biểu đồ thực tế từ mảng globalAgeData
+    renderTcDangVienCharts(globalAgeData);
+    renderKetNapDashboard(snapshot); // Đồng thời tính toán Dashboard Kết nạp
   });
 }
 
-// 5. Cập nhật Dashboard Phân hệ Số hóa
+// 5. CẬP NHẬT DASHBOARD PHÂN HỆ SỐ HÓA
 function updateDashboard(canSoHoa, chinhLy, kySo, phanMem) {
   const pChinhLy = canSoHoa ? ((chinhLy / canSoHoa) * 100).toFixed(1) : 0;
   const pKySo = canSoHoa ? ((kySo / canSoHoa) * 100).toFixed(1) : 0;
   const pPhanMem = canSoHoa ? ((phanMem / canSoHoa) * 100).toFixed(1) : 0;
   const pHoanThanh = pPhanMem;
 
-  document.getElementById("val-can-so-hoa").textContent =
-    canSoHoa.toLocaleString("vi-VN");
-  document.getElementById("val-da-chinh-ly").textContent =
-    chinhLy.toLocaleString("vi-VN");
-  document.getElementById("val-da-ky-so").textContent =
-    kySo.toLocaleString("vi-VN");
-  document.getElementById("val-da-phan-mem").textContent =
-    phanMem.toLocaleString("vi-VN");
-  document.getElementById("val-ty-le-hoan-thanh").textContent =
-    pHoanThanh + "%";
+  if (document.getElementById("val-can-so-hoa"))
+    document.getElementById("val-can-so-hoa").textContent =
+      canSoHoa.toLocaleString("vi-VN");
+  if (document.getElementById("val-da-chinh-ly"))
+    document.getElementById("val-da-chinh-ly").textContent =
+      chinhLy.toLocaleString("vi-VN");
+  if (document.getElementById("val-da-ky-so"))
+    document.getElementById("val-da-ky-so").textContent =
+      kySo.toLocaleString("vi-VN");
+  if (document.getElementById("val-da-phan-mem"))
+    document.getElementById("val-da-phan-mem").textContent =
+      phanMem.toLocaleString("vi-VN");
+  if (document.getElementById("val-ty-le-hoan-thanh"))
+    document.getElementById("val-ty-le-hoan-thanh").textContent =
+      pHoanThanh + "%";
 
-  document.getElementById("pct-chinh-ly").textContent = pChinhLy + "%";
-  document.getElementById("pct-ky-so").textContent = pKySo + "%";
-  document.getElementById("pct-phan-mem").textContent = pPhanMem + "%";
-  document.getElementById("pct-hoan-thanh").textContent = pHoanThanh + "%";
+  if (document.getElementById("pct-chinh-ly"))
+    document.getElementById("pct-chinh-ly").textContent = pChinhLy + "%";
+  if (document.getElementById("pct-ky-so"))
+    document.getElementById("pct-ky-so").textContent = pKySo + "%";
+  if (document.getElementById("pct-phan-mem"))
+    document.getElementById("pct-phan-mem").textContent = pPhanMem + "%";
+  if (document.getElementById("pct-hoan-thanh"))
+    document.getElementById("pct-hoan-thanh").textContent = pHoanThanh + "%";
 
-  document.getElementById("ratio-chinh-ly").textContent =
-    `${chinhLy.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
-  document.getElementById("ratio-ky-so").textContent =
-    `${kySo.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
-  document.getElementById("ratio-phan-mem").textContent =
-    `${phanMem.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
-  document.getElementById("ratio-hoan-thanh").textContent =
-    `${phanMem.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
+  if (document.getElementById("ratio-chinh-ly"))
+    document.getElementById("ratio-chinh-ly").textContent =
+      `${chinhLy.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
+  if (document.getElementById("ratio-ky-so"))
+    document.getElementById("ratio-ky-so").textContent =
+      `${kySo.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
+  if (document.getElementById("ratio-phan-mem"))
+    document.getElementById("ratio-phan-mem").textContent =
+      `${phanMem.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
+  if (document.getElementById("ratio-hoan-thanh"))
+    document.getElementById("ratio-hoan-thanh").textContent =
+      `${phanMem.toLocaleString()} / ${canSoHoa.toLocaleString()}`;
 
-  drawCircularChart(
-    "chart-chinh-ly",
-    pChinhLy,
-    "#ea580c",
-    chartChinhLy,
-    (c) => (chartChinhLy = c),
-  );
-  drawCircularChart(
-    "chart-ky-so",
-    pKySo,
-    "#9333ea",
-    chartKySo,
-    (c) => (chartKySo = c),
-  );
-  drawCircularChart(
-    "chart-phan-mem",
-    pPhanMem,
-    "#16a34a",
-    chartPhanMem,
-    (c) => (chartPhanMem = c),
-  );
-  drawCircularChart(
-    "chart-hoan-thanh",
-    pHoanThanh,
-    "#dc2626",
-    chartHoAnThanh,
-    (c) => (chartHoAnThanh = c),
-  );
+  if (document.getElementById("chart-chinh-ly"))
+    drawCircularChart(
+      "chart-chinh-ly",
+      pChinhLy,
+      "#ea580c",
+      chartChinhLy,
+      (c) => (chartChinhLy = c),
+    );
+  if (document.getElementById("chart-ky-so"))
+    drawCircularChart(
+      "chart-ky-so",
+      pKySo,
+      "#9333ea",
+      chartKySo,
+      (c) => (chartKySo = c),
+    );
+  if (document.getElementById("chart-phan-mem"))
+    drawCircularChart(
+      "chart-phan-mem",
+      pPhanMem,
+      "#16a34a",
+      chartPhanMem,
+      (c) => (chartPhanMem = c),
+    );
+  if (document.getElementById("chart-hoan-thanh"))
+    drawCircularChart(
+      "chart-hoan-thanh",
+      pHoanThanh,
+      "#dc2626",
+      chartHoAnThanh,
+      (c) => (chartHoAnThanh = c),
+    );
 }
 
-// Cập nhật 5 thẻ số liệu Phân hệ Tổ chức Đảng & Đảng viên
+// CẬP NHẬT 5 THẺ SỐ LIỆU PHÂN HỆ TỔ CHỨC ĐẢNG
 function updateTcDangDashboard(soTccs, soChiBo, tongDv, dvChinhThuc, dvDuBi) {
   const elTccs = document.getElementById("val-tc-tccs");
   const elChiBo = document.getElementById("val-tc-chibo");
@@ -364,9 +450,11 @@ function updateTcDangDashboard(soTccs, soChiBo, tongDv, dvChinhThuc, dvDuBi) {
 }
 
 function drawCircularChart(canvasId, percent, color, chartObj, setChartObj) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
   if (chartObj) chartObj.destroy();
 
-  const ctx = document.getElementById(canvasId).getContext("2d");
+  const ctx = canvas.getContext("2d");
   const val = parseFloat(percent);
   const remaining = 100 - val > 0 ? 100 - val : 0;
 
@@ -394,11 +482,13 @@ function drawCircularChart(canvasId, percent, color, chartObj, setChartObj) {
   setChartObj(newChartObj);
 }
 
-// 6. Vẽ Biểu đồ đường Timeline
+// 6. VẼ BIỂU ĐỒ ĐƯỜNG TIMELINE
 function renderLineChart() {
+  const canvas = document.getElementById("timeLineChart");
+  if (!canvas) return;
   if (timeLineChartObj) timeLineChartObj.destroy();
 
-  const ctx = document.getElementById("timeLineChart").getContext("2d");
+  const ctx = canvas.getContext("2d");
   timeLineChartObj = new Chart(ctx, {
     type: "line",
     data: {
@@ -455,9 +545,10 @@ function renderLineChart() {
   });
 }
 
-// 7. Xử lý Bảng thống kê chi tiết
+// 7. XỬ LÝ BẢNG THỐNG KÊ CHI TIẾT SỐ HÓA
 function renderTable(searchTerm = "") {
   const tbody = document.getElementById("main-report-tbody");
+  if (!tbody) return;
   tbody.innerHTML = "";
 
   const filtered = fullDataList.filter((item) =>
@@ -501,14 +592,18 @@ function renderTable(searchTerm = "") {
     tbody.appendChild(row);
   });
 
-  document.getElementById("foot-can-so-hoa").textContent =
-    sumCanSoHoa.toLocaleString();
-  document.getElementById("foot-sl-chinh-ly").textContent =
-    sumChinhLy.toLocaleString();
-  document.getElementById("foot-sl-ky-so").textContent =
-    sumKySo.toLocaleString();
-  document.getElementById("foot-sl-phan-mem").textContent =
-    sumPhanMem.toLocaleString();
+  if (document.getElementById("foot-can-so-hoa"))
+    document.getElementById("foot-can-so-hoa").textContent =
+      sumCanSoHoa.toLocaleString();
+  if (document.getElementById("foot-sl-chinh-ly"))
+    document.getElementById("foot-sl-chinh-ly").textContent =
+      sumChinhLy.toLocaleString();
+  if (document.getElementById("foot-sl-ky-so"))
+    document.getElementById("foot-sl-ky-so").textContent =
+      sumKySo.toLocaleString();
+  if (document.getElementById("foot-sl-phan-mem"))
+    document.getElementById("foot-sl-phan-mem").textContent =
+      sumPhanMem.toLocaleString();
 
   const totChinhLyPct = sumCanSoHoa
     ? ((sumChinhLy / sumCanSoHoa) * 100).toFixed(1)
@@ -520,17 +615,25 @@ function renderTable(searchTerm = "") {
     ? ((sumPhanMem / sumCanSoHoa) * 100).toFixed(1)
     : 0;
 
-  document.getElementById("foot-tl-chinh-ly").textContent = totChinhLyPct + "%";
-  document.getElementById("foot-tl-ky-so").textContent = totKySoPct + "%";
-  document.getElementById("foot-tl-phan-mem").textContent = totPhanMemPct + "%";
-  document.getElementById("foot-tl-hoan-thanh").textContent =
-    totPhanMemPct + "%";
+  if (document.getElementById("foot-tl-chinh-ly"))
+    document.getElementById("foot-tl-chinh-ly").textContent =
+      totChinhLyPct + "%";
+  if (document.getElementById("foot-tl-ky-so"))
+    document.getElementById("foot-tl-ky-so").textContent = totKySoPct + "%";
+  if (document.getElementById("foot-tl-phan-mem"))
+    document.getElementById("foot-tl-phan-mem").textContent =
+      totPhanMemPct + "%";
+  if (document.getElementById("foot-tl-hoan-thanh"))
+    document.getElementById("foot-tl-hoan-thanh").textContent =
+      totPhanMemPct + "%";
 }
 
-// 8. Kết xuất bảng xếp hạng TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC
+// 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC
 function renderRankings() {
   const topListContainer = document.getElementById("rank-top-list");
   const lowListContainer = document.getElementById("rank-low-list");
+
+  if (!topListContainer || !lowListContainer) return;
 
   const sortedList = fullDataList.map((item) => {
     const percent = item.tongHoSo ? (item.daCapNhat / item.tongHoSo) * 100 : 0;
@@ -573,43 +676,8 @@ function renderRankings() {
   });
 }
 
-// 9. Chuyển đổi giữa các phân hệ (Tab Switcher)
-document.addEventListener("DOMContentLoaded", () => {
-  const tabBtns = document.querySelectorAll(".tab-btn");
-  const tabContents = document.querySelectorAll(".tab-content");
-
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const targetTab = btn.getAttribute("data-tab");
-
-      tabBtns.forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      tabContents.forEach((content) => {
-        if (content.id === targetTab) {
-          content.classList.add("active");
-        } else {
-          content.classList.remove("active");
-        }
-      });
-
-      if (targetTab === "tab-so-hoa" && map) {
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 200);
-      }
-
-      // Khi chuyển sang Tab Tổ chức đảng, vẽ biểu đồ với mảng globalAgeData thời gian thực
-      if (targetTab === "tab-tc-dang-vien") {
-        renderTcDangVienCharts(globalAgeData);
-      }
-    });
-  });
-});
-
-// 10. Hàm vẽ Biểu đồ Phân hệ Tổ chức Đảng & Đảng viên (Fix lỗi mặt buồn & hỗ trợ cuộn ngang)
+// 9. VẼ BIỂU ĐỒ PHÂN HỆ TỔ CHỨC ĐẢNG & ĐẢNG VIÊN
 function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
-  // 10.1 Biểu đồ cơ cấu độ tuổi (Hình tròn)
   const canvasAge = document.getElementById("ageStructureChart");
   if (canvasAge) {
     if (ageChartObj) ageChartObj.destroy();
@@ -653,7 +721,6 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
     });
   }
 
-  // 10.2 Biểu đồ cột Tổng số Đảng viên theo đơn vị (Cố định chuẩn 10 - 12 đơn vị/khung nhìn)
   const canvasAdmission = document.getElementById("admissionChart");
   const chartContainer = document.getElementById("bar-chart-container");
 
@@ -665,20 +732,13 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
     const labels = chartData.map((d) => d.ten);
     const dataTongDV = chartData.map((d) => d.tongDangVien || 0);
 
-    // BỘ TÍNH KÍCH THƯỚC CHUẨN:
-    // Lấy chiều rộng hiện tại của khung chứa
     const wrapper = chartContainer.parentElement;
     const viewWidth = wrapper ? wrapper.clientWidth : 600;
-
-    // Cấu hình hiển thị đúng 10 đơn vị trên 1 màn hình
     const visibleItems = 10;
 
     if (labels.length > visibleItems) {
-      // Chiều rộng mỗi cột + khoảng trống = (Chiều rộng khung nhìn / 10)
       const itemWidth = viewWidth / visibleItems;
-      // Tổng chiều rộng container = Số lượng đơn vị x Chiều rộng mỗi cột
       const totalWidth = Math.max(labels.length * itemWidth, viewWidth);
-
       chartContainer.style.width = `${totalWidth}px`;
     } else {
       chartContainer.style.width = "100%";
@@ -697,7 +757,7 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
             borderColor: "#0369a1",
             borderWidth: 1,
             borderRadius: 4,
-            barPercentage: 0.5, // Độ rộng cột vừa vặn, cân đối
+            barPercentage: 0.5,
             categoryPercentage: 0.7,
           },
         ],
@@ -728,9 +788,9 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
             grid: { display: false },
             ticks: {
               font: { size: 10, weight: "500" },
-              maxRotation: 45, // Xoay nghiêng chữ 45 độ vừa đủ đọc
+              maxRotation: 45,
               minRotation: 30,
-              autoSkip: false, // Bắt buộc hiển thị đầy đủ tên từng đơn vị ở màn hình đang cuộn
+              autoSkip: false,
             },
           },
         },
@@ -738,6 +798,208 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
     });
   }
 }
+
+// 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN (CHUẨN INFOGRAPHIC)
+// CẬP NHẬT: TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP THEO ĐƠN VỊ ĐƯỢC CHỌN
+function renderKetNapDashboard(snapshot) {
+  if (!snapshot.exists()) return;
+
+  // Lấy đơn vị đang chọn trên Dropdown
+  const selectDangBo = document.getElementById("select-dangbo");
+  const selectedKey = selectDangBo ? selectDangBo.value : "ALL";
+
+  let sumTongDV = 0,
+    sumChiTieu = 0,
+    sumDaKetNap = 0;
+  let sumHocSinh = 0,
+    sumSinhVien = 0,
+    sumTongHSSV = 0;
+  let sumDnNhaNuoc = 0,
+    sumDnNgoaiNN = 0,
+    sumNldKdc = 0,
+    sumHtx = 0,
+    sumTongDN = 0;
+  let sumDtts = 0,
+    sumTonGiao = 0;
+
+  const tbody = document.getElementById("home-ketnap-tbody");
+  if (tbody) tbody.innerHTML = "";
+  let index = 1;
+
+  snapshot.forEach((child) => {
+    const key = child.key;
+    const d = child.val();
+    const ten = d.ten || `Đảng bộ ${key}`;
+
+    const ct = Number(d.chiTieuKetNap || 0);
+    const kn = Number(d.daKetNap || 0);
+    const dv = Number(d.tongDangVien || 0);
+
+    const hs = Number(d.hocSinh || 0);
+    const sv = Number(d.sinhVien || 0);
+    const hssv = Number(d.tongHSSV || hs + sv);
+
+    const dnnn = Number(d.dnNhaNuoc || 0);
+    const dnnnn = Number(d.dnNgoaiNN || 0);
+    const nld = Number(d.nldKdc || 0);
+    const htx = Number(d.htx || 0);
+    const dn = Number(d.tongDN || dnnn + dnnnn + nld + htx);
+
+    const dtts = Number(d.dtts || 0);
+    const tonGiao = Number(d.tonGiao || 0);
+
+    // 1. Nếu chọn "ALL" hoặc đúng KEY đơn vị được chọn thì mới cộng dồn vào Dashboard
+    if (selectedKey === "ALL" || selectedKey === key) {
+      sumTongDV += dv;
+      sumChiTieu += ct;
+      sumDaKetNap += kn;
+
+      sumHocSinh += hs;
+      sumSinhVien += sv;
+      sumTongHSSV += hssv;
+      sumDnNhaNuoc += dnnn;
+      sumDnNgoaiNN += dnnnn;
+      sumNldKdc += nld;
+      sumHtx += htx;
+      sumTongDN += dn;
+      sumDtts += dtts;
+      sumTonGiao += tonGiao;
+    }
+
+    // 2. Render Bảng chi tiết bên dưới (Luôn hiển thị danh sách đầy đủ)
+    if (tbody) {
+      const pct = ct > 0 ? ((kn / ct) * 100).toFixed(2) : "0.00";
+      const isSelectedRow = selectedKey !== "ALL" && selectedKey === key;
+
+      const tr = document.createElement("tr");
+      if (isSelectedRow) {
+        tr.style.backgroundColor = "#fef2f2"; // Highlight hàng đơn vị được chọn
+      }
+
+      tr.innerHTML = `
+        <td style="text-align: center">${index++}</td>
+        <td><b>${ten}</b></td>
+        <td style="text-align: right">${ct.toLocaleString()}</td>
+        <td style="text-align: right; font-weight: bold; color: #0056b3;">${kn.toLocaleString()}</td>
+        <td style="text-align: center; font-weight: bold; color: ${pct >= 100 ? "#16a34a" : "#dc2626"};">${pct}%</td>
+        <td style="text-align: right; background: #f0f9ff; font-weight: bold;">${hssv.toLocaleString()}</td>
+        <td style="text-align: right">${hs.toLocaleString()}</td>
+        <td style="text-align: right">${sv.toLocaleString()}</td>
+        <td style="text-align: right; background: #f0fdf4; font-weight: bold;">${dn.toLocaleString()}</td>
+        <td style="text-align: right">${dnnn.toLocaleString()}</td>
+        <td style="text-align: right">${dnnnn.toLocaleString()}</td>
+        <td style="text-align: right">${nld.toLocaleString()}</td>
+        <td style="text-align: right">${htx.toLocaleString()}</td>
+        <td style="text-align: right">${dtts.toLocaleString()}</td>
+        <td style="text-align: right">${tonGiao.toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+
+  // Gán dữ liệu tương ứng lên giao diện Dashboard
+  const conLai = sumChiTieu - sumDaKetNap;
+  const pctTong =
+    sumChiTieu > 0 ? ((sumDaKetNap / sumChiTieu) * 100).toFixed(2) : "0.00";
+
+  if (document.getElementById("kn-val-tong-dv"))
+    document.getElementById("kn-val-tong-dv").textContent =
+      sumTongDV.toLocaleString();
+  if (document.getElementById("kn-val-chi-tieu"))
+    document.getElementById("kn-val-chi-tieu").textContent =
+      sumChiTieu.toLocaleString();
+  if (document.getElementById("kn-val-da-ket-nap"))
+    document.getElementById("kn-val-da-ket-nap").textContent =
+      sumDaKetNap.toLocaleString();
+  if (document.getElementById("kn-val-pct"))
+    document.getElementById("kn-val-pct").textContent = pctTong + "%";
+  if (document.getElementById("kn-val-con-lai"))
+    document.getElementById("kn-val-con-lai").textContent = (
+      conLai > 0 ? conLai : 0
+    ).toLocaleString();
+
+  if (document.getElementById("kn-chart-center-pct"))
+    document.getElementById("kn-chart-center-pct").textContent = pctTong + "%";
+  if (document.getElementById("kn-text-ratio"))
+    document.getElementById("kn-text-ratio").textContent =
+      `${sumDaKetNap.toLocaleString()} / ${sumChiTieu.toLocaleString()}`;
+
+  if (document.getElementById("kn-val-hssv"))
+    document.getElementById("kn-val-hssv").textContent =
+      sumTongHSSV.toLocaleString();
+  if (document.getElementById("kn-pct-hssv"))
+    document.getElementById("kn-pct-hssv").textContent =
+      (sumDaKetNap > 0
+        ? ((sumTongHSSV / sumDaKetNap) * 100).toFixed(2)
+        : "0.00") + "% số đã kết nạp";
+
+  if (document.getElementById("kn-val-dn"))
+    document.getElementById("kn-val-dn").textContent =
+      sumTongDN.toLocaleString();
+  if (document.getElementById("kn-pct-dn"))
+    document.getElementById("kn-pct-dn").textContent =
+      (sumDaKetNap > 0
+        ? ((sumTongDN / sumDaKetNap) * 100).toFixed(2)
+        : "0.00") + "% số đã kết nạp";
+  if (document.getElementById("kn-text-sub-dn"))
+    document.getElementById("kn-text-sub-dn").textContent =
+      `Trong đó DN ngoài NN: ${sumDnNgoaiNN.toLocaleString()}`;
+
+  if (document.getElementById("kn-val-dtts"))
+    document.getElementById("kn-val-dtts").textContent =
+      sumDtts.toLocaleString();
+  if (document.getElementById("kn-pct-dtts"))
+    document.getElementById("kn-pct-dtts").textContent =
+      (sumDaKetNap > 0 ? ((sumDtts / sumDaKetNap) * 100).toFixed(2) : "0.00") +
+      "% số đã kết nạp";
+
+  if (document.getElementById("kn-val-ton-giao"))
+    document.getElementById("kn-val-ton-giao").textContent =
+      sumTonGiao.toLocaleString();
+  if (document.getElementById("kn-pct-ton-giao"))
+    document.getElementById("kn-pct-ton-giao").textContent =
+      (sumDaKetNap > 0
+        ? ((sumTonGiao / sumDaKetNap) * 100).toFixed(2)
+        : "0.00") + "% số đã kết nạp";
+
+  // Vẽ lại biểu đồ vành khăn theo đơn vị được chọn
+  renderKnDoughnutChart(sumDaKetNap, conLai > 0 ? conLai : 0);
+}
+
+function renderKnDoughnutChart(daKetNap, conLai) {
+  const canvas = document.getElementById("knDoughnutChart");
+  if (!canvas) return;
+
+  if (knDoughnutChartInstance) {
+    knDoughnutChartInstance.destroy();
+  }
+
+  const ctx = canvas.getContext("2d");
+  knDoughnutChartInstance = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Đã kết nạp", "Còn lại so với chỉ tiêu"],
+      datasets: [
+        {
+          data: [daKetNap, conLai],
+          backgroundColor: ["#dc2626", "#e2e8f0"],
+          borderWidth: 0,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "75%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: true },
+      },
+    },
+  });
+}
+
+// 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ
 function fetchTasksData() {
   tasksRefHome.on("value", (snapshot) => {
     const tbody = document.getElementById("task-report-tbody");
@@ -772,7 +1034,6 @@ function fetchTasksData() {
         statusBadge = `<span style="background:#dc2626; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold;"><i class="fa-solid fa-triangle-exclamation"></i> Chậm tiến độ</span>`;
       }
 
-      // Thanh tiến độ nhỏ gọn (Progress bar)
       const progressBar = `
         <div style="display: flex; align-items: center; gap: 8px;">
           <div style="flex:1; background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden;">
@@ -810,8 +1071,3 @@ function updateTaskMetrics(total, done, doing, late) {
   if (elDoing) elDoing.textContent = doing;
   if (elLate) elLate.textContent = late;
 }
-
-// Khởi chạy khi tải trang
-document.addEventListener("DOMContentLoaded", () => {
-  fetchTasksData();
-});

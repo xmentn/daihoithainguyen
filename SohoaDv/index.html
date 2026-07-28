@@ -416,116 +416,735 @@
       <!-- ================================================================= -->
       <!-- PHÂN HỆ 2: TỔ CHỨC ĐẢNG, ĐẢNG VIÊN                                 -->
       <!-- ================================================================= -->
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 2: TỔ CHỨC ĐẢNG, ĐẢNG VIÊN                                 -->
+      <!-- ================================================================= -->
       <div id="tab-tc-dang-vien" class="tab-content">
-        <!-- 5 Thẻ chỉ số tổng quan Tổ chức Đảng & Đảng viên -->
-        <section class="metrics-grid">
-          <div class="metric-card card-blue">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-sitemap"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">TỔ CHỨC CƠ SỞ ĐẢNG</span>
-              <span class="card-number" id="val-tc-tccs">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-check-double"></i> 100%
-                <span class="subtext-light">hoạt động tốt</span></span
-              >
-            </div>
-          </div>
-          <div class="metric-card card-orange">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-building-flag"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">TỔNG SỐ CHI BỘ</span>
-              <span class="card-number" id="val-tc-chibo">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-plus"></i> Hoạt động
-                <span class="subtext-light">thường xuyên</span></span
-              >
-            </div>
-          </div>
-          <div class="metric-card card-purple">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-users-viewfinder"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">TỔNG SỐ ĐẢNG VIÊN</span>
-              <span class="card-number" id="val-tc-tong-dv">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-arrow-trend-up"></i> Quản lý
-                <span class="subtext-light">hệ thống</span></span
-              >
-            </div>
-          </div>
-          <div class="metric-card card-green">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-user-check"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">ĐẢNG VIÊN CHÍNH THỨC</span>
-              <span class="card-number" id="val-tc-dv-chinhthuc">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-percent"></i>
-                <span id="pct-tc-dv-chinhthuc">0%</span>
-                <span class="subtext-light">trên tổng số</span></span
-              >
-            </div>
-          </div>
-          <div class="metric-card card-red">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-user-clock"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">ĐẢNG VIÊN DỰ BỊ</span>
-              <span class="card-number" id="val-tc-dv-dubi">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-clock"></i>
-                <span id="pct-tc-dv-dubi">0%</span>
-                <span class="subtext-light">thử thách</span></span
-              >
-            </div>
-          </div>
-        </section>
-
-        <!-- Khối thống kê cơ cấu & tình hình phát triển Đảng viên -->
-        <section
-          class="charts-grid-bottom"
-          style="grid-template-columns: 1fr 1fr; margin-top: 15px"
+        <!-- THANH NÚT CHUYỂN TAB PHỤ (SUB-TABS) -->
+        <div
+          class="sub-module-tabs"
+          style="
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            gap: 15px;
+          "
         >
-          <div class="grid-card">
-            <h3 class="chart-box-title">
-              <i class="fa-solid fa-chart-pie"></i> CƠ CẤU ĐẢNG VIÊN THEO ĐỘ
-              TUỔI
-            </h3>
-            <div style="height: 280px; position: relative">
-              <canvas id="ageStructureChart"></canvas>
-            </div>
-          </div>
-          <div class="grid-card">
-            <h3 class="chart-box-title">
-              <i class="fa-solid fa-chart-column"></i> TỔNG QUAN ĐẢNG VIÊN THEO
-              ĐƠN VỊ
-            </h3>
+          <button
+            class="sub-tc-home-btn active"
+            data-tc-home-tab="tc-home-chung"
+            style="
+              padding: 8px 16px;
+              border: none;
+              background: none;
+              border-bottom: 3px solid #16a34a;
+              font-weight: bold;
+              color: #16a34a;
+              cursor: pointer;
+              font-size: 15px;
+            "
+          >
+            <i class="fa-solid fa-users-rectangle"></i> 1. Số liệu chung
+          </button>
+          <button
+            class="sub-tc-home-btn"
+            data-tc-home-tab="tc-home-ketnap"
+            style="
+              padding: 8px 16px;
+              border: none;
+              background: none;
+              border-bottom: 3px solid transparent;
+              font-weight: bold;
+              color: #64748b;
+              cursor: pointer;
+              font-size: 15px;
+            "
+          >
+            <i class="fa-solid fa-user-plus"></i> 2. Kết nạp đảng viên
+          </button>
+        </div>
 
-            <div
-              class="chart-scroll-wrapper"
-              style="
-                position: relative;
-                height: 280px;
-                overflow-x: auto;
-                overflow-y: hidden;
-              "
-            >
-              <div
-                id="bar-chart-container"
-                style="position: relative; height: 240px; min-width: 100%"
-              >
-                <canvas id="admissionChart"></canvas>
+        <!-- =============================================================== -->
+        <!-- TAB PHỤ 1: SỐ LIỆU CHUNG (HIỂN THỊ CŨ)                           -->
+        <!-- =============================================================== -->
+        <div id="tc-home-chung" class="tc-home-tab-content active">
+          <!-- 5 Thẻ chỉ số tổng quan Tổ chức Đảng & Đảng viên -->
+          <section class="metrics-grid">
+            <div class="metric-card card-blue">
+              <div class="card-header-icon">
+                <i class="fa-solid fa-sitemap"></i>
+              </div>
+              <div class="card-data">
+                <span class="card-title">TỔ CHỨC CƠ SỞ ĐẢNG</span>
+                <span class="card-number" id="val-tc-tccs">0</span>
+                <span class="card-subtext text-up"
+                  ><i class="fa-solid fa-check-double"></i> 100%
+                  <span class="subtext-light">hoạt động tốt</span></span
+                >
               </div>
             </div>
+            <div class="metric-card card-orange">
+              <div class="card-header-icon">
+                <i class="fa-solid fa-building-flag"></i>
+              </div>
+              <div class="card-data">
+                <span class="card-title">TỔNG SỐ CHI BỘ</span>
+                <span class="card-number" id="val-tc-chibo">0</span>
+                <span class="card-subtext text-up"
+                  ><i class="fa-solid fa-plus"></i> Hoạt động
+                  <span class="subtext-light">thường xuyên</span></span
+                >
+              </div>
+            </div>
+            <div class="metric-card card-purple">
+              <div class="card-header-icon">
+                <i class="fa-solid fa-users-viewfinder"></i>
+              </div>
+              <div class="card-data">
+                <span class="card-title">TỔNG SỐ ĐẢNG VIÊN</span>
+                <span class="card-number" id="val-tc-tong-dv">0</span>
+                <span class="card-subtext text-up"
+                  ><i class="fa-solid fa-arrow-trend-up"></i> Quản lý
+                  <span class="subtext-light">hệ thống</span></span
+                >
+              </div>
+            </div>
+            <div class="metric-card card-green">
+              <div class="card-header-icon">
+                <i class="fa-solid fa-user-check"></i>
+              </div>
+              <div class="card-data">
+                <span class="card-title">ĐẢNG VIÊN CHÍNH THỨC</span>
+                <span class="card-number" id="val-tc-dv-chinhthuc">0</span>
+                <span class="card-subtext text-up"
+                  ><i class="fa-solid fa-percent"></i>
+                  <span id="pct-tc-dv-chinhthuc">0%</span>
+                  <span class="subtext-light">trên tổng số</span></span
+                >
+              </div>
+            </div>
+            <div class="metric-card card-red">
+              <div class="card-header-icon">
+                <i class="fa-solid fa-user-clock"></i>
+              </div>
+              <div class="card-data">
+                <span class="card-title">ĐẢNG VIÊN DỰ BỊ</span>
+                <span class="card-number" id="val-tc-dv-dubi">0</span>
+                <span class="card-subtext text-up"
+                  ><i class="fa-solid fa-clock"></i>
+                  <span id="pct-tc-dv-dubi">0%</span>
+                  <span class="subtext-light">thử thách</span></span
+                >
+              </div>
+            </div>
+          </section>
+
+          <!-- Khối thống kê cơ cấu & tình hình phát triển Đảng viên -->
+          <section
+            class="charts-grid-bottom"
+            style="grid-template-columns: 1fr 1fr; margin-top: 15px"
+          >
+            <div class="grid-card">
+              <h3 class="chart-box-title">
+                <i class="fa-solid fa-chart-pie"></i> CƠ CẤU ĐẢNG VIÊN THEO ĐỘ
+                TUỔI
+              </h3>
+              <div style="height: 280px; position: relative">
+                <canvas id="ageStructureChart"></canvas>
+              </div>
+            </div>
+            <div class="grid-card">
+              <h3 class="chart-box-title">
+                <i class="fa-solid fa-chart-column"></i> TỔNG QUAN ĐẢNG VIÊN
+                THEO ĐƠN VỊ
+              </h3>
+              <div
+                class="chart-scroll-wrapper"
+                style="
+                  position: relative;
+                  height: 280px;
+                  overflow-x: auto;
+                  overflow-y: hidden;
+                "
+              >
+                <div
+                  id="bar-chart-container"
+                  style="position: relative; height: 240px; min-width: 100%"
+                >
+                  <canvas id="admissionChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- TAB PHỤ 2: KẾT NẠP ĐẢNG VIÊN (DASHBOARD CHUẨN NHƯ ẢNH MẪU)         -->
+        <!-- =============================================================== -->
+        <div
+          id="tc-home-ketnap"
+          class="tc-home-tab-content"
+          style="display: none"
+        >
+          <!-- BANNER HEADER ĐỎ CHUẨN THEO MẪU -->
+          <div
+            style="
+              background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+              color: #fff;
+              border-radius: 8px;
+              padding: 12px 20px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 15px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <div>
+              <h2
+                style="
+                  margin: 0;
+                  font-size: 20px;
+                  font-weight: 800;
+                  text-transform: uppercase;
+                  letter-spacing: 0.5px;
+                "
+              >
+                KẾT QUẢ PHÁT TRIỂN ĐẢNG VIÊN NĂM 2026
+              </h2>
+              <span style="font-size: 13px; opacity: 0.9; font-style: italic"
+                >Tính đến ngày <span id="kn-date-update">05/07/2026</span></span
+              >
+            </div>
+            <div
+              style="
+                background: #7f1d1d;
+                border: 1px solid #fca5a5;
+                padding: 4px 12px;
+                border-radius: 6px;
+                text-align: center;
+              "
+            >
+              <span
+                style="
+                  font-weight: bold;
+                  color: #fef08a;
+                  font-size: 13px;
+                  display: block;
+                "
+                >THÁI NGUYÊN</span
+              >
+              <span style="font-size: 10px; color: #fff"
+                >CẬP NHẬT REALTIME</span
+              >
+            </div>
           </div>
-        </section>
+
+          <!-- 5 THẺ CHỈ SỐ HÀNG ĐẦU -->
+          <section
+            class="metrics-grid"
+            style="
+              grid-template-columns: repeat(5, 1fr);
+              gap: 12px;
+              margin-bottom: 15px;
+            "
+          >
+            <!-- Thẻ 1 -->
+            <div
+              class="metric-card"
+              style="
+                border: 2px solid #ef4444;
+                text-align: center;
+                padding: 12px 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: bold;
+                  color: #991b1b;
+                  display: block;
+                  text-transform: uppercase;
+                "
+                >TỔNG SỐ ĐẢNG VIÊN</span
+              >
+              <div
+                style="
+                  font-size: 26px;
+                  font-weight: 900;
+                  color: #b91c1c;
+                  margin: 4px 0;
+                "
+                id="kn-val-tong-dv"
+              >
+                0
+              </div>
+              <span style="font-size: 11px; color: #64748b">toàn tỉnh</span>
+            </div>
+            <!-- Thẻ 2 -->
+            <div
+              class="metric-card"
+              style="
+                border: 2px solid #f97316;
+                text-align: center;
+                padding: 12px 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: bold;
+                  color: #c2410c;
+                  display: block;
+                  text-transform: uppercase;
+                "
+                >CHỈ TIÊU GIAO</span
+              >
+              <div
+                style="
+                  font-size: 26px;
+                  font-weight: 900;
+                  color: #ea580c;
+                  margin: 4px 0;
+                "
+                id="kn-val-chi-tieu"
+              >
+                0
+              </div>
+              <span style="font-size: 11px; color: #64748b">năm 2026</span>
+            </div>
+            <!-- Thẻ 3 -->
+            <div
+              class="metric-card"
+              style="
+                border: 2px solid #22c55e;
+                text-align: center;
+                padding: 12px 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: bold;
+                  color: #15803d;
+                  display: block;
+                  text-transform: uppercase;
+                "
+                >ĐÃ KẾT NẠP MỚI</span
+              >
+              <div
+                style="
+                  font-size: 26px;
+                  font-weight: 900;
+                  color: #16a34a;
+                  margin: 4px 0;
+                "
+                id="kn-val-da-ket-nap"
+              >
+                0
+              </div>
+              <span style="font-size: 11px; color: #64748b">từ đầu năm</span>
+            </div>
+            <!-- Thẻ 4 -->
+            <div
+              class="metric-card"
+              style="
+                border: 2px solid #3b82f6;
+                text-align: center;
+                padding: 12px 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: bold;
+                  color: #1d4ed8;
+                  display: block;
+                  text-transform: uppercase;
+                "
+                >TIẾN ĐỘ HIỆN TẠI</span
+              >
+              <div
+                style="
+                  font-size: 26px;
+                  font-weight: 900;
+                  color: #2563eb;
+                  margin: 4px 0;
+                "
+                id="kn-val-pct"
+              >
+                0%
+              </div>
+              <span style="font-size: 11px; color: #64748b"
+                >so với chỉ tiêu</span
+              >
+            </div>
+            <!-- Thẻ 5 -->
+            <div
+              class="metric-card"
+              style="
+                border: 2px solid #dc2626;
+                text-align: center;
+                padding: 12px 8px;
+              "
+            >
+              <span
+                style="
+                  font-size: 11px;
+                  font-weight: bold;
+                  color: #991b1b;
+                  display: block;
+                  text-transform: uppercase;
+                "
+                >CÒN LẠI SO VỚI CT</span
+              >
+              <div
+                style="
+                  font-size: 26px;
+                  font-weight: 900;
+                  color: #dc2626;
+                  margin: 4px 0;
+                "
+                id="kn-val-con-lai"
+              >
+                0
+              </div>
+              <span style="font-size: 11px; color: #64748b"
+                >cần kết nạp thêm</span
+              >
+            </div>
+          </section>
+
+          <!-- HÀNG 2 BẢNG BIỂU ĐỒ & CƠ CẤU NGUỒN KẾT NẠP -->
+          <section
+            style="display: grid; grid-template-columns: 4fr 6fr; gap: 15px"
+          >
+            <!-- Khối trái: Biểu đồ Tiến độ thực hiện -->
+            <div
+              class="grid-card"
+              style="border: 1px solid #fca5a5; padding: 15px"
+            >
+              <h4
+                style="
+                  text-align: center;
+                  color: #991b1b;
+                  font-weight: 800;
+                  font-size: 15px;
+                  margin-bottom: 2px;
+                  text-transform: uppercase;
+                "
+              >
+                TIẾN ĐỘ THỰC HIỆN
+              </h4>
+              <p
+                style="
+                  text-align: center;
+                  font-size: 12px;
+                  color: #64748b;
+                  margin-top: 0;
+                  margin-bottom: 10px;
+                "
+              >
+                Đã kết nạp mới so với chỉ tiêu năm
+              </p>
+
+              <div style="height: 180px; position: relative">
+                <canvas id="knDoughnutChart"></canvas>
+                <div
+                  style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    text-align: center;
+                  "
+                >
+                  <span
+                    id="kn-chart-center-pct"
+                    style="
+                      font-size: 22px;
+                      font-weight: 900;
+                      color: #dc2626;
+                      display: block;
+                    "
+                    >0%</span
+                  >
+                  <span
+                    style="font-size: 10px; color: #64748b; font-weight: bold"
+                    >đã đạt</span
+                  >
+                </div>
+              </div>
+
+              <div
+                style="
+                  background: #fef2f2;
+                  border: 1px solid #fecaca;
+                  border-radius: 6px;
+                  padding: 8px;
+                  text-align: center;
+                  margin-top: 10px;
+                "
+              >
+                <span
+                  style="font-size: 12px; font-weight: bold; color: #991b1b"
+                >
+                  Tỷ lệ chung: <span id="kn-text-ratio">0/0</span> đảng viên
+                </span>
+              </div>
+            </div>
+
+            <!-- Khối phải: Cơ cấu nguồn kết nạp -->
+            <div
+              class="grid-card"
+              style="border: 1px solid #fca5a5; padding: 15px"
+            >
+              <h4
+                style="
+                  text-align: center;
+                  color: #991b1b;
+                  font-weight: 800;
+                  font-size: 15px;
+                  margin-bottom: 2px;
+                  text-transform: uppercase;
+                "
+              >
+                CƠ CẤU NGUỒN KẾT NẠP
+              </h4>
+              <p
+                style="
+                  text-align: center;
+                  font-size: 12px;
+                  color: #64748b;
+                  margin-top: 0;
+                  margin-bottom: 15px;
+                "
+              >
+                Một số nhóm trọng tâm trong tổng số đảng viên đã kết nạp
+              </p>
+
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: repeat(4, 1fr);
+                  gap: 10px;
+                "
+              >
+                <!-- Nhóm 1: HSSV -->
+                <div
+                  style="
+                    border: 1px solid #ef4444;
+                    border-radius: 6px;
+                    padding: 10px 6px;
+                    text-align: center;
+                    background: #fff;
+                  "
+                >
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 800;
+                      color: #dc2626;
+                      display: block;
+                      height: 28px;
+                      line-height: 14px;
+                    "
+                    >HỌC SINH, SINH VIÊN</span
+                  >
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 900;
+                      color: #dc2626;
+                      margin: 8px 0;
+                    "
+                    id="kn-val-hssv"
+                  >
+                    0
+                  </div>
+                  <span
+                    style="font-size: 10px; color: #64748b; font-weight: bold"
+                    id="kn-pct-hssv"
+                    >0% số đã kết nạp</span
+                  >
+                </div>
+                <!-- Nhóm 2: DN -->
+                <div
+                  style="
+                    border: 1px solid #22c55e;
+                    border-radius: 6px;
+                    padding: 10px 6px;
+                    text-align: center;
+                    background: #fff;
+                  "
+                >
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 800;
+                      color: #16a34a;
+                      display: block;
+                      height: 28px;
+                      line-height: 14px;
+                    "
+                    >ĐẢNG VIÊN TRONG DOANH NGHIỆP</span
+                  >
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 900;
+                      color: #16a34a;
+                      margin: 8px 0;
+                    "
+                    id="kn-val-dn"
+                  >
+                    0
+                  </div>
+                  <span
+                    style="font-size: 10px; color: #64748b; font-weight: bold"
+                    id="kn-pct-dn"
+                    >0% số đã kết nạp</span
+                  >
+                  <hr
+                    style="
+                      margin: 6px 0;
+                      border: 0;
+                      border-top: 1px dashed #cbd5e1;
+                    "
+                  />
+                  <span
+                    style="font-size: 9px; color: #334155"
+                    id="kn-text-sub-dn"
+                    >Trong đó DN ngoài NN: 0</span
+                  >
+                </div>
+                <!-- Nhóm 3: DTTS -->
+                <div
+                  style="
+                    border: 1px solid #2563eb;
+                    border-radius: 6px;
+                    padding: 10px 6px;
+                    text-align: center;
+                    background: #fff;
+                  "
+                >
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 800;
+                      color: #2563eb;
+                      display: block;
+                      height: 28px;
+                      line-height: 14px;
+                    "
+                    >ĐẢNG VIÊN LÀ NGƯỜI DTTS</span
+                  >
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 900;
+                      color: #2563eb;
+                      margin: 8px 0;
+                    "
+                    id="kn-val-dtts"
+                  >
+                    0
+                  </div>
+                  <span
+                    style="font-size: 10px; color: #64748b; font-weight: bold"
+                    id="kn-pct-dtts"
+                    >0% số đã kết nạp</span
+                  >
+                </div>
+                <!-- Nhóm 4: Tôn giáo -->
+                <div
+                  style="
+                    border: 1px solid #9333ea;
+                    border-radius: 6px;
+                    padding: 10px 6px;
+                    text-align: center;
+                    background: #fff;
+                  "
+                >
+                  <span
+                    style="
+                      font-size: 11px;
+                      font-weight: 800;
+                      color: #9333ea;
+                      display: block;
+                      height: 28px;
+                      line-height: 14px;
+                    "
+                    >ĐẢNG VIÊN THEO TÔN GIÁO</span
+                  >
+                  <div
+                    style="
+                      font-size: 24px;
+                      font-weight: 900;
+                      color: #9333ea;
+                      margin: 8px 0;
+                    "
+                    id="kn-val-ton-giao"
+                  >
+                    0
+                  </div>
+                  <span
+                    style="font-size: 10px; color: #64748b; font-weight: bold"
+                    id="kn-pct-ton-giao"
+                    >0% số đã kết nạp</span
+                  >
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- BẢNG CHI TIẾT KẾT NẠP CÁC ĐƠN VỊ -->
+          <section class="grid-card" style="margin-top: 15px">
+            <h3 class="chart-box-title">
+              <i class="fa-solid fa-list-check"></i> TIẾN ĐỘ KẾT NẠP ĐẢNG VIÊN
+              CHI TIẾT THEO CÁC ĐẢNG BỘ TRỰC THUỘC
+            </h3>
+            <div class="table-scroll-wrapper">
+              <table
+                class="report-table"
+                style="font-size: 12px; white-space: nowrap"
+              >
+                <thead>
+                  <tr style="text-align: center; background-color: #f1f5f9">
+                    <th rowspan="2">STT</th>
+                    <th rowspan="2">ĐẢNG BỘ</th>
+                    <th rowspan="2">CHỈ TIÊU GIAO</th>
+                    <th rowspan="2">TỔNG SỐ KẾT NẠP</th>
+                    <th rowspan="2">TỶ LỆ (%)</th>
+                    <th colspan="3">KHỐI HSSV</th>
+                    <th colspan="5">KHỐI DOANH NGHIỆP, HTX</th>
+                    <th rowspan="2">ĐV LÀ DTTS</th>
+                    <th rowspan="2">ĐV TÔN GIÁO</th>
+                  </tr>
+                  <tr
+                    style="
+                      text-align: center;
+                      background-color: #f8fafc;
+                      font-size: 11px;
+                    "
+                  >
+                    <th>Tổng HSSV</th>
+                    <th>Học sinh</th>
+                    <th>Sinh viên</th>
+                    <th>Tổng ĐV DN</th>
+                    <th>DN Nhà nước</th>
+                    <th>DN Ngoài NN</th>
+                    <th>NLĐ tại KDC</th>
+                    <th>Các HTX</th>
+                  </tr>
+                </thead>
+                <tbody id="home-ketnap-tbody">
+                  <!-- Render tự động -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </div>
 
       <!-- ================================================================= -->

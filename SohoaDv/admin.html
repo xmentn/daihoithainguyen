@@ -347,203 +347,562 @@
       <!-- ================================================================= -->
       <!-- PHÂN HỆ 2: QUẢN LÝ TỔ CHỨC ĐẢNG VÀ ĐẢNG VIÊN                        -->
       <!-- ================================================================= -->
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 2: QUẢN LÝ TỔ CHỨC ĐẢNG VÀ ĐẢNG VIÊN                        -->
+      <!-- ================================================================= -->
       <div id="admin-tab-tcdang" class="admin-tab-content">
-        <!-- Form nhập liệu Tổ chức đảng & Đảng viên -->
-        <section class="control-panel">
-          <h3 style="color: #16a34a">
-            <i class="fa-solid fa-users-rectangle"></i> Cập nhật số liệu Tổ chức
-            đảng & Đảng viên
-          </h3>
-          <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
-
-          <form
-            id="form-tcdang"
-            style="display: flex; flex-direction: column; gap: 15px"
+        <!-- THANH MENU TAB CON (SUB-TABS) -->
+        <div
+          class="sub-module-tabs"
+          style="
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+          "
+        >
+          <button
+            class="sub-tc-tab-btn active"
+            data-tc-tab="tc-tab-chung"
+            style="
+              padding: 8px 16px;
+              border: none;
+              background: none;
+              border-bottom: 3px solid #16a34a;
+              font-weight: bold;
+              color: #16a34a;
+              cursor: pointer;
+            "
           >
-            <!-- HÀNG 1: Chọn đơn vị & Số liệu Tổ chức, Loại Đảng viên -->
-            <div
-              style="
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-                gap: 15px;
-              "
-            >
-              <div class="form-group" style="grid-column: span 2">
-                <label for="select-dangbo-tcdang">Chọn Đảng bộ:</label>
-                <select id="select-dangbo-tcdang" required>
-                  <option value="">-- Chọn một Đảng bộ trực thuộc --</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Số TCCSĐ trực thuộc:</label
-                ><input
-                  type="number"
-                  id="tc-so-tccs-dang"
-                  min="0"
-                  required
-                  value="0"
-                />
-              </div>
-              <div class="form-group">
-                <label>Tổng số Chi bộ:</label
-                ><input
-                  type="number"
-                  id="tc-so-chi-bo"
-                  min="0"
-                  required
-                  value="0"
-                />
-              </div>
-              <div class="form-group">
-                <label>Tổng số Đảng viên:</label
-                ><input
-                  type="number"
-                  id="tc-tong-dang-vien"
-                  min="0"
-                  required
-                  value="0"
-                />
-              </div>
-              <div class="form-group">
-                <label>Đảng viên chính thức:</label
-                ><input
-                  type="number"
-                  id="tc-dang-vien-chinh-thuc"
-                  min="0"
-                  required
-                  value="0"
-                />
-              </div>
-              <div class="form-group">
-                <label>Đảng viên dự bị:</label
-                ><input
-                  type="number"
-                  id="tc-dang-vien-du-bi"
-                  min="0"
-                  required
-                  value="0"
-                />
-              </div>
-            </div>
+            <i class="fa-solid fa-users-rectangle"></i> 1. Số liệu chung
+          </button>
+          <button
+            class="sub-tc-tab-btn"
+            data-tc-tab="tc-tab-ketnap"
+            style="
+              padding: 8px 16px;
+              border: none;
+              background: none;
+              border-bottom: 3px solid transparent;
+              font-weight: bold;
+              color: #64748b;
+              cursor: pointer;
+            "
+          >
+            <i class="fa-solid fa-user-plus"></i> 2. Kết nạp đảng viên
+          </button>
+        </div>
 
-            <!-- HÀNG 2: KHỐI NHẬP CƠ CẤU ĐỘ TUỔI -->
-            <div
-              style="
-                background: #f8fafc;
-                padding: 12px 15px;
-                border-radius: 6px;
-                border: 1px dashed #cbd5e1;
-                margin-top: 5px;
-              "
+        <!-- ================================================================= -->
+        <!-- TAB CON 1: SỐ LIỆU CHUNG & ĐỘ TUỔI                                -->
+        <!-- ================================================================= -->
+        <div id="tc-tab-chung" class="tc-subtab-content active">
+          <!-- Form nhập liệu Số liệu chung -->
+          <section class="control-panel">
+            <h3 style="color: #16a34a">
+              <i class="fa-solid fa-users-rectangle"></i> Cập nhật số liệu Tổ
+              chức đảng & Đảng viên
+            </h3>
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
+
+            <form
+              id="form-tcdang"
+              style="display: flex; flex-direction: column; gap: 15px"
             >
-              <span
-                style="
-                  font-size: 13px;
-                  font-weight: bold;
-                  color: #334155;
-                  display: block;
-                  margin-bottom: 10px;
-                "
-              >
-                <i class="fa-solid fa-chart-pie" style="color: #16a34a"></i> CƠ
-                CẤU ĐẢNG VIÊN THEO ĐỘ TUỔI:
-              </span>
+              <!-- HÀNG 1: Chọn đơn vị & Số liệu Tổ chức -->
               <div
                 style="
                   display: grid;
-                  grid-template-columns: repeat(4, 1fr);
+                  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                  gap: 15px;
+                "
+              >
+                <div class="form-group" style="grid-column: span 2">
+                  <label for="select-dangbo-tcdang">Chọn Đảng bộ:</label>
+                  <select id="select-dangbo-tcdang" required>
+                    <option value="">-- Chọn một Đảng bộ trực thuộc --</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Số TCCSĐ trực thuộc:</label>
+                  <input
+                    type="number"
+                    id="tc-so-tccs-dang"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Tổng số Chi bộ:</label>
+                  <input
+                    type="number"
+                    id="tc-so-chi-bo"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Tổng số Đảng viên:</label>
+                  <input
+                    type="number"
+                    id="tc-tong-dang-vien"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Đảng viên chính thức:</label>
+                  <input
+                    type="number"
+                    id="tc-dang-vien-chinh-thuc"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Đảng viên dự bị:</label>
+                  <input
+                    type="number"
+                    id="tc-dang-vien-du-bi"
+                    min="0"
+                    required
+                    value="0"
+                  />
+                </div>
+              </div>
+
+              <!-- HÀNG 2: CƠ CẤU ĐỘ TUỔI -->
+              <div
+                style="
+                  background: #f8fafc;
+                  padding: 12px 15px;
+                  border-radius: 6px;
+                  border: 1px dashed #cbd5e1;
+                  margin-top: 5px;
+                "
+              >
+                <span
+                  style="
+                    font-size: 13px;
+                    font-weight: bold;
+                    color: #334155;
+                    display: block;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <i class="fa-solid fa-chart-pie" style="color: #16a34a"></i>
+                  CƠ CẤU ĐẢNG VIÊN THEO ĐỘ TUỔI:
+                </span>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    gap: 15px;
+                  "
+                >
+                  <div class="form-group">
+                    <label style="color: #0284c7; font-weight: bold"
+                      >Dưới 30 tuổi:</label
+                    >
+                    <input
+                      type="number"
+                      id="tc-tuoi-under30"
+                      min="0"
+                      required
+                      value="0"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label style="color: #16a34a; font-weight: bold"
+                      >Từ 30 - 45 tuổi:</label
+                    >
+                    <input
+                      type="number"
+                      id="tc-tuoi-30to45"
+                      min="0"
+                      required
+                      value="0"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label style="color: #ea580c; font-weight: bold"
+                      >Từ 46 - 60 tuổi:</label
+                    >
+                    <input
+                      type="number"
+                      id="tc-tuoi-46to60"
+                      min="0"
+                      required
+                      value="0"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label style="color: #9333ea; font-weight: bold"
+                      >Trên 60 tuổi:</label
+                    >
+                    <input
+                      type="number"
+                      id="tc-tuoi-over60"
+                      min="0"
+                      required
+                      value="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- HÀNG 3: NÚT THAO TÁC -->
+              <div style="display: flex; gap: 10px; margin-top: 5px">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  style="background-color: #16a34a"
+                >
+                  <i class="fa-solid fa-floppy-disk"></i> Lưu dữ liệu TCĐ & Đảng
+                  viên
+                </button>
+                <button type="button" class="btn btn-secondary btn-reset-form">
+                  Làm lại
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Bảng đối soát -->
+          <section class="control-panel" style="margin-top: 25px">
+            <h3>
+              <i class="fa-solid fa-table-list"></i> Danh sách số liệu Tổ chức
+              đảng & Đảng viên
+            </h3>
+            <div style="overflow-x: auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Tên Đảng bộ</th>
+                    <th>Số TCCSĐ</th>
+                    <th>Tổng Chi bộ</th>
+                    <th>Tổng Đảng viên</th>
+                    <th>Chính thức</th>
+                    <th>Dự bị</th>
+                    <th style="width: 100px; text-align: center">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="table-tcdang-body">
+                  <!-- Render tự động -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <!-- ================================================================= -->
+        <!-- TAB CON 2: KẾT NẠP ĐẢNG VIÊN (ĐẦY ĐỦ CÁC TRƯỜNG BIỂU MẪU)         -->
+        <!-- ================================================================= -->
+        <div id="tc-tab-ketnap" class="tc-subtab-content" style="display: none">
+          <section class="control-panel">
+            <h3 style="color: #0284c7">
+              <i class="fa-solid fa-user-plus"></i> Cập nhật chi tiết Số liệu
+              Kết nạp Đảng viên mới
+            </h3>
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
+
+            <form
+              id="form-ketnap"
+              style="display: flex; flex-direction: column; gap: 15px"
+            >
+              <!-- HÀNG 1: ĐƠN VỊ & CHỈ TIÊU CHUNG -->
+              <div
+                style="
+                  display: grid;
+                  grid-template-columns: 2fr 1fr 1fr 1fr;
                   gap: 15px;
                 "
               >
                 <div class="form-group">
-                  <label style="color: #0284c7; font-weight: bold"
-                    >Dưới 30 tuổi:</label
-                  ><input
+                  <label for="select-dangbo-ketnap">Chọn Đảng bộ:</label>
+                  <select id="select-dangbo-ketnap" required>
+                    <option value="">-- Chọn một Đảng bộ trực thuộc --</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label style="font-weight: bold; color: #1e293b"
+                    >Chỉ tiêu giao:</label
+                  >
+                  <input
                     type="number"
-                    id="tc-tuoi-under30"
+                    id="ketnap-chi-tieu"
                     min="0"
-                    required
                     value="0"
+                    required
                   />
                 </div>
                 <div class="form-group">
-                  <label style="color: #16a34a; font-weight: bold"
-                    >Từ 30 - 45 tuổi:</label
-                  ><input
+                  <label style="font-weight: bold; color: #0056b3"
+                    >Tổng số kết nạp:</label
+                  >
+                  <input
                     type="number"
-                    id="tc-tuoi-30to45"
+                    id="ketnap-tong-so"
                     min="0"
-                    required
                     value="0"
+                    required
                   />
                 </div>
                 <div class="form-group">
-                  <label style="color: #ea580c; font-weight: bold"
-                    >Từ 46 - 60 tuổi:</label
-                  ><input
-                    type="number"
-                    id="tc-tuoi-46to60"
-                    min="0"
-                    required
-                    value="0"
-                  />
-                </div>
-                <div class="form-group">
-                  <label style="color: #9333ea; font-weight: bold"
-                    >Trên 60 tuổi:</label
-                  ><input
-                    type="number"
-                    id="tc-tuoi-over60"
-                    min="0"
-                    required
-                    value="0"
+                  <label style="font-weight: bold; color: #dc2626"
+                    >Tỷ lệ đạt (%):</label
+                  >
+                  <input
+                    type="text"
+                    id="ketnap-ty-le"
+                    value="0.00%"
+                    disabled
+                    style="
+                      background: #f1f5f9;
+                      font-weight: bold;
+                      color: #dc2626;
+                      text-align: center;
+                    "
                   />
                 </div>
               </div>
-            </div>
 
-            <!-- HÀNG 3: NÚT THAO TÁC -->
-            <div style="display: flex; gap: 10px; margin-top: 5px">
-              <button
-                type="submit"
-                class="btn btn-primary"
-                style="background-color: #16a34a"
+              <!-- HÀNG 2: KHỐI HỌC SINH - SINH VIÊN -->
+              <div
+                style="
+                  background: #f8fafc;
+                  padding: 12px 15px;
+                  border-radius: 6px;
+                  border: 1px solid #cbd5e1;
+                "
               >
-                <i class="fa-solid fa-floppy-disk"></i> Lưu dữ liệu TCĐ & Đảng
-                viên
-              </button>
-              <button type="button" class="btn btn-secondary btn-reset-form">
-                Làm lại
-              </button>
-            </div>
-          </form>
-        </section>
+                <span
+                  style="
+                    font-size: 13px;
+                    font-weight: bold;
+                    color: #0284c7;
+                    display: block;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <i class="fa-solid fa-graduation-cap"></i> KHỐI HỌC SINH -
+                  SINH VIÊN:
+                </span>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: 1fr 1fr 1fr;
+                    gap: 15px;
+                  "
+                >
+                  <div class="form-group">
+                    <label style="font-weight: bold; color: #0284c7"
+                      >Tổng số HSSV (Tự động):</label
+                    >
+                    <input
+                      type="number"
+                      id="ketnap-tong-hssv"
+                      value="0"
+                      disabled
+                      style="background: #e0f2fe; font-weight: bold"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Học sinh:</label>
+                    <input
+                      type="number"
+                      id="ketnap-hoc-sinh"
+                      min="0"
+                      value="0"
+                      class="input-calc-hssv"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Sinh viên:</label>
+                    <input
+                      type="number"
+                      id="ketnap-sinh-vien"
+                      min="0"
+                      value="0"
+                      class="input-calc-hssv"
+                    />
+                  </div>
+                </div>
+              </div>
 
-        <!-- Bảng đối soát Tổ chức đảng & Đảng viên -->
-        <section class="control-panel" style="margin-top: 25px">
-          <h3>
-            <i class="fa-solid fa-table-list"></i> Danh sách số liệu Tổ chức
-            đảng & Đảng viên
-          </h3>
-          <div style="overflow-x: auto">
-            <table class="data-table">
-              <thead>
-                <tr>
-                  <th>Tên Đảng bộ</th>
-                  <th>Số TCCSĐ</th>
-                  <th>Tổng Chi bộ</th>
-                  <th>Tổng Đảng viên</th>
-                  <th>Chính thức</th>
-                  <th>Dự bị</th>
-                  <th style="width: 100px; text-align: center">Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="table-tcdang-body">
-                <!-- Render tự động -->
-              </tbody>
-            </table>
-          </div>
-        </section>
+              <!-- HÀNG 3: KHỐI DOANH NGHIỆP & HỢP TÁC XÃ -->
+              <div
+                style="
+                  background: #f8fafc;
+                  padding: 12px 15px;
+                  border-radius: 6px;
+                  border: 1px solid #cbd5e1;
+                "
+              >
+                <span
+                  style="
+                    font-size: 13px;
+                    font-weight: bold;
+                    color: #16a34a;
+                    display: block;
+                    margin-bottom: 10px;
+                  "
+                >
+                  <i class="fa-solid fa-building"></i> KHỐI DOANH NGHIỆP, HTX:
+                </span>
+                <div
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
+                    gap: 12px;
+                  "
+                >
+                  <div class="form-group">
+                    <label style="font-weight: bold; color: #16a34a"
+                      >Tổng ĐV DN (Tự động):</label
+                    >
+                    <input
+                      type="number"
+                      id="ketnap-tong-dn"
+                      value="0"
+                      disabled
+                      style="background: #dcfce7; font-weight: bold"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>DN KV nhà nước:</label>
+                    <input
+                      type="number"
+                      id="ketnap-dn-nha-nuoc"
+                      min="0"
+                      value="0"
+                      class="input-calc-dn"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>DN ngoài nhà nước:</label>
+                    <input
+                      type="number"
+                      id="ketnap-dn-ngoai-nn"
+                      min="0"
+                      value="0"
+                      class="input-calc-dn"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>NLĐ ngoài NN tại KDC:</label>
+                    <input
+                      type="number"
+                      id="ketnap-nld-kdc"
+                      min="0"
+                      value="0"
+                      class="input-calc-dn"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Trong các HTX:</label>
+                    <input
+                      type="number"
+                      id="ketnap-htx"
+                      min="0"
+                      value="0"
+                      class="input-calc-dn"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- HÀNG 4: CÁC ĐỐI TƯỢNG KHÁC (DÂN TỘC THIỂU SỐ, TÔN GIÁO) -->
+              <div
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px"
+              >
+                <div class="form-group">
+                  <label
+                    ><i class="fa-solid fa-users"></i> ĐV là người dân tộc thiểu
+                    số (DTTS):</label
+                  >
+                  <input type="number" id="ketnap-dtts" min="0" value="0" />
+                </div>
+                <div class="form-group">
+                  <label
+                    ><i class="fa-solid fa-place-of-worship"></i> ĐV là người
+                    theo tôn giáo:</label
+                  >
+                  <input type="number" id="ketnap-ton-giao" min="0" value="0" />
+                </div>
+              </div>
+
+              <!-- NÚT THAO TÁC -->
+              <div style="display: flex; gap: 10px; margin-top: 10px">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  style="background-color: #0284c7"
+                >
+                  <i class="fa-solid fa-floppy-disk"></i> Lưu toàn bộ Số liệu
+                  Kết nạp
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-reset-form-ketnap"
+                >
+                  Làm lại
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- BẢNG ĐỐI SOÁT ĐẦY ĐỦ CÁC CỘT -->
+          <section class="control-panel" style="margin-top: 25px">
+            <h3>
+              <i class="fa-solid fa-table-list"></i> Bảng tiến độ kết nạp Đảng
+              viên chi tiết
+            </h3>
+            <div style="overflow-x: auto">
+              <table
+                class="data-table"
+                style="font-size: 12px; white-space: nowrap"
+              >
+                <thead>
+                  <tr style="text-align: center; background-color: #f1f5f9">
+                    <th rowspan="2">STT</th>
+                    <th rowspan="2">Tên Đảng bộ</th>
+                    <th rowspan="2">Chỉ tiêu giao</th>
+                    <th rowspan="2">Tổng số kết nạp</th>
+                    <th rowspan="2">Tỷ lệ (%)</th>
+                    <th colspan="3">Khối HSSV</th>
+                    <th colspan="5">Khối Doanh nghiệp, HTX</th>
+                    <th rowspan="2">ĐV là DTTS</th>
+                    <th rowspan="2">ĐV Tôn giáo</th>
+                    <th rowspan="2" style="width: 80px">Hành động</th>
+                  </tr>
+                  <tr
+                    style="
+                      text-align: center;
+                      background-color: #f8fafc;
+                      font-size: 11px;
+                    "
+                  >
+                    <th>Tổng HSSV</th>
+                    <th>Học sinh</th>
+                    <th>Sinh viên</th>
+                    <th>Tổng ĐV DN</th>
+                    <th>DN Nhà nước</th>
+                    <th>DN Ngoài NN</th>
+                    <th>NLĐ tại KDC</th>
+                    <th>Các HTX</th>
+                  </tr>
+                </thead>
+                <tbody id="table-ketnap-body">
+                  <!-- Render tự động từ JS -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
       </div>
 
       <!-- ================================================================= -->
