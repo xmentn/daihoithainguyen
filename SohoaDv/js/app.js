@@ -804,12 +804,26 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
 function renderKetNapDashboard(snapshot) {
   if (!snapshot.exists()) return;
 
-  // Lấy đơn vị đang chọn trên Dropdown
   const selectDangBo = document.getElementById("select-dangbo");
   const selectedKey = selectDangBo ? selectDangBo.value : "ALL";
 
-  let sumTongDV = 0,
-    sumChiTieu = 0,
+  // Lấy tên đơn vị đang chọn từ Dropdown
+  let selectedUnitName = "ĐẢNG BỘ TỈNH THÁI NGUYÊN";
+  if (selectDangBo && selectDangBo.selectedIndex >= 0) {
+    selectedUnitName = selectDangBo.options[selectDangBo.selectedIndex].text;
+  }
+
+  // Cập nhật tên đơn vị lên banner màu đỏ
+  const elUnitDisplay = document.getElementById("kn-unit-display");
+  if (elUnitDisplay) {
+    elUnitDisplay.textContent = `— Đơn vị: ${selectedUnitName}`;
+  }
+
+  // Biến cố định TỔNG SỐ ĐẢNG VIÊN TOÀN TỈNH
+  let provinceTotalDV = 0;
+
+  // Biến tính toán theo ĐƠN VỊ ĐƯỢC CHỌN (hoặc toàn tỉnh)
+  let sumChiTieu = 0,
     sumDaKetNap = 0;
   let sumHocSinh = 0,
     sumSinhVien = 0,
@@ -835,6 +849,9 @@ function renderKetNapDashboard(snapshot) {
     const kn = Number(d.daKetNap || 0);
     const dv = Number(d.tongDangVien || 0);
 
+    // Luôn cộng dồn Tổng số Đảng viên TOÀN TỈNH (không phụ thuộc bộ lọc)
+    provinceTotalDV += dv;
+
     const hs = Number(d.hocSinh || 0);
     const sv = Number(d.sinhVien || 0);
     const hssv = Number(d.tongHSSV || hs + sv);
@@ -848,9 +865,8 @@ function renderKetNapDashboard(snapshot) {
     const dtts = Number(d.dtts || 0);
     const tonGiao = Number(d.tonGiao || 0);
 
-    // 1. Nếu chọn "ALL" hoặc đúng KEY đơn vị được chọn thì mới cộng dồn vào Dashboard
+    // Chỉ cộng dồn các chỉ số Kết nạp theo đúng đơn vị chọn (hoặc tất cả nếu chọn ALL)
     if (selectedKey === "ALL" || selectedKey === key) {
-      sumTongDV += dv;
       sumChiTieu += ct;
       sumDaKetNap += kn;
 
@@ -866,45 +882,49 @@ function renderKetNapDashboard(snapshot) {
       sumTonGiao += tonGiao;
     }
 
-    // 2. Render Bảng chi tiết bên dưới (Luôn hiển thị danh sách đầy đủ)
+    // Render Bảng chi tiết bên dưới
     if (tbody) {
       const pct = ct > 0 ? ((kn / ct) * 100).toFixed(2) : "0.00";
       const isSelectedRow = selectedKey !== "ALL" && selectedKey === key;
+      const cellStyle = "border: 1px solid #e2e8f0; padding: 6px 8px;";
 
       const tr = document.createElement("tr");
       if (isSelectedRow) {
-        tr.style.backgroundColor = "#fef2f2"; // Highlight hàng đơn vị được chọn
+        tr.style.backgroundColor = "#fef2f2";
       }
 
       tr.innerHTML = `
-        <td style="text-align: center">${index++}</td>
-        <td><b>${ten}</b></td>
-        <td style="text-align: right">${ct.toLocaleString()}</td>
-        <td style="text-align: right; font-weight: bold; color: #0056b3;">${kn.toLocaleString()}</td>
-        <td style="text-align: center; font-weight: bold; color: ${pct >= 100 ? "#16a34a" : "#dc2626"};">${pct}%</td>
-        <td style="text-align: right; background: #f0f9ff; font-weight: bold;">${hssv.toLocaleString()}</td>
-        <td style="text-align: right">${hs.toLocaleString()}</td>
-        <td style="text-align: right">${sv.toLocaleString()}</td>
-        <td style="text-align: right; background: #f0fdf4; font-weight: bold;">${dn.toLocaleString()}</td>
-        <td style="text-align: right">${dnnn.toLocaleString()}</td>
-        <td style="text-align: right">${dnnnn.toLocaleString()}</td>
-        <td style="text-align: right">${nld.toLocaleString()}</td>
-        <td style="text-align: right">${htx.toLocaleString()}</td>
-        <td style="text-align: right">${dtts.toLocaleString()}</td>
-        <td style="text-align: right">${tonGiao.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: center;">${index++}</td>
+        <td style="${cellStyle}"><b>${ten}</b></td>
+        <td style="${cellStyle} text-align: right;">${ct.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right; font-weight: bold; color: #0056b3;">${kn.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: center; font-weight: bold; color: ${pct >= 100 ? "#16a34a" : "#dc2626"};">${pct}%</td>
+        <td style="${cellStyle} text-align: right; background: #f0f9ff; font-weight: bold;">${hssv.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${hs.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${sv.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right; background: #f0fdf4; font-weight: bold;">${dn.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${dnnn.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${dnnnn.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${nld.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${htx.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${dtts.toLocaleString()}</td>
+        <td style="${cellStyle} text-align: right;">${tonGiao.toLocaleString()}</td>
       `;
       tbody.appendChild(tr);
     }
   });
 
-  // Gán dữ liệu tương ứng lên giao diện Dashboard
+  // 1. Ô TỔNG SỐ ĐẢNG VIÊN: Luôn gán tổng toàn tỉnh
+  if (document.getElementById("kn-val-tong-dv")) {
+    document.getElementById("kn-val-tong-dv").textContent =
+      provinceTotalDV.toLocaleString();
+  }
+
+  // 2. Gán các chỉ số Kết nạp theo đơn vị được chọn
   const conLai = sumChiTieu - sumDaKetNap;
   const pctTong =
     sumChiTieu > 0 ? ((sumDaKetNap / sumChiTieu) * 100).toFixed(2) : "0.00";
 
-  if (document.getElementById("kn-val-tong-dv"))
-    document.getElementById("kn-val-tong-dv").textContent =
-      sumTongDV.toLocaleString();
   if (document.getElementById("kn-val-chi-tieu"))
     document.getElementById("kn-val-chi-tieu").textContent =
       sumChiTieu.toLocaleString();
@@ -962,10 +982,8 @@ function renderKetNapDashboard(snapshot) {
         ? ((sumTonGiao / sumDaKetNap) * 100).toFixed(2)
         : "0.00") + "% số đã kết nạp";
 
-  // Vẽ lại biểu đồ vành khăn theo đơn vị được chọn
   renderKnDoughnutChart(sumDaKetNap, conLai > 0 ? conLai : 0);
 }
-
 function renderKnDoughnutChart(daKetNap, conLai) {
   const canvas = document.getElementById("knDoughnutChart");
   if (!canvas) return;
