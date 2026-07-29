@@ -137,21 +137,25 @@ btnLogout.addEventListener("click", () => {
   });
 });
 
-// 4. NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẢNG
+// 4. NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẬT TÌM KIẾM
 function initAdminData() {
-  const selectSoHoa = document.getElementById("select-dangbo-sohoa");
-  const selectTcDang = document.getElementById("select-dangbo-tcdang");
-  const selectKetNap = document.getElementById("select-dangbo-ketnap");
+  const selectSoHoa = $("#select-dangbo-sohoa");
+  const selectTcDang = $("#select-dangbo-tcdang");
+  const selectKetNap = $("#select-dangbo-ketnap");
 
-  if (selectSoHoa)
-    selectSoHoa.innerHTML =
-      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
-  if (selectTcDang)
-    selectTcDang.innerHTML =
-      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
-  if (selectKetNap)
-    selectKetNap.innerHTML =
-      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>';
+  if (selectSoHoa.length)
+    selectSoHoa.html(
+      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>',
+    );
+  if (selectTcDang.length)
+    selectTcDang.html(
+      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>',
+    );
+  if (selectKetNap.length)
+    selectKetNap.html(
+      '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>',
+    );
+
   dangBoCache = {};
 
   dangBoRef.once("value", (snapshot) => {
@@ -160,29 +164,55 @@ function initAdminData() {
       const data = child.val();
       dangBoCache[key] = data.ten;
 
-      if (selectSoHoa) {
-        const opt1 = document.createElement("option");
-        opt1.value = key;
-        opt1.textContent = data.ten;
-        selectSoHoa.appendChild(opt1);
-      }
+      const optionHtml = `<option value="${key}">${data.ten}</option>`;
 
-      if (selectTcDang) {
-        const opt2 = document.createElement("option");
-        opt2.value = key;
-        opt2.textContent = data.ten;
-        selectTcDang.appendChild(opt2);
-      }
-
-      if (selectKetNap) {
-        const opt3 = document.createElement("option");
-        opt3.value = key;
-        opt3.textContent = data.ten;
-        selectKetNap.appendChild(opt3);
-      }
+      if (selectSoHoa.length) selectSoHoa.append(optionHtml);
+      if (selectTcDang.length) selectTcDang.append(optionHtml);
+      if (selectKetNap.length) selectKetNap.append(optionHtml);
     });
 
+    // Kích hoạt ô tìm kiếm gõ từ khóa cho cả 3 Dropdown nhập liệu
+    enableSelect2Search();
+
     loadProgressTables();
+  });
+}
+
+// Hàm khởi tạo tìm kiếm cho Dropdown
+// Hàm khởi tạo tìm kiếm cho Dropdown (có bắt lỗi an toàn)
+function enableSelect2Search() {
+  // Kiểm tra xem jQuery và Select2 đã sẵn sàng chưa
+  if (typeof $ === "undefined" || typeof $.fn.select2 === "undefined") {
+    console.warn("Select2 chưa được nạp, sử dụng Dropdown mặc định.");
+    return;
+  }
+
+  const selectIds = [
+    "#select-dangbo-sohoa",
+    "#select-dangbo-tcdang",
+    "#select-dangbo-ketnap",
+  ];
+
+  selectIds.forEach((id) => {
+    if ($(id).length) {
+      $(id).select2({
+        placeholder: "-- Chọn hoặc gõ tên Đảng bộ để tìm kiếm --",
+        allowClear: true,
+        width: "100%",
+        language: {
+          noResults: function () {
+            return "Không tìm thấy Đảng bộ phù hợp";
+          },
+        },
+      });
+
+      $(id)
+        .off("select2:select select2:clear")
+        .on("select2:select select2:clear", function (e) {
+          const event = new Event("change", { bubbles: true });
+          this.dispatchEvent(event);
+        });
+    }
   });
 }
 
@@ -687,7 +717,7 @@ function loadProgressTables() {
 
 // Hàm gán lại dữ liệu cũ khi click nút Sửa
 window.editSoHoa = function (id, canSoHoa, chinhLy, kySo, phanMem) {
-  document.getElementById("select-dangbo-sohoa").value = id;
+  $("#select-dangbo-sohoa").val(id).trigger("change");
   document.getElementById("sohoa-can-so-hoa").value = canSoHoa;
   document.getElementById("sohoa-chinh-ly").value = chinhLy;
   document.getElementById("sohoa-ky-so").value = kySo;
@@ -707,7 +737,7 @@ window.editTcDang = function (
   t46to60,
   o60,
 ) {
-  document.getElementById("select-dangbo-tcdang").value = id;
+  $("#select-dangbo-tcdang").val(id).trigger("change");
   document.getElementById("tc-so-tccs-dang").value = soTccs;
   document.getElementById("tc-so-chi-bo").value = soChiBo;
   document.getElementById("tc-tong-dang-vien").value = tongDV;
@@ -723,14 +753,8 @@ window.editTcDang = function (
 };
 
 window.editKetNapFull = function (id) {
-  const select = document.getElementById("select-dangbo-ketnap");
-  if (select) {
-    select.value = id;
-    select.dispatchEvent(new Event("change"));
-    document
-      .getElementById("form-ketnap")
-      .scrollIntoView({ behavior: "smooth" });
-  }
+  $("#select-dangbo-ketnap").val(id).trigger("change");
+  document.getElementById("form-ketnap").scrollIntoView({ behavior: "smooth" });
 };
 
 // =================================================================
