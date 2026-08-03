@@ -422,6 +422,21 @@
           >
             <i class="fa-solid fa-user-plus"></i> 2. Kết nạp đảng viên
           </button>
+          <button
+            class="sub-tc-tab-btn"
+            data-tc-tab="tc-tab-danhsach"
+            style="
+              padding: 8px 16px;
+              border: none;
+              background: none;
+              border-bottom: 3px solid transparent;
+              font-weight: bold;
+              color: #64748b;
+              cursor: pointer;
+            "
+          >
+            <i class="fa-solid fa-sitemap"></i> 3. Quản lý danh sách Đảng bộ
+          </button>
         </div>
 
         <!-- ================================================================= -->
@@ -928,6 +943,96 @@
                   </tr>
                 </thead>
                 <tbody id="table-ketnap-body">
+                  <!-- Render tự động từ JS -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <!-- ================================================================= -->
+        <!-- TAB CON 3: QUẢN LÝ DANH SÁCH ĐẢNG BỘ (THÊM, SỬA, XÓA)              -->
+        <!-- ================================================================= -->
+        <div
+          id="tc-tab-danhsach"
+          class="tc-subtab-content"
+          style="display: none"
+        >
+          <!-- Form Thêm / Sửa Đảng bộ -->
+          <section class="control-panel">
+            <h3 style="color: #9333ea">
+              <i class="fa-solid fa-folder-plus"></i> Cập nhật / Thêm mới Đảng
+              bộ trực thuộc
+            </h3>
+            <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
+
+            <form
+              id="form-manage-dangbo"
+              style="display: flex; flex-direction: column; gap: 15px"
+            >
+              <input type="hidden" id="manage-dangbo-key-hidden" value="" />
+
+              <div
+                style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px"
+              >
+                <div class="form-group">
+                  <label
+                    >Mã / Key Đảng bộ (Viết liền không dấu, ví dụ:
+                    `phuong_linh_son`):</label
+                  >
+                  <input
+                    type="text"
+                    id="manage-dangbo-key"
+                    placeholder="Nhập mã đơn vị..."
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Tên Đảng bộ đầy đủ:</label>
+                  <input
+                    type="text"
+                    id="manage-dangbo-name"
+                    placeholder="Nhập tên đầy đủ..."
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; margin-top: 5px">
+                <button
+                  type="submit"
+                  class="btn btn-primary"
+                  style="background-color: #9333ea"
+                >
+                  <i class="fa-solid fa-floppy-disk"></i> Lưu Đảng bộ
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-secondary"
+                  id="btn-reset-dangbo-form"
+                >
+                  Làm mới Form
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Bảng Danh sách Đảng bộ -->
+          <section class="control-panel" style="margin-top: 25px">
+            <h3>
+              <i class="fa-solid fa-list"></i> Danh sách tất cả các Đảng bộ trực
+              thuộc
+            </h3>
+            <div style="overflow-x: auto">
+              <table class="data-table">
+                <thead>
+                  <tr style="background-color: #f1f5f9">
+                    <th style="width: 50px; text-align: center">STT</th>
+                    <th>Mã / Key đơn vị</th>
+                    <th>Tên Đảng bộ</th>
+                    <th style="width: 120px; text-align: center">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="table-manage-dangbo-body">
                   <!-- Render tự động từ JS -->
                 </tbody>
               </table>

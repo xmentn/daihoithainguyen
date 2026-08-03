@@ -1089,3 +1089,13 @@ function updateTaskMetrics(total, done, doing, late) {
   if (elDoing) elDoing.textContent = doing;
   if (elLate) elLate.textContent = late;
 }
+// Hàm trả về màu tương ứng với Tỷ lệ hoàn thành số hóa
+function getColorByRatio(ratio) {
+  return ratio >= 80
+    ? "#16a34a" // Xanh lá đậm (Tốt)
+    : ratio >= 60
+      ? "#84cc16" // Xanh lá nhạt/Vàng xanh (Khá)
+      : ratio >= 40
+        ? "#f97316" // Cam (Trung bình)
+        : "#ef4444"; // Đỏ (Yếu / Chưa đạt)
+}

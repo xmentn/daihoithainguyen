@@ -44,7 +44,6 @@ function initAdminTabs() {
   });
 }
 
-// 2.1 CHUYỂN ĐỔI TAB CON TRONG PHÂN HỆ 2 (SỐ LIỆU CHUNG & KẾT NẠP)
 function initTcSubTabs() {
   const subBtns = document.querySelectorAll(".sub-tc-tab-btn");
   const subContents = document.querySelectorAll(".tc-subtab-content");
@@ -75,16 +74,55 @@ function initTcSubTabs() {
 }
 
 // 3. THEO DÕI PHIÊN ĐĂNG NHẬP
+// THEO DÕI PHIÊN ĐĂNG NHẬP VÀ PHÂN QUYỀN GIAO DIỆN
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     loginSection.style.display = "none";
     adminSection.style.display = "block";
-    adminUserInfo.innerHTML = `<i class="fa-solid fa-circle-user" style="color: #2ecc71;"></i> Quản trị viên: <b>${user.email}</b>`;
+
+    // Đọc role của tài khoản đang đăng nhập từ Firebase
+    database.ref("users/" + user.uid).once("value", (snapshot) => {
+      const userData = snapshot.val();
+      const role = userData ? userData.role : "nhap_lieu"; // Mặc định là nhap_lieu nếu chưa gán role
+
+      const roleText =
+        role === "admin"
+          ? "Quản trị viên (Admin)"
+          : "Cán bộ Nhập liệu (Số hóa)";
+      adminUserInfo.innerHTML = `<i class="fa-solid fa-circle-user" style="color: #2ecc71;"></i> Tài khoản: <b>${user.email}</b> [${roleText}]`;
+
+      // Áp dụng phân quyền hiển thị các Tab trên giao diện
+      applyRolePermissions(role);
+    });
   } else {
     loginSection.style.display = "block";
     adminSection.style.display = "none";
   }
 });
+
+// Hàm kiểm tra và ẩn/hiện Phân hệ theo Role
+function applyRolePermissions(role) {
+  const btnSoHoa = document.querySelector('[data-admin-tab="admin-tab-sohoa"]');
+  const btnTcDang = document.querySelector(
+    '[data-admin-tab="admin-tab-tcdang"]',
+  );
+  const btnNoiBo = document.querySelector('[data-admin-tab="admin-tab-noibo"]');
+
+  if (role === "admin") {
+    // Tài khoản Admin: Hiển thị và thao tác đầy đủ 3 phân hệ
+    if (btnSoHoa) btnSoHoa.style.display = "inline-flex";
+    if (btnTcDang) btnTcDang.style.display = "inline-flex";
+    if (btnNoiBo) btnNoiBo.style.display = "inline-flex";
+  } else {
+    // Tài khoản Nhập liệu (nhap_lieu): Chỉ hiển thị duy nhất Tab 1 (Số hóa)
+    if (btnSoHoa) {
+      btnSoHoa.style.display = "inline-flex";
+      btnSoHoa.click(); // Tự động chọn Tab Số hóa
+    }
+    if (btnTcDang) btnTcDang.style.display = "none"; // Ẩn hoàn toàn Tab Tổ chức đảng & Kết nạp
+    if (btnNoiBo) btnNoiBo.style.display = "none"; // Ẩn hoàn toàn Tab Quản lý nội bộ
+  }
+}
 
 // Xử lý Đăng nhập
 btnLogin.addEventListener("click", () => {
@@ -901,6 +939,164 @@ window.deleteTask = function (key) {
   }).then((res) => {
     if (res.isConfirmed) {
       tasksRef.child(key).remove();
+    }
+  });
+};
+// =================================================================
+// 10. PHÂN HỆ QUẢN LÝ DANH SÁCH ĐẢNG BỘ (THÊM, SỬA, XÓA)
+// =================================================================
+
+// Đọc danh sách Đảng bộ và render ra Bảng Quản lý
+dangBoRef.on("value", (snapshot) => {
+  const tbody = document.getElementById("table-manage-dangbo-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  if (!snapshot.exists()) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#94a3b8;">Chưa có Đảng bộ nào trong cơ sở dữ liệu.</td></tr>`;
+    return;
+  }
+
+  let index = 1;
+  snapshot.forEach((child) => {
+    const key = child.key;
+    const data = child.val();
+    const ten = data.ten || "Chưa đặt tên";
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="text-align: center;">${index++}</td>
+      <td><code>${key}</code></td>
+      <td><b>${ten}</b></td>
+      <td style="text-align: center;">
+        <button class="btn btn-primary" style="padding: 3px 6px; font-size: 11px; background-color: #9333ea;" onclick="editManageDangBo('${key}', '${ten}')">Sửa</button>
+        <button class="btn btn-danger" style="padding: 3px 6px; font-size: 11px;" onclick="deleteManageDangBo('${key}', '${ten}')">Xóa</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+});
+
+// Xử lý Form Thêm / Sửa Đảng bộ
+const formManageDangBo = document.getElementById("form-manage-dangbo");
+if (formManageDangBo) {
+  formManageDangBo.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const hiddenKey = document.getElementById("manage-dangbo-key-hidden").value;
+    const keyInput = document
+      .getElementById("manage-dangbo-key")
+      .value.trim()
+      .toLowerCase()
+      .replace(/\s+/g, "_");
+    const nameInput = document
+      .getElementById("manage-dangbo-name")
+      .value.trim();
+
+    if (!keyInput || !nameInput) {
+      Swal.fire({
+        icon: "warning",
+        title: "Thiếu thông tin",
+        text: "Vui lòng nhập đầy đủ Mã và Tên Đảng bộ!",
+      });
+      return;
+    }
+
+    if (hiddenKey) {
+      // Trường hợp ĐANG SỬA: Cập nhật tên mới
+      dangBoRef
+        .child(hiddenKey)
+        .update({ ten: nameInput })
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Cập nhật thành công",
+            text: `Đã đổi tên Đảng bộ thành "${nameInput}"`,
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          resetManageDangBoForm();
+          initAdminData(); // Nạp lại Dropdown
+        });
+    } else {
+      // Trường hợp THÊM MỚI: Kiểm tra trùng mã
+      dangBoRef.child(keyInput).once("value", (snap) => {
+        if (snap.exists()) {
+          Swal.fire({
+            icon: "error",
+            title: "Mã bị trùng",
+            text: `Mã Đảng bộ "${keyInput}" đã tồn tại trên hệ thống!`,
+          });
+        } else {
+          dangBoRef
+            .child(keyInput)
+            .set({ ten: nameInput })
+            .then(() => {
+              Swal.fire({
+                icon: "success",
+                title: "Thêm thành công",
+                text: `Đã thêm Đảng bộ "${nameInput}"`,
+                timer: 1500,
+                showConfirmButton: false,
+              });
+              resetManageDangBoForm();
+              initAdminData(); // Nạp lại Dropdown
+            });
+        }
+      });
+    }
+  });
+}
+
+// Nút Làm mới Form
+const btnResetDangBo = document.getElementById("btn-reset-dangbo-form");
+if (btnResetDangBo) {
+  btnResetDangBo.addEventListener("click", resetManageDangBoForm);
+}
+
+function resetManageDangBoForm() {
+  if (formManageDangBo) formManageDangBo.reset();
+  document.getElementById("manage-dangbo-key-hidden").value = "";
+  document.getElementById("manage-dangbo-key").disabled = false;
+}
+
+// Hàm gán dữ liệu lên form khi bấm "Sửa"
+window.editManageDangBo = function (key, ten) {
+  document.getElementById("manage-dangbo-key-hidden").value = key;
+  document.getElementById("manage-dangbo-key").value = key;
+  document.getElementById("manage-dangbo-key").disabled = true; // Khóa không cho sửa Mã key khi đang chỉnh sửa
+  document.getElementById("manage-dangbo-name").value = ten;
+
+  document
+    .getElementById("form-manage-dangbo")
+    .scrollIntoView({ behavior: "smooth" });
+};
+
+// Hàm xóa Đảng bộ
+window.deleteManageDangBo = function (key, ten) {
+  Swal.fire({
+    title: `Xác nhận xóa "${ten}"?`,
+    text: "Tất cả số liệu liên quan của Đảng bộ này sẽ bị xóa vĩnh viễn!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc2626",
+    confirmButtonText: "Xóa ngay",
+    cancelButtonText: "Hủy",
+  }).then((res) => {
+    if (res.isConfirmed) {
+      dangBoRef
+        .child(key)
+        .remove()
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Đã xóa",
+            text: `Đã xóa thành công ${ten}`,
+            timer: 1500,
+            showConfirmButton: false,
+          });
+          initAdminData(); // Nạp lại Dropdown
+        });
     }
   });
 };
