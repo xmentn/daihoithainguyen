@@ -233,7 +233,54 @@ function onEachFeatureMap(feature, layer) {
     layer.bindTooltip(`<b>Đơn vị:</b> ${name}`, { sticky: true });
   }
 }
+// HÀM TÔ MÀU BẢN ĐỒ DỰA TRÊN TỶ LỆ HOÀN THÀNH SỐ HÓA
+function updateMapWithSoHoaData(snapshot) {
+  if (!snapshot || !snapshot.exists() || !geojsonLayer) return;
 
+  // Lập bản đồ tra cứu tỷ lệ theo Key/Mã đơn vị
+  const ratioMap = {};
+
+  snapshot.forEach((childSnapshot) => {
+    const key = childSnapshot.key;
+    const data = childSnapshot.val();
+
+    const canSoHoa = Number(data.tongHoSo || 0);
+    const daCapNhat = Number(data.daCapNhat || 0);
+
+    // Tính tỷ lệ % (Đã đưa lên PM / Cần số hóa)
+    const ratio = canSoHoa > 0 ? (daCapNhat / canSoHoa) * 100 : 0;
+    ratioMap[key] = ratio;
+  });
+
+  // Duyệt từng vùng GeoJSON trên Leaflet để đổi màu
+  geojsonLayer.eachLayer((layer) => {
+    if (!layer.feature || !layer.feature.properties) return;
+
+    // Lấy key tương ứng trong properties của file GeoJSON (id hoặc ma_xa/ten_xa)
+    const properties = layer.feature.properties;
+    const unitKey = properties.id || properties.ma_xa || properties.key;
+    const unitName = properties.ten_xa || properties.ten || "Xã/Phường";
+
+    // Lấy tỷ lệ % số hóa, nếu không tìm thấy mặc định là 0%
+    const ratio = ratioMap[unitKey] !== undefined ? ratioMap[unitKey] : 0;
+    const fillColor = getColorByRatio(ratio);
+
+    // Cập nhật Style hiển thị mới
+    layer.setStyle({
+      fillColor: fillColor,
+      fillOpacity: 0.75,
+      weight: 1,
+      color: "#ffffff", // Viền trắng phân cách các xã
+      dashArray: "3",
+    });
+
+    // Cập nhật Tooltip khi di chuột vào xã/phường
+    layer.bindTooltip(
+      `<b>Đơn vị:</b> ${unitName}<br/>Tỷ lệ hoàn thành số hóa: <b>${ratio.toFixed(1)}%</b>`,
+      { sticky: true },
+    );
+  });
+}
 // 3. NẠP DANH SÁCH ĐẢNG BỘ VÀO BỘ LỌC DROPDOWN
 function loadDangBoList() {
   const dropdown = document.getElementById("select-dangbo");
@@ -343,6 +390,7 @@ function fetchStatistics(selectedKey = "ALL") {
     renderLineChart();
     renderTcDangVienCharts(globalAgeData);
     renderKetNapDashboard(snapshot); // Đồng thời tính toán Dashboard Kết nạp
+    updateMapWithSoHoaData(snapshot);
   });
 }
 
@@ -1091,11 +1139,11 @@ function updateTaskMetrics(total, done, doing, late) {
 }
 // Hàm trả về màu tương ứng với Tỷ lệ hoàn thành số hóa
 function getColorByRatio(ratio) {
-  return ratio >= 80
+  return ratio >= 70
     ? "#16a34a" // Xanh lá đậm (Tốt)
-    : ratio >= 60
+    : ratio >= 50
       ? "#84cc16" // Xanh lá nhạt/Vàng xanh (Khá)
-      : ratio >= 40
+      : ratio >= 30
         ? "#f97316" // Cam (Trung bình)
         : "#ef4444"; // Đỏ (Yếu / Chưa đạt)
 }
