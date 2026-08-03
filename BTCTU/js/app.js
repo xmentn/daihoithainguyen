@@ -117,6 +117,8 @@ function initTabSwitchers() {
 }
 
 // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP TẠI BANNER
+let homeUserRole = "guest";
+
 firebase.auth().onAuthStateChanged((user) => {
   const sessionEmail = document.getElementById("session-email");
   const sessionRole = document.getElementById("session-role");
@@ -124,20 +126,37 @@ firebase.auth().onAuthStateChanged((user) => {
   const dropdownIcon = document.getElementById("user-dropdown-icon");
 
   if (user) {
-    if (sessionEmail) sessionEmail.textContent = user.email.split("@")[0];
-    if (sessionRole) sessionRole.textContent = "Quản trị hệ thống";
+    database.ref("users/" + user.uid).once("value", (snapshot) => {
+      const userData = snapshot.val();
+      homeUserRole = userData ? userData.role : "guest";
 
-    if (dropdownIcon) dropdownIcon.style.display = "inline-block";
-    if (dropdownMenu) dropdownMenu.style.display = "";
+      if (sessionEmail) sessionEmail.textContent = user.email.split("@")[0];
+      if (sessionRole) {
+        sessionRole.textContent =
+          homeUserRole === "admin"
+            ? "Quản trị viên (Admin)"
+            : homeUserRole === "nhap_lieu_btc"
+              ? "Cán bộ Ban Tổ chức"
+              : "Cán bộ Nhập liệu";
+      }
+
+      if (dropdownIcon) dropdownIcon.style.display = "inline-block";
+      if (dropdownMenu) dropdownMenu.style.display = "";
+
+      // Tải lại bảng nhiệm vụ để áp dụng phân quyền
+      fetchTasksData();
+    });
   } else {
+    homeUserRole = "guest";
     if (sessionEmail) sessionEmail.textContent = "Guest";
     if (sessionRole) sessionRole.textContent = "";
 
     if (dropdownIcon) dropdownIcon.style.display = "none";
     if (dropdownMenu) dropdownMenu.style.display = "none";
+
+    fetchTasksData();
   }
 });
-
 // NÚT ĐĂNG XUẤT TRÊN BANNER
 function initLogoutEvents() {
   const btnHomeLogout = document.getElementById("btn-home-logout");
@@ -1100,12 +1119,20 @@ function renderKnDoughnutChart(daKetNap, conLai) {
 
 // 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ
 // 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ VÀ RENDER TRẠNG THÁI THEO THỜI HẠN
+// 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ VÀ RENDER TRẠNG THÁI 2 DÒNG + TỰ ĐỘNG ĐỔI MÀU
 function fetchTasksData() {
   tasksRefHome.on("value", (snapshot) => {
     const tbody = document.getElementById("task-report-tbody");
+    const thAction = document.getElementById("th-task-action");
     if (!tbody) return;
 
     tbody.innerHTML = "";
+
+    const canEditStatus =
+      homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
+    if (thAction) {
+      thAction.style.display = canEditStatus ? "table-cell" : "none";
+    }
 
     let total = 0,
       done = 0,
@@ -1113,73 +1140,117 @@ function fetchTasksData() {
       late = 0;
 
     if (!snapshot.exists()) {
-      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding: 20px; color:#94a3b8;">Chưa có dữ liệu nhiệm vụ nội bộ.</td></tr>`;
+      const colSpan = canEditStatus ? 8 : 7;
+      tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding: 20px; color:#94a3b8;">Chưa có dữ liệu nhiệm vụ nội bộ.</td></tr>`;
       updateTaskMetrics(0, 0, 0, 0);
       return;
     }
 
     let index = 1;
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Mốc ngày hiện tại 0h00
+    today.setHours(0, 0, 0, 0);
 
     snapshot.forEach((child) => {
+      const taskId = child.key;
       const task = child.val();
       total++;
 
-      let statusText = task.status || "Đang thực hiện";
-      let badgeColor = "#0284c7"; // Mặc định xanh
+      // 1. Tính toán ngày còn lại / quá hạn từ deadline
+      let diffDays = null;
+      if (task.deadline) {
+        const deadlineDate = new Date(task.deadline);
+        deadlineDate.setHours(0, 0, 0, 0);
+        const diffTime = deadlineDate.getTime() - today.getTime();
+        diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+
+      // 2. Xác định màu sắc, biểu tượng và dòng thông báo thời gian
+      let badgeColor = "#0284c7"; // Mặc định xanh dương
       let iconClass = "fa-spinner";
+      let timeNoticeHtml = ""; // Chuỗi hiển thị ở dòng thứ 2
 
       if (task.status === "Đã hoàn thành") {
         done++;
-        badgeColor = "#16a34a"; // Xanh lá
-        statusText = "Đã hoàn thành";
+        badgeColor = "#16a34a"; // Tô XANH LÁ
         iconClass = "fa-check";
+        timeNoticeHtml = `<div style="font-size: 11px; color: #16a34a; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i> Đã hoàn thành</div>`;
       } else if (task.status === "Chậm tiến độ") {
         late++;
-        badgeColor = "#dc2626"; // Đỏ
-        statusText = "Chậm tiến độ";
+        badgeColor = "#dc2626"; // Tô ĐỎ
         iconClass = "fa-triangle-exclamation";
+        if (diffDays !== null && diffDays < 0) {
+          timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
+        } else {
+          timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-triangle-exclamation"></i> Cần đôn đốc</div>`;
+        }
       } else {
-        // Trạng thái "Đang thực hiện": Tính ngày deadline
-        if (task.deadline) {
-          const deadlineDate = new Date(task.deadline);
-          deadlineDate.setHours(0, 0, 0, 0);
-
-          const diffTime = deadlineDate.getTime() - today.getTime();
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+        // Trạng thái "Đang thực hiện"
+        if (diffDays !== null) {
           if (diffDays < 0) {
-            late++; // Tính vào nhóm quá hạn
-            badgeColor = "#dc2626"; // Đỏ
-            statusText = `Quá hạn ${Math.abs(diffDays)} ngày`;
+            late++;
+            badgeColor = "#dc2626"; // Tô ĐỎ (Quá hạn)
             iconClass = "fa-triangle-exclamation";
+            timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
           } else if (diffDays < 3) {
             doing++;
-            badgeColor = "#ea580c"; // Cam (< 3 ngày)
-            statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+            badgeColor = "#ea580c"; // Tô CAM (< 3 ngày)
             iconClass = "fa-clock";
+            timeNoticeHtml = `<div style="font-size: 11px; color: #ea580c; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
           } else if (diffDays <= 7) {
             doing++;
-            badgeColor = "#ca8a04"; // Vàng (3 - 7 ngày)
-            statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+            badgeColor = "#ca8a04"; // Tô VÀNG (3 - 7 ngày)
             iconClass = "fa-clock";
+            timeNoticeHtml = `<div style="font-size: 11px; color: #ca8a04; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
           } else {
             doing++;
-            badgeColor = "#0284c7"; // Xanh dương (> 7 ngày)
-            statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+            badgeColor = "#0284c7"; // Tô XANH DƯƠNG (> 7 ngày)
             iconClass = "fa-spinner";
+            timeNoticeHtml = `<div style="font-size: 11px; color: #0284c7; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-calendar-day"></i> Còn ${diffDays} ngày</div>`;
           }
         } else {
           doing++;
         }
       }
 
-      const statusBadge = `
-        <span style="background:${badgeColor}; color:#fff; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
-          <i class="fa-solid ${iconClass}"></i> ${statusText}
-        </span>
-      `;
+      // 3. Render Cột Trạng thái (Gồm Dòng 1: Dropdown/Badge, Dòng 2: Thời gian)
+      let statusHtml = "";
+      if (canEditStatus) {
+        // Dropdown tô màu nền theo đúng trạng thái đang chọn
+        statusHtml = `
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <select id="select-status-${taskId}" class="form-control" 
+                    onchange="this.style.backgroundColor = this.options[this.selectedIndex].getAttribute('data-color')"
+                    style="font-size: 11px; font-weight: bold; padding: 4px 6px; border-radius: 4px; color: #ffffff; background-color: ${badgeColor}; border: none; cursor: pointer; text-align: center;">
+              <option value="Đang thực hiện" data-color="#0284c7" style="background-color: #ffffff; color: #333;" ${task.status === "Đang thực hiện" ? "selected" : ""}>Đang thực hiện</option>
+              <option value="Đã hoàn thành" data-color="#16a34a" style="background-color: #ffffff; color: #333;" ${task.status === "Đã hoàn thành" ? "selected" : ""}>Đã hoàn thành</option>
+              <option value="Chậm tiến độ" data-color="#dc2626" style="background-color: #ffffff; color: #333;" ${task.status === "Chậm tiến độ" ? "selected" : ""}>Chậm tiến độ</option>
+            </select>
+            ${timeNoticeHtml}
+          </div>
+        `;
+      } else {
+        // Thẻ tĩnh 2 dòng hiển thị cho khách
+        statusHtml = `
+          <div style="display: flex; flex-direction: column; align-items: center;">
+            <span style="background:${badgeColor}; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+              <i class="fa-solid ${iconClass}"></i> ${task.status || "Đang thực hiện"}
+            </span>
+            ${timeNoticeHtml}
+          </div>
+        `;
+      }
+
+      // 4. Render Cột Thao tác
+      let actionHtml = "";
+      if (canEditStatus) {
+        actionHtml = `
+          <td style="text-align: center; vertical-align: middle;">
+            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px; background-color: #16a34a; border-color: #16a34a;" onclick="updateTaskStatusDirect('${taskId}')">
+              <i class="fa-solid fa-floppy-disk"></i> Lưu
+            </button>
+          </td>
+        `;
+      }
 
       const progressBar = `
         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1192,13 +1263,14 @@ function fetchTasksData() {
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="text-center">${index++}</td>
-        <td><b>${task.name}</b></td>
-        <td><i class="fa-solid fa-user-gear" style="color:#64748b;"></i> ${task.assignee}</td>
-        <td class="text-center"><i class="fa-solid fa-calendar-day" style="color:#64748b;"></i> ${task.deadline || "—"}</td>
-        <td>${progressBar}</td>
-        <td class="text-center">${statusBadge}</td>
-        <td style="color:#475569;">${task.note || "—"}</td>
+        <td class="text-center" style="vertical-align: middle;">${index++}</td>
+        <td style="vertical-align: middle;"><b>${task.name}</b></td>
+        <td style="vertical-align: middle;"><i class="fa-solid fa-user-gear" style="color:#64748b;"></i> ${task.assignee}</td>
+        <td class="text-center" style="vertical-align: middle;"><i class="fa-solid fa-calendar-day" style="color:#64748b;"></i> ${task.deadline || "—"}</td>
+        <td style="vertical-align: middle;">${progressBar}</td>
+        <td class="text-center" style="vertical-align: middle;">${statusHtml}</td>
+        <td style="color:#475569; vertical-align: middle;">${task.note || "—"}</td>
+        ${actionHtml}
       `;
       tbody.appendChild(tr);
     });
@@ -1207,6 +1279,40 @@ function fetchTasksData() {
   });
 }
 
+// HÀM LƯU TRỰC TIẾP TRẠNG THÁI TỪ BẢNG ĐỒNG BỘ NÊN FIREBASE
+window.updateTaskStatusDirect = function (taskId) {
+  const selectEl = document.getElementById(`select-status-${taskId}`);
+  if (!selectEl) return;
+
+  const newStatus = selectEl.value;
+
+  // Tự động điều chỉnh tiến độ % tương ứng nếu cần
+  const updatePayload = {
+    status: newStatus,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+  };
+
+  if (newStatus === "Đã hoàn thành") {
+    updatePayload.progress = 100;
+  }
+
+  tasksRefHome
+    .child(taskId)
+    .update(updatePayload)
+    .then(() => {
+      Swal.fire({
+        icon: "success",
+        title: "Đã cập nhật",
+        text: `Đã đổi trạng thái nhiệm vụ thành "${newStatus}".`,
+        timer: 1300,
+        showConfirmButton: false,
+      });
+    })
+    .catch((err) => {
+      console.error("Lỗi cập nhật trạng thái:", err);
+      Swal.fire("Lỗi", "Không có quyền cập nhật trạng thái nhiệm vụ!", "error");
+    });
+};
 function updateTaskMetrics(total, done, doing, late) {
   const elTotal = document.getElementById("val-task-total");
   const elDone = document.getElementById("val-task-done");

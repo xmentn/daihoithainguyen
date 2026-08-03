@@ -106,7 +106,7 @@ firebase.auth().onAuthStateChanged((user) => {
 });
 
 function applyRolePermissions(role) {
-  currentRole = role; // Lưu vai trò vào biến toàn cục
+  currentRole = role;
 
   const btnSoHoa = document.querySelector('[data-admin-tab="admin-tab-sohoa"]');
   const btnTcDang = document.querySelector(
@@ -122,6 +122,15 @@ function applyRolePermissions(role) {
     if (btnTcDang) btnTcDang.style.display = "inline-flex";
     if (btnNoiBo) btnNoiBo.style.display = "inline-flex";
     if (timeConfigSection) timeConfigSection.style.display = "block";
+  } else if (role === "nhap_lieu_btc") {
+    // Tài khoản Ban Tổ chức: Cho phép xem/sửa Phân hệ Quản lý nội bộ
+    if (btnSoHoa) btnSoHoa.style.display = "none";
+    if (btnTcDang) btnTcDang.style.display = "none";
+    if (btnNoiBo) {
+      btnNoiBo.style.display = "inline-flex";
+      btnNoiBo.click();
+    }
+    if (timeConfigSection) timeConfigSection.style.display = "none";
   } else {
     if (btnSoHoa) {
       btnSoHoa.style.display = "inline-flex";
