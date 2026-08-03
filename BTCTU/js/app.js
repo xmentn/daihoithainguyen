@@ -233,11 +233,11 @@ function onEachFeatureMap(feature, layer) {
     layer.bindTooltip(`<b>Đơn vị:</b> ${name}`, { sticky: true });
   }
 }
+
 // HÀM TÔ MÀU BẢN ĐỒ DỰA TRÊN TỶ LỆ HOÀN THÀNH SỐ HÓA
 function updateMapWithSoHoaData(snapshot) {
   if (!snapshot || !snapshot.exists() || !geojsonLayer) return;
 
-  // Lập bản đồ tra cứu tỷ lệ theo Key/Mã đơn vị
   const ratioMap = {};
 
   snapshot.forEach((childSnapshot) => {
@@ -247,40 +247,35 @@ function updateMapWithSoHoaData(snapshot) {
     const canSoHoa = Number(data.tongHoSo || 0);
     const daCapNhat = Number(data.daCapNhat || 0);
 
-    // Tính tỷ lệ % (Đã đưa lên PM / Cần số hóa)
     const ratio = canSoHoa > 0 ? (daCapNhat / canSoHoa) * 100 : 0;
     ratioMap[key] = ratio;
   });
 
-  // Duyệt từng vùng GeoJSON trên Leaflet để đổi màu
   geojsonLayer.eachLayer((layer) => {
     if (!layer.feature || !layer.feature.properties) return;
 
-    // Lấy key tương ứng trong properties của file GeoJSON (id hoặc ma_xa/ten_xa)
     const properties = layer.feature.properties;
     const unitKey = properties.id || properties.ma_xa || properties.key;
     const unitName = properties.ten_xa || properties.ten || "Xã/Phường";
 
-    // Lấy tỷ lệ % số hóa, nếu không tìm thấy mặc định là 0%
     const ratio = ratioMap[unitKey] !== undefined ? ratioMap[unitKey] : 0;
     const fillColor = getColorByRatio(ratio);
 
-    // Cập nhật Style hiển thị mới
     layer.setStyle({
       fillColor: fillColor,
       fillOpacity: 0.75,
       weight: 1,
-      color: "#ffffff", // Viền trắng phân cách các xã
+      color: "#ffffff",
       dashArray: "3",
     });
 
-    // Cập nhật Tooltip khi di chuột vào xã/phường
     layer.bindTooltip(
       `<b>Đơn vị:</b> ${unitName}<br/>Tỷ lệ hoàn thành số hóa: <b>${ratio.toFixed(1)}%</b>`,
       { sticky: true },
     );
   });
 }
+
 // 3. NẠP DANH SÁCH ĐẢNG BỘ VÀO BỘ LỌC DROPDOWN
 function loadDangBoList() {
   const dropdown = document.getElementById("select-dangbo");
@@ -290,6 +285,7 @@ function loadDangBoList() {
     dropdown.innerHTML =
       '<option value="ALL">ĐẢNG BỘ TỈNH THÁI NGUYÊN</option>';
     snapshot.forEach((childSnapshot) => {
+      if (childSnapshot.key === "tinh_thai_nguyen") return; // Ẩn bản ghi tỉnh khỏi danh sách đơn vị con nếu có
       const data = childSnapshot.val();
       const option = document.createElement("option");
       option.value = childSnapshot.key;
@@ -318,10 +314,29 @@ function fetchStatistics(selectedKey = "ALL") {
       t46to60 = 0,
       tO60 = 0;
 
+    let provincialRecord = null; // Lưu trữ dữ liệu Admin nhập riêng cho tỉnh nếu có
+
     snapshot.forEach((childSnapshot) => {
       const data = childSnapshot.val();
+      const key = childSnapshot.key;
+
+      if (key === "tinh_thai_nguyen") {
+        provincialRecord = {
+          soTccsDang: Number(data.soTccsDang || 0),
+          soChiBo: Number(data.soChiBo || 0),
+          tongDangVien: Number(data.tongDangVien || 0),
+          dvChinhThuc: Number(data.dvChinhThuc || 0),
+          dvDuBi: Number(data.dvDuBi || 0),
+          tuoiUnder30: Number(data.tuoiUnder30 || 0),
+          tuoi30to45: Number(data.tuoi30to45 || 0),
+          tuoi46to60: Number(data.tuoi46to60 || 0),
+          tuoiOver60: Number(data.tuoiOver60 || 0),
+        };
+        return; // Bỏ qua không đưa bản ghi tỉnh vào danh sách bảng tính chi tiết các đơn vị
+      }
+
       const item = {
-        key: childSnapshot.key,
+        key: key,
         ten: data.ten,
         tongHoSo: Number(data.tongHoSo || 0),
         daChinhLy: Number(data.daChinhLy || 0),
@@ -356,10 +371,35 @@ function fetchStatistics(selectedKey = "ALL") {
       tO60 += item.tuoiOver60;
     });
 
-    if (selectedKey === "ALL") {
+    if (selectedKey === "ALL" || selectedKey === "tinh_thai_nguyen") {
       updateDashboard(tCanSoHoa, tChinhLy, tKySo, tPhanMem);
-      updateTcDangDashboard(tSoTccs, tSoChiBo, tTongDv, tDvChinhThuc, tDvDuBi);
-      globalAgeData = [tU30, t30to45, t46to60, tO60];
+
+      // ƯU TIÊN LẤY SỐ LIỆU TỔNG ADMIN ĐÃ NHẬP CHO TỈNH THÁI NGUYÊN (NẾU CÓ)
+      if (provincialRecord) {
+        updateTcDangDashboard(
+          provincialRecord.soTccsDang,
+          provincialRecord.soChiBo,
+          provincialRecord.tongDangVien,
+          provincialRecord.dvChinhThuc,
+          provincialRecord.dvDuBi,
+        );
+        globalAgeData = [
+          provincialRecord.tuoiUnder30,
+          provincialRecord.tuoi30to45,
+          provincialRecord.tuoi46to60,
+          provincialRecord.tuoiOver60,
+        ];
+      } else {
+        // TÍNH TỔNG TỰ ĐỘNG TỪ CÁC ĐƠN VỊ CẤP DƯỚI (NẾU ADMIN CHƯA NHẬP BẢN GHI TỈNH)
+        updateTcDangDashboard(
+          tSoTccs,
+          tSoChiBo,
+          tTongDv,
+          tDvChinhThuc,
+          tDvDuBi,
+        );
+        globalAgeData = [tU30, t30to45, t46to60, tO60];
+      }
     } else {
       const target = fullDataList.find((x) => x.key === selectedKey);
       if (target) {
@@ -847,30 +887,25 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
   }
 }
 
-// 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN (CHUẨN INFOGRAPHIC)
-// CẬP NHẬT: TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP THEO ĐƠN VỊ ĐƯỢC CHỌN
+// 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN
 function renderKetNapDashboard(snapshot) {
   if (!snapshot.exists()) return;
 
   const selectDangBo = document.getElementById("select-dangbo");
   const selectedKey = selectDangBo ? selectDangBo.value : "ALL";
 
-  // Lấy tên đơn vị đang chọn từ Dropdown
   let selectedUnitName = "ĐẢNG BỘ TỈNH THÁI NGUYÊN";
   if (selectDangBo && selectDangBo.selectedIndex >= 0) {
     selectedUnitName = selectDangBo.options[selectDangBo.selectedIndex].text;
   }
 
-  // Cập nhật tên đơn vị lên banner màu đỏ
   const elUnitDisplay = document.getElementById("kn-unit-display");
   if (elUnitDisplay) {
     elUnitDisplay.textContent = `— Đơn vị: ${selectedUnitName}`;
   }
 
-  // Biến cố định TỔNG SỐ ĐẢNG VIÊN TOÀN TỈNH
   let provinceTotalDV = 0;
 
-  // Biến tính toán theo ĐƠN VỊ ĐƯỢC CHỌN (hoặc toàn tỉnh)
   let sumChiTieu = 0,
     sumDaKetNap = 0;
   let sumHocSinh = 0,
@@ -890,6 +925,8 @@ function renderKetNapDashboard(snapshot) {
 
   snapshot.forEach((child) => {
     const key = child.key;
+    if (key === "tinh_thai_nguyen") return; // Bỏ qua không đưa dòng bản ghi tỉnh vào bảng danh sách con
+
     const d = child.val();
     const ten = d.ten || `Đảng bộ ${key}`;
 
@@ -897,7 +934,6 @@ function renderKetNapDashboard(snapshot) {
     const kn = Number(d.daKetNap || 0);
     const dv = Number(d.tongDangVien || 0);
 
-    // Luôn cộng dồn Tổng số Đảng viên TOÀN TỈNH (không phụ thuộc bộ lọc)
     provinceTotalDV += dv;
 
     const hs = Number(d.hocSinh || 0);
@@ -913,7 +949,6 @@ function renderKetNapDashboard(snapshot) {
     const dtts = Number(d.dtts || 0);
     const tonGiao = Number(d.tonGiao || 0);
 
-    // Chỉ cộng dồn các chỉ số Kết nạp theo đúng đơn vị chọn (hoặc tất cả nếu chọn ALL)
     if (selectedKey === "ALL" || selectedKey === key) {
       sumChiTieu += ct;
       sumDaKetNap += kn;
@@ -930,7 +965,6 @@ function renderKetNapDashboard(snapshot) {
       sumTonGiao += tonGiao;
     }
 
-    // Render Bảng chi tiết bên dưới
     if (tbody) {
       const pct = ct > 0 ? ((kn / ct) * 100).toFixed(2) : "0.00";
       const isSelectedRow = selectedKey !== "ALL" && selectedKey === key;
@@ -962,13 +996,11 @@ function renderKetNapDashboard(snapshot) {
     }
   });
 
-  // 1. Ô TỔNG SỐ ĐẢNG VIÊN: Luôn gán tổng toàn tỉnh
   if (document.getElementById("kn-val-tong-dv")) {
     document.getElementById("kn-val-tong-dv").textContent =
       provinceTotalDV.toLocaleString();
   }
 
-  // 2. Gán các chỉ số Kết nạp theo đơn vị được chọn
   const conLai = sumChiTieu - sumDaKetNap;
   const pctTong =
     sumChiTieu > 0 ? ((sumDaKetNap / sumChiTieu) * 100).toFixed(2) : "0.00";
@@ -1032,6 +1064,7 @@ function renderKetNapDashboard(snapshot) {
 
   renderKnDoughnutChart(sumDaKetNap, conLai > 0 ? conLai : 0);
 }
+
 function renderKnDoughnutChart(daKetNap, conLai) {
   const canvas = document.getElementById("knDoughnutChart");
   if (!canvas) return;
@@ -1066,6 +1099,7 @@ function renderKnDoughnutChart(daKetNap, conLai) {
 }
 
 // 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ
+// 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ VÀ RENDER TRẠNG THÁI THEO THỜI HẠN
 function fetchTasksData() {
   tasksRefHome.on("value", (snapshot) => {
     const tbody = document.getElementById("task-report-tbody");
@@ -1085,25 +1119,72 @@ function fetchTasksData() {
     }
 
     let index = 1;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Mốc ngày hiện tại 0h00
+
     snapshot.forEach((child) => {
       const task = child.val();
       total++;
 
-      if (task.status === "Đã hoàn thành") done++;
-      else if (task.status === "Chậm tiến độ") late++;
-      else doing++;
+      let statusText = task.status || "Đang thực hiện";
+      let badgeColor = "#0284c7"; // Mặc định xanh
+      let iconClass = "fa-spinner";
 
-      let statusBadge = `<span style="background:#0284c7; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold;"><i class="fa-solid fa-spinner"></i> Đang thực hiện</span>`;
       if (task.status === "Đã hoàn thành") {
-        statusBadge = `<span style="background:#16a34a; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold;"><i class="fa-solid fa-check"></i> Đã hoàn thành</span>`;
+        done++;
+        badgeColor = "#16a34a"; // Xanh lá
+        statusText = "Đã hoàn thành";
+        iconClass = "fa-check";
       } else if (task.status === "Chậm tiến độ") {
-        statusBadge = `<span style="background:#dc2626; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold;"><i class="fa-solid fa-triangle-exclamation"></i> Chậm tiến độ</span>`;
+        late++;
+        badgeColor = "#dc2626"; // Đỏ
+        statusText = "Chậm tiến độ";
+        iconClass = "fa-triangle-exclamation";
+      } else {
+        // Trạng thái "Đang thực hiện": Tính ngày deadline
+        if (task.deadline) {
+          const deadlineDate = new Date(task.deadline);
+          deadlineDate.setHours(0, 0, 0, 0);
+
+          const diffTime = deadlineDate.getTime() - today.getTime();
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+          if (diffDays < 0) {
+            late++; // Tính vào nhóm quá hạn
+            badgeColor = "#dc2626"; // Đỏ
+            statusText = `Quá hạn ${Math.abs(diffDays)} ngày`;
+            iconClass = "fa-triangle-exclamation";
+          } else if (diffDays < 3) {
+            doing++;
+            badgeColor = "#ea580c"; // Cam (< 3 ngày)
+            statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+            iconClass = "fa-clock";
+          } else if (diffDays <= 7) {
+            doing++;
+            badgeColor = "#ca8a04"; // Vàng (3 - 7 ngày)
+            statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+            iconClass = "fa-clock";
+          } else {
+            doing++;
+            badgeColor = "#0284c7"; // Xanh dương (> 7 ngày)
+            statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+            iconClass = "fa-spinner";
+          }
+        } else {
+          doing++;
+        }
       }
+
+      const statusBadge = `
+        <span style="background:${badgeColor}; color:#fff; padding:5px 10px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+          <i class="fa-solid ${iconClass}"></i> ${statusText}
+        </span>
+      `;
 
       const progressBar = `
         <div style="display: flex; align-items: center; gap: 8px;">
           <div style="flex:1; background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden;">
-            <div style="width:${task.progress || 0}%; background:${task.progress >= 100 ? "#16a34a" : "#0284c7"}; height:100%;"></div>
+            <div style="width:${task.progress || 0}%; background:${task.progress >= 100 ? "#16a34a" : badgeColor}; height:100%;"></div>
           </div>
           <span style="font-size:12px; font-weight:bold;">${task.progress || 0}%</span>
         </div>
@@ -1137,13 +1218,14 @@ function updateTaskMetrics(total, done, doing, late) {
   if (elDoing) elDoing.textContent = doing;
   if (elLate) elLate.textContent = late;
 }
+
 // Hàm trả về màu tương ứng với Tỷ lệ hoàn thành số hóa
 function getColorByRatio(ratio) {
   return ratio >= 70
-    ? "#16a34a" // Xanh lá đậm (Tốt)
+    ? "#16a34a"
     : ratio >= 50
-      ? "#84cc16" // Xanh lá nhạt/Vàng xanh (Khá)
+      ? "#84cc16"
       : ratio >= 30
-        ? "#f97316" // Cam (Trung bình)
-        : "#ef4444"; // Đỏ (Yếu / Chưa đạt)
+        ? "#f97316"
+        : "#ef4444";
 }

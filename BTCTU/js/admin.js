@@ -78,7 +78,6 @@ function initTcSubTabs() {
   });
 }
 
-// 3. THEO DÕI PHIÊN ĐĂNG NHẬP VÀ PHÂN QUYỀN GIAO DIỆN
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     if (loginSection) loginSection.style.display = "none";
@@ -98,6 +97,7 @@ firebase.auth().onAuthStateChanged((user) => {
       }
 
       applyRolePermissions(role);
+      initAdminData(); // Tải lại danh sách Dropdown ngay sau khi xác định xong quyền Admin
     });
   } else {
     if (loginSection) loginSection.style.display = "block";
@@ -191,6 +191,7 @@ function initAuthEvents() {
 }
 
 // 4. NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẬT TÌM KIẾM
+// NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẬT TÌM KIẾM
 function initAdminData() {
   const selectSoHoa = $("#select-dangbo-sohoa");
   const selectTcDang = $("#select-dangbo-tcdang");
@@ -210,10 +211,20 @@ function initAdminData() {
     );
 
   dangBoCache = {};
+  dangBoCache["tinh_thai_nguyen"] = "ĐẢNG BỘ TỈNH THÁI NGUYÊN";
+
+  // NẠP TÙY CHỌN TỈNH NẾU LÀ ADMIN
+  if (currentRole === "admin") {
+    const provincialOption = `<option value="tinh_thai_nguyen" style="font-weight: bold; color: #cc0000;">★ ĐẢNG BỘ TỈNH THÁI NGUYÊN (Số liệu tổng)</option>`;
+    if (selectTcDang.length) selectTcDang.append(provincialOption);
+    if (selectKetNap.length) selectKetNap.append(provincialOption);
+  }
 
   dangBoRef.once("value", (snapshot) => {
     snapshot.forEach((child) => {
       const key = child.key;
+      if (key === "tinh_thai_nguyen") return; // Bỏ qua trùng lặp
+
       const data = child.val();
       dangBoCache[key] = data.ten;
 
@@ -228,7 +239,6 @@ function initAdminData() {
     loadProgressTables();
   });
 }
-
 function enableSelect2Search() {
   if (typeof $ === "undefined" || typeof $.fn.select2 === "undefined") {
     console.warn("Select2 chưa được nạp, sử dụng Dropdown mặc định.");
@@ -902,6 +912,7 @@ function resetTaskForm() {
   if (hiddenInput) hiddenInput.value = "";
 }
 
+// 9. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (CẬP NHẬT TÍNH NGÀY & ĐỔI MÀU)
 tasksRef.on("value", (snapshot) => {
   const tbody = document.getElementById("table-task-body");
   if (!tbody) return;
@@ -913,13 +924,46 @@ tasksRef.on("value", (snapshot) => {
   }
 
   let index = 1;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Đưa về mốc 0h00 để so sánh chuẩn ngày
+
   snapshot.forEach((child) => {
     const key = child.key;
     const task = child.val();
 
-    let badgeColor = "#0284c7";
-    if (task.status === "Đã hoàn thành") badgeColor = "#16a34a";
-    if (task.status === "Chậm tiến độ") badgeColor = "#dc2626";
+    let statusText = task.status || "Đang thực hiện";
+    let badgeColor = "#0284c7"; // Mặc định xanh dương
+
+    if (task.status === "Đã hoàn thành") {
+      badgeColor = "#16a34a"; // Xanh lá
+      statusText = "Đã hoàn thành";
+    } else if (task.status === "Chậm tiến độ") {
+      badgeColor = "#dc2626"; // Đỏ
+      statusText = "Chậm tiến độ";
+    } else {
+      // Logic tính số ngày còn lại đối với nhiệm vụ "Đang thực hiện"
+      if (task.deadline) {
+        const deadlineDate = new Date(task.deadline);
+        deadlineDate.setHours(0, 0, 0, 0);
+
+        const diffTime = deadlineDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays < 0) {
+          badgeColor = "#dc2626"; // Đỏ (Đã quá hạn)
+          statusText = `Quá hạn ${Math.abs(diffDays)} ngày`;
+        } else if (diffDays < 3) {
+          badgeColor = "#ea580c"; // Cam (< 3 ngày)
+          statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+        } else if (diffDays <= 7) {
+          badgeColor = "#ca8a04"; // Vàng (3 - 7 ngày)
+          statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+        } else {
+          badgeColor = "#0284c7"; // Xanh dương (> 7 ngày)
+          statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+        }
+      }
+    }
 
     const tr = document.createElement("tr");
     tr.innerHTML = `
@@ -927,8 +971,12 @@ tasksRef.on("value", (snapshot) => {
       <td><b>${task.name}</b></td>
       <td>${task.assignee}</td>
       <td style="text-align: center">${task.deadline || "—"}</td>
-      <td style="text-align: center; font-weight: bold; color: ${badgeColor}">${task.progress}%</td>
-      <td style="text-align: center"><span style="background:${badgeColor}; color:#fff; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold;">${task.status}</span></td>
+      <td style="text-align: center; font-weight: bold; color: ${badgeColor}">${task.progress || 0}%</td>
+      <td style="text-align: center">
+        <span style="background:${badgeColor}; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block;">
+          ${statusText}
+        </span>
+      </td>
       <td>${task.note || "—"}</td>
       <td style="text-align: center;">
         <button class="btn btn-primary" style="padding: 3px 6px; font-size: 11px;" onclick="editTask('${key}')">Sửa</button>
