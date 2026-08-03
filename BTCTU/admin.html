@@ -268,12 +268,82 @@
       <!-- PHÂN HỆ 1: QUẢN LÝ SỐ HÓA HỒ SƠ ĐẢNG VIÊN                         -->
       <!-- ================================================================= -->
       <div id="admin-tab-sohoa" class="admin-tab-content active">
+        <!-- KHỐI CẤU HÌNH THỜI GIAN NHẬP LIỆU SỐ HÓA (DÀNH CHO ADMIN) -->
+        <section
+          id="admin-time-config-section"
+          class="control-panel"
+          style="
+            margin-bottom: 20px;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 5px solid #0056b3;
+            display: none;
+          "
+        >
+          <h3 style="color: #0056b3; margin-bottom: 10px">
+            <i class="fa-solid fa-clock"></i> Quản trị Khung thời gian Nhập liệu
+            Số hóa hồ sơ
+          </h3>
+          <form
+            id="form-time-config"
+            style="
+              display: flex;
+              gap: 15px;
+              align-items: flex-end;
+              flex-wrap: wrap;
+            "
+          >
+            <div class="form-group" style="flex: 1; min-width: 200px">
+              <label><b>Thời gian Bắt đầu:</b></label>
+              <input
+                type="datetime-local"
+                id="config-time-start"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 200px">
+              <label><b>Thời gian Kết thúc:</b></label>
+              <input
+                type="datetime-local"
+                id="config-time-end"
+                class="form-control"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                style="background-color: #0056b3; padding: 10px 20px"
+              >
+                <i class="fa-solid fa-floppy-disk"></i> Thiết lập Khung giờ
+              </button>
+            </div>
+          </form>
+          <div
+            id="time-config-status"
+            style="margin-top: 10px; font-weight: bold; font-size: 13px"
+          ></div>
+        </section>
+
         <!-- Form nhập liệu Số hóa -->
         <section class="control-panel">
           <h3 style="color: #0056b3">
             <i class="fa-solid fa-pen-to-square"></i> Cập nhật tiến độ Số hóa
             cho Đảng bộ
           </h3>
+          <div
+            id="user-time-notice"
+            style="
+              margin-top: 10px;
+              padding: 10px 15px;
+              border-radius: 6px;
+              font-size: 14px;
+              display: none;
+            "
+          ></div>
+
           <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
 
           <form
@@ -375,9 +445,6 @@
         </section>
       </div>
 
-      <!-- ================================================================= -->
-      <!-- PHÂN HỆ 2: QUẢN LÝ TỔ CHỨC ĐẢNG VÀ ĐẢNG VIÊN                        -->
-      <!-- ================================================================= -->
       <!-- ================================================================= -->
       <!-- PHÂN HỆ 2: QUẢN LÝ TỔ CHỨC ĐẢNG VÀ ĐẢNG VIÊN                        -->
       <!-- ================================================================= -->
@@ -644,8 +711,9 @@
             </div>
           </section>
         </div>
+
         <!-- ================================================================= -->
-        <!-- TAB CON 2: KẾT NẠP ĐẢNG VIÊN (ĐẦY ĐỦ CÁC TRƯỜNG BIỂU MẪU)         -->
+        <!-- TAB CON 2: KẾT NẠP ĐẢNG VIÊN                                     -->
         <!-- ================================================================= -->
         <div id="tc-tab-ketnap" class="tc-subtab-content" style="display: none">
           <section class="control-panel">
@@ -653,6 +721,22 @@
               <i class="fa-solid fa-user-plus"></i> Cập nhật chi tiết Số liệu
               Kết nạp Đảng viên mới
             </h3>
+            <div>
+              <input
+                type="file"
+                id="excel-import-input"
+                accept=".xlsx, .xls"
+                style="display: none"
+              />
+              <button
+                type="button"
+                class="btn btn-success"
+                onclick="document.getElementById('excel-import-input').click()"
+                style="background-color: #16a34a; color: white"
+              >
+                <i class="fa-solid fa-file-import"></i> Nhập dữ liệu từ Excel
+              </button>
+            </div>
             <hr style="margin: 12px 0; border: 0; border-top: 1px solid #eee" />
 
             <form
@@ -872,13 +956,6 @@
                   >
                   <input type="number" id="ketnap-dtts" min="0" value="0" />
                 </div>
-                <div class="form-group">
-                  <label
-                    ><i class="fa-solid fa-place-of-worship"></i> ĐV là người
-                    theo tôn giáo:</label
-                  >
-                  <input type="number" id="ketnap-ton-giao" min="0" value="0" />
-                </div>
               </div>
 
               <!-- NÚT THAO TÁC -->
@@ -949,6 +1026,7 @@
             </div>
           </section>
         </div>
+
         <!-- ================================================================= -->
         <!-- TAB CON 3: QUẢN LÝ DANH SÁCH ĐẢNG BỘ (THÊM, SỬA, XÓA)              -->
         <!-- ================================================================= -->
@@ -1018,10 +1096,27 @@
 
           <!-- Bảng Danh sách Đảng bộ -->
           <section class="control-panel" style="margin-top: 25px">
-            <h3>
-              <i class="fa-solid fa-list"></i> Danh sách tất cả các Đảng bộ trực
-              thuộc
-            </h3>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+              "
+            >
+              <h3>
+                <i class="fa-solid fa-list"></i> Danh sách tất cả các Đảng bộ
+                trực thuộc
+              </h3>
+              <button
+                type="button"
+                class="btn btn-success"
+                id="btn-export-dangbo-excel"
+                style="background-color: #16a34a; color: white"
+              >
+                <i class="fa-solid fa-file-excel"></i> Xuất file Excel
+              </button>
+            </div>
             <div style="overflow-x: auto">
               <table class="data-table">
                 <thead>
@@ -1032,9 +1127,7 @@
                     <th style="width: 120px; text-align: center">Hành động</th>
                   </tr>
                 </thead>
-                <tbody id="table-manage-dangbo-body">
-                  <!-- Render tự động từ JS -->
-                </tbody>
+                <tbody id="table-manage-dangbo-body"></tbody>
               </table>
             </div>
           </section>
@@ -1171,6 +1264,7 @@
         </section>
       </div>
     </main>
+
     <!-- Nhúng Firebase v9 (compat) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -1186,5 +1280,7 @@
     <!-- 3. Script hệ thống -->
     <script src="js/firebase-config.js"></script>
     <script src="js/admin.js"></script>
+    <!-- Thư viện SheetJS xử lý Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   </body>
 </html>
