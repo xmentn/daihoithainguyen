@@ -219,9 +219,46 @@
           </div>
 
           <div class="grid-card">
-            <h3 class="chart-box-title">TỔNG QUAN THEO ĐẢNG BỘ TRỰC THUỘC</h3>
-            <div class="map-wrapper">
+            <!-- Tiêu đề kết hợp Menu chọn công đoạn số hóa -->
+            <div
+              class="chart-box-title"
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 8px;
+              "
+            >
+              <span>TỔNG QUAN THEO ĐẢNG BỘ TRỰC THUỘC</span>
+
+              <select
+                id="map-step-select"
+                onchange="renderMapBySelectedStep()"
+                style="
+                  font-size: 11px;
+                  padding: 4px 8px;
+                  border-radius: 4px;
+                  border: 1px solid #cbd5e1;
+                  font-weight: bold;
+                  color: #0056b3;
+                  outline: none;
+                  cursor: pointer;
+                "
+              >
+                <option value="daCapNhat">
+                  1. Đưa lên phần mềm (Hoàn thành)
+                </option>
+                <option value="daChinhLy">2. Đã chuẩn hóa / Chỉnh lý</option>
+                <option value="daKySo">3. Đã ký số</option>
+              </select>
+            </div>
+
+            <!-- Khung Bản đồ + Hộp Chú thích tiến độ -->
+            <div class="map-wrapper" style="position: relative">
               <div id="map"></div>
+
+              <!-- HỘP CHÚ THÍCH TIẾN ĐỘ TỰ ĐỘNG NỔI LÊN TRÊN BẢN ĐỒ -->
               <div class="map-legend-vertical">
                 <div class="legend-title">Tiến độ</div>
                 <span class="legend-item"
