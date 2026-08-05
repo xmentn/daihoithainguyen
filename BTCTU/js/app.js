@@ -275,7 +275,7 @@ window.renderMapBySelectedStep = function () {
 
   currentSoHoaSnapshot.forEach((childSnapshot) => {
     const key = childSnapshot.key;
-    const data = childSnapshot.val();
+    const data = childSnapshot.val() || {};
 
     const canSoHoa = Number(data.tongHoSo || 0);
     const countByStep = Number(data[selectedStepField] || 0);
@@ -336,42 +336,65 @@ function loadDangBoList() {
       '<option value="ALL">ĐẢNG BỘ TỈNH THÁI NGUYÊN</option>';
     snapshot.forEach((childSnapshot) => {
       if (childSnapshot.key === "tinh_thai_nguyen") return;
-      const data = childSnapshot.val();
+      const data = childSnapshot.val() || {};
       const option = document.createElement("option");
       option.value = childSnapshot.key;
-      option.textContent = data.ten;
+      option.textContent = data.ten || childSnapshot.key;
       dropdown.appendChild(option);
     });
   });
 }
 
-// 4. ĐỌC DỮ LIỆU TỪ FIREBASE & CẬP NHẬT DASHBOARD
+// 4. ĐỌC DỮ LIỆU TỪ FIREBASE & CẬP NHẬT DASHBOARD (ĐÃ BỌC BẢO VỆ CHỐNG SẬP DỮ LIỆU)
 function fetchStatistics(selectedKey = "ALL") {
   dangBoRef.on("value", (snapshot) => {
-    fullDataList = [];
+    try {
+      fullDataList = [];
 
-    let tCanSoHoa = 0,
-      tChinhLy = 0,
-      tKySo = 0,
-      tPhanMem = 0;
-    let tSoTccs = 0,
-      tSoChiBo = 0,
-      tTongDv = 0,
-      tDvChinhThuc = 0,
-      tDvDuBi = 0;
-    let tU30 = 0,
-      t30to45 = 0,
-      t46to60 = 0,
-      tO60 = 0;
+      let tCanSoHoa = 0,
+        tChinhLy = 0,
+        tKySo = 0,
+        tPhanMem = 0;
+      let tSoTccs = 0,
+        tSoChiBo = 0,
+        tTongDv = 0,
+        tDvChinhThuc = 0,
+        tDvDuBi = 0;
+      let tU30 = 0,
+        t30to45 = 0,
+        t46to60 = 0,
+        tO60 = 0;
 
-    let provincialRecord = null;
+      let provincialRecord = null;
 
-    snapshot.forEach((childSnapshot) => {
-      const data = childSnapshot.val();
-      const key = childSnapshot.key;
+      if (!snapshot.exists()) return;
 
-      if (key === "tinh_thai_nguyen") {
-        provincialRecord = {
+      snapshot.forEach((childSnapshot) => {
+        const data = childSnapshot.val() || {};
+        const key = childSnapshot.key;
+
+        if (key === "tinh_thai_nguyen") {
+          provincialRecord = {
+            soTccsDang: Number(data.soTccsDang || 0),
+            soChiBo: Number(data.soChiBo || 0),
+            tongDangVien: Number(data.tongDangVien || 0),
+            dvChinhThuc: Number(data.dvChinhThuc || 0),
+            dvDuBi: Number(data.dvDuBi || 0),
+            tuoiUnder30: Number(data.tuoiUnder30 || 0),
+            tuoi30to45: Number(data.tuoi30to45 || 0),
+            tuoi46to60: Number(data.tuoi46to60 || 0),
+            tuoiOver60: Number(data.tuoiOver60 || 0),
+          };
+          return;
+        }
+
+        const item = {
+          key: key,
+          ten: data.ten || key || "Chưa đặt tên",
+          tongHoSo: Number(data.tongHoSo || 0),
+          daChinhLy: Number(data.daChinhLy || 0),
+          daKySo: Number(data.daKySo || 0),
+          daCapNhat: Number(data.daCapNhat || 0),
           soTccsDang: Number(data.soTccsDang || 0),
           soChiBo: Number(data.soChiBo || 0),
           tongDangVien: Number(data.tongDangVien || 0),
@@ -382,103 +405,86 @@ function fetchStatistics(selectedKey = "ALL") {
           tuoi46to60: Number(data.tuoi46to60 || 0),
           tuoiOver60: Number(data.tuoiOver60 || 0),
         };
-        return;
-      }
+        fullDataList.push(item);
 
-      const item = {
-        key: key,
-        ten: data.ten,
-        tongHoSo: Number(data.tongHoSo || 0),
-        daChinhLy: Number(data.daChinhLy || 0),
-        daKySo: Number(data.daKySo || 0),
-        daCapNhat: Number(data.daCapNhat || 0),
-        soTccsDang: Number(data.soTccsDang || 0),
-        soChiBo: Number(data.soChiBo || 0),
-        tongDangVien: Number(data.tongDangVien || 0),
-        dvChinhThuc: Number(data.dvChinhThuc || 0),
-        dvDuBi: Number(data.dvDuBi || 0),
-        tuoiUnder30: Number(data.tuoiUnder30 || 0),
-        tuoi30to45: Number(data.tuoi30to45 || 0),
-        tuoi46to60: Number(data.tuoi46to60 || 0),
-        tuoiOver60: Number(data.tuoiOver60 || 0),
-      };
-      fullDataList.push(item);
+        tCanSoHoa += item.tongHoSo;
+        tChinhLy += item.daChinhLy;
+        tKySo += item.daKySo;
+        tPhanMem += item.daCapNhat;
 
-      tCanSoHoa += item.tongHoSo;
-      tChinhLy += item.daChinhLy;
-      tKySo += item.daKySo;
-      tPhanMem += item.daCapNhat;
+        tSoTccs += item.soTccsDang;
+        tSoChiBo += item.soChiBo;
+        tTongDv += item.tongDangVien;
+        tDvChinhThuc += item.dvChinhThuc;
+        tDvDuBi += item.dvDuBi;
 
-      tSoTccs += item.soTccsDang;
-      tSoChiBo += item.soChiBo;
-      tTongDv += item.tongDangVien;
-      tDvChinhThuc += item.dvChinhThuc;
-      tDvDuBi += item.dvDuBi;
+        tU30 += item.tuoiUnder30;
+        t30to45 += item.tuoi30to45;
+        t46to60 += item.tuoi46to60;
+        tO60 += item.tuoiOver60;
+      });
 
-      tU30 += item.tuoiUnder30;
-      t30to45 += item.tuoi30to45;
-      t46to60 += item.tuoi46to60;
-      tO60 += item.tuoiOver60;
-    });
+      if (selectedKey === "ALL" || selectedKey === "tinh_thai_nguyen") {
+        updateDashboard(tCanSoHoa, tChinhLy, tKySo, tPhanMem);
 
-    if (selectedKey === "ALL" || selectedKey === "tinh_thai_nguyen") {
-      updateDashboard(tCanSoHoa, tChinhLy, tKySo, tPhanMem);
-
-      if (provincialRecord) {
-        updateTcDangDashboard(
-          provincialRecord.soTccsDang,
-          provincialRecord.soChiBo,
-          provincialRecord.tongDangVien,
-          provincialRecord.dvChinhThuc,
-          provincialRecord.dvDuBi,
-        );
-        globalAgeData = [
-          provincialRecord.tuoiUnder30,
-          provincialRecord.tuoi30to45,
-          provincialRecord.tuoi46to60,
-          provincialRecord.tuoiOver60,
-        ];
+        if (provincialRecord) {
+          updateTcDangDashboard(
+            provincialRecord.soTccsDang,
+            provincialRecord.soChiBo,
+            provincialRecord.tongDangVien,
+            provincialRecord.dvChinhThuc,
+            provincialRecord.dvDuBi,
+          );
+          globalAgeData = [
+            provincialRecord.tuoiUnder30,
+            provincialRecord.tuoi30to45,
+            provincialRecord.tuoi46to60,
+            provincialRecord.tuoiOver60,
+          ];
+        } else {
+          updateTcDangDashboard(
+            tSoTccs,
+            tSoChiBo,
+            tTongDv,
+            tDvChinhThuc,
+            tDvDuBi,
+          );
+          globalAgeData = [tU30, t30to45, t46to60, tO60];
+        }
       } else {
-        updateTcDangDashboard(
-          tSoTccs,
-          tSoChiBo,
-          tTongDv,
-          tDvChinhThuc,
-          tDvDuBi,
-        );
-        globalAgeData = [tU30, t30to45, t46to60, tO60];
+        const target = fullDataList.find((x) => x.key === selectedKey);
+        if (target) {
+          updateDashboard(
+            target.tongHoSo,
+            target.daChinhLy,
+            target.daKySo,
+            target.daCapNhat,
+          );
+          updateTcDangDashboard(
+            target.soTccsDang,
+            target.soChiBo,
+            target.tongDangVien,
+            target.dvChinhThuc,
+            target.dvDuBi,
+          );
+          globalAgeData = [
+            target.tuoiUnder30,
+            target.tuoi30to45,
+            target.tuoi46to60,
+            target.tuoiOver60,
+          ];
+        }
       }
-    } else {
-      const target = fullDataList.find((x) => x.key === selectedKey);
-      if (target) {
-        updateDashboard(
-          target.tongHoSo,
-          target.daChinhLy,
-          target.daKySo,
-          target.daCapNhat,
-        );
-        updateTcDangDashboard(
-          target.soTccsDang,
-          target.soChiBo,
-          target.tongDangVien,
-          target.dvChinhThuc,
-          target.dvDuBi,
-        );
-        globalAgeData = [
-          target.tuoiUnder30,
-          target.tuoi30to45,
-          target.tuoi46to60,
-          target.tuoiOver60,
-        ];
-      }
-    }
 
-    renderTable();
-    renderRankings();
-    renderLineChart();
-    renderTcDangVienCharts(globalAgeData);
-    renderKetNapDashboard(snapshot);
-    updateMapWithSoHoaData(snapshot);
+      renderTable();
+      renderRankings();
+      renderLineChart();
+      renderTcDangVienCharts(globalAgeData);
+      renderKetNapDashboard(snapshot);
+      updateMapWithSoHoaData(snapshot);
+    } catch (err) {
+      console.error("Lỗi xử lý dữ liệu Firebase:", err);
+    }
   });
 }
 
@@ -668,15 +674,19 @@ function renderLineChart() {
   });
 }
 
-// 7. XỬ LÝ BẢNG THỐNG KÊ CHI TIẾT SỐ HÓA
+// 7. XỬ LÝ BẢNG THỐNG KÊ CHI TIẾT SỐ HÓA (ĐÃ BỌC AN TOÀN CHỐNG LỖI TOLOWERCASE)
 function renderTable(searchTerm = "") {
   const tbody = document.getElementById("main-report-tbody");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  const filtered = fullDataList.filter((item) =>
-    item.ten.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const safeSearch = (searchTerm || "").toString().toLowerCase();
+
+  // Bọc kiểm tra an toàn item.ten tránh crash trang web khi dữ liệu thiếu field ten
+  const filtered = fullDataList.filter((item) => {
+    const unitName = (item.ten || item.key || "").toString().toLowerCase();
+    return unitName.includes(safeSearch);
+  });
 
   let sumCanSoHoa = 0,
     sumChinhLy = 0,
@@ -684,6 +694,7 @@ function renderTable(searchTerm = "") {
     sumPhanMem = 0;
 
   filtered.forEach((item, index) => {
+    const displayName = item.ten || item.key || "Chưa đặt tên";
     const pChinhLy = item.tongHoSo
       ? ((item.daChinhLy / item.tongHoSo) * 100).toFixed(1)
       : 0;
@@ -702,7 +713,7 @@ function renderTable(searchTerm = "") {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td class="text-center">${index + 1}</td>
-      <td><b>${item.ten}</b></td>
+      <td><b>${displayName}</b></td>
       <td class="text-right">${item.tongHoSo.toLocaleString()}</td>
       <td class="text-right" style="border-left: 1px solid #e2e8f0;">${item.daChinhLy.toLocaleString()}</td>
       <td class="text-center">${pChinhLy}%</td>
@@ -787,7 +798,7 @@ function renderRankings() {
     div.innerHTML = `
       <div class="rank-item-info">
         <span class="rank-number top-rank-num">${index + 1}</span>
-        <span class="rank-name">${item.ten}</span>
+        <span class="rank-name">${item.ten || item.key}</span>
       </div>
       <span class="rank-percent text-green">${item.percent.toFixed(1)}%</span>
     `;
@@ -802,7 +813,7 @@ function renderRankings() {
     div.innerHTML = `
       <div class="rank-item-info">
         <span class="rank-number low-rank-num">${index + 1}</span>
-        <span class="rank-name">${item.ten}</span>
+        <span class="rank-name">${item.ten || item.key}</span>
       </div>
       <span class="rank-percent text-down">${item.percent.toFixed(1)}%</span>
     `;
@@ -863,7 +874,7 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
 
     const chartData =
       fullDataList && fullDataList.length > 0 ? fullDataList : [];
-    const labels = chartData.map((d) => d.ten);
+    const labels = chartData.map((d) => d.ten || d.key);
     const dataTongDV = chartData.map((d) => d.tongDangVien || 0);
 
     const wrapper = chartContainer.parentElement;
@@ -935,7 +946,7 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
 
 // 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN
 function renderKetNapDashboard(snapshot) {
-  if (!snapshot.exists()) return;
+  if (!snapshot || !snapshot.exists()) return;
 
   const selectDangBo = document.getElementById("select-dangbo");
   const selectedKey = selectDangBo ? selectDangBo.value : "ALL";
@@ -973,7 +984,7 @@ function renderKetNapDashboard(snapshot) {
     const key = child.key;
     if (key === "tinh_thai_nguyen") return;
 
-    const d = child.val();
+    const d = child.val() || {};
     const ten = d.ten || `Đảng bộ ${key}`;
 
     const ct = Number(d.chiTieuKetNap || 0);
@@ -1177,7 +1188,7 @@ function fetchTasksData() {
 
     snapshot.forEach((child) => {
       const taskId = child.key;
-      const task = child.val();
+      const task = child.val() || {};
       total++;
 
       // 1. Tính số ngày còn lại / quá hạn từ deadline
@@ -1287,8 +1298,8 @@ function fetchTasksData() {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td class="text-center" style="vertical-align: middle;">${index++}</td>
-        <td style="vertical-align: middle;"><b>${task.name}</b></td>
-        <td style="vertical-align: middle;"><i class="fa-solid fa-user-gear" style="color:#64748b;"></i> ${task.assignee}</td>
+        <td style="vertical-align: middle;"><b>${task.name || "—"}</b></td>
+        <td style="vertical-align: middle;"><i class="fa-solid fa-user-gear" style="color:#64748b;"></i> ${task.assignee || "—"}</td>
         <td class="text-center" style="vertical-align: middle;"><i class="fa-solid fa-calendar-day" style="color:#64748b;"></i> ${task.deadline || "—"}</td>
         <td style="vertical-align: middle;">${progressBar}</td>
         <td class="text-center" style="vertical-align: middle;">${statusHtml}</td>
