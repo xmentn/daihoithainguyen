@@ -751,25 +751,35 @@ function renderTable(searchTerm = "") {
       totPhanMemPct + "%";
 }
 
-// 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC
+// 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC (ĐÃ BỔ SUNG CHỌN GIAI ĐOẠN)
 function renderRankings() {
   const topListContainer = document.getElementById("rank-top-list");
   const lowListContainer = document.getElementById("rank-low-list");
 
   if (!topListContainer || !lowListContainer) return;
 
+  // Lấy giá trị công đoạn đang được chọn từ Dropdown (Mặc định: daCapNhat)
+  const stepSelect = document.getElementById("rank-step-select");
+  const selectedStepField = stepSelect ? stepSelect.value : "daCapNhat";
+
+  // Tính tỷ lệ % theo đúng công đoạn được chọn
   const sortedList = fullDataList.map((item) => {
-    const percent = item.tongHoSo ? (item.daCapNhat / item.tongHoSo) * 100 : 0;
+    const total = item.tongHoSo || 0;
+    const countByStep = Number(item[selectedStepField] || 0);
+    const percent = total > 0 ? (countByStep / total) * 100 : 0;
     return { ...item, percent: percent };
   });
 
+  // Sắp xếp giảm dần (Top dẫn đầu) và tăng dần (Top đôn đốc)
   const sortedTop = [...sortedList]
     .sort((a, b) => b.percent - a.percent)
     .slice(0, 5);
+
   const sortedLow = [...sortedList]
     .sort((a, b) => a.percent - b.percent)
     .slice(0, 5);
 
+  // Render Top 5 Dẫn đầu
   topListContainer.innerHTML = "";
   sortedTop.forEach((item, index) => {
     const div = document.createElement("div");
@@ -784,6 +794,7 @@ function renderRankings() {
     topListContainer.appendChild(div);
   });
 
+  // Render Top 5 Cần đôn đốc
   lowListContainer.innerHTML = "";
   sortedLow.forEach((item, index) => {
     const div = document.createElement("div");

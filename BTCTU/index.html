@@ -284,17 +284,61 @@
         <section class="charts-grid-bottom">
           <div class="bottom-left-panel">
             <div class="rank-card">
-              <h4 class="rank-title text-green">
+              <!-- Thêm tiêu đề kết hợp Dropdown chọn giai đoạn -->
+              <div
+                class="chart-box-title"
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  flex-wrap: wrap;
+                  gap: 8px;
+                "
+              >
+                <span>BẢNG XẾP HẠNG TIẾN ĐỘ</span>
+
+                <select
+                  id="rank-step-select"
+                  onchange="renderRankings()"
+                  style="
+                    font-size: 11px;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    border: 1px solid #cbd5e1;
+                    font-weight: bold;
+                    color: #0056b3;
+                    outline: none;
+                    cursor: pointer;
+                  "
+                >
+                  <option value="daChinhLy">1. Đã chuẩn hóa / Chỉnh lý</option>
+                  <option value="daKySo">2. Đã ký số</option>
+                  <option value="daCapNhat">
+                    3. Đưa lên phần mềm (Hoàn thành)
+                  </option>
+                </select>
+              </div>
+
+              <!-- Danh sách Top 5 Dẫn đầu -->
+              <div class="rank-title text-green" style="margin-top: 10px">
                 <i class="fa-solid fa-award"></i> TOP 5 ĐẢNG BỘ TRỰC THUỘC DẪN
                 ĐẦU
-              </h4>
+              </div>
               <div class="rank-list" id="rank-top-list"></div>
-            </div>
-            <div class="rank-card" style="margin-top: 15px">
-              <h4 class="rank-title text-orange">
+
+              <hr
+                style="
+                  margin: 15px 0;
+                  border: none;
+                  border-top: 1px dashed #e2e8f0;
+                "
+              />
+
+              <!-- Danh sách Top 5 Cần đôn đốc -->
+              <div class="rank-title text-red">
                 <i class="fa-solid fa-triangle-exclamation"></i> 5 ĐẢNG BỘ TRỰC
                 THUỘC CẦN ĐÔN ĐỐC
-              </h4>
+              </div>
               <div class="rank-list" id="rank-low-list"></div>
             </div>
           </div>
