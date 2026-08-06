@@ -1047,7 +1047,7 @@ function renderKetNapDashboard(snapshot) {
         <td style="${cellStyle} text-align: right;">${nld.toLocaleString()}</td>
         <td style="${cellStyle} text-align: right;">${htx.toLocaleString()}</td>
         <td style="${cellStyle} text-align: right;">${dtts.toLocaleString()}</td>
-        <td style="${cellStyle} text-align: right;">${tonGiao.toLocaleString()}</td>
+      
       `;
       tbody.appendChild(tr);
     }
