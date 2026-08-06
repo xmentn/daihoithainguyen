@@ -1047,7 +1047,6 @@ function renderKetNapDashboard(snapshot) {
         <td style="${cellStyle} text-align: right;">${nld.toLocaleString()}</td>
         <td style="${cellStyle} text-align: right;">${htx.toLocaleString()}</td>
         <td style="${cellStyle} text-align: right;">${dtts.toLocaleString()}</td>
-      
       `;
       tbody.appendChild(tr);
     }
@@ -1098,9 +1097,12 @@ function renderKetNapDashboard(snapshot) {
       (sumDaKetNap > 0
         ? ((sumTongDN / sumDaKetNap) * 100).toFixed(2)
         : "0.00") + "% số đã kết nạp";
+
+  // CẬP NHẬT: Cộng tổng 3 nhóm (DN ngoài NN + NLĐ tại KDC + Các HTX)
+  const sumGroupNgoaiNN = sumDnNgoaiNN + sumNldKdc + sumHtx;
   if (document.getElementById("kn-text-sub-dn"))
     document.getElementById("kn-text-sub-dn").textContent =
-      `Trong đó DN ngoài NN: ${sumDnNgoaiNN.toLocaleString()}`;
+      `Trong đó DN ngoài NN: ${sumGroupNgoaiNN.toLocaleString()}`;
 
   if (document.getElementById("kn-val-dtts"))
     document.getElementById("kn-val-dtts").textContent =
@@ -1109,15 +1111,6 @@ function renderKetNapDashboard(snapshot) {
     document.getElementById("kn-pct-dtts").textContent =
       (sumDaKetNap > 0 ? ((sumDtts / sumDaKetNap) * 100).toFixed(2) : "0.00") +
       "% số đã kết nạp";
-
-  if (document.getElementById("kn-val-ton-giao"))
-    document.getElementById("kn-val-ton-giao").textContent =
-      sumTonGiao.toLocaleString();
-  if (document.getElementById("kn-pct-ton-giao"))
-    document.getElementById("kn-pct-ton-giao").textContent =
-      (sumDaKetNap > 0
-        ? ((sumTonGiao / sumDaKetNap) * 100).toFixed(2)
-        : "0.00") + "% số đã kết nạp";
 
   renderKnDoughnutChart(sumDaKetNap, conLai > 0 ? conLai : 0);
 }
