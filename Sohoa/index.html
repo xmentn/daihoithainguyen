@@ -834,40 +834,6 @@
               !!firebaseAuthInLocal ||
               !!firebaseAuthInSession;
 
-            // --- BỔ SUNG LOGIC XỬ LÝ NAVIGATION THEO QUYỀN (ADMIN/NHẬP LIỆU) ---
-            const btnLoginNav = document.getElementById("btn-admin-link");
-            const navDropdown = document.getElementById("user-dropdown-area");
-            const roleLink = document.getElementById("user-role-link");
-            const dropdownAdminBtn = document.getElementById("dropdown-admin-btn");
-
-            if (isLoggedInAdmin) {
-              // Đã đăng nhập: Đổi giao diện hiển thị tài khoản
-              if (btnLoginNav) btnLoginNav.style.display = "none";
-              if (navDropdown) navDropdown.style.display = "block";
-
-              // Phân quyền URL bằng việc kiểm tra tài khoản chứa từ khóa Admin
-              const nameStr = (userDropdown ? userDropdown.textContent.toLowerCase() : "");
-              const authStr = (firebaseAuthInLocal || firebaseAuthInSession || "").toLowerCase();
-              const isAdmin = nameStr.includes("admin") || nameStr.includes("quản trị") || authStr.includes("admin");
-
-              if (isAdmin) {
-                // Là Admin -> Link trỏ vào Trang Quản trị
-                if (roleLink) roleLink.href = "admin.html";
-                if (dropdownAdminBtn) dropdownAdminBtn.style.display = "flex";
-              } else {
-                // Là Nhập liệu -> Link rỗng, chỉ ở trang chủ
-                if (roleLink) roleLink.href = "javascript:void(0)";
-                if (dropdownAdminBtn) dropdownAdminBtn.style.display = "none";
-              }
-            } else {
-              // Chưa đăng nhập: Hiện nút Đăng nhập góc phải
-              if (btnLoginNav) {
-                btnLoginNav.style.display = "inline-flex";
-                btnLoginNav.innerHTML = `<i class="fa-solid fa-arrow-right-to-bracket"></i> Đăng nhập`;
-              }
-              if (navDropdown) navDropdown.style.display = "none";
-            }
-            // ------------------------------------------------------------------
 
             const now = new Date();
             const isOutOfTime =

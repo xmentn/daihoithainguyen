@@ -29,33 +29,48 @@ function checkUserStatus() {
     const nameContainer = document.getElementById("admin-name");
     const adminLink = document.getElementById("btn-admin-link");
     const dropdownArea = document.getElementById("user-dropdown-area");
+    const dropdownAdminBtn = document.getElementById("dropdown-admin-btn");
 
     if (user) {
+      // Đã đăng nhập: Ẩn nút "Đăng nhập", hiện "Menu tài khoản"
       if (adminLink) {
-        adminLink.href = "admin.html";
-        adminLink.innerHTML =
-          "<i class='fa-solid fa-sliders'></i> Quản trị dữ liệu";
-        adminLink.style.display = "inline-flex";
+        adminLink.style.display = "none";
+      }
+      if (dropdownArea) {
+        dropdownArea.style.setProperty("display", "block", "important");
+      }
+      // Hiển thị tạm email làm tên trong lúc chờ lấy dữ liệu Firestore
+      if (nameContainer) {
+        nameContainer.innerText = user.email;
       }
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists() && userDoc.data().role === "admin") {
-        if (userDoc.data().fullName && nameContainer) {
-          nameContainer.innerText = userDoc.data().fullName;
-        }
+      try {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          // Cập nhật họ tên đầy đủ nếu có
+          if (userDoc.data().fullName && nameContainer) {
+            nameContainer.innerText = userDoc.data().fullName;
+          }
 
-        if (dropdownArea) {
-          dropdownArea.style.setProperty("display", "block", "important");
+          // QUAN TRỌNG: Kiểm tra chính xác Role Admin
+          if (userDoc.data().role === "admin") {
+            if (dropdownAdminBtn) dropdownAdminBtn.style.display = "flex";
+          } else {
+            // Nếu là tài khoản nhập liệu thì giấu quyền quản trị đi
+            if (dropdownAdminBtn) dropdownAdminBtn.style.display = "none";
+          }
         }
+      } catch (error) {
+        console.error("Lỗi lấy thông tin User:", error);
       }
     } else {
+      // Chưa đăng nhập: Hiện nút "Đăng nhập", ẩn Menu
       if (dropdownArea) {
         dropdownArea.style.display = "none";
       }
       if (adminLink) {
         adminLink.href = "login.html";
-        adminLink.innerHTML =
-          "<i class='fa-solid fa-arrow-right-to-bracket'></i> Khu vực Quản trị";
+        adminLink.innerHTML = "<i class='fa-solid fa-arrow-right-to-bracket'></i> Đăng nhập";
         adminLink.style.display = "inline-flex";
       }
     }
