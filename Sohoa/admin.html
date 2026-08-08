@@ -8,24 +8,17 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
-    /* CSS CHUẨN ĐẸP HIỆN ĐẠI CỦA TRANG QUẢN TRỊ */
     body {
       background-color: #f1f5f9 !important;
       margin: 0;
       padding: 0;
-      font-family:
-        "Inter",
-        system-ui,
-        -apple-system,
-        sans-serif !important;
+      font-family: "Inter", system-ui, -apple-system, sans-serif !important;
       color: #1e293b;
     }
 
-    /* Khung bọc chính */
     .modern-admin-wrapper {
       max-width: 1280px;
       margin: 0 auto;
@@ -33,7 +26,6 @@
       box-sizing: border-box;
     }
 
-    /* Header cô lập riêng biệt */
     .modern-header {
       display: flex;
       justify-content: space-between;
@@ -48,7 +40,6 @@
       z-index: 10;
     }
 
-    /* Lưới bố cục động */
     .modern-dynamic-grid {
       display: grid;
       grid-template-columns: 1fr;
@@ -61,7 +52,6 @@
       grid-template-columns: 1.1fr 0.9fr;
     }
 
-    /* Khối hộp trắng nội dung cao cấp */
     .modern-card {
       background: #ffffff;
       padding: 28px;
@@ -71,7 +61,6 @@
       box-sizing: border-box;
     }
 
-    /* Form nhập liệu */
     .modern-field-group {
       margin-bottom: 18px;
     }
@@ -103,7 +92,6 @@
       box-shadow: 0 0 0 4px rgba(0, 86, 179, 0.12);
     }
 
-    /* Khung nhóm số liệu Fieldset */
     .modern-fieldset {
       border: 1px solid #e2e8f0;
       padding: 20px;
@@ -120,7 +108,6 @@
       text-transform: uppercase;
     }
 
-    /* Thiết kế nút bấm */
     .modern-btn-primary {
       height: 42px;
       padding: 0 22px;
@@ -152,13 +139,15 @@
       border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .modern-btn-secondary:hover {
       background: #f1f5f9;
     }
 
-    /* Bảng lịch sử */
     .modern-table {
       width: 100%;
       border-collapse: collapse;
@@ -184,6 +173,35 @@
     .modern-table tr:hover {
       background-color: #f8fafc;
     }
+
+    .modern-custom-tab {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #64748b;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: -2px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .modern-custom-tab.active-modern-tab {
+      background: #ffffff !important;
+      color: #0056b3 !important;
+      border: 1px solid #e2e8f0 !important;
+      border-bottom-color: #ffffff !important;
+      font-weight: 700 !important;
+    }
+
+    .modern-custom-tab:hover:not(.active-modern-tab) {
+      color: #0f172a !important;
+      background: #e2e8f0 !important;
+    }
   </style>
 </head>
 
@@ -191,94 +209,37 @@
   <div class="modern-admin-wrapper">
     <header class="modern-header">
       <div style="display: flex; align-items: center; gap: 16px">
-        <div style="
-              background: rgba(0, 86, 179, 0.08);
-              width: 48px;
-              height: 48px;
-              border-radius: 10px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            ">
+        <div
+          style="background: rgba(0, 86, 179, 0.08); width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">
           <i class="fa-solid fa-gauge-high" style="font-size: 24px; color: #0056b3"></i>
         </div>
         <div>
-          <h1 style="
-                margin: 0;
-                font-size: 18px;
-                color: #0f172a;
-                font-weight: 700;
-              ">
-            HỆ THỐNG QUẢN TRỊ SỐ LIỆU
-          </h1>
-          <h2 style="
-                margin: 4px 0 0 0;
-                font-size: 12.5px;
-                color: #64748b;
-                font-weight: 500;
-              ">
-            Văn phòng Tỉnh ủy Thái Nguyên
-          </h2>
+          <h1 style="margin: 0; font-size: 18px; color: #0f172a; font-weight: 700;">HỆ THỐNG QUẢN TRỊ SỐ LIỆU</h1>
+          <h2 style="margin: 4px 0 0 0; font-size: 12.5px; color: #64748b; font-weight: 500;">Văn phòng Tỉnh ủy Thái
+            Nguyên</h2>
         </div>
       </div>
 
       <div style="display: flex; align-items: center; gap: 12px">
-        <span id="admin-name" style="
-              font-weight: 600;
-              color: #334155;
-              font-size: 14px;
-              background: #f8fafc;
-              padding: 8px 14px;
-              border-radius: 8px;
-              border: 1px solid #e2e8f0;
-              display: inline-flex;
-              align-items: center;
-              gap: 6px;
-            ">
-          <i class="fa-solid fa-circle-notch fa-spin" style="color: #0056b3"></i>
-          Đang xác thực...
+        <span id="admin-name"
+          style="font-weight: 600; color: #334155; font-size: 14px; background: #f8fafc; padding: 8px 14px; border-radius: 8px; border: 1px solid #e2e8f0; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="color: #0056b3"></i> Đang xác thực...
         </span>
-        <a href="index.html" style="
-              display: inline-flex;
-              height: 38px;
-              padding: 0 16px;
-              align-items: center;
-              justify-content: center;
-              text-decoration: none;
-              font-size: 13.5px;
-              background: #ffffff;
-              color: #475569;
-              border: 1px solid #cbd5e1;
-              border-radius: 8px;
-              font-weight: 600;
-            ">Trang chủ</a>
-        <button onclick="logoutUser()" style="
-              display: inline-flex;
-              height: 38px;
-              align-items: center;
-              gap: 6px;
-              background: #fff5f5;
-              color: #e53e3e;
-              border: 1px solid #fed7d7;
-              padding: 0 14px;
-              border-radius: 8px;
-              font-weight: 600;
-              font-size: 13.5px;
-              cursor: pointer;
-            ">
+        <button class="modern-btn-secondary" onclick="showInstructions()"
+          style="height: 38px; padding: 0 16px; font-size: 13.5px;">
+          <i class="fa-solid fa-book"></i> Hướng dẫn
+        </button>
+        <a href="index.html" class="modern-btn-secondary"
+          style="height: 38px; padding: 0 16px; text-decoration: none; font-size: 13.5px;">Trang chủ</a>
+        <button onclick="logoutUser()"
+          style="display: inline-flex; height: 38px; align-items: center; gap: 6px; background: #fff5f5; color: #e53e3e; border: 1px solid #fed7d7; padding: 0 14px; border-radius: 8px; font-weight: 600; font-size: 13.5px; cursor: pointer;">
           <i class="fa-solid fa-right-from-bracket"></i> Đăng xuất
         </button>
       </div>
     </header>
 
-    <div style="
-          display: flex;
-          gap: 8px;
-          margin-bottom: 24px;
-          border-bottom: 2px solid #e2e8f0;
-          width: 100%;
-          box-sizing: border-box;
-        ">
+    <div
+      style="display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; width: 100%; box-sizing: border-box;">
       <button id="btn-tab-camp" class="modern-custom-tab active-modern-tab" onclick="switchTab('tab-campaign')">
         <i class="fa-solid fa-folder-plus"></i> 1. Quản lý Đợt số hóa
       </button>
@@ -286,75 +247,27 @@
         <i class="fa-solid fa-pen-to-square"></i> 2. Báo cáo Tiến độ
       </button>
       <button id="btn-tab-unit" class="modern-custom-tab" onclick="switchTab('tab-units')">
-        <i class="fa-solid fa-building-shield"></i> 3. Danh sách đơn vị trực thuộc
+        <i class="fa-solid fa-building-shield"></i> 3. Danh mục đơn vị
       </button>
       <button id="btn-tab-time" class="modern-custom-tab" onclick="switchTab('tab-time-settings')">
-        <i class="fa-solid fa-clock-lock"></i> 4. Thiết lập thời gian nhập liệu
+        <i class="fa-solid fa-clock-lock"></i> 4. Thiết lập thời gian
       </button>
     </div>
-
-    <style>
-      .modern-custom-tab {
-        padding: 12px 24px;
-        font-size: 14px;
-        font-weight: 600;
-        border: 1px solid transparent;
-        background: transparent;
-        color: #64748b;
-        cursor: pointer;
-        border-radius: 8px 8px 0 0;
-        margin-bottom: -2px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-      }
-
-      .modern-custom-tab.active-modern-tab {
-        background: #ffffff !important;
-        color: #0056b3 !important;
-        border: 1px solid #e2e8f0 !important;
-        border-bottom-color: #ffffff !important;
-        font-weight: 700 !important;
-      }
-
-      .modern-custom-tab:hover:not(.active-modern-tab) {
-        color: #0f172a !important;
-        background: #e2e8f0 !important;
-      }
-    </style>
 
     <div id="adminMainGrid" class="modern-dynamic-grid">
       <div style="width: 100%">
         <!-- TAB 1: QUẢN LÝ ĐỢT SỐ HÓA -->
         <div id="tab-campaign" style="display: block; width: 100%">
-          <div style="
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 24px;
-                align-items: start;
-              ">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start;">
             <div class="modern-card">
-              <div style="
-                    border-bottom: 1px solid #f1f5f9;
-                    padding-bottom: 14px;
-                    margin-bottom: 20px;
-                  ">
-                <h3 id="camp-form-title" style="
-                      margin: 0;
-                      color: #0056b3;
-                      font-size: 15px;
-                      font-weight: 700;
-                      display: flex;
-                      align-items: center;
-                      gap: 8px;
-                    ">
+              <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 20px;">
+                <h3 id="camp-form-title"
+                  style="margin: 0; color: #0056b3; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                   <i class="fa-solid fa-sliders"></i> THIẾT LẬP ĐỢT SỐ HÓA
                 </h3>
               </div>
               <form id="campaignForm" onsubmit="saveCampaignConfig(event)">
                 <input type="hidden" id="editing-camp-id" value="" />
-
                 <div class="modern-field-group">
                   <label>Tên đợt số hóa dữ liệu</label>
                   <input type="text" id="config-campaign-name" placeholder="Ví dụ: Đợt 1 năm 2026" required
@@ -370,37 +283,20 @@
                   <input type="number" id="config-tong-scan" placeholder="Ví dụ: 430000" required
                     class="modern-input-ctrl" />
                 </div>
-
-                <div style="
-                      text-align: right;
-                      border-top: 1px solid #f1f5f9;
-                      padding-top: 18px;
-                      display: flex;
-                      justify-content: flex-end;
-                      gap: 10px;
-                    ">
-                  <button type="button" id="btn-cancel-camp-edit" class="modern-btn-secondary"
-                    onclick="resetCampForm()">
-                    Hủy sửa
-                  </button>
+                <div
+                  style="text-align: right; border-top: 1px solid #f1f5f9; padding-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+                  <button type="button" id="btn-cancel-camp-edit" class="modern-btn-secondary" onclick="resetCampForm()"
+                    style="display:none;">Hủy sửa</button>
                   <button type="submit" class="modern-btn-primary">
-                    <i class="fa-solid fa-floppy-disk"></i>
-                    <span id="btn-camp-text">Lưu đợt số hóa</span>
+                    <i class="fa-solid fa-floppy-disk"></i> <span id="btn-camp-text">Lưu đợt số hóa</span>
                   </button>
                 </div>
               </form>
             </div>
 
             <div class="modern-card">
-              <h3 style="
-                    margin: 0 0 16px 0;
-                    font-size: 15px;
-                    font-weight: 700;
-                    color: #475569;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                  ">
+              <h3
+                style="margin: 0 0 16px 0; font-size: 15px; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 8px;">
                 <i class="fa-solid fa-layer-group"></i> DANH SÁCH CÁC ĐỢT SỐ HÓA
               </h3>
               <div style="overflow-x: auto; width: 100%">
@@ -410,7 +306,7 @@
                       <th>Tên đợt</th>
                       <th>Chỉ tiêu m</th>
                       <th>Chỉ tiêu trang</th>
-                      <th style="text-align: center">Hành động</th>
+                      <th style="text-align: center">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody id="campaign-table-body"></tbody>
@@ -422,20 +318,9 @@
 
         <!-- TAB 2: BÁO CÁO TIẾN ĐỘ -->
         <div id="tab-progress" class="modern-card" style="display: none">
-          <div style="
-                border-bottom: 1px solid #f1f5f9;
-                padding-bottom: 14px;
-                margin-bottom: 20px;
-              ">
-            <h3 id="form-action-title" style="
-                  margin: 0;
-                  color: #0056b3;
-                  font-size: 15px;
-                  font-weight: 700;
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                ">
+          <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 20px;">
+            <h3 id="form-action-title"
+              style="margin: 0; color: #0056b3; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
               <i class="fa-solid fa-pen-to-square"></i> CẬP NHẬT TIẾN ĐỘ THỰC TẾ LŨY KẾ
             </h3>
             <p id="form-action-desc" style="margin: 6px 0 0 0; color: #64748b; font-size: 12.5px">
@@ -452,9 +337,16 @@
                 style="font-weight: 600; color: #0056b3"></select>
             </div>
 
-            <div class="modern-field-group">
-              <label>Ngày báo cáo tiến độ</label>
-              <input type="date" id="input-date" required class="modern-input-ctrl" />
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+              <div class="modern-field-group">
+                <label>Ngày báo cáo tiến độ</label>
+                <input type="date" id="input-date" required class="modern-input-ctrl" />
+              </div>
+              <div class="modern-field-group">
+                <label>Cán bộ phụ trách báo cáo</label>
+                <input type="text" id="input-officer" required class="modern-input-ctrl"
+                  placeholder="Nhập họ và tên cán bộ..." />
+              </div>
             </div>
 
             <div class="modern-field-group">
@@ -479,73 +371,69 @@
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Tổng số Mét đã chỉnh lý xong thực tế (m):</label>
                 <input type="number" step="0.01" id="input-cl-xong" required class="modern-input-ctrl"
-                  placeholder="Nhập số mét đã chỉnh lý..." />
+                  placeholder="Nhập số mét..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 1: Số trang đã quét - Scan thực tế (trang):</label>
                 <input type="number" id="input-sh-scan" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã scan..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 2: Số trang đã cắt và biên mục hồ sơ
                   (trang):</label>
                 <input type="number" id="input-sh-bienmuc" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã cắt & biên mục..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 3: Số trang đã chuẩn hóa dữ liệu (trang):</label>
                 <input type="number" id="input-sh-chuanhoa" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã chuẩn hóa..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 4: Số trang đã hiệu chỉnh dữ liệu (trang):</label>
                 <input type="number" id="input-sh-hieuchinh" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã hiệu chỉnh..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 5: Số trang đã chuyển đổi PDF 2 lớp
                   (trang):</label>
                 <input type="number" id="input-sh-pdf2lop" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã chuyển PDF 2 lớp..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 6: Số trang đã ký số hồ sơ tài liệu
                   (trang):</label>
                 <input type="number" id="input-sh-kyso" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã ký số..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 7: Số trang đã hoàn chỉnh, nén dữ liệu
                   (trang):</label>
                 <input type="number" id="input-sh-nendulieu" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã nén..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 8: Số trang đã cập nhật dữ liệu lên phần mềm
                   (trang):</label>
                 <input type="number" id="input-sh-phanmem" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã đưa lên phần mềm..." />
+                  placeholder="Nhập số trang..." />
               </div>
               <div class="modern-field-group">
                 <label style="font-weight: 500; color: #475569">Bước 9: Số trang đã hoàn chỉnh và bàn giao sản phẩm
                   (trang):</label>
                 <input type="number" id="input-sh-bangiao" required class="modern-input-ctrl"
-                  placeholder="Nhập số trang đã bàn giao..." />
+                  placeholder="Nhập số trang..." />
               </div>
             </fieldset>
 
-            <div class="form-actions" style="
-                  display: flex;
-                  justify-content: flex-end;
-                  gap: 12px;
-                  border-top: 1px solid #f1f5f9;
-                  padding-top: 18px;
-                ">
-              <button type="button" id="btn-cancel-edit" class="modern-btn-secondary" onclick="resetToCreateMode()">
+            <div
+              style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid #f1f5f9; padding-top: 18px;">
+              <button type="button" id="btn-cancel-edit" class="modern-btn-secondary" onclick="resetToCreateMode()"
+                style="display:none;">
                 Hủy sửa
               </button>
               <button type="submit" class="modern-btn-primary">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Lưu đợt mới
+                <i class="fa-solid fa-cloud-arrow-up"></i> <span id="btn-submit-text">Lưu báo cáo</span>
               </button>
             </div>
           </form>
@@ -556,10 +444,10 @@
           <div style="border-bottom: 1px solid #f1f5f9; padding-bottom: 14px; margin-bottom: 20px;">
             <h3
               style="margin: 0; color: #0056b3; font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-file-excel"></i> NHẬP DANH SÁCH ĐƠN VỊ TRỰC THUỘC TỪ EXCEL
+              <i class="fa-solid fa-file-excel"></i> NHẬP DANH MỤC ĐƠN VỊ TỪ EXCEL
             </h3>
-            <p style="margin: 6px 0 0 0; color: #64748b; font-size: 12.5px;">Chọn tệp Excel chứa danh sách các cơ quan,
-              đơn vị để đồng bộ hệ thống (Bắt đầu từ hàng 2, cột 2 là Tên đơn vị).</p>
+            <p style="margin: 6px 0 0 0; color: #64748b; font-size: 12.5px;">Chọn tệp Excel chứa danh sách cơ quan, đơn
+              vị (Bắt đầu từ hàng 2, cột 2 là Tên đơn vị).</p>
           </div>
 
           <div
@@ -569,28 +457,30 @@
               <input type="file" id="excel-file-input" accept=".xlsx, .xls" style="display: none;"
                 onchange="handleExcelUpload(event)">
               <button type="button" class="modern-btn-secondary"
-                onclick="document.getElementById('excel-file-input').click()"><i class="fa-solid fa-folder-open"></i>
-                Chọn file Excel của đồng chí</button>
+                onclick="document.getElementById('excel-file-input').click()">
+                <i class="fa-solid fa-folder-open"></i> Chọn tệp Excel
+              </button>
             </div>
-            <span id="file-name-display" style="font-size: 13px; color: #64748b; font-weight: 500;">Chưa chọn tệp tin
-              nào</span>
+            <span id="file-name-display" style="font-size: 13px; color: #64748b; font-weight: 500;">Chưa có tệp tin nào
+              được chọn</span>
           </div>
 
           <div style="margin-top: 30px;">
-            <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #334155; font-weight: 700;"><i
-                class="fa-solid fa-list-check"></i> DANH SÁCH CÁC ĐƠN VỊ ĐÃ CÓ TRÊN HỆ THỐNG</h4>
+            <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #334155; font-weight: 700;">
+              <i class="fa-solid fa-list-check"></i> DANH MỤC ĐƠN VỊ HỆ THỐNG
+            </h4>
             <div style="overflow-x: auto; width: 100%;">
               <table class="modern-table">
                 <thead>
                   <tr>
                     <th style="width: 80px; text-align: center;">STT</th>
                     <th>Tên cơ quan, đơn vị, địa phương</th>
-                    <th style="width: 120px; text-align: center;">Hành động</th>
+                    <th style="width: 120px; text-align: center;">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody id="units-table-body">
                   <tr>
-                    <td colspan="3" style="text-align: center; color: #64748b;">Đang tải danh sách đơn vị...</td>
+                    <td colspan="3" style="text-align: center; color: #64748b;">Đang tải dữ liệu...</td>
                   </tr>
                 </tbody>
               </table>
@@ -601,73 +491,69 @@
         <!-- TAB 4: THIẾT LẬP THỜI GIAN NHẬP LIỆU -->
         <div id="tab-time-settings" class="modern-card" style="display: none; width: 100%;">
           <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 20px; align-items: start;">
-            <!-- KHỐI BÊN TRÁI: FORM CÀI ĐẶT -->
             <div style="background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0;">
               <h3
                 style="margin-top: 0; margin-bottom: 20px; color: #ea580c; font-size: 15px; font-weight: 700; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px;">
-                <i class="fa-solid fa-business-time"></i> THIẾT LẬP THỜI HẠN CẬP NHẬT SỐ LIỆU
+                <i class="fa-solid fa-business-time"></i> CẤU HÌNH THỜI GIAN BÁO CÁO
               </h3>
               <form onsubmit="saveLockConfig(event)" style="display: flex; flex-direction: column; gap: 16px;">
                 <div class="modern-field-group" style="display: flex; flex-direction: column; gap: 6px;">
-                  <label style="font-size: 13px; font-weight: 700; color: #475569;">Thời gian mở cổng (Bắt đầu):</label>
+                  <label style="font-size: 13px; font-weight: 700; color: #475569;">Thời gian mở cổng báo cáo:</label>
                   <input type="datetime-local" id="lock-start-time" class="modern-input-ctrl" required
                     style="width: 100%; height: 38px; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                 </div>
                 <div class="modern-field-group" style="display: flex; flex-direction: column; gap: 6px;">
-                  <label style="font-size: 13px; font-weight: 700; color: #475569;">Thời gian đóng cổng (Kết
-                    thúc):</label>
+                  <label style="font-size: 13px; font-weight: 700; color: #475569;">Thời gian kết thúc (Đóng
+                    cổng):</label>
                   <input type="datetime-local" id="lock-end-time" class="modern-input-ctrl" required
                     style="width: 100%; height: 38px; padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box;">
                 </div>
                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                   <button type="submit"
                     style="background: #ea580c; color: white; border: none; padding: 10px 24px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px -1px rgba(234,88,12,0.2);">
-                    <i class="fa-solid fa-floppy-disk"></i> Kích hoạt & Lưu cấu hình
+                    <i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình thời gian
                   </button>
                 </div>
               </form>
             </div>
 
-            <!-- KHỐI BÊN PHẢI: MÀN HÌNH GIÁM SÁT REAL-TIME -->
             <div
               style="background: #ffffff; padding: 24px; border-radius: 12px; border: 1px solid #e2e8f0; min-height: 240px; display: flex; flex-direction: column; justify-content: space-between;">
               <div>
                 <h3 style="margin-top: 0; margin-bottom: 15px; color: #1e293b; font-size: 14px; font-weight: 700;">
-                  <i class="fa-solid fa-tower-broadcast" style="color: #16a34a;"></i> TRẠNG THÁI CỔNG BÁO CÁO REAL-TIME
+                  <i class="fa-solid fa-tower-broadcast" style="color: #16a34a;"></i> TRẠNG THÁI CỔNG THU NHẬN TỨC THỜI
                 </h3>
                 <div id="status-time-alert"
                   style="padding: 14px; border-radius: 8px; font-weight: 700; font-size: 13.5px; margin-bottom: 15px; text-align: center; background: #f1f5f9; color: #475569;">
-                  Đang kiểm tra kết nối dữ liệu...
+                  Đang kiểm tra tín hiệu đồng bộ...
                 </div>
               </div>
               <div
                 style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px; font-size: 12px; color: #64748b; line-height: 1.5;">
                 <i class="fa-solid fa-circle-info" style="color: #0284c7; margin-right: 4px;"></i>
-                <strong>Ghi chú nghiệp vụ:</strong> Khi đồng hồ hệ thống nằm ngoài khoảng thời gian thiết lập bên trái,
-                nút <em>"Cập nhật số liệu"</em> ở trang chủ của toàn bộ các đơn vị trực thuộc sẽ ngay lập tức tự động
-                khóa lại và báo đỏ.
+                <strong>Ghi chú:</strong> Hệ thống tự động khóa chức năng cập nhật báo cáo tại tài khoản của các cơ
+                quan, đơn vị khi ngoài khung thời gian thiết lập.
               </div>
             </div>
           </div>
         </div>
-
       </div>
 
       <!-- KHỐI LỊCH SỬ TIẾN ĐỘ -->
       <div id="adminHistoryPanel" class="modern-card" style="display: none">
         <h3
           style="margin: 0 0 4px 0; font-size: 15px; font-weight: 700; color: #1e293b; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-clock-rotate-left" style="color: #64748b"></i> LỊCH SỬ TIẾN ĐỘ
+          <i class="fa-solid fa-clock-rotate-left" style="color: #64748b"></i> NHẬT KÝ BÁO CÁO
         </h3>
-        <p style="margin: 0 0 20px 0; color: #64748b; font-size: 12.5px">Các mốc số liệu tiến độ tích lũy đã ghi nhận
-          trên hệ thống.</p>
+        <p style="margin: 0 0 20px 0; color: #64748b; font-size: 12.5px">Các bản ghi báo cáo tiến độ lũy kế đã được lưu
+          trữ.</p>
         <div style="overflow-x: auto; width: 100%">
           <table class="modern-table">
             <thead>
               <tr>
-                <th>Đợt / Ngày</th>
+                <th>Đợt / Thời gian</th>
+                <th>Cán bộ</th>
                 <th>Chỉnh lý</th>
-                <th>Đã Scan</th>
                 <th style="text-align: center">Thao tác</th>
               </tr>
             </thead>
@@ -678,36 +564,29 @@
     </div>
   </div>
 
-  <!-- THÀNH PHẦN 1: HÀM ĐIỀU HƯỚNG CHUYỂN ĐỔI TAB TOÀN CỤC CHUẨN ĐỒNG BỘ -->
   <script>
     window.switchTab = function (tabId) {
-      // 1. Ẩn toàn bộ các phân khu nội dung panels
       const panels = ['tab-campaign', 'tab-progress', 'tab-units', 'tab-time-settings'];
       panels.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
       });
 
-      // 2. Gỡ bỏ trạng thái Active của toàn bộ các nút bấm thanh menu
       const tabButtons = {
-        'tab-campaign': 'btn-tab-camp',
-        'tab-progress': 'btn-tab-prog',
-        'tab-units': 'btn-tab-unit',
-        'tab-time-settings': 'btn-tab-time'
+        'tab-campaign': 'btn-tab-camp', 'tab-progress': 'btn-tab-prog',
+        'tab-units': 'btn-tab-unit', 'tab-time-settings': 'btn-tab-time'
       };
       Object.values(tabButtons).forEach(btnId => {
         const btn = document.getElementById(btnId);
         if (btn) btn.classList.remove('active-modern-tab');
       });
 
-      // 3. Kích hoạt hiển thị panel được chọn và bật sáng nút tương ứng
       const targetPanel = document.getElementById(tabId);
       if (targetPanel) targetPanel.style.display = 'block';
 
       const targetBtn = document.getElementById(tabButtons[tabId]);
       if (targetBtn) targetBtn.classList.add('active-modern-tab');
 
-      // 4. Xử lý ẩn/hiện cột Panel Lịch sử bên phải (chỉ hiện khi ở Tab 2)
       const historyPanel = document.getElementById('adminHistoryPanel');
       const mainGrid = document.getElementById('adminMainGrid');
       if (historyPanel && mainGrid) {
@@ -722,97 +601,6 @@
     };
   </script>
 
-  <!-- THÀNH PHẦN 2: ĐOẠN SCRIPT MODULE ĐỘC LẬP TỰ ĐỘNG KẾ THỪA FIREBASE APP TỪ ADMIN.JS -->
-  <script type="module">
-    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-    // Sử dụng cơ chế lắng nghe chu kỳ tải để bóc tách app trung tâm tránh xung đột chồng chéo lệnh initializeApp
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        try {
-          const coreFirebaseApp = getApp();
-          const runningDb = getFirestore(coreFirebaseApp);
-          setupTab4TimeManagement(runningDb);
-        } catch (error) {
-          console.error("Hệ thống đang đợi admin.js cấu hình Firebase Core App...", error);
-        }
-      }, 600); // Trễ 600ms đảm bảo admin.js luôn chạy trước và tạo App Default thành công
-    });
-
-    function setupTab4TimeManagement(tab4Db) {
-      // 1. Lắng nghe khung giờ thực phát xuống để đồng bộ ra màn hình giám sát
-      onSnapshot(doc(tab4Db, "campaigns", "lock_config"), (docSnap) => {
-        const txtStart = document.getElementById('lock-start-time');
-        const txtEnd = document.getElementById('lock-end-time');
-        const alertBox = document.getElementById('status-time-alert');
-
-        if (!docSnap.exists() || !alertBox) return;
-
-        const config = docSnap.data();
-
-        // Đổ ngược dữ liệu thời gian lưu trên Cloud Firestore ra ô nhập liệu
-        if (config.startTime && txtStart) txtStart.value = config.startTime;
-        if (config.endTime && txtEnd) txtEnd.value = config.endTime;
-
-        const updateAdminAlertStatus = () => {
-          if (!config.startTime || !config.endTime) return;
-          const now = new Date();
-          const start = new Date(config.startTime);
-          const end = new Date(config.endTime);
-
-          if (now < start || now > end) {
-            alertBox.style.background = "#fef2f2";
-            alertBox.style.border = "1px solid #fecaca";
-            alertBox.style.color = "#dc2626";
-            alertBox.innerHTML = `<i class="fa-solid fa-circle-lock"></i> HỆ THỐNG ĐANG KHÓA (Ngoài khung giờ cho phép)`;
-          } else {
-            alertBox.style.background = "#e6f4ea";
-            alertBox.style.border = "1px solid #10b981";
-            alertBox.style.color = "#16a34a";
-            alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> HỆ THỐNG ĐANG MỞ (Các đơn vị nhập liệu bình thường)`;
-          }
-        };
-
-        updateAdminAlertStatus();
-        if (window.adminTimeInterval) clearInterval(window.adminTimeInterval);
-        window.adminTimeInterval = setInterval(updateAdminAlertStatus, 1000);
-      });
-
-      // 2. Xuất hàm xử lý Lưu cấu hình thời gian ra phạm vi Toàn cục (Global)
-      window.saveLockConfig = async function (event) {
-        event.preventDefault();
-
-        const sTime = document.getElementById('lock-start-time').value;
-        const eTime = document.getElementById('lock-end-time').value;
-
-        try {
-          await setDoc(doc(tab4Db, "campaigns", "lock_config"), {
-            startTime: sTime,
-            endTime: eTime,
-            updatedAt: new Date().toISOString()
-          });
-
-          Swal.fire({
-            title: "Thành công!",
-            text: "Đã kích hoạt khung giờ và đồng bộ lệnh khóa/mở cổng sang máy các đơn vị!",
-            icon: "success",
-            confirmButtonColor: "#ea580c"
-          });
-        } catch (error) {
-          console.error("Lỗi đồng bộ Firebase Tab 4:", error);
-          Swal.fire({
-            title: "Thất bại!",
-            text: "Gặp lỗi đường truyền mạng, không thể kết nối tới Firebase!",
-            icon: "error",
-            confirmButtonColor: "#64748b"
-          });
-        }
-      };
-    }
-  </script>
-
-  <!-- ĐÚNG THỨ TỰ: Để tệp quản trị Core App chạy ở cuối cùng -->
   <script type="module" src="js/admin.js"></script>
 </body>
 

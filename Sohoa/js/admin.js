@@ -1,17 +1,16 @@
 import { db, auth } from "./firebase-config.js";
-// THAY THẾ CỤM IMPORT FIRESTORE Ở ĐẦU FILE BẰNG KHỐI GỘP CHUẨN NÀY:
 import {
   collection,
   addDoc,
   doc,
-  setDoc,      // Đã gộp lên đây
+  setDoc,
   getDoc,
-  query,       // Đã gộp lên đây
-  orderBy,     // Đã gộp lên đây
+  query,
+  orderBy,
   onSnapshot,
   updateDoc,
   deleteDoc,
-  getDocs,     // Đã gộp lên đây
+  getDocs,
   where,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
@@ -25,7 +24,90 @@ window.logoutUser = function () {
   });
 };
 
+window.showInstructions = function () {
+  Swal.fire({
+    title: "Hướng dẫn sử dụng",
+    html: `
+      <div style="text-align: left; font-size: 14px; line-height: 1.6; color: #334155;">
+        <p><b>1. Quản lý Đợt số hóa:</b> Thiết lập và điều chỉnh các thông số mục tiêu (m, trang) của từng đợt làm cơ sở tính tỷ lệ hoàn thành.</p>
+        <p><b>2. Báo cáo Tiến độ:</b> Nhập liệu lũy kế số lượng thực tế đạt được ở từng hạng mục. Yêu cầu ghi rõ <b>Cán bộ phụ trách báo cáo</b>.</p>
+        <p><b>3. Danh mục đơn vị:</b> Đồng bộ danh sách các cơ quan, đơn vị từ tệp Excel theo cấu trúc quy định.</p>
+        <p><b>4. Thiết lập thời gian:</b> Quy định khoảng thời gian mở cổng để các đơn vị trực thuộc thực hiện nạp báo cáo số liệu vào hệ thống.</p>
+      </div>
+    `,
+    icon: "info",
+    confirmButtonColor: "#0056b3",
+    confirmButtonText: "Đã hiểu"
+  });
+};
+
 let campaignsConfigMap = {};
+
+function setupTab4TimeManagement() {
+  onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
+    const txtStart = document.getElementById('lock-start-time');
+    const txtEnd = document.getElementById('lock-end-time');
+    const alertBox = document.getElementById('status-time-alert');
+
+    if (!docSnap.exists() || !alertBox) return;
+
+    const config = docSnap.data();
+
+    if (config.startTime && txtStart) txtStart.value = config.startTime;
+    if (config.endTime && txtEnd) txtEnd.value = config.endTime;
+
+    const updateAdminAlertStatus = () => {
+      if (!config.startTime || !config.endTime) return;
+      const now = new Date();
+      const start = new Date(config.startTime);
+      const end = new Date(config.endTime);
+
+      if (now < start || now > end) {
+        alertBox.style.background = "#fef2f2";
+        alertBox.style.border = "1px solid #fecaca";
+        alertBox.style.color = "#dc2626";
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-lock"></i> HỆ THỐNG ĐANG ĐÓNG (Ngoài khung giờ quy định)`;
+      } else {
+        alertBox.style.background = "#e6f4ea";
+        alertBox.style.border = "1px solid #10b981";
+        alertBox.style.color = "#16a34a";
+        alertBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> HỆ THỐNG ĐANG MỞ (Thu nhận báo cáo bình thường)`;
+      }
+    };
+
+    updateAdminAlertStatus();
+    if (window.adminTimeInterval) clearInterval(window.adminTimeInterval);
+    window.adminTimeInterval = setInterval(updateAdminAlertStatus, 1000);
+  });
+}
+
+window.saveLockConfig = async function (event) {
+  event.preventDefault();
+  const sTime = document.getElementById('lock-start-time').value;
+  const eTime = document.getElementById('lock-end-time').value;
+
+  try {
+    await setDoc(doc(db, "campaigns", "lock_config"), {
+      startTime: sTime,
+      endTime: eTime,
+      updatedAt: new Date().toISOString()
+    });
+
+    Swal.fire({
+      title: "Cập nhật thành công",
+      text: "Đã thiết lập khung giờ và đồng bộ chỉ thị đến tài khoản các đơn vị.",
+      icon: "success",
+      confirmButtonColor: "#ea580c"
+    });
+  } catch (error) {
+    Swal.fire({
+      title: "Lỗi đồng bộ",
+      text: "Không thể lưu cấu hình, vui lòng kiểm tra kết nối mạng.",
+      icon: "error",
+      confirmButtonColor: "#64748b"
+    });
+  }
+};
 
 async function setupAdminData() {
   const today = new Date();
@@ -34,17 +116,17 @@ async function setupAdminData() {
       `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   }
 
+  setupTab4TimeManagement();
+
   // 1. LẮNG NGHE DANH SÁCH ĐỢT SỐ HÓA
-  const campQuery = query(
-    collection(db, "campaigns"),
-    orderBy("timestamp", "desc"),
-  );
+  const campQuery = query(collection(db, "campaigns"), orderBy("timestamp", "desc"));
   onSnapshot(campQuery, (querySnapshot) => {
     const campTableBody = document.getElementById("campaign-table-body");
     if (campTableBody) campTableBody.innerHTML = "";
     campaignsConfigMap = {};
 
     querySnapshot.forEach((docSnap) => {
+      if (docSnap.id === "lock_config") return; // Bỏ qua bản ghi thời gian
       const camp = docSnap.data();
       const campId = docSnap.id;
 
@@ -70,10 +152,7 @@ async function setupAdminData() {
   });
 
   // 2. LẮNG NGHE LỊCH SỬ TIẾN ĐỘ
-  const historyQuery = query(
-    collection(db, "progress_history"),
-    orderBy("timestamp", "desc"),
-  );
+  const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "desc"));
   onSnapshot(historyQuery, (querySnapshot) => {
     const tableBody = document.getElementById("history-table-body");
     if (tableBody) tableBody.innerHTML = "";
@@ -85,14 +164,14 @@ async function setupAdminData() {
       const row = document.createElement("tr");
       row.style.borderBottom = "1px solid #f1f5f9";
       row.innerHTML = `
-                <td style="padding: 10px; font-weight: 600; color: #1e293b;">${log.campaignName || "Chưa rõ"}<br><small style='color:#64748b;font-weight:500;'>${log.dateLabel}</small></td>
-                <td style="padding: 10px;">${log.chinhLyDaXong || 0} m</td>
-                <td style="padding: 10px;">${(log.soZero || log.soDoc || log.soHoaDaScan || 0).toLocaleString()} tr</td>
-                <td style="padding: 10px; text-align: center; display: flex; gap: 5px; justify-content: center;">
-                    <button class="btn-edit-action" onclick="startEdit('${docId}')" style="background: #e0f2fe; color: #0369a1; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Sửa</button>
-                    <button onclick="deleteProgress('${docId}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
-                </td>
-            `;
+        <td style="padding: 10px; font-weight: 600; color: #1e293b;">${log.campaignName || "Chưa rõ"}<br><small style='color:#64748b;font-weight:500;'>${log.dateLabel}</small></td>
+        <td style="padding: 10px; font-size: 12px;">${log.officerInCharge || "--"}</td>
+        <td style="padding: 10px;">${log.chinhLyDaXong || 0} m</td>
+        <td style="padding: 10px; text-align: center; display: flex; gap: 5px; justify-content: center;">
+            <button class="btn-edit-action" onclick="startEdit('${docId}')" style="background: #e0f2fe; color: #0369a1; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Sửa</button>
+            <button onclick="deleteProgress('${docId}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
+        </td>
+      `;
       if (tableBody) tableBody.appendChild(row);
     });
   });
@@ -110,9 +189,7 @@ function updateCampaignSelectOptions() {
   defaultOpt.innerText = "-- Chọn đợt số hóa dữ liệu --";
   selectBox.appendChild(defaultOpt);
 
-  if (campaigns.length === 0) {
-    return;
-  }
+  if (campaigns.length === 0) return;
 
   campaigns.forEach((camp) => {
     const opt = document.createElement("option");
@@ -126,155 +203,67 @@ function updateCampaignSelectOptions() {
   }
 }
 
-// KHỐI XỬ LÝ: TỰ ĐỘNG QUÉT VÀ ĐIỀN SỐ LIỆU ĐÃ HOÀN THÀNH 100% (ĐỘC LẬP)
 if (document.getElementById("input-campaign-name")) {
-  document
-    .getElementById("input-campaign-name")
-    .addEventListener("change", async (e) => {
-      const campaignName = e.target.value;
-      if (!campaignName) return;
+  document.getElementById("input-campaign-name").addEventListener("change", async (e) => {
+    const campaignName = e.target.value;
+    if (!campaignName) return;
 
-      // Đưa toàn bộ các ô nhập tiến độ về trạng thái trống trước khi quét dữ liệu mới
-      if (document.getElementById("input-cl-xong"))
-        document.getElementById("input-cl-xong").value = "";
-      if (document.getElementById("input-sh-scan"))
-        document.getElementById("input-sh-scan").value = "";
-      if (document.getElementById("input-sh-chuanhoa"))
-        document.getElementById("input-sh-chuanhoa").value = "";
-      if (document.getElementById("input-sh-phanmem"))
-        document.getElementById("input-sh-phanmem").value = "";
+    if (document.getElementById("input-cl-xong")) document.getElementById("input-cl-xong").value = "";
+    if (document.getElementById("input-sh-scan")) document.getElementById("input-sh-scan").value = "";
+    if (document.getElementById("input-sh-chuanhoa")) document.getElementById("input-sh-chuanhoa").value = "";
+    if (document.getElementById("input-sh-phanmem")) document.getElementById("input-sh-phanmem").value = "";
 
-      try {
-        // 1. Truy vấn trực tiếp lấy chỉ tiêu gốc của đợt từ cơ sở dữ liệu
-        const campQ = query(
-          collection(db, "campaigns"),
-          where("campaignName", "==", campaignName),
-        );
-        const campSnapshot = await getDocs(campQ);
+    try {
+      const campQ = query(collection(db, "campaigns"), where("campaignName", "==", campaignName));
+      const campSnapshot = await getDocs(campQ);
 
-        let chiTieuMet = 0;
-        let chiTieuTrang = 0;
+      let chiTieuMet = 0;
+      let chiTieuTrang = 0;
 
-        if (!campSnapshot.empty) {
-          const campData = campSnapshot.docs[0].data();
-          chiTieuMet = Number(campData.tongChinhLy || 0);
-          chiTieuTrang = Number(campData.tongSoCanScan || 0);
-        } else {
-          const fallbackConfig = campaignsConfigMap[campaignName] || {
-            tongChinhLy: 0,
-            tongSoCanScan: 0,
-          };
-          chiTieuMet = Number(fallbackConfig.tongChinhLy);
-          chiTieuTrang = Number(fallbackConfig.tongSoCanScan);
-        }
-
-        // 2. Truy vấn lấy bản ghi lịch sử tiến độ lũy kế mới nhất của đợt này
-        const q = query(
-          collection(db, "progress_history"),
-          where("campaignName", "==", campaignName),
-          orderBy("timestamp", "desc"),
-        );
-        const querySnapshot = await getDocs(q);
-
-        // Thay thế đoạn gán dữ liệu trong sự kiện 'change' của input-campaign-name:
-        if (!querySnapshot.empty) {
-          const latestLog = querySnapshot.docs[0].data();
-
-          const daChinhLy = Number(latestLog.chinhLyDaXong || 0);
-          const daScan = Number(latestLog.soHoaDaScan || 0);
-          const daBienMuc = Number(latestLog.soHoaBienMuc || 0);
-          const daChuanHoa = Number(latestLog.soHoaChuanHoa || 0);
-          const daHieuChinh = Number(latestLog.soHoaHieuChinh || 0);
-          const daPdf2Lop = Number(latestLog.soHoaPdf2Lop || 0);
-          const daKySo = Number(latestLog.soHoaKySo || 0);
-          const daNenDuLieu = Number(latestLog.soHoaNenDuLieu || 0);
-          const daPhanMem = Number(latestLog.soHoaPhanMem || 0);
-          const daBanGiao = Number(latestLog.soHoaBanGiao || 0);
-
-          // Đối chiếu điều kiện chạm mốc 100% và gán dữ liệu tự động
-          if (
-            daChinhLy >= chiTieuMet &&
-            chiTieuMet > 0 &&
-            document.getElementById("input-cl-xong")
-          ) {
-            document.getElementById("input-cl-xong").value = chiTieuMet;
-          }
-          if (
-            daScan >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-scan")
-          ) {
-            document.getElementById("input-sh-scan").value = chiTieuTrang;
-          }
-          if (
-            daBienMuc >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-bienmuc")
-          ) {
-            document.getElementById("input-sh-bienmuc").value = chiTieuTrang;
-          }
-          if (
-            daChuanHoa >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-chuanhoa")
-          ) {
-            document.getElementById("input-sh-chuanhoa").value = chiTieuTrang;
-          }
-          if (
-            daHieuChinh >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-hieuchinh")
-          ) {
-            document.getElementById("input-sh-hieuchinh").value = chiTieuTrang;
-          }
-          if (
-            daPdf2Lop >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-pdf2lop")
-          ) {
-            document.getElementById("input-sh-pdf2lop").value = chiTieuTrang;
-          }
-          if (
-            daKySo >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-kyso")
-          ) {
-            document.getElementById("input-sh-kyso").value = chiTieuTrang;
-          }
-          if (
-            daNenDuLieu >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-nendulieu")
-          ) {
-            document.getElementById("input-sh-nendulieu").value = chiTieuTrang;
-          }
-          if (
-            daPhanMem >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-phanmem")
-          ) {
-            document.getElementById("input-sh-phanmem").value = chiTieuTrang;
-          }
-          if (
-            daBanGiao >= chiTieuTrang &&
-            chiTieuTrang > 0 &&
-            document.getElementById("input-sh-bangiao")
-          ) {
-            document.getElementById("input-sh-bangiao").value = chiTieuTrang;
-          }
-        }
-      } catch (err) {
-        console.error("Lỗi hệ thống tự động quét dữ liệu: ", err);
+      if (!campSnapshot.empty) {
+        const campData = campSnapshot.docs[0].data();
+        chiTieuMet = Number(campData.tongChinhLy || 0);
+        chiTieuTrang = Number(campData.tongSoCanScan || 0);
+      } else {
+        const fallbackConfig = campaignsConfigMap[campaignName] || { tongChinhLy: 0, tongSoCanScan: 0 };
+        chiTieuMet = Number(fallbackConfig.tongChinhLy);
+        chiTieuTrang = Number(fallbackConfig.tongSoCanScan);
       }
-    });
+
+      const q = query(collection(db, "progress_history"), where("campaignName", "==", campaignName), orderBy("timestamp", "desc"));
+      const querySnapshot = await getDocs(q);
+
+      if (!querySnapshot.empty) {
+        const latestLog = querySnapshot.docs[0].data();
+
+        const dataMap = {
+          "input-cl-xong": [Number(latestLog.chinhLyDaXong || 0), chiTieuMet],
+          "input-sh-scan": [Number(latestLog.soHoaDaScan || 0), chiTieuTrang],
+          "input-sh-bienmuc": [Number(latestLog.soHoaBienMuc || 0), chiTieuTrang],
+          "input-sh-chuanhoa": [Number(latestLog.soHoaChuanHoa || 0), chiTieuTrang],
+          "input-sh-hieuchinh": [Number(latestLog.soHoaHieuChinh || 0), chiTieuTrang],
+          "input-sh-pdf2lop": [Number(latestLog.soHoaPdf2Lop || 0), chiTieuTrang],
+          "input-sh-kyso": [Number(latestLog.soHoaKySo || 0), chiTieuTrang],
+          "input-sh-nendulieu": [Number(latestLog.soHoaNenDuLieu || 0), chiTieuTrang],
+          "input-sh-phanmem": [Number(latestLog.soHoaPhanMem || 0), chiTieuTrang],
+          "input-sh-bangiao": [Number(latestLog.soHoaBanGiao || 0), chiTieuTrang]
+        };
+
+        for (const [elementId, [actualValue, targetValue]] of Object.entries(dataMap)) {
+          if (actualValue >= targetValue && targetValue > 0 && document.getElementById(elementId)) {
+            document.getElementById(elementId).value = targetValue;
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Lỗi tự động điền dữ liệu: ", err);
+    }
+  });
 }
 
-// ================= TAB 1: THIẾT LẬP ĐỢT SỐ HÓA =================
 window.saveCampaignConfig = async function (e) {
   e.preventDefault();
-  const btn =
-    document.querySelector('#campaignForm button[type="submit"]') ||
-    document.querySelector("#campaignForm .btn-save");
+  const btn = document.querySelector('#campaignForm button[type="submit"]');
   let origText = "Lưu đợt số hóa";
   if (btn) {
     origText = btn.innerHTML;
@@ -283,13 +272,9 @@ window.saveCampaignConfig = async function (e) {
   }
 
   const campId = document.getElementById("editing-camp-id").value;
-  const campaignName = document
-    .getElementById("config-campaign-name")
-    .value.trim();
-  const tongChinhLy =
-    parseFloat(document.getElementById("config-tong-chinhly").value) || 0;
-  const tongSoCanScan =
-    parseInt(document.getElementById("config-tong-scan").value) || 0;
+  const campaignName = document.getElementById("config-campaign-name").value.trim();
+  const tongChinhLy = parseFloat(document.getElementById("config-tong-chinhly").value) || 0;
+  const tongSoCanScan = parseInt(document.getElementById("config-tong-scan").value) || 0;
 
   const payload = {
     campaignName,
@@ -301,29 +286,14 @@ window.saveCampaignConfig = async function (e) {
   try {
     if (campId) {
       await updateDoc(doc(db, "campaigns", campId), payload);
-      Swal.fire({
-        title: "Thành công",
-        text: `Đã cập nhật thông tin Đợt số hóa: "${campaignName}"`,
-        icon: "success",
-        confirmButtonColor: "#0056b3",
-      });
+      Swal.fire({ title: "Thành công", text: `Đã cập nhật thông tin đợt: "${campaignName}"`, icon: "success", confirmButtonColor: "#0056b3" });
     } else {
       await addDoc(collection(db, "campaigns"), payload);
-      Swal.fire({
-        title: "Thành công",
-        text: `Khởi tạo thành công Đợt số hóa mới: "${campaignName}"`,
-        icon: "success",
-        confirmButtonColor: "#0056b3",
-      });
+      Swal.fire({ title: "Thành công", text: `Đã khởi tạo đợt số hóa mới: "${campaignName}"`, icon: "success", confirmButtonColor: "#0056b3" });
     }
     resetCampForm();
   } catch (err) {
-    Swal.fire({
-      title: "Lỗi dữ liệu",
-      text: err.message,
-      icon: "error",
-      confirmButtonColor: "#dc2626",
-    });
+    Swal.fire({ title: "Lỗi kết nối", text: err.message, icon: "error", confirmButtonColor: "#dc2626" });
   }
 
   if (btn) {
@@ -343,11 +313,9 @@ window.startEditCamp = async (campId) => {
       document.getElementById("config-tong-scan").value = data.tongSoCanScan;
 
       const campTitle = document.getElementById("camp-form-title");
-      if (campTitle)
-        campTitle.innerHTML =
-          "<i class='fa-solid fa-wrench' style='color:#d97706;'></i> HIỆU CHỈNH THÔNG TIN ĐỢT";
+      if (campTitle) campTitle.innerHTML = "<i class='fa-solid fa-wrench' style='color:#d97706;'></i> HIỆU CHỈNH THÔNG TIN ĐỢT";
       const btnCampText = document.getElementById("btn-camp-text");
-      if (btnCampText) btnCampText.innerText = "Cập nhật đợt";
+      if (btnCampText) btnCampText.innerText = "Cập nhật thay đổi";
       const btnCancelCamp = document.getElementById("btn-cancel-camp-edit");
       if (btnCancelCamp) btnCancelCamp.style.display = "inline-flex";
     }
@@ -360,9 +328,7 @@ window.resetCampForm = () => {
   document.getElementById("editing-camp-id").value = "";
   document.getElementById("campaignForm").reset();
   const campTitle = document.getElementById("camp-form-title");
-  if (campTitle)
-    campTitle.innerHTML =
-      "<i class='fa-solid fa-sliders'></i> THIẾT LẬP ĐỢT SỐ HÓA";
+  if (campTitle) campTitle.innerHTML = "<i class='fa-solid fa-sliders'></i> THIẾT LẬP ĐỢT SỐ HÓA";
   const btnCampText = document.getElementById("btn-camp-text");
   if (btnCampText) btnCampText.innerText = "Lưu đợt số hóa";
   const btnCancelCamp = document.getElementById("btn-cancel-camp-edit");
@@ -371,24 +337,19 @@ window.resetCampForm = () => {
 
 window.deleteCamp = async (campId, campName) => {
   Swal.fire({
-    title: "Xác nhận xóa đợt?",
-    text: `Đồng chí đang thực hiện xóa đợt số hóa: "${campName}". Tiến độ cũ sẽ không bị ảnh hưởng.`,
+    title: "Xác nhận xóa?",
+    text: `Đồng chí đang thao tác xóa đợt số hóa: "${campName}".`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#dc2626",
     cancelButtonColor: "#64748b",
-    confirmButtonText: "Đồng ý xóa",
-    cancelButtonText: "Hủy bỏ",
+    confirmButtonText: "Xóa",
+    cancelButtonText: "Hủy"
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
         await deleteDoc(doc(db, "campaigns", campId));
-        Swal.fire({
-          title: "Đã xóa",
-          text: `Hệ thống gỡ bỏ thành công đợt "${campName}".`,
-          icon: "success",
-          confirmButtonColor: "#0056b3",
-        });
+        Swal.fire({ title: "Đã xóa", text: `Gỡ bỏ thành công đợt "${campName}".`, icon: "success", confirmButtonColor: "#0056b3" });
       } catch (e) {
         Swal.fire({ title: "Lỗi", text: e.message, icon: "error" });
       }
@@ -396,33 +357,21 @@ window.deleteCamp = async (campId, campName) => {
   });
 };
 
-// ================= TAB 2: TIẾN ĐỘ THỰC TẾ LŨY KẾ =================
 window.updateData = async (e) => {
   e.preventDefault();
-  const btnSave =
-    document.querySelector('#updateForm button[type="submit"]') ||
-    document.querySelector("#updateForm .btn-save");
-  let originalText = "Lưu đợt mới";
+  const btnSave = document.querySelector('#updateForm button[type="submit"]');
+  let originalText = "Lưu báo cáo";
   if (btnSave) {
     originalText = btnSave.innerHTML;
-    btnSave.innerHTML =
-      "<i class='fa-solid fa-spinner fa-spin'></i> Đang lưu...";
+    btnSave.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> Đang xử lý...";
     btnSave.disabled = true;
   }
 
   const editingId = document.getElementById("editing-doc-id").value;
   const campaignName = document.getElementById("input-campaign-name").value;
   if (!campaignName) {
-    Swal.fire({
-      title: "Yêu cầu",
-      text: "Vui lòng chọn đợt số hóa dữ liệu trước.",
-      icon: "warning",
-      confirmButtonColor: "#0056b3",
-    });
-    if (btnSave) {
-      btnSave.innerHTML = originalText;
-      btnSave.disabled = false;
-    }
+    Swal.fire({ title: "Yêu cầu", text: "Vui lòng chọn đợt số hóa.", icon: "warning", confirmButtonColor: "#0056b3" });
+    if (btnSave) { btnSave.innerHTML = originalText; btnSave.disabled = false; }
     return;
   }
 
@@ -430,45 +379,29 @@ window.updateData = async (e) => {
   const dateParts = rawDateValue.split("-");
   const dateLabel = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
   const timestampDate = new Date(rawDateValue + "T12:00:00");
+  const officerInCharge = document.getElementById("input-officer").value.trim();
 
-  const config = campaignsConfigMap[campaignName] || {
-    tongChinhLy: 0,
-    tongSoCanScan: 0,
-  };
-  const chinhLyDaXong =
-    parseFloat(document.getElementById("input-cl-xong").value) || 0;
-  const currentStep =
-    parseInt(document.getElementById("input-current-step").value) || 0;
+  const config = campaignsConfigMap[campaignName] || { tongChinhLy: 0, tongSoCanScan: 0 };
+  const chinhLyDaXong = parseFloat(document.getElementById("input-cl-xong").value) || 0;
+  const currentStep = parseInt(document.getElementById("input-current-step").value) || 0;
 
   const updatePayload = {
     campaignName,
+    officerInCharge,
     tongChinhLy: config.tongChinhLy,
     tongSoCanScan: config.tongSoCanScan,
     tongSoCanChuanHoa: config.tongSoCanScan,
     chinhLyDaXong,
-    chinhLyConLai:
-      config.tongChinhLy - chinhLyDaXong > 0
-        ? config.tongChinhLy - chinhLyDaXong
-        : 0,
-
-    // Lưu đầy đủ số liệu 9 bước quy trình
-    soHoaDaScan: parseInt(document.getElementById("input-sh-scan").value) || 0, // B1[cite: 1]
-    soHoaBienMuc:
-      parseInt(document.getElementById("input-sh-bienmuc").value) || 0, // B2[cite: 1]
-    soHoaChuanHoa:
-      parseInt(document.getElementById("input-sh-chuanhoa").value) || 0, // B3[cite: 1]
-    soHoaHieuChinh:
-      parseInt(document.getElementById("input-sh-hieuchinh").value) || 0, // B4[cite: 1]
-    soHoaPdf2Lop:
-      parseInt(document.getElementById("input-sh-pdf2lop").value) || 0, // B5[cite: 1]
-    soHoaKySo: parseInt(document.getElementById("input-sh-kyso").value) || 0, // B6[cite: 1]
-    soHoaNenDuLieu:
-      parseInt(document.getElementById("input-sh-nendulieu").value) || 0, // B7[cite: 1]
-    soHoaPhanMem:
-      parseInt(document.getElementById("input-sh-phanmem").value) || 0, // B8[cite: 1]
-    soHoaBanGiao:
-      parseInt(document.getElementById("input-sh-bangiao").value) || 0, // B9[cite: 1]
-
+    chinhLyConLai: config.tongChinhLy - chinhLyDaXong > 0 ? config.tongChinhLy - chinhLyDaXong : 0,
+    soHoaDaScan: parseInt(document.getElementById("input-sh-scan").value) || 0,
+    soHoaBienMuc: parseInt(document.getElementById("input-sh-bienmuc").value) || 0,
+    soHoaChuanHoa: parseInt(document.getElementById("input-sh-chuanhoa").value) || 0,
+    soHoaHieuChinh: parseInt(document.getElementById("input-sh-hieuchinh").value) || 0,
+    soHoaPdf2Lop: parseInt(document.getElementById("input-sh-pdf2lop").value) || 0,
+    soHoaKySo: parseInt(document.getElementById("input-sh-kyso").value) || 0,
+    soHoaNenDuLieu: parseInt(document.getElementById("input-sh-nendulieu").value) || 0,
+    soHoaPhanMem: parseInt(document.getElementById("input-sh-phanmem").value) || 0,
+    soHoaBanGiao: parseInt(document.getElementById("input-sh-bangiao").value) || 0,
     currentStep,
     dateLabel,
     timestamp: timestampDate,
@@ -477,29 +410,16 @@ window.updateData = async (e) => {
   try {
     if (editingId) {
       await updateDoc(doc(db, "progress_history", editingId), updatePayload);
-      await Swal.fire({
-        title: "Thành công",
-        text: `Cập nhật lũy kế ngày ${dateLabel} thành công.`,
-        icon: "success",
-        confirmButtonColor: "#0056b3",
-      });
+      await Swal.fire({ title: "Hoàn tất", text: `Cập nhật thông tin ngày ${dateLabel} thành công.`, icon: "success", confirmButtonColor: "#0056b3" });
     } else {
       await addDoc(collection(db, "progress_history"), updatePayload);
-      await Swal.fire({
-        title: "Thành công",
-        text: `Ghi nhận số liệu tiến độ ngày ${dateLabel} thành công.`,
-        icon: "success",
-        confirmButtonColor: "#0056b3",
-      });
+      await Swal.fire({ title: "Hoàn tất", text: `Lưu số liệu tiến độ ngày ${dateLabel} thành công.`, icon: "success", confirmButtonColor: "#0056b3" });
     }
     await setDoc(doc(db, "progress", "current_state"), updatePayload);
     window.location.href = "index.html";
   } catch (error) {
-    if (btnSave) {
-      btnSave.innerHTML = originalText;
-      btnSave.disabled = false;
-    }
-    Swal.fire({ title: "Lỗi kết nối", text: error.message, icon: "error" });
+    if (btnSave) { btnSave.innerHTML = originalText; btnSave.disabled = false; }
+    Swal.fire({ title: "Lỗi lưu trữ", text: error.message, icon: "error" });
   }
 };
 
@@ -508,56 +428,37 @@ window.startEdit = async (docId) => {
     const docSnap = await getDoc(doc(db, "progress_history", docId));
     if (docSnap.exists()) {
       const data = docSnap.data();
-      if (typeof window.switchTab === "function")
-        window.switchTab("tab-progress");
+      if (typeof window.switchTab === "function") window.switchTab("tab-progress");
 
       document.getElementById("editing-doc-id").value = docId;
-      document.getElementById("input-campaign-name").value =
-        data.campaignName || "";
+      document.getElementById("input-campaign-name").value = data.campaignName || "";
+      document.getElementById("input-officer").value = data.officerInCharge || "";
       document.getElementById("input-cl-xong").value = data.chinhLyDaXong || 0;
 
-      // Đổ ngược dữ liệu 9 bước lên Form sửa[cite: 1]
       document.getElementById("input-sh-scan").value = data.soHoaDaScan || 0;
-      document.getElementById("input-sh-bienmuc").value =
-        data.soHoaBienMuc || 0;
-      document.getElementById("input-sh-chuanhoa").value =
-        data.soHoaChuanHoa || 0;
-      document.getElementById("input-sh-hieuchinh").value =
-        data.soHoaHieuChinh || 0;
-      document.getElementById("input-sh-pdf2lop").value =
-        data.soHoaPdf2Lop || 0;
+      document.getElementById("input-sh-bienmuc").value = data.soHoaBienMuc || 0;
+      document.getElementById("input-sh-chuanhoa").value = data.soHoaChuanHoa || 0;
+      document.getElementById("input-sh-hieuchinh").value = data.soHoaHieuChinh || 0;
+      document.getElementById("input-sh-pdf2lop").value = data.soHoaPdf2Lop || 0;
       document.getElementById("input-sh-kyso").value = data.soHoaKySo || 0;
-      document.getElementById("input-sh-nendulieu").value =
-        data.soHoaNenDuLieu || 0;
-      document.getElementById("input-sh-phanmem").value =
-        data.soHoaPhanMem || 0;
-      document.getElementById("input-sh-bangiao").value =
-        data.soHoaBanGiao || 0;
+      document.getElementById("input-sh-nendulieu").value = data.soHoaNenDuLieu || 0;
+      document.getElementById("input-sh-phanmem").value = data.soHoaPhanMem || 0;
+      document.getElementById("input-sh-bangiao").value = data.soHoaBanGiao || 0;
 
-      if (document.getElementById("input-current-step")) {
-        document.getElementById("input-current-step").value =
-          data.currentStep || 0;
-      }
+      if (document.getElementById("input-current-step")) document.getElementById("input-current-step").value = data.currentStep || 0;
 
       if (data.timestamp) {
         const t = data.timestamp.toDate();
-        document.getElementById("input-date").value =
-          `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+        document.getElementById("input-date").value = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
       }
       const formTitle = document.getElementById("form-action-title");
-      if (formTitle)
-        formTitle.innerHTML =
-          "<i class='fa-solid fa-wrench' style='color:#d97706;'></i> HIỆU CHỈNH TIẾN ĐỘ BÁO CÁO";
+      if (formTitle) formTitle.innerHTML = "<i class='fa-solid fa-wrench' style='color:#d97706;'></i> HIỆU CHỈNH TIẾN ĐỘ BÁO CÁO";
       const btnSubmitText = document.getElementById("btn-submit-text");
       if (btnSubmitText) btnSubmitText.innerText = "Cập nhật thay đổi";
       const btnCancelEdit = document.getElementById("btn-cancel-edit");
       if (btnCancelEdit) btnCancelEdit.style.display = "inline-flex";
       const updateForm = document.getElementById("updateForm");
       if (updateForm) updateForm.scrollIntoView({ behavior: "smooth" });
-      if (document.getElementById("input-current-step")) {
-        document.getElementById("input-current-step").value =
-          data.currentStep || 0;
-      }
     }
   } catch (e) {
     alert(e.message);
@@ -566,61 +467,47 @@ window.startEdit = async (docId) => {
 
 window.resetToCreateMode = () => {
   document.getElementById("editing-doc-id").value = "";
+  document.getElementById("input-officer").value = "";
+  const fields = ["input-cl-xong", "input-sh-scan", "input-sh-bienmuc", "input-sh-chuanhoa", "input-sh-hieuchinh", "input-sh-pdf2lop", "input-sh-kyso", "input-sh-nendulieu", "input-sh-phanmem", "input-sh-bangiao"];
+  fields.forEach(id => {
+    if (document.getElementById(id)) document.getElementById(id).value = "";
+  });
+  if (document.getElementById("input-current-step")) document.getElementById("input-current-step").value = 0;
 
-  // Trả tất cả các ô nhập liệu về trống
-  document.getElementById("input-cl-xong").value = "";
-  document.getElementById("input-sh-scan").value = "";
-  document.getElementById("input-sh-bienmuc").value = "";
-  document.getElementById("input-sh-chuanhoa").value = "";
-  document.getElementById("input-sh-hieuchinh").value = "";
-  document.getElementById("input-sh-pdf2lop").value = "";
-  document.getElementById("input-sh-kyso").value = "";
-  document.getElementById("input-sh-nendulieu").value = "";
-  document.getElementById("input-sh-phanmem").value = "";
-  document.getElementById("input-sh-bangiao").value = "";
-
-  if (document.getElementById("input-current-step")) {
-    document.getElementById("input-current-step").value = 0;
-  }
+  const formTitle = document.getElementById("form-action-title");
+  if (formTitle) formTitle.innerHTML = "<i class='fa-solid fa-pen-to-square'></i> CẬP NHẬT TIẾN ĐỘ THỰC TẾ LŨY KẾ";
+  const btnSubmitText = document.getElementById("btn-submit-text");
+  if (btnSubmitText) btnSubmitText.innerText = "Lưu báo cáo";
+  const btnCancelEdit = document.getElementById("btn-cancel-edit");
+  if (btnCancelEdit) btnCancelEdit.style.display = "none";
 };
 
 window.deleteProgress = async (docId) => {
   Swal.fire({
-    title: "Xác nhận xóa tiến độ?",
-    text: "Số liệu lịch sử mốc báo cáo này sẽ mất hoàn toàn và không thể khôi phục.",
+    title: "Xác nhận xóa?",
+    text: "Dữ liệu bản ghi này sẽ bị gỡ bỏ khỏi hệ thống.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#dc2626",
     cancelButtonColor: "#64748b",
-    confirmButtonText: "Đồng ý xóa",
-    cancelButtonText: "Hủy bỏ",
+    confirmButtonText: "Xóa",
+    cancelButtonText: "Hủy"
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
         await deleteDoc(doc(db, "progress_history", docId));
-        Swal.fire({
-          title: "Đã xóa",
-          text: "Hệ thống đã thực hiện gỡ bỏ bản ghi tiến độ thành công.",
-          icon: "success",
-          confirmButtonColor: "#0056b3",
-        });
+        Swal.fire({ title: "Hoàn tất", text: "Đã xóa bản ghi tiến độ.", icon: "success", confirmButtonColor: "#0056b3" });
       } catch (e) {
-        Swal.fire({ title: "Lỗi kỹ thuật", text: e.message, icon: "error" });
+        Swal.fire({ title: "Lỗi hệ thống", text: e.message, icon: "error" });
       }
     }
   });
 };
 
-// THAY THẾ TOÀN BỘ ĐOẠN KHỞI CHẠY CUỐI FILE js/admin.js BẰNG KHỐI LỆNH NÀY:
-
 function initAdminPage() {
-  // CƠ CHẾ DỰ PHÒNG: Tự lưu token vào RAM nếu trình duyệt bật Tracking Prevention chặn Storage
-  import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js").then(
-    (authModule) => {
-      auth.setPersistence(
-        authModule.browserSessionPersistence || authModule.inMemoryPersistence
-      );
-    }
+  import("https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js").then((authModule) => {
+    auth.setPersistence(authModule.browserSessionPersistence || authModule.inMemoryPersistence);
+  }
   );
 
   onAuthStateChanged(auth, async (user) => {
@@ -632,20 +519,15 @@ function initAdminPage() {
           if (userDoc.data().fullName && nameContainer) {
             nameContainer.innerHTML = `<i class='fa-solid fa-user-shield'></i> Xin chào, ${userDoc.data().fullName}`;
           }
-          // Gọi kích hoạt nạp toàn bộ cấu trúc dữ liệu đợt số hóa và lịch sử tiến độ
           setupAdminData();
           setTimeout(loadOrganizationUnits, 500);
         } else {
-          Swal.fire({
-            title: "Từ chối quyền",
-            text: "Tài khoản không có quyền quản trị.",
-            icon: "error",
-          }).then(() => {
+          Swal.fire({ title: "Từ chối truy cập", text: "Tài khoản không có quyền quản trị hệ thống.", icon: "error" }).then(() => {
             window.location.href = "index.html";
           });
         }
       } catch (err) {
-        console.error("Lỗi xác thực quyền: ", err);
+        console.error("Lỗi xác thực: ", err);
       }
     } else {
       window.location.href = "login.html";
@@ -653,12 +535,8 @@ function initAdminPage() {
   });
 }
 
-// KHỞI CHẠY NGAY LẬP TỨC KHÔNG PHỤ THUỘC LUỒNG ĐỂ TRÁNH BỊ CHẶN TRẠNG THÁI
-initAdminPage();
-
 document.addEventListener("DOMContentLoaded", initAdminPage);
 
-// 1. HÀM ĐỌC FILE EXCEL VÀ ĐẨY LÊN FIREBASE KHỚP THEO 2 CỘT (STT, TÊN ĐƠN VỊ)
 window.handleExcelUpload = function (event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -673,52 +551,42 @@ window.handleExcelUpload = function (event) {
       const workbook = XLSX.read(data, { type: 'array' });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-
-      // Chuyển sheet sang dạng mảng mảng (Array of Arrays) để dễ kiểm soát hàng
       const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-
-      // Lọc bỏ hàng tiêu đề đầu tiên, chỉ lấy từ hàng thứ 2
       const unitRows = rawRows.slice(1).filter(row => row && row[1]);
 
       if (unitRows.length === 0) {
-        Swal.fire("Thông báo", "File Excel trống hoặc không đúng định dạng (Cột 2 phải là Tên đơn vị)!", "warning");
+        Swal.fire("Lỗi dữ liệu", "Tệp trống hoặc sai định dạng (Cột 2 phải là Tên cơ quan, đơn vị).", "warning");
         return;
       }
 
       Swal.fire({
-        title: 'Đang xử lý dữ liệu...',
-        text: `Đang nạp ${unitRows.length} đơn vị lên hệ thống`,
+        title: 'Đang xử lý...',
+        text: `Nạp thông tin ${unitRows.length} đơn vị vào cơ sở dữ liệu.`,
         allowOutsideClick: false,
         didOpen: () => { Swal.showLoading(); }
       });
 
-      // Thực hiện vòng lặp nạp hàng loạt đơn vị vào collection 'organization_units'
       for (const row of unitRows) {
         const stt = parseInt(row[0]) || 0;
         const unitName = String(row[1]).trim();
-
-        // Tạo slug/id sạch từ tên để làm ID tài liệu
-        const unitId = "unit_" + stt;
-
-        await setDoc(doc(db, "organization_units", unitId), {
+        await addDoc(collection(db, "organization_units"), {
           stt: stt,
           unitName: unitName,
           createdAt: new Date()
         });
       }
 
-      Swal.fire("Thành công", `Đã cập nhật thành công ${unitRows.length} đơn vị trực thuộc lên Firebase!`, "success");
-      loadOrganizationUnits(); // Tải lại bảng danh sách đơn vị công khai
+      Swal.fire("Hoàn tất", `Cập nhật thành công danh mục ${unitRows.length} đơn vị.`, "success");
+      loadOrganizationUnits();
 
     } catch (error) {
       console.error("Lỗi đọc Excel: ", error);
-      Swal.fire("Lỗi", "Không thể đọc dữ liệu file Excel, vui lòng kiểm tra lại cấu trúc file!", "error");
+      Swal.fire("Lỗi hệ thống", "Không thể trích xuất dữ liệu, kiểm tra lại cấu trúc tệp Excel.", "error");
     }
   };
   reader.readAsArrayBuffer(file);
 };
 
-// 2. HÀM TẢI VÀ HIỂN THỊ DANH SÁCH ĐƠN VỊ HIỆN CÓ TRÊN FIREBASE
 async function loadOrganizationUnits() {
   const tbody = document.getElementById("units-table-body");
   if (!tbody) return;
@@ -729,7 +597,7 @@ async function loadOrganizationUnits() {
 
     tbody.innerHTML = "";
     if (querySnapshot.empty) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Chưa có đơn vị nào được nạp. Vui lòng chọn file Excel để upload.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Hệ thống chưa ghi nhận đơn vị nào. Vui lòng cập nhật.</td></tr>`;
       return;
     }
 
@@ -749,30 +617,25 @@ async function loadOrganizationUnits() {
       tbody.appendChild(tr);
     });
   } catch (error) {
-    console.error("Lỗi tải đơn vị: ", error);
+    console.error("Lỗi tải danh mục: ", error);
   }
 }
 
-// 3. HÀM XÓA ĐƠN VỊ LẺ KHI CẦN THIẾT
 window.deleteUnit = async function (id) {
   const result = await Swal.fire({
     title: 'Xác nhận xóa?',
-    text: "Hành động này không thể hoàn tác!",
+    text: "Thao tác gỡ bỏ này không thể hoàn tác.",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#d33',
     cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Đồng ý xóa'
+    confirmButtonText: 'Đồng ý',
+    cancelButtonText: 'Hủy'
   });
 
   if (result.isConfirmed) {
     await deleteDoc(doc(db, "organization_units", id));
-    Swal.fire('Đã xóa!', 'Đơn vị đã được gỡ bỏ khỏi hệ thống.', 'success');
+    Swal.fire('Hoàn tất', 'Đã gỡ thông tin cơ quan, đơn vị.', 'success');
     loadOrganizationUnits();
   }
 };
-
-// Tự động tải danh sách đơn vị khi mở trang admin
-document.addEventListener("DOMContentLoaded", () => {
-  setTimeout(loadOrganizationUnits, 1500);
-});
