@@ -945,6 +945,7 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
 }
 
 // 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN
+// 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN
 function renderKetNapDashboard(snapshot) {
   if (!snapshot || !snapshot.exists()) return;
 
@@ -962,6 +963,7 @@ function renderKetNapDashboard(snapshot) {
   }
 
   let provinceTotalDV = 0;
+  let maxTimestamp = 0; // Biến tìm ngày cập nhật mới nhất
 
   let sumChiTieu = 0,
     sumDaKetNap = 0;
@@ -1020,6 +1022,17 @@ function renderKetNapDashboard(snapshot) {
       sumTongDN += dn;
       sumDtts += dtts;
       sumTonGiao += tonGiao;
+
+      // Tìm mốc thời gian cập nhật lớn nhất (mới nhất)
+      if (d.updatedAt) {
+        const ts =
+          typeof d.updatedAt === "number"
+            ? d.updatedAt
+            : new Date(d.updatedAt).getTime();
+        if (!isNaN(ts) && ts > maxTimestamp) {
+          maxTimestamp = ts;
+        }
+      }
     }
 
     if (tbody) {
@@ -1051,6 +1064,20 @@ function renderKetNapDashboard(snapshot) {
       tbody.appendChild(tr);
     }
   });
+
+  // TỰ ĐỘNG CẬP NHẬT NGÀY LÊN DASHBOARD
+  if (maxTimestamp > 0) {
+    const dateObj = new Date(maxTimestamp);
+    const day = String(dateObj.getDate()).padStart(2, "0");
+    const month = String(dateObj.getMonth() + 1).padStart(2, "0");
+    const year = dateObj.getFullYear();
+    const formattedDate = `${day}/${month}/${year}`;
+
+    const elDateDisplay = document.getElementById("kn-date-display");
+    if (elDateDisplay) {
+      elDateDisplay.textContent = formattedDate;
+    }
+  }
 
   if (document.getElementById("kn-val-tong-dv")) {
     document.getElementById("kn-val-tong-dv").textContent =

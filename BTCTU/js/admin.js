@@ -2,6 +2,7 @@
 const dangBoRef = database.ref("dang_bo");
 const tasksRef = database.ref("tasks");
 const configRef = database.ref("config/time_settings");
+const doiTuongRef = database.ref("danh_muc_doi_tuong"); // Node lưu danh mục Đơn vị/Cá nhân
 
 // Khai báo DOM Elements
 const loginSection = document.getElementById("login-section");
@@ -14,19 +15,26 @@ const adminUserInfo = document.getElementById("admin-user-info");
 let dangBoCache = {};
 let currentRole = "nhap_lieu"; // Mặc định vai trò
 
+// =================================================================
 // 1. KHỞI TẠO DỮ LIỆU & GÁN SỰ KIỆN KHI TRANG TẢI XONG
+// =================================================================
 document.addEventListener("DOMContentLoaded", () => {
   initAdminTabs();
   initTcSubTabs(); // Khởi tạo tab con trong Phân hệ 2
+  initNoiBoSubTabs(); // Khởi tạo tab con trong Phân hệ 3
   initAdminData();
   setupDropdownChangeEvents();
   initKetNapEvents(); // Khởi tạo xử lý Kết nạp Đảng viên
+  initDoiTuongEvents();
+  initTaskEvents(); // Khởi tạo xử lý Nhiệm vụ nội bộ
   initAuthEvents(); // Khởi tạo sự kiện Đăng nhập / Đăng xuất an toàn
   initExcelImportExport(); // Khởi tạo sự kiện Import / Export Excel
   initTimeConfigEvents(); // Lắng nghe & cài đặt khung giờ
 });
 
+// =================================================================
 // 2. CHUYỂN ĐỔI TAB GIỮA CÁC PHÂN HỆ QUẢN TRỊ CHÍNH
+// =================================================================
 function initAdminTabs() {
   const tabBtns = document.querySelectorAll(".admin-tab-btn");
   const tabContents = document.querySelectorAll(".admin-tab-content");
@@ -78,6 +86,62 @@ function initTcSubTabs() {
   });
 }
 
+// HÀM CHUYỂN SUB-TAB QUẢN LÝ NỘI BỘ TOÀN CỤC (AN TOÀN CHO CẢ ONCLICK HTML & EVENT LISTENER)
+window.switchNoiBoSubTab = function (targetId, btnEl) {
+  const subBtns = document.querySelectorAll(".sub-noibo-tab-btn");
+  const subContents = document.querySelectorAll(".noibo-subtab-content");
+
+  subBtns.forEach((b) => {
+    b.classList.remove("active");
+    b.style.borderBottomColor = "transparent";
+    b.style.color = "#64748b";
+  });
+
+  if (btnEl) {
+    btnEl.classList.add("active");
+    btnEl.style.borderBottomColor = "#cc0000";
+    btnEl.style.color = "#cc0000";
+  }
+
+  subContents.forEach((c) => {
+    if (c.id === targetId) {
+      c.style.display = "block";
+    } else {
+      c.style.display = "none";
+    }
+  });
+};
+
+function initNoiBoSubTabs() {
+  const subBtns = document.querySelectorAll(".sub-noibo-tab-btn");
+  if (!subBtns.length) return;
+
+  subBtns.forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      let target = btn.getAttribute("data-noibo-tab");
+
+      // Nếu không có data-noibo-tab, trích xuất từ thuộc tính onclick
+      if (!target) {
+        const onclickAttr = btn.getAttribute("onclick");
+        if (onclickAttr) {
+          const match = onclickAttr.match(
+            /switchNoiBoSubTab\(['"]([^'"]+)['"]/,
+          );
+          if (match) target = match[1];
+        }
+      }
+
+      if (target) {
+        window.switchNoiBoSubTab(target, btn);
+      }
+    });
+  });
+}
+
+// =================================================================
+// 3. XÁC THỰC VÀ PHÂN QUYỀN TÀI KHOẢN
+// =================================================================
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     if (loginSection) loginSection.style.display = "none";
@@ -91,7 +155,9 @@ firebase.auth().onAuthStateChanged((user) => {
       const roleText =
         role === "admin"
           ? "Quản trị viên (Admin)"
-          : "Cán bộ Nhập liệu (Số hóa)";
+          : role === "nhap_lieu_btc"
+            ? "Cán bộ Ban Tổ chức"
+            : "Cán bộ Nhập liệu (Số hóa)";
       if (adminUserInfo) {
         adminUserInfo.innerHTML = `<i class="fa-solid fa-circle-user" style="color: #2ecc71;"></i> Tài khoản: <b>${user.email}</b> [${roleText}]`;
       }
@@ -199,8 +265,9 @@ function initAuthEvents() {
   }
 }
 
+// =================================================================
 // 4. NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẬT TÌM KIẾM
-// NẠP DANH SÁCH ĐẢNG BỘ VÀO DROPDOWN VÀ BẬT TÌM KIẾM
+// =================================================================
 function initAdminData() {
   const selectSoHoa = $("#select-dangbo-sohoa");
   const selectTcDang = $("#select-dangbo-tcdang");
@@ -248,6 +315,7 @@ function initAdminData() {
     loadProgressTables();
   });
 }
+
 function enableSelect2Search() {
   if (typeof $ === "undefined" || typeof $.fn.select2 === "undefined") {
     console.warn("Select2 chưa được nạp, sử dụng Dropdown mặc định.");
@@ -283,30 +351,42 @@ function enableSelect2Search() {
   });
 }
 
+// =================================================================
 // 5. TỰ ĐỘNG FILL DỮ LIỆU CỦA ĐƠN VỊ ĐÃ LƯU KHI CHỌN TỪ DROPDOWN
+// =================================================================
 function setupDropdownChangeEvents() {
   const selectSoHoa = document.getElementById("select-dangbo-sohoa");
   if (selectSoHoa) {
     selectSoHoa.addEventListener("change", (e) => {
       const selectedId = e.target.value;
       if (!selectedId) {
-        document.getElementById("form-sohoa").reset();
+        document.getElementById("form-sohoa")?.reset();
         return;
       }
 
       dangBoRef.child(selectedId).once("value", (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          document.getElementById("sohoa-can-so-hoa").value =
-            data.tongHoSo || 0;
-          document.getElementById("sohoa-chinh-ly").value = data.daChinhLy || 0;
-          document.getElementById("sohoa-ky-so").value = data.daKySo || 0;
-          document.getElementById("sohoa-phan-mem").value = data.daCapNhat || 0;
+          if (document.getElementById("sohoa-can-so-hoa"))
+            document.getElementById("sohoa-can-so-hoa").value =
+              data.tongHoSo || 0;
+          if (document.getElementById("sohoa-chinh-ly"))
+            document.getElementById("sohoa-chinh-ly").value =
+              data.daChinhLy || 0;
+          if (document.getElementById("sohoa-ky-so"))
+            document.getElementById("sohoa-ky-so").value = data.daKySo || 0;
+          if (document.getElementById("sohoa-phan-mem"))
+            document.getElementById("sohoa-phan-mem").value =
+              data.daCapNhat || 0;
         } else {
-          document.getElementById("sohoa-can-so-hoa").value = 0;
-          document.getElementById("sohoa-chinh-ly").value = 0;
-          document.getElementById("sohoa-ky-so").value = 0;
-          document.getElementById("sohoa-phan-mem").value = 0;
+          if (document.getElementById("sohoa-can-so-hoa"))
+            document.getElementById("sohoa-can-so-hoa").value = 0;
+          if (document.getElementById("sohoa-chinh-ly"))
+            document.getElementById("sohoa-chinh-ly").value = 0;
+          if (document.getElementById("sohoa-ky-so"))
+            document.getElementById("sohoa-ky-so").value = 0;
+          if (document.getElementById("sohoa-phan-mem"))
+            document.getElementById("sohoa-phan-mem").value = 0;
         }
       });
     });
@@ -317,49 +397,69 @@ function setupDropdownChangeEvents() {
     selectTcDang.addEventListener("change", (e) => {
       const selectedId = e.target.value;
       if (!selectedId) {
-        document.getElementById("form-tcdang").reset();
+        document.getElementById("form-tcdang")?.reset();
         return;
       }
 
       dangBoRef.child(selectedId).once("value", (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.val();
-          document.getElementById("tc-so-tccs-dang").value =
-            data.soTccsDang || 0;
-          document.getElementById("tc-so-chi-bo").value = data.soChiBo || 0;
-          document.getElementById("tc-tong-dang-vien").value =
-            data.tongDangVien || 0;
-          document.getElementById("tc-dang-vien-chinh-thuc").value =
-            data.dvChinhThuc || 0;
-          document.getElementById("tc-dang-vien-du-bi").value =
-            data.dvDuBi || 0;
+          if (document.getElementById("tc-so-tccs-dang"))
+            document.getElementById("tc-so-tccs-dang").value =
+              data.soTccsDang || 0;
+          if (document.getElementById("tc-so-chi-bo"))
+            document.getElementById("tc-so-chi-bo").value = data.soChiBo || 0;
+          if (document.getElementById("tc-tong-dang-vien"))
+            document.getElementById("tc-tong-dang-vien").value =
+              data.tongDangVien || 0;
+          if (document.getElementById("tc-dang-vien-chinh-thuc"))
+            document.getElementById("tc-dang-vien-chinh-thuc").value =
+              data.dvChinhThuc || 0;
+          if (document.getElementById("tc-dang-vien-du-bi"))
+            document.getElementById("tc-dang-vien-du-bi").value =
+              data.dvDuBi || 0;
 
-          document.getElementById("tc-tuoi-under30").value =
-            data.tuoiUnder30 || 0;
-          document.getElementById("tc-tuoi-30to45").value =
-            data.tuoi30to45 || 0;
-          document.getElementById("tc-tuoi-46to60").value =
-            data.tuoi46to60 || 0;
-          document.getElementById("tc-tuoi-over60").value =
-            data.tuoiOver60 || 0;
+          if (document.getElementById("tc-tuoi-under30"))
+            document.getElementById("tc-tuoi-under30").value =
+              data.tuoiUnder30 || 0;
+          if (document.getElementById("tc-tuoi-30to45"))
+            document.getElementById("tc-tuoi-30to45").value =
+              data.tuoi30to45 || 0;
+          if (document.getElementById("tc-tuoi-46to60"))
+            document.getElementById("tc-tuoi-46to60").value =
+              data.tuoi46to60 || 0;
+          if (document.getElementById("tc-tuoi-over60"))
+            document.getElementById("tc-tuoi-over60").value =
+              data.tuoiOver60 || 0;
         } else {
-          document.getElementById("tc-so-tccs-dang").value = 0;
-          document.getElementById("tc-so-chi-bo").value = 0;
-          document.getElementById("tc-tong-dang-vien").value = 0;
-          document.getElementById("tc-dang-vien-chinh-thuc").value = 0;
-          document.getElementById("tc-dang-vien-du-bi").value = 0;
+          if (document.getElementById("tc-so-tccs-dang"))
+            document.getElementById("tc-so-tccs-dang").value = 0;
+          if (document.getElementById("tc-so-chi-bo"))
+            document.getElementById("tc-so-chi-bo").value = 0;
+          if (document.getElementById("tc-tong-dang-vien"))
+            document.getElementById("tc-tong-dang-vien").value = 0;
+          if (document.getElementById("tc-dang-vien-chinh-thuc"))
+            document.getElementById("tc-dang-vien-chinh-thuc").value = 0;
+          if (document.getElementById("tc-dang-vien-du-bi"))
+            document.getElementById("tc-dang-vien-du-bi").value = 0;
 
-          document.getElementById("tc-tuoi-under30").value = 0;
-          document.getElementById("tc-tuoi-30to45").value = 0;
-          document.getElementById("tc-tuoi-46to60").value = 0;
-          document.getElementById("tc-tuoi-over60").value = 0;
+          if (document.getElementById("tc-tuoi-under30"))
+            document.getElementById("tc-tuoi-under30").value = 0;
+          if (document.getElementById("tc-tuoi-30to45"))
+            document.getElementById("tc-tuoi-30to45").value = 0;
+          if (document.getElementById("tc-tuoi-46to60"))
+            document.getElementById("tc-tuoi-46to60").value = 0;
+          if (document.getElementById("tc-tuoi-over60"))
+            document.getElementById("tc-tuoi-over60").value = 0;
         }
       });
     });
   }
 }
 
-// 6. XỬ LÝ LƯU DỮ LIỆU - PHÂN HỆ 1: SỐ HÓA HỒ SƠ (CÓ KIỂM TRA THỜI GIAN NHẬP LIỆU)
+// =================================================================
+// 6. XỬ LÝ LƯU DỮ LIỆU - PHÂN HỆ 1: SỐ HÓA HỒ SƠ
+// =================================================================
 const formSoHoa = document.getElementById("form-sohoa");
 if (formSoHoa) {
   formSoHoa.addEventListener("submit", async (e) => {
@@ -378,12 +478,12 @@ if (formSoHoa) {
 
     const id = document.getElementById("select-dangbo-sohoa").value;
     const canSoHoa =
-      parseInt(document.getElementById("sohoa-can-so-hoa").value) || 0;
+      parseInt(document.getElementById("sohoa-can-so-hoa")?.value) || 0;
     const chinhLy =
-      parseInt(document.getElementById("sohoa-chinh-ly").value) || 0;
-    const kySo = parseInt(document.getElementById("sohoa-ky-so").value) || 0;
+      parseInt(document.getElementById("sohoa-chinh-ly")?.value) || 0;
+    const kySo = parseInt(document.getElementById("sohoa-ky-so")?.value) || 0;
     const phanMem =
-      parseInt(document.getElementById("sohoa-phan-mem").value) || 0;
+      parseInt(document.getElementById("sohoa-phan-mem")?.value) || 0;
 
     if (!id) {
       Swal.fire({
@@ -432,7 +532,9 @@ if (formSoHoa) {
   });
 }
 
+// =================================================================
 // 7. XỬ LÝ LƯU DỮ LIỆU - PHÂN HỆ 2: TỔ CHỨC ĐẢNG & ĐẢNG VIÊN
+// =================================================================
 const formTcDang = document.getElementById("form-tcdang");
 if (formTcDang) {
   formTcDang.addEventListener("submit", (e) => {
@@ -440,24 +542,24 @@ if (formTcDang) {
 
     const id = document.getElementById("select-dangbo-tcdang").value;
     const soTccsDang =
-      parseInt(document.getElementById("tc-so-tccs-dang").value) || 0;
+      parseInt(document.getElementById("tc-so-tccs-dang")?.value) || 0;
     const soChiBo =
-      parseInt(document.getElementById("tc-so-chi-bo").value) || 0;
+      parseInt(document.getElementById("tc-so-chi-bo")?.value) || 0;
     const tongDangVien =
-      parseInt(document.getElementById("tc-tong-dang-vien").value) || 0;
+      parseInt(document.getElementById("tc-tong-dang-vien")?.value) || 0;
     const dvChinhThuc =
-      parseInt(document.getElementById("tc-dang-vien-chinh-thuc").value) || 0;
+      parseInt(document.getElementById("tc-dang-vien-chinh-thuc")?.value) || 0;
     const dvDuBi =
-      parseInt(document.getElementById("tc-dang-vien-du-bi").value) || 0;
+      parseInt(document.getElementById("tc-dang-vien-du-bi")?.value) || 0;
 
     const tuoiUnder30 =
-      parseInt(document.getElementById("tc-tuoi-under30").value) || 0;
+      parseInt(document.getElementById("tc-tuoi-under30")?.value) || 0;
     const tuoi30to45 =
-      parseInt(document.getElementById("tc-tuoi-30to45").value) || 0;
+      parseInt(document.getElementById("tc-tuoi-30to45")?.value) || 0;
     const tuoi46to60 =
-      parseInt(document.getElementById("tc-tuoi-46to60").value) || 0;
+      parseInt(document.getElementById("tc-tuoi-46to60")?.value) || 0;
     const tuoiOver60 =
-      parseInt(document.getElementById("tc-tuoi-over60").value) || 0;
+      parseInt(document.getElementById("tc-tuoi-over60")?.value) || 0;
 
     if (!id) {
       Swal.fire({
@@ -530,10 +632,12 @@ if (formTcDang) {
   });
 }
 
+// =================================================================
 // 7.1 XỬ LÝ KẾT NẠP ĐẢNG VIÊN (TỰ ĐỘNG TÍNH TOÁN & LƯU FORM)
+// =================================================================
 function initKetNapEvents() {
   const formKetNap = document.getElementById("form-ketnap");
-  const selectKetNap = document.getElementById("select-dangbo-ketnap");
+  const selectKetNap = $("#select-dangbo-ketnap");
 
   function calcTyLe() {
     const chiTieu =
@@ -574,6 +678,48 @@ function initKetNapEvents() {
     if (elDn) elDn.value = dnNhaNuoc + dnNgoaiNN + nldKdc + htx;
   }
 
+  // HÀM TỰ ĐỘNG NẠP DỮ LIỆU ĐÃ CÓ VÀO FORM
+  window.loadKetNapDataToForm = function (id) {
+    if (!id) {
+      if (formKetNap) formKetNap.reset();
+      calcTyLe();
+      calcHSSV();
+      calcDN();
+      return;
+    }
+
+    dangBoRef.child(id).once("value", (snapshot) => {
+      if (snapshot.exists()) {
+        const d = snapshot.val();
+        if (document.getElementById("ketnap-chi-tieu"))
+          document.getElementById("ketnap-chi-tieu").value =
+            d.chiTieuKetNap || 0;
+        if (document.getElementById("ketnap-tong-so"))
+          document.getElementById("ketnap-tong-so").value = d.daKetNap || 0;
+        if (document.getElementById("ketnap-hoc-sinh"))
+          document.getElementById("ketnap-hoc-sinh").value = d.hocSinh || 0;
+        if (document.getElementById("ketnap-sinh-vien"))
+          document.getElementById("ketnap-sinh-vien").value = d.sinhVien || 0;
+        if (document.getElementById("ketnap-dn-nha-nuoc"))
+          document.getElementById("ketnap-dn-nha-nuoc").value =
+            d.dnNhaNuoc || 0;
+        if (document.getElementById("ketnap-dn-ngoai-nn"))
+          document.getElementById("ketnap-dn-ngoai-nn").value =
+            d.dnNgoaiNN || 0;
+        if (document.getElementById("ketnap-nld-kdc"))
+          document.getElementById("ketnap-nld-kdc").value = d.nldKdc || 0;
+        if (document.getElementById("ketnap-htx"))
+          document.getElementById("ketnap-htx").value = d.htx || 0;
+        if (document.getElementById("ketnap-dtts"))
+          document.getElementById("ketnap-dtts").value = d.dtts || 0;
+
+        calcTyLe();
+        calcHSSV();
+        calcDN();
+      }
+    });
+  };
+
   document
     .getElementById("ketnap-chi-tieu")
     ?.addEventListener("input", calcTyLe);
@@ -589,47 +735,10 @@ function initKetNapEvents() {
     el.addEventListener("input", calcDN);
   });
 
-  if (selectKetNap) {
-    selectKetNap.addEventListener("change", (e) => {
-      const id = e.target.value;
-      if (!id) {
-        if (formKetNap) formKetNap.reset();
-        calcTyLe();
-        calcHSSV();
-        calcDN();
-        return;
-      }
-
-      dangBoRef.child(id).once("value", (snapshot) => {
-        if (snapshot.exists()) {
-          const d = snapshot.val();
-          if (document.getElementById("ketnap-chi-tieu"))
-            document.getElementById("ketnap-chi-tieu").value =
-              d.chiTieuKetNap || 0;
-          if (document.getElementById("ketnap-tong-so"))
-            document.getElementById("ketnap-tong-so").value = d.daKetNap || 0;
-          if (document.getElementById("ketnap-hoc-sinh"))
-            document.getElementById("ketnap-hoc-sinh").value = d.hocSinh || 0;
-          if (document.getElementById("ketnap-sinh-vien"))
-            document.getElementById("ketnap-sinh-vien").value = d.sinhVien || 0;
-          if (document.getElementById("ketnap-dn-nha-nuoc"))
-            document.getElementById("ketnap-dn-nha-nuoc").value =
-              d.dnNhaNuoc || 0;
-          if (document.getElementById("ketnap-dn-ngoai-nn"))
-            document.getElementById("ketnap-dn-ngoai-nn").value =
-              d.dnNgoaiNN || 0;
-          if (document.getElementById("ketnap-nld-kdc"))
-            document.getElementById("ketnap-nld-kdc").value = d.nldKdc || 0;
-          if (document.getElementById("ketnap-htx"))
-            document.getElementById("ketnap-htx").value = d.htx || 0;
-          if (document.getElementById("ketnap-dtts"))
-            document.getElementById("ketnap-dtts").value = d.dtts || 0;
-
-          calcTyLe();
-          calcHSSV();
-          calcDN();
-        }
-      });
+  // ĐĂNG KÝ SỰ KIỆN BẰNG JQUERY CHO SELECT2
+  if (selectKetNap.length) {
+    selectKetNap.off("change").on("change", (e) => {
+      window.loadKetNapDataToForm(e.target.value);
     });
   }
 
@@ -637,7 +746,7 @@ function initKetNapEvents() {
     formKetNap.addEventListener("submit", (e) => {
       e.preventDefault();
 
-      const id = selectKetNap.value;
+      const id = selectKetNap.val();
       if (!id) {
         Swal.fire({
           icon: "warning",
@@ -666,6 +775,7 @@ function initKetNapEvents() {
         htx: parseInt(document.getElementById("ketnap-htx")?.value) || 0,
         tongDN: parseInt(document.getElementById("ketnap-tong-dn")?.value) || 0,
         dtts: parseInt(document.getElementById("ketnap-dtts")?.value) || 0,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP,
       };
 
       dangBoRef
@@ -702,7 +812,9 @@ document.querySelectorAll(".btn-reset-form").forEach((btn) => {
   });
 });
 
-// 8. ĐỌC REALTIME & NẠP SỐ LIỆU VÀO TẤT CẢ CÁC BẢNG (SỐ HÓA, TCĐ, KẾT NẠP)
+// =================================================================
+// 8. ĐỌC REALTIME & NẠP SỐ LIỆU VÀO TẤT CẢ CÁC BẢNG
+// =================================================================
 function loadProgressTables() {
   const tbodySoHoa = document.getElementById("table-sohoa-body");
   const tbodyTcDang = document.getElementById("table-tcdang-body");
@@ -843,76 +955,315 @@ window.editTcDang = function (
 
 window.editKetNapFull = function (id) {
   $("#select-dangbo-ketnap").val(id).trigger("change");
+
+  if (typeof window.loadKetNapDataToForm === "function") {
+    window.loadKetNapDataToForm(id);
+  }
+
   document
     .getElementById("form-ketnap")
     ?.scrollIntoView({ behavior: "smooth" });
 };
 
-// 9. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ
-const formTask = document.getElementById("form-task");
-if (formTask) {
-  formTask.addEventListener("submit", (e) => {
-    e.preventDefault();
+// =================================================================
+// 9. QUẢN LÝ DANH MỤC ĐƠN VỊ / CÁ NHÂN (TAB 2 PHÂN HỆ 3)
+// =================================================================
+function initDoiTuongEvents() {
+  const dtLoai = document.getElementById("dt-loai");
+  const dtMa = document.getElementById("dt-ma");
+  const lblMa = document.getElementById("lbl-dt-ma");
+  const lblTen = document.getElementById("lbl-dt-ten");
+  const formDoiTuong = document.getElementById("form-doi-tuong");
 
-    const taskId = document.getElementById("task-id-hidden").value;
-    const taskName = document.getElementById("task-name").value.trim();
-    const assignee = document.getElementById("task-assignee").value.trim();
-    const deadline = document.getElementById("task-deadline").value;
-    const progress =
-      parseInt(document.getElementById("task-progress").value) || 0;
-    const status = document.getElementById("task-status").value;
-    const note = document.getElementById("task-note").value.trim();
+  // Hàm sinh mã tự động có cấu trúc: DV001, DV002 hoặc CN001, CN002...
+  function generateAutoCode(loai) {
+    const prefix = loai === "Cơ quan, đơn vị" ? "DV" : "CN";
+    doiTuongRef.once("value", (snapshot) => {
+      let count = 1;
+      if (snapshot.exists()) {
+        snapshot.forEach((child) => {
+          const val = child.val();
+          if (val && val.loai === loai) {
+            count++;
+          }
+        });
+      }
+      const codeStr = prefix + String(count).padStart(3, "0");
+      const hiddenKeyEl = document.getElementById("dt-key-hidden");
+      if (dtMa && (!hiddenKeyEl || !hiddenKeyEl.value)) {
+        dtMa.value = codeStr;
+      }
+    });
+  }
 
-    if (progress < 0 || progress > 100) {
-      Swal.fire({
-        icon: "error",
-        title: "Lỗi",
-        text: "Tiến độ phải nằm trong khoảng từ 0% đến 100%!",
-      });
+  // Đổi nhãn & Sinh mã khi thay đổi loại đối tượng
+  if (dtLoai) {
+    dtLoai.addEventListener("change", (e) => {
+      const isDonVi = e.target.value === "Cơ quan, đơn vị";
+      if (lblMa)
+        lblMa.innerText = isDonVi
+          ? "Mã đơn vị (Tự động):"
+          : "Mã cá nhân (Tự động):";
+      if (lblTen)
+        lblTen.innerHTML = isDonVi
+          ? 'Tên cơ quan, đơn vị <span style="color:red;">*</span>:'
+          : 'Tên cá nhân <span style="color:red;">*</span>:';
+      generateAutoCode(e.target.value);
+    });
+    generateAutoCode(dtLoai.value);
+  }
+
+  // Submit Form Đơn vị / Cá nhân
+  if (formDoiTuong) {
+    formDoiTuong.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const hiddenKey = document.getElementById("dt-key-hidden")?.value;
+      const loai = dtLoai ? dtLoai.value : "Cơ quan, đơn vị";
+      const ma = dtMa ? dtMa.value.trim().toUpperCase() : "";
+      const ten = document.getElementById("dt-ten")?.value.trim();
+      const ghiChu = document.getElementById("dt-ghi-chu")?.value.trim();
+
+      if (!ma || !ten) {
+        Swal.fire("Lỗi", "Vui lòng nhập đầy đủ thông tin!", "warning");
+        return;
+      }
+
+      const payload = {
+        loai: loai,
+        ma: ma,
+        ten: ten,
+        ghiChu: ghiChu,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP,
+      };
+
+      if (hiddenKey) {
+        doiTuongRef
+          .child(hiddenKey)
+          .update(payload)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Cập nhật thành công!",
+              timer: 1200,
+              showConfirmButton: false,
+            });
+            resetDoiTuongForm();
+          });
+      } else {
+        doiTuongRef
+          .child(ma)
+          .set(payload)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Thêm thành công!",
+              timer: 1200,
+              showConfirmButton: false,
+            });
+            resetDoiTuongForm();
+          });
+      }
+    });
+  }
+
+  document
+    .getElementById("btn-reset-dt-form")
+    ?.addEventListener("click", resetDoiTuongForm);
+}
+
+function resetDoiTuongForm() {
+  const form = document.getElementById("form-doi-tuong");
+  if (form) form.reset();
+  const hiddenKeyEl = document.getElementById("dt-key-hidden");
+  if (hiddenKeyEl) hiddenKeyEl.value = "";
+  const dtLoai = document.getElementById("dt-loai");
+  if (dtLoai) {
+    dtLoai.dispatchEvent(new Event("change"));
+  }
+}
+
+// LẮNG NGHE LƯU TỰ ĐỘNG & NẠP DANH SÁCH ĐƠN VỊ / CÁ NHÂN VÀO BẢNG + DROPDOWN
+doiTuongRef.on(
+  "value",
+  (snapshot) => {
+    const tbody = document.getElementById("table-doi-tuong-body");
+    const selectAssignee =
+      document.getElementById("task-assignee-select") ||
+      document.getElementById("task-assignee");
+
+    if (tbody) tbody.innerHTML = "";
+    if (selectAssignee) {
+      selectAssignee.innerHTML =
+        '<option value="">-- Chọn Đơn vị / Cá nhân --</option>';
+    }
+
+    if (!snapshot.exists()) {
+      if (tbody)
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">Chưa có đơn vị, cá nhân nào trong danh mục.</td></tr>`;
       return;
     }
 
-    const taskData = {
-      name: taskName,
-      assignee: assignee,
-      deadline: deadline,
-      progress: progress,
-      status: status,
-      note: note,
-      updatedAt: firebase.database.ServerValue.TIMESTAMP,
-    };
+    let index = 1;
+    snapshot.forEach((child) => {
+      const key = child.key;
+      const d = child.val() || {};
 
-    if (taskId) {
-      tasksRef
-        .child(taskId)
-        .update(taskData)
-        .then(() => {
+      // 1. Nạp vào bảng quản lý
+      if (tbody) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="text-align: center;">${index++}</td>
+          <td style="text-align: center;"><span style="background:${d.loai === "Cơ quan, đơn vị" ? "#e0f2fe" : "#fef3c7"}; color:${d.loai === "Cơ quan, đơn vị" ? "#0369a1" : "#b45309"}; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${d.loai || "—"}</span></td>
+          <td style="text-align: center;"><code>${d.ma || key}</code></td>
+          <td><b>${d.ten || "—"}</b></td>
+          <td>${d.ghiChu || "—"}</td>
+          <td style="text-align: center;">
+            <button class="btn btn-primary" style="padding: 3px 6px; font-size: 11px; background-color: #16a34a;" onclick="editDoiTuong('${key}')">Sửa</button>
+            <button class="btn btn-danger" style="padding: 3px 6px; font-size: 11px;" onclick="deleteDoiTuong('${key}')">Xóa</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // 2. Nạp động vào Dropdown Chọn đơn vị/Cá nhân ở Tab Giao nhiệm vụ
+      if (selectAssignee) {
+        const opt = document.createElement("option");
+        opt.value = `${d.ma} - ${d.ten}`;
+        opt.textContent = `[${d.ma}] ${d.ten} (${d.loai})`;
+        selectAssignee.appendChild(opt);
+      }
+    });
+  },
+  (error) => {
+    console.error("Lỗi phân quyền Firebase tại danh_muc_doi_tuong:", error);
+  },
+);
+
+window.editDoiTuong = function (key) {
+  doiTuongRef.child(key).once("value", (snapshot) => {
+    if (snapshot.exists()) {
+      const d = snapshot.val();
+      if (document.getElementById("dt-key-hidden"))
+        document.getElementById("dt-key-hidden").value = key;
+      if (document.getElementById("dt-loai"))
+        document.getElementById("dt-loai").value = d.loai || "Cơ quan, đơn vị";
+      if (document.getElementById("dt-ma"))
+        document.getElementById("dt-ma").value = d.ma || key;
+      if (document.getElementById("dt-ten"))
+        document.getElementById("dt-ten").value = d.ten || "";
+      if (document.getElementById("dt-ghi-chu"))
+        document.getElementById("dt-ghi-chu").value = d.ghiChu || "";
+      document
+        .getElementById("form-doi-tuong")
+        ?.scrollIntoView({ behavior: "smooth" });
+    }
+  });
+};
+
+window.deleteDoiTuong = function (key) {
+  Swal.fire({
+    title: "Xác nhận xóa?",
+    text: "Xóa danh mục này có thể ảnh hưởng đến lịch sử giao nhiệm vụ!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc2626",
+    confirmButtonText: "Xóa ngay",
+    cancelButtonText: "Hủy",
+  }).then((res) => {
+    if (res.isConfirmed) {
+      doiTuongRef.child(key).remove();
+    }
+  });
+};
+
+// =================================================================
+// 10. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (TAB 1)
+// =================================================================
+function initTaskEvents() {
+  const formTask = document.getElementById("form-task");
+  if (formTask) {
+    formTask.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const taskId = document.getElementById("task-id-hidden")?.value;
+      const taskName = document.getElementById("task-name")?.value.trim();
+      const assigneeSelect =
+        document.getElementById("task-assignee-select") ||
+        document.getElementById("task-assignee");
+      const assignee = assigneeSelect ? assigneeSelect.value.trim() : "";
+      const startDate = document.getElementById("task-start-date")?.value || "";
+      const deadline = document.getElementById("task-deadline")?.value || "";
+      const product =
+        document.getElementById("task-product")?.value.trim() || "";
+      const progress =
+        parseInt(document.getElementById("task-progress")?.value) || 0;
+      const status =
+        document.getElementById("task-status")?.value || "Đang thực hiện";
+      const note = document.getElementById("task-note")?.value.trim() || "";
+
+      if (!assignee) {
+        Swal.fire(
+          "Chưa chọn chủ trì",
+          "Vui lòng chọn Đơn vị / Cá nhân chủ trì!",
+          "warning",
+        );
+        return;
+      }
+
+      if (progress < 0 || progress > 100) {
+        Swal.fire({
+          icon: "error",
+          title: "Lỗi",
+          text: "Tiến độ phải nằm trong khoảng từ 0% đến 100%!",
+        });
+        return;
+      }
+
+      const taskData = {
+        name: taskName,
+        assignee: assignee,
+        startDate: startDate,
+        deadline: deadline,
+        product: product,
+        progress: progress,
+        status: status,
+        note: note,
+        updatedAt: firebase.database.ServerValue.TIMESTAMP,
+      };
+
+      if (taskId) {
+        tasksRef
+          .child(taskId)
+          .update(taskData)
+          .then(() => {
+            Swal.fire({
+              icon: "success",
+              title: "Thành công",
+              text: "Đã cập nhật nhiệm vụ!",
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            resetTaskForm();
+          });
+      } else {
+        tasksRef.push(taskData).then(() => {
           Swal.fire({
             icon: "success",
             title: "Thành công",
-            text: "Đã cập nhật nhiệm vụ!",
+            text: "Đã thêm nhiệm vụ mới!",
             timer: 1500,
             showConfirmButton: false,
           });
           resetTaskForm();
         });
-    } else {
-      tasksRef.push(taskData).then(() => {
-        Swal.fire({
-          icon: "success",
-          title: "Thành công",
-          text: "Đã thêm nhiệm vụ mới!",
-          timer: 1500,
-          showConfirmButton: false,
-        });
-        resetTaskForm();
-      });
-    }
-  });
-}
+      }
+    });
+  }
 
-const btnResetTask = document.querySelector(".btn-reset-task-form");
-if (btnResetTask) btnResetTask.addEventListener("click", resetTaskForm);
+  const btnResetTask = document.querySelector(".btn-reset-task-form");
+  if (btnResetTask) btnResetTask.addEventListener("click", resetTaskForm);
+}
 
 function resetTaskForm() {
   const form = document.getElementById("form-task");
@@ -921,14 +1272,14 @@ function resetTaskForm() {
   if (hiddenInput) hiddenInput.value = "";
 }
 
-// 9. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (CẬP NHẬT TÍNH NGÀY & ĐỔI MÀU)
+// LẮNG NGHE REALTIME BẢNG DANH SÁCH NHIỆM VỤ (TÍNH NGÀY CÒN LẠI & MÀU TRẠNG THÁI)
 tasksRef.on("value", (snapshot) => {
   const tbody = document.getElementById("table-task-body");
   if (!tbody) return;
   tbody.innerHTML = "";
 
   if (!snapshot.exists()) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">Chưa có nhiệm vụ nào được tạo.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">Chưa có nhiệm vụ nào được tạo.</td></tr>`;
     return;
   }
 
@@ -977,9 +1328,11 @@ tasksRef.on("value", (snapshot) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td style="text-align: center">${index++}</td>
-      <td><b>${task.name}</b></td>
-      <td>${task.assignee}</td>
+      <td><b>${task.name || "—"}</b></td>
+      <td><i class="fa-solid fa-user-check" style="color:#0284c7;"></i> ${task.assignee || "—"}</td>
+      <td style="text-align: center">${task.startDate || "—"}</td>
       <td style="text-align: center">${task.deadline || "—"}</td>
+      <td>${task.product || "—"}</td>
       <td style="text-align: center; font-weight: bold; color: ${badgeColor}">${task.progress || 0}%</td>
       <td style="text-align: center">
         <span style="background:${badgeColor}; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block;">
@@ -1000,20 +1353,38 @@ window.editTask = function (key) {
   tasksRef.child(key).once("value", (snapshot) => {
     if (snapshot.exists()) {
       const task = snapshot.val();
-      document.getElementById("task-id-hidden").value = key;
-      document.getElementById("task-name").value = task.name || "";
-      document.getElementById("task-assignee").value = task.assignee || "";
-      document.getElementById("task-deadline").value = task.deadline || "";
-      document.getElementById("task-progress").value = task.progress || 0;
-      document.getElementById("task-status").value =
-        task.status || "Đang thực hiện";
-      document.getElementById("task-note").value = task.note || "";
+      if (document.getElementById("task-id-hidden"))
+        document.getElementById("task-id-hidden").value = key;
+      if (document.getElementById("task-name"))
+        document.getElementById("task-name").value = task.name || "";
+
+      const assigneeSelect =
+        document.getElementById("task-assignee-select") ||
+        document.getElementById("task-assignee");
+      if (assigneeSelect) assigneeSelect.value = task.assignee || "";
+
+      if (document.getElementById("task-start-date"))
+        document.getElementById("task-start-date").value = task.startDate || "";
+      if (document.getElementById("task-deadline"))
+        document.getElementById("task-deadline").value = task.deadline || "";
+      if (document.getElementById("task-product"))
+        document.getElementById("task-product").value = task.product || "";
+      if (document.getElementById("task-progress"))
+        document.getElementById("task-progress").value = task.progress || 0;
+      if (document.getElementById("task-status"))
+        document.getElementById("task-status").value =
+          task.status || "Đang thực hiện";
+      if (document.getElementById("task-note"))
+        document.getElementById("task-note").value = task.note || "";
+
       document
         .getElementById("form-task")
         ?.scrollIntoView({ behavior: "smooth" });
     }
   });
 };
+
+window.editTaskNew = window.editTask; // Đồng bộ alias hàm sửa cũ và mới
 
 window.deleteTask = function (key) {
   Swal.fire({
@@ -1031,7 +1402,9 @@ window.deleteTask = function (key) {
   });
 };
 
-// 10. PHÂN HỆ QUẢN LÝ DANH SÁCH ĐẢNG BỘ (THÊM, SỬA, XÓA)
+// =================================================================
+// 11. PHÂN HỆ QUẢN LÝ DANH SÁCH ĐẢNG BỘ (THÊM, SỬA, XÓA)
+// =================================================================
 dangBoRef.on("value", (snapshot) => {
   const tbody = document.getElementById("table-manage-dangbo-body");
   if (!tbody) return;
@@ -1067,15 +1440,17 @@ if (formManageDangBo) {
   formManageDangBo.addEventListener("submit", (e) => {
     e.preventDefault();
 
-    const hiddenKey = document.getElementById("manage-dangbo-key-hidden").value;
+    const hiddenKey = document.getElementById(
+      "manage-dangbo-key-hidden",
+    )?.value;
     const keyInput = document
       .getElementById("manage-dangbo-key")
-      .value.trim()
+      ?.value.trim()
       .toLowerCase()
       .replace(/\s+/g, "_");
     const nameInput = document
       .getElementById("manage-dangbo-name")
-      .value.trim();
+      ?.value.trim();
 
     if (!keyInput || !nameInput) {
       Swal.fire({
@@ -1144,10 +1519,14 @@ function resetManageDangBoForm() {
 }
 
 window.editManageDangBo = function (key, ten) {
-  document.getElementById("manage-dangbo-key-hidden").value = key;
-  document.getElementById("manage-dangbo-key").value = key;
-  document.getElementById("manage-dangbo-key").disabled = true;
-  document.getElementById("manage-dangbo-name").value = ten;
+  if (document.getElementById("manage-dangbo-key-hidden"))
+    document.getElementById("manage-dangbo-key-hidden").value = key;
+  if (document.getElementById("manage-dangbo-key")) {
+    document.getElementById("manage-dangbo-key").value = key;
+    document.getElementById("manage-dangbo-key").disabled = true;
+  }
+  if (document.getElementById("manage-dangbo-name"))
+    document.getElementById("manage-dangbo-name").value = ten;
   document
     .getElementById("form-manage-dangbo")
     ?.scrollIntoView({ behavior: "smooth" });
@@ -1181,7 +1560,9 @@ window.deleteManageDangBo = function (key, ten) {
   });
 };
 
-// 11. XỬ LÝ IMPORT / EXCEL CHO ĐẢNG BỘ VÀ KẾT NẠP
+// =================================================================
+// 12. XỬ LÝ IMPORT / EXCEL CHO ĐẢNG BỘ VÀ KẾT NẠP
+// =================================================================
 function initExcelImportExport() {
   const btnExportDangBo = document.getElementById("btn-export-dangbo-excel");
   if (btnExportDangBo) {
@@ -1260,6 +1641,7 @@ function initExcelImportExport() {
               nldKdc: parseNum(row[13]),
               htx: parseNum(row[14]),
               dtts: parseNum(row[15]),
+              updatedAt: firebase.database.ServerValue.TIMESTAMP,
             };
 
             const p = dangBoRef
@@ -1294,8 +1676,9 @@ function initExcelImportExport() {
   }
 }
 
-// 12. LẮNG NGHE & CẤU HÌNH THỜI GIAN NHẬP LIỆU SỐ HÓA
-// 12. LẮNG NGHE & CẤU HÌNH THỜI GIAN NHẬP LIỆU SỐ HÓA
+// =================================================================
+// 13. LẮNG NGHE & CẤU HÌNH THỜI GIAN NHẬP LIỆU SỐ HÓA
+// =================================================================
 function initTimeConfigEvents() {
   configRef.on("value", (snapshot) => {
     const statusDiv = document.getElementById("time-config-status");
@@ -1344,7 +1727,7 @@ function initTimeConfigEvents() {
         statusDiv.innerHTML = `<span style="color: #dc2626;"><i class="fa-solid fa-lock"></i> Hệ thống ĐÃ KHÓA nhập liệu. Khung giờ cho phép: từ <b>${startStr}</b> đến <b>${endStr}</b>.</span>`;
     }
 
-    // 2. Cập nhật thanh thông báo cho Cán bộ Nhập liệu (Đảng bộ)
+    // 2. Cập nhật thanh thông báo cho Cán bộ Nhập liệu
     if (userNoticeDiv) {
       userNoticeDiv.style.display = "block";
       if (isOpening) {
