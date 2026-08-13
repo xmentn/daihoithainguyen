@@ -966,8 +966,40 @@ window.editKetNapFull = function (id) {
 };
 
 // =================================================================
-// 9. QUẢN LÝ DANH MỤC ĐƠN VỊ / CÁ NHÂN (TAB 2 PHÂN HỆ 3)
+// 9. QUẢN LÝ DANH MỤC ĐƠN VỊ / CÁ NHÂN & BỘ LỌC DROPDOWN
 // =================================================================
+let doiTuongListCache = []; // Mảng lưu toàn bộ danh mục đối tượng
+
+// 9.1 Hàm render lại Dropdown chọn chủ trì theo radio filter (Tất cả / Đơn vị / Cá nhân)
+window.renderAssigneeDropdown = function () {
+  const selectAssignee =
+    document.getElementById("task-assignee-select") ||
+    document.getElementById("task-assignee");
+  if (!selectAssignee) return;
+
+  const selectedVal = selectAssignee.value;
+  const filterType =
+    document.querySelector('input[name="filter-assignee-type"]:checked')
+      ?.value || "ALL";
+
+  selectAssignee.innerHTML =
+    '<option value="">-- Chọn Đơn vị / Cá nhân --</option>';
+
+  doiTuongListCache.forEach((d) => {
+    if (filterType === "ALL" || d.loai === filterType) {
+      const opt = document.createElement("option");
+      opt.value = `[${d.ma}] ${d.ten}`;
+      opt.textContent = `[${d.ma}] ${d.ten} (${d.loai})`;
+      selectAssignee.appendChild(opt);
+    }
+  });
+
+  if (selectedVal) {
+    selectAssignee.value = selectedVal;
+  }
+};
+
+// 9.2 Khởi tạo sự kiện Form Đơn vị / Cá nhân (Thêm mới, Sinh mã tự động, Reset)
 function initDoiTuongEvents() {
   const dtLoai = document.getElementById("dt-loai");
   const dtMa = document.getElementById("dt-ma");
@@ -975,7 +1007,6 @@ function initDoiTuongEvents() {
   const lblTen = document.getElementById("lbl-dt-ten");
   const formDoiTuong = document.getElementById("form-doi-tuong");
 
-  // Hàm sinh mã tự động có cấu trúc: DV001, DV002 hoặc CN001, CN002...
   function generateAutoCode(loai) {
     const prefix = loai === "Cơ quan, đơn vị" ? "DV" : "CN";
     doiTuongRef.once("value", (snapshot) => {
@@ -996,7 +1027,6 @@ function initDoiTuongEvents() {
     });
   }
 
-  // Đổi nhãn & Sinh mã khi thay đổi loại đối tượng
   if (dtLoai) {
     dtLoai.addEventListener("change", (e) => {
       const isDonVi = e.target.value === "Cơ quan, đơn vị";
@@ -1013,7 +1043,6 @@ function initDoiTuongEvents() {
     generateAutoCode(dtLoai.value);
   }
 
-  // Submit Form Đơn vị / Cá nhân
   if (formDoiTuong) {
     formDoiTuong.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -1083,24 +1112,19 @@ function resetDoiTuongForm() {
   }
 }
 
-// LẮNG NGHE LƯU TỰ ĐỘNG & NẠP DANH SÁCH ĐƠN VỊ / CÁ NHÂN VÀO BẢNG + DROPDOWN
+// 9.3 Lắng nghe Realtime Danh mục Đơn vị / Cá nhân
 doiTuongRef.on(
   "value",
   (snapshot) => {
     const tbody = document.getElementById("table-doi-tuong-body");
-    const selectAssignee =
-      document.getElementById("task-assignee-select") ||
-      document.getElementById("task-assignee");
-
     if (tbody) tbody.innerHTML = "";
-    if (selectAssignee) {
-      selectAssignee.innerHTML =
-        '<option value="">-- Chọn Đơn vị / Cá nhân --</option>';
-    }
+
+    doiTuongListCache = [];
 
     if (!snapshot.exists()) {
       if (tbody)
         tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">Chưa có đơn vị, cá nhân nào trong danh mục.</td></tr>`;
+      renderAssigneeDropdown();
       return;
     }
 
@@ -1108,8 +1132,9 @@ doiTuongRef.on(
     snapshot.forEach((child) => {
       const key = child.key;
       const d = child.val() || {};
+      d.key = key;
+      doiTuongListCache.push(d);
 
-      // 1. Nạp vào bảng quản lý
       if (tbody) {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -1125,21 +1150,16 @@ doiTuongRef.on(
         `;
         tbody.appendChild(tr);
       }
-
-      // 2. Nạp động vào Dropdown Chọn đơn vị/Cá nhân ở Tab Giao nhiệm vụ
-      if (selectAssignee) {
-        const opt = document.createElement("option");
-        opt.value = `${d.ma} - ${d.ten}`;
-        opt.textContent = `[${d.ma}] ${d.ten} (${d.loai})`;
-        selectAssignee.appendChild(opt);
-      }
     });
+
+    renderAssigneeDropdown();
   },
   (error) => {
-    console.error("Lỗi phân quyền Firebase tại danh_muc_doi_tuong:", error);
+    console.error("Lỗi đọc danh_muc_doi_tuong:", error);
   },
 );
 
+// 9.4 Sự kiện Sửa / Xóa Danh mục Đơn vị / Cá nhân
 window.editDoiTuong = function (key) {
   doiTuongRef.child(key).once("value", (snapshot) => {
     if (snapshot.exists()) {
@@ -1177,8 +1197,15 @@ window.deleteDoiTuong = function (key) {
   });
 };
 
+// 9.5 Gán sự kiện thay đổi Radio Filter
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.name === "filter-assignee-type") {
+    renderAssigneeDropdown();
+  }
+});
+
 // =================================================================
-// 10. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (TAB 1)
+// 10. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (CÓ NGUỒN/CĂN CỨ & XÓA)
 // =================================================================
 function initTaskEvents() {
   const formTask = document.getElementById("form-task");
@@ -1194,6 +1221,7 @@ function initTaskEvents() {
       const assignee = assigneeSelect ? assigneeSelect.value.trim() : "";
       const startDate = document.getElementById("task-start-date")?.value || "";
       const deadline = document.getElementById("task-deadline")?.value || "";
+      const source = document.getElementById("task-source")?.value.trim() || "";
       const product =
         document.getElementById("task-product")?.value.trim() || "";
       const progress =
@@ -1225,6 +1253,7 @@ function initTaskEvents() {
         assignee: assignee,
         startDate: startDate,
         deadline: deadline,
+        source: source,
         product: product,
         progress: progress,
         status: status,
@@ -1268,74 +1297,82 @@ function initTaskEvents() {
 function resetTaskForm() {
   const form = document.getElementById("form-task");
   if (form) form.reset();
+
   const hiddenInput = document.getElementById("task-id-hidden");
   if (hiddenInput) hiddenInput.value = "";
+
+  const defaultRadio = document.querySelector(
+    'input[name="filter-assignee-type"][value="ALL"]',
+  );
+  if (defaultRadio) {
+    defaultRadio.checked = true;
+    renderAssigneeDropdown();
+  }
 }
 
-// LẮNG NGHE REALTIME BẢNG DANH SÁCH NHIỆM VỤ (TÍNH NGÀY CÒN LẠI & MÀU TRẠNG THÁI)
 tasksRef.on("value", (snapshot) => {
   const tbody = document.getElementById("table-task-body");
   if (!tbody) return;
   tbody.innerHTML = "";
 
   if (!snapshot.exists()) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">Chưa có nhiệm vụ nào được tạo.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; color:#94a3b8;">Chưa có nhiệm vụ nào được tạo.</td></tr>`;
     return;
   }
 
   let index = 1;
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Đưa về mốc 0h00 để so sánh chuẩn ngày
+  today.setHours(0, 0, 0, 0);
 
   snapshot.forEach((child) => {
     const key = child.key;
     const task = child.val();
 
     let statusText = task.status || "Đang thực hiện";
-    let badgeColor = "#0284c7"; // Mặc định xanh dương
+    let badgeColor = "#0284c7";
 
     if (task.status === "Đã hoàn thành") {
-      badgeColor = "#16a34a"; // Xanh lá
+      badgeColor = "#16a34a";
       statusText = "Đã hoàn thành";
     } else if (task.status === "Chậm tiến độ") {
-      badgeColor = "#dc2626"; // Đỏ
+      badgeColor = "#dc2626";
       statusText = "Chậm tiến độ";
     } else {
-      // Logic tính số ngày còn lại đối với nhiệm vụ "Đang thực hiện"
       if (task.deadline) {
         const deadlineDate = new Date(task.deadline);
         deadlineDate.setHours(0, 0, 0, 0);
-
-        const diffTime = deadlineDate.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = Math.ceil(
+          (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+        );
 
         if (diffDays < 0) {
-          badgeColor = "#dc2626"; // Đỏ (Đã quá hạn)
+          badgeColor = "#dc2626";
           statusText = `Quá hạn ${Math.abs(diffDays)} ngày`;
         } else if (diffDays < 3) {
-          badgeColor = "#ea580c"; // Cam (< 3 ngày)
+          badgeColor = "#ea580c";
           statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
         } else if (diffDays <= 7) {
-          badgeColor = "#ca8a04"; // Vàng (3 - 7 ngày)
+          badgeColor = "#ca8a04";
           statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
         } else {
-          badgeColor = "#0284c7"; // Xanh dương (> 7 ngày)
+          badgeColor = "#0284c7";
           statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
         }
       }
     }
-
+    const cleanAssignee = (task.assignee || "—").replace(/^\[[^\]]+\]\s*/, "");
     const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td style="text-align: center">${index++}</td>
-      <td><b>${task.name || "—"}</b></td>
-      <td><i class="fa-solid fa-user-check" style="color:#0284c7;"></i> ${task.assignee || "—"}</td>
+<td style="text-align: center">${index++}</td>
+  <td><b>${task.name || "—"}</b></td>
+  <td><i class="fa-solid fa-user-check" style="color:#0284c7;"></i> ${cleanAssignee}</td>
       <td style="text-align: center">${task.startDate || "—"}</td>
       <td style="text-align: center">${task.deadline || "—"}</td>
+      <td><span style="color:#475569; font-style:italic;">${task.source || "—"}</span></td>
       <td>${task.product || "—"}</td>
       <td style="text-align: center; font-weight: bold; color: ${badgeColor}">${task.progress || 0}%</td>
       <td style="text-align: center">
-        <span style="background:${badgeColor}; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block;">
+        <span style="background:${badgeColor}; color:#fff; padding:3px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-block;">
           ${statusText}
         </span>
       </td>
@@ -1358,6 +1395,14 @@ window.editTask = function (key) {
       if (document.getElementById("task-name"))
         document.getElementById("task-name").value = task.name || "";
 
+      const defaultRadio = document.querySelector(
+        'input[name="filter-assignee-type"][value="ALL"]',
+      );
+      if (defaultRadio) {
+        defaultRadio.checked = true;
+        renderAssigneeDropdown();
+      }
+
       const assigneeSelect =
         document.getElementById("task-assignee-select") ||
         document.getElementById("task-assignee");
@@ -1367,6 +1412,8 @@ window.editTask = function (key) {
         document.getElementById("task-start-date").value = task.startDate || "";
       if (document.getElementById("task-deadline"))
         document.getElementById("task-deadline").value = task.deadline || "";
+      if (document.getElementById("task-source"))
+        document.getElementById("task-source").value = task.source || "";
       if (document.getElementById("task-product"))
         document.getElementById("task-product").value = task.product || "";
       if (document.getElementById("task-progress"))
@@ -1383,8 +1430,6 @@ window.editTask = function (key) {
     }
   });
 };
-
-window.editTaskNew = window.editTask; // Đồng bộ alias hàm sửa cũ và mới
 
 window.deleteTask = function (key) {
   Swal.fire({

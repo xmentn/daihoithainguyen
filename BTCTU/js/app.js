@@ -10,8 +10,11 @@ let map;
 let geojsonLayer;
 let fullDataList = []; // Chứa toàn bộ bản ghi dữ liệu phục vụ bộ lọc/sắp xếp
 let globalAgeData = [0, 0, 0, 0]; // Biến toàn cục lưu dữ liệu độ tuổi hiện tại
+let homeTasksCache = []; // Mảng toàn cục lưu danh sách nhiệm vụ nội bộ
 
+// =================================================================
 // 1. KHỞI TẠO TẤT CẢ CÁC SỰ KIỆN KHI TRANG TẢI XONG
+// =================================================================
 document.addEventListener("DOMContentLoaded", () => {
   initMap();
   loadDangBoList();
@@ -44,11 +47,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Lắng nghe sự kiện tìm kiếm trên bảng
+  // Lắng nghe sự kiện tìm kiếm trên bảng Số hóa
   const tableSearch = document.getElementById("table-search");
   if (tableSearch) {
     tableSearch.addEventListener("input", (e) => {
       renderTable(e.target.value);
+    });
+  }
+
+  // MỚI: Lắng nghe sự kiện tìm kiếm trên bảng Nhiệm vụ nội bộ
+  const taskSearch =
+    document.getElementById("public-task-search") ||
+    document.getElementById("task-search");
+  if (taskSearch) {
+    taskSearch.addEventListener("input", () => {
+      renderTasksTable();
     });
   }
 });
@@ -191,7 +204,7 @@ function initLogoutEvents() {
   }
 }
 
-// 2. KHỞI TẠO BẢN ĐỒ NỀN LEAFLET (SỬA LỖI CHIỀU CAO & KÉO THẢ)
+// 2. KHỞI TẠO BẢN ĐỒ NỀN LEAFLET
 function initMap() {
   const mapElement = document.getElementById("map");
   if (!mapElement) return;
@@ -214,7 +227,6 @@ function initMap() {
         onEachFeature: onEachFeatureMap,
       }).addTo(map);
 
-      // Căn vừa vặn khung bản đồ với padding rộng rãi hơn
       const bounds = geojsonLayer.getBounds();
       map.fitBounds(bounds, { padding: [20, 20] });
     })
@@ -237,29 +249,23 @@ function onEachFeatureMap(feature, layer) {
   }
 }
 
-// Biến lưu trữ snapshot số liệu gần nhất từ Firebase
 let currentSoHoaSnapshot = null;
 
-// HÀM TÔ MÀU BẢN ĐỒ DỰA TRÊN TỶ LỆ HOÀN THÀNH SỐ HÓA (ĐÃ BỔ SUNG CHỌN CÔNG ĐOẠN)
 function updateMapWithSoHoaData(snapshot) {
   if (!snapshot || !snapshot.exists()) return;
-
-  // Lưu lại snapshot dữ liệu realtime từ Firebase
   currentSoHoaSnapshot = snapshot;
   renderMapBySelectedStep();
 }
 
-// HÀM HỖ TRỢ LÀM SẠCH VÀ CHUẨN HÓA TÊN ĐƠN VỊ ĐỂ ĐỐI SÁNH MATCHING CHÍNH XÁC
 function cleanUnitName(str) {
   if (!str) return "";
   return str
     .toString()
     .toLowerCase()
-    .replace(/^(phường|xã|thị trấn|đảng bộ|đảng ủy)\s+/g, "") // Xóa tiền tố hành chính ở đầu chuỗi
+    .replace(/^(phường|xã|thị trấn|đảng bộ|đảng ủy)\s+/g, "")
     .trim();
 }
 
-// HÀM TÍNH TỶ LỆ VÀ ĐỔI MÀU BẢN ĐỒ THEO CÔNG ĐOẠN ĐƯỢC CHỌN (ĐÃ ĐỒNG BỘ TÊN ĐƠN VỊ)
 window.renderMapBySelectedStep = function () {
   if (!currentSoHoaSnapshot || !geojsonLayer) return;
 
@@ -270,7 +276,6 @@ window.renderMapBySelectedStep = function () {
   if (selectedStepField === "daChinhLy") stepLabel = "Đã chuẩn hóa";
   else if (selectedStepField === "daKySo") stepLabel = "Đã ký số";
 
-  // Map lưu trữ theo tên đơn vị đã làm sạch
   const ratioMapByName = {};
 
   currentSoHoaSnapshot.forEach((childSnapshot) => {
@@ -281,7 +286,6 @@ window.renderMapBySelectedStep = function () {
     const countByStep = Number(data[selectedStepField] || 0);
     const ratio = canSoHoa > 0 ? (countByStep / canSoHoa) * 100 : 0;
 
-    // Lưu dữ liệu theo cả Key ID và Tên đã chuẩn hóa (bỏ chữ Phường/Xã)
     ratioMapByName[key] = ratio;
     if (data.ten) {
       const cleanName = cleanUnitName(data.ten);
@@ -289,17 +293,12 @@ window.renderMapBySelectedStep = function () {
     }
   });
 
-  // Tô màu lại từng xã trên Leaflet
   geojsonLayer.eachLayer((layer) => {
     if (!layer.feature || !layer.feature.properties) return;
 
     const properties = layer.feature.properties;
-
-    // Lấy tên từ GeoJSON và làm sạch (VD: "Gia Sàng")
     const rawGeoName = properties.ten_xa || properties.ten || "";
     const cleanGeoName = cleanUnitName(rawGeoName);
-
-    // Thử tìm theo Key ID trước, nếu không thấy thì khớp theo Tên đã chuẩn hóa
     const unitKey = properties.id || properties.ma_xa || properties.key;
 
     let ratio = 0;
@@ -345,7 +344,7 @@ function loadDangBoList() {
   });
 }
 
-// 4. ĐỌC DỮ LIỆU TỪ FIREBASE & CẬP NHẬT DASHBOARD (ĐÃ BỌC BẢO VỆ CHỐNG SẬP DỮ LIỆU)
+// 4. ĐỌC DỮ LIỆU TỪ FIREBASE & CẬP NHẬT DASHBOARD
 function fetchStatistics(selectedKey = "ALL") {
   dangBoRef.on("value", (snapshot) => {
     try {
@@ -567,7 +566,6 @@ function updateDashboard(canSoHoa, chinhLy, kySo, phanMem) {
     );
 }
 
-// CẬP NHẬT 3 THẺ SỐ LIỆU PHÂN HỆ TỔ CHỨC ĐẢNG
 function updateTcDangDashboard(soTccs, soChiBo, tongDv, dvChinhThuc, dvDuBi) {
   const elTccs = document.getElementById("val-tc-tccs");
   const elChiBo = document.getElementById("val-tc-chibo");
@@ -674,7 +672,7 @@ function renderLineChart() {
   });
 }
 
-// 7. XỬ LÝ BẢNG THỐNG KÊ CHI TIẾT SỐ HÓA (ĐÃ BỌC AN TOÀN CHỐNG LỖI TOLOWERCASE)
+// 7. XỬ LÝ BẢNG THỐNG KÊ CHI TIẾT SỐ HÓA
 function renderTable(searchTerm = "") {
   const tbody = document.getElementById("main-report-tbody");
   if (!tbody) return;
@@ -682,7 +680,6 @@ function renderTable(searchTerm = "") {
 
   const safeSearch = (searchTerm || "").toString().toLowerCase();
 
-  // Bọc kiểm tra an toàn item.ten tránh crash trang web khi dữ liệu thiếu field ten
   const filtered = fullDataList.filter((item) => {
     const unitName = (item.ten || item.key || "").toString().toLowerCase();
     return unitName.includes(safeSearch);
@@ -762,18 +759,16 @@ function renderTable(searchTerm = "") {
       totPhanMemPct + "%";
 }
 
-// 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC (ĐÃ BỔ SUNG CHỌN GIAI ĐOẠN)
+// 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC
 function renderRankings() {
   const topListContainer = document.getElementById("rank-top-list");
   const lowListContainer = document.getElementById("rank-low-list");
 
   if (!topListContainer || !lowListContainer) return;
 
-  // Lấy giá trị công đoạn đang được chọn từ Dropdown (Mặc định: daCapNhat)
   const stepSelect = document.getElementById("rank-step-select");
   const selectedStepField = stepSelect ? stepSelect.value : "daCapNhat";
 
-  // Tính tỷ lệ % theo đúng công đoạn được chọn
   const sortedList = fullDataList.map((item) => {
     const total = item.tongHoSo || 0;
     const countByStep = Number(item[selectedStepField] || 0);
@@ -781,7 +776,6 @@ function renderRankings() {
     return { ...item, percent: percent };
   });
 
-  // Sắp xếp giảm dần (Top dẫn đầu) và tăng dần (Top đôn đốc)
   const sortedTop = [...sortedList]
     .sort((a, b) => b.percent - a.percent)
     .slice(0, 5);
@@ -790,7 +784,6 @@ function renderRankings() {
     .sort((a, b) => a.percent - b.percent)
     .slice(0, 5);
 
-  // Render Top 5 Dẫn đầu
   topListContainer.innerHTML = "";
   sortedTop.forEach((item, index) => {
     const div = document.createElement("div");
@@ -805,7 +798,6 @@ function renderRankings() {
     topListContainer.appendChild(div);
   });
 
-  // Render Top 5 Cần đôn đốc
   lowListContainer.innerHTML = "";
   sortedLow.forEach((item, index) => {
     const div = document.createElement("div");
@@ -945,7 +937,6 @@ function renderTcDangVienCharts(ageData = [0, 0, 0, 0]) {
 }
 
 // 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN
-// 10. TÍNH TOÁN VÀ RENDER DASHBOARD KẾT NẠP ĐẢNG VIÊN
 function renderKetNapDashboard(snapshot) {
   if (!snapshot || !snapshot.exists()) return;
 
@@ -963,7 +954,7 @@ function renderKetNapDashboard(snapshot) {
   }
 
   let provinceTotalDV = 0;
-  let maxTimestamp = 0; // Biến tìm ngày cập nhật mới nhất
+  let maxTimestamp = 0;
 
   let sumChiTieu = 0,
     sumDaKetNap = 0;
@@ -1023,7 +1014,6 @@ function renderKetNapDashboard(snapshot) {
       sumDtts += dtts;
       sumTonGiao += tonGiao;
 
-      // Tìm mốc thời gian cập nhật lớn nhất (mới nhất)
       if (d.updatedAt) {
         const ts =
           typeof d.updatedAt === "number"
@@ -1065,7 +1055,6 @@ function renderKetNapDashboard(snapshot) {
     }
   });
 
-  // TỰ ĐỘNG CẬP NHẬT NGÀY LÊN DASHBOARD
   if (maxTimestamp > 0) {
     const dateObj = new Date(maxTimestamp);
     const day = String(dateObj.getDate()).padStart(2, "0");
@@ -1125,7 +1114,6 @@ function renderKetNapDashboard(snapshot) {
         ? ((sumTongDN / sumDaKetNap) * 100).toFixed(2)
         : "0.00") + "% số đã kết nạp";
 
-  // CẬP NHẬT: Cộng tổng 3 nhóm (DN ngoài NN + NLĐ tại KDC + Các HTX)
   const sumGroupNgoaiNN = sumDnNgoaiNN + sumNldKdc + sumHtx;
   if (document.getElementById("kn-text-sub-dn"))
     document.getElementById("kn-text-sub-dn").textContent =
@@ -1135,7 +1123,7 @@ function renderKetNapDashboard(snapshot) {
     document.getElementById("kn-val-dtts").textContent =
       sumDtts.toLocaleString();
   if (document.getElementById("kn-pct-dtts"))
-    document.getElementById("kn-pct-dtts").textContent =
+    document.getElementById("pct-dtts").textContent =
       (sumDaKetNap > 0 ? ((sumDtts / sumDaKetNap) * 100).toFixed(2) : "0.00") +
       "% số đã kết nạp";
 
@@ -1175,162 +1163,215 @@ function renderKnDoughnutChart(daKetNap, conLai) {
   });
 }
 
-// 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ VÀ RENDER TRẠNG THÁI 2 DÒNG + TỰ ĐỘNG ĐỔI MÀU TRUẨN
+// =================================================================
+// 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ VÀ RENDER ĐẦY ĐỦ CÁC TRƯỜNG TRÊN TRANG CHỦ
+// =================================================================
 function fetchTasksData() {
   tasksRefHome.on("value", (snapshot) => {
-    const tbody = document.getElementById("task-report-tbody");
-    const thAction = document.getElementById("th-task-action");
-    if (!tbody) return;
-
-    tbody.innerHTML = "";
-
-    const canEditStatus =
-      homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
-    if (thAction) {
-      thAction.style.display = canEditStatus ? "table-cell" : "none";
-    }
-
-    let total = 0,
-      done = 0,
-      doing = 0,
-      late = 0;
+    homeTasksCache = [];
 
     if (!snapshot.exists()) {
-      const colSpan = canEditStatus ? 8 : 7;
-      tbody.innerHTML = `<tr><td colspan="${colSpan}" style="text-align:center; padding: 20px; color:#94a3b8;">Chưa có dữ liệu nhiệm vụ nội bộ.</td></tr>`;
-      updateTaskMetrics(0, 0, 0, 0);
+      renderTasksTable();
       return;
     }
-
-    let index = 1;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
     snapshot.forEach((child) => {
       const taskId = child.key;
       const task = child.val() || {};
-      total++;
-
-      // 1. Tính số ngày còn lại / quá hạn từ deadline
-      let diffDays = null;
-      if (task.deadline) {
-        const deadlineDate = new Date(task.deadline);
-        deadlineDate.setHours(0, 0, 0, 0);
-        const diffTime = deadlineDate.getTime() - today.getTime();
-        diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      }
-
-      // 2. Xác định màu sắc, biểu tượng và dòng chữ nhỏ hiển thị bên dưới
-      let badgeColor = "#0284c7"; // Mặc định xanh dương
-      let iconClass = "fa-spinner";
-      let timeNoticeHtml = ""; // Chuỗi hiển thị ở dòng thứ 2
-
-      if (task.status === "Đã hoàn thành") {
-        done++;
-        badgeColor = "#16a34a"; // XANH LÁ
-        iconClass = "fa-check";
-        timeNoticeHtml = `<div style="font-size: 11px; color: #16a34a; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i> Đã hoàn thành</div>`;
-      } else if (task.status === "Chậm tiến độ") {
-        late++;
-        badgeColor = "#dc2626"; // ĐỎ HẲN
-        iconClass = "fa-triangle-exclamation";
-        if (diffDays !== null && diffDays < 0) {
-          timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
-        } else {
-          timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-triangle-exclamation"></i> Cần đôn đốc</div>`;
-        }
-      } else {
-        // Trạng thái "Đang thực hiện"
-        if (diffDays !== null) {
-          if (diffDays < 0) {
-            late++;
-            badgeColor = "#dc2626"; // ĐỎ (Quá hạn)
-            iconClass = "fa-triangle-exclamation";
-            timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
-          } else if (diffDays < 3) {
-            doing++;
-            badgeColor = "#ea580c"; // CAM (< 3 ngày)
-            iconClass = "fa-clock";
-            timeNoticeHtml = `<div style="font-size: 11px; color: #ea580c; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
-          } else if (diffDays <= 7) {
-            doing++;
-            badgeColor = "#ca8a04"; // VÀNG (3 - 7 ngày)
-            iconClass = "fa-clock";
-            timeNoticeHtml = `<div style="font-size: 11px; color: #ca8a04; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
-          } else {
-            doing++;
-            badgeColor = "#0284c7"; // XANH DƯƠNG (> 7 ngày)
-            iconClass = "fa-spinner";
-            timeNoticeHtml = `<div style="font-size: 11px; color: #0284c7; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-calendar-day"></i> Còn ${diffDays} ngày</div>`;
-          }
-        } else {
-          doing++;
-        }
-      }
-
-      // 3. Render Cột Trạng thái (Dòng 1: Dropdown/Badge, Dòng 2: Thời gian)
-      let statusHtml = "";
-      if (canEditStatus) {
-        statusHtml = `
-          <div style="display: flex; flex-direction: column; align-items: center;">
-            <select id="select-status-${taskId}" class="form-control" 
-                    onchange="this.style.backgroundColor = this.options[this.selectedIndex].getAttribute('data-color')"
-                    style="font-size: 11px; font-weight: bold; padding: 4px 6px; border-radius: 4px; color: #ffffff; background-color: ${badgeColor}; border: none; cursor: pointer; text-align: center;">
-              <option value="Đang thực hiện" data-color="#0284c7" style="background-color: #ffffff; color: #333;" ${task.status === "Đang thực hiện" || !task.status ? "selected" : ""}>Đang thực hiện</option>
-              <option value="Đã hoàn thành" data-color="#16a34a" style="background-color: #ffffff; color: #333;" ${task.status === "Đã hoàn thành" ? "selected" : ""}>Đã hoàn thành</option>
-              <option value="Chậm tiến độ" data-color="#dc2626" style="background-color: #ffffff; color: #333;" ${task.status === "Chậm tiến độ" ? "selected" : ""}>Chậm tiến độ</option>
-            </select>
-            ${timeNoticeHtml}
-          </div>
-        `;
-      } else {
-        statusHtml = `
-          <div style="display: flex; flex-direction: column; align-items: center;">
-            <span style="background:${badgeColor}; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
-              <i class="fa-solid ${iconClass}"></i> ${task.status || "Đang thực hiện"}
-            </span>
-            ${timeNoticeHtml}
-          </div>
-        `;
-      }
-
-      // 4. Render Cột Thao tác
-      let actionHtml = "";
-      if (canEditStatus) {
-        actionHtml = `
-          <td style="text-align: center; vertical-align: middle;">
-            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px; background-color: #16a34a; border-color: #16a34a;" onclick="updateTaskStatusDirect('${taskId}')">
-              <i class="fa-solid fa-floppy-disk"></i> Lưu
-            </button>
-          </td>
-        `;
-      }
-
-      const progressBar = `
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div style="flex:1; background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden;">
-            <div style="width:${task.progress || 0}%; background:${task.progress >= 100 ? "#16a34a" : badgeColor}; height:100%;"></div>
-          </div>
-          <span style="font-size:12px; font-weight:bold;">${task.progress || 0}%</span>
-        </div>
-      `;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="text-center" style="vertical-align: middle;">${index++}</td>
-        <td style="vertical-align: middle;"><b>${task.name || "—"}</b></td>
-        <td style="vertical-align: middle;"><i class="fa-solid fa-user-gear" style="color:#64748b;"></i> ${task.assignee || "—"}</td>
-        <td class="text-center" style="vertical-align: middle;"><i class="fa-solid fa-calendar-day" style="color:#64748b;"></i> ${task.deadline || "—"}</td>
-        <td style="vertical-align: middle;">${progressBar}</td>
-        <td class="text-center" style="vertical-align: middle;">${statusHtml}</td>
-        <td style="color:#475569; vertical-align: middle;">${task.note || "—"}</td>
-        ${actionHtml}
-      `;
-      tbody.appendChild(tr);
+      task.key = taskId;
+      homeTasksCache.push(task);
     });
 
-    updateTaskMetrics(total, done, doing, late);
+    renderTasksTable();
   });
+}
+
+// HÀM RENDER VÀ LỌC TÌM KIẾM NHIỆM VỤ NỘI BỘ VỚI ĐẦY ĐỦ CÁC CỘT DỮ LIỆU
+function renderTasksTable() {
+  const tbody =
+    document.getElementById("public-task-body") ||
+    document.getElementById("task-report-tbody");
+  const thAction = document.getElementById("th-task-action");
+
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  const canEditStatus =
+    homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
+  if (thAction) {
+    thAction.style.display = canEditStatus ? "table-cell" : "none";
+  }
+
+  // Lấy từ khóa tìm kiếm
+  const searchInput =
+    document.getElementById("public-task-search") ||
+    document.getElementById("task-search");
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+  // Lọc nhiệm vụ theo từ khóa
+  const filteredTasks = homeTasksCache.filter((task) => {
+    if (!keyword) return true;
+    const name = (task.name || "").toLowerCase();
+    const assignee = (task.assignee || "").toLowerCase();
+    const source = (task.source || "").toLowerCase();
+    const product = (task.product || "").toLowerCase();
+    const note = (task.note || "").toLowerCase();
+
+    return (
+      name.includes(keyword) ||
+      assignee.includes(keyword) ||
+      source.includes(keyword) ||
+      product.includes(keyword) ||
+      note.includes(keyword)
+    );
+  });
+
+  let total = 0,
+    done = 0,
+    doing = 0,
+    late = 0;
+
+  if (!filteredTasks || filteredTasks.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#94a3b8;">Không tìm thấy dữ liệu nhiệm vụ nội bộ.</td></tr>`;
+    updateTaskMetrics(0, 0, 0, 0);
+    return;
+  }
+
+  let index = 1;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  homeTasksCache.forEach((t) => {
+    total++;
+    let diffDays = null;
+    if (t.deadline) {
+      const deadlineDate = new Date(t.deadline);
+      deadlineDate.setHours(0, 0, 0, 0);
+      diffDays = Math.ceil(
+        (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
+      );
+    }
+
+    if (t.status === "Đã hoàn thành") done++;
+    else if (t.status === "Chậm tiến độ") late++;
+    else {
+      if (diffDays !== null && diffDays < 0) late++;
+      else doing++;
+    }
+  });
+
+  filteredTasks.forEach((task) => {
+    const taskId = task.key;
+
+    let diffDays = null;
+    if (task.deadline) {
+      const deadlineDate = new Date(task.deadline);
+      deadlineDate.setHours(0, 0, 0, 0);
+      const diffTime = deadlineDate.getTime() - today.getTime();
+      diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    let badgeColor = "#0284c7";
+    let iconClass = "fa-spinner";
+    let timeNoticeHtml = "";
+
+    if (task.status === "Đã hoàn thành") {
+      badgeColor = "#16a34a";
+      iconClass = "fa-check";
+      timeNoticeHtml = `<div style="font-size: 11px; color: #16a34a; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i> Đã hoàn thành</div>`;
+    } else if (task.status === "Chậm tiến độ") {
+      badgeColor = "#dc2626";
+      iconClass = "fa-triangle-exclamation";
+      if (diffDays !== null && diffDays < 0) {
+        timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
+      } else {
+        timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-triangle-exclamation"></i> Cần đôn đốc</div>`;
+      }
+    } else {
+      if (diffDays !== null) {
+        if (diffDays < 0) {
+          badgeColor = "#dc2626";
+          iconClass = "fa-triangle-exclamation";
+          timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
+        } else if (diffDays < 3) {
+          badgeColor = "#ea580c";
+          iconClass = "fa-clock";
+          timeNoticeHtml = `<div style="font-size: 11px; color: #ea580c; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
+        } else if (diffDays <= 7) {
+          badgeColor = "#ca8a04";
+          iconClass = "fa-clock";
+          timeNoticeHtml = `<div style="font-size: 11px; color: #ca8a04; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
+        } else {
+          badgeColor = "#0284c7";
+          iconClass = "fa-spinner";
+          timeNoticeHtml = `<div style="font-size: 11px; color: #0284c7; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-calendar-day"></i> Còn ${diffDays} ngày</div>`;
+        }
+      }
+    }
+
+    let statusHtml = "";
+    if (canEditStatus) {
+      statusHtml = `
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <select id="select-status-${taskId}" class="form-control" 
+                  onchange="this.style.backgroundColor = this.options[this.selectedIndex].getAttribute('data-color')"
+                  style="font-size: 11px; font-weight: bold; padding: 4px 6px; border-radius: 4px; color: #ffffff; background-color: ${badgeColor}; border: none; cursor: pointer; text-align: center;">
+            <option value="Đang thực hiện" data-color="#0284c7" style="background-color: #ffffff; color: #333;" ${task.status === "Đang thực hiện" || !task.status ? "selected" : ""}>Đang thực hiện</option>
+            <option value="Đã hoàn thành" data-color="#16a34a" style="background-color: #ffffff; color: #333;" ${task.status === "Đã hoàn thành" ? "selected" : ""}>Đã hoàn thành</option>
+            <option value="Chậm tiến độ" data-color="#dc2626" style="background-color: #ffffff; color: #333;" ${task.status === "Chậm tiến độ" ? "selected" : ""}>Chậm tiến độ</option>
+          </select>
+          ${timeNoticeHtml}
+        </div>
+      `;
+    } else {
+      statusHtml = `
+        <div style="display: flex; flex-direction: column; align-items: center;">
+          <span style="background:${badgeColor}; color:#fff; padding:4px 8px; border-radius:4px; font-size:11px; font-weight:bold; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;">
+            <i class="fa-solid ${iconClass}"></i> ${task.status || "Đang thực hiện"}
+          </span>
+          ${timeNoticeHtml}
+        </div>
+      `;
+    }
+
+    let actionHtml = "";
+    if (canEditStatus) {
+      actionHtml = `
+        <td style="text-align: center; vertical-align: middle;">
+          <button class="btn btn-primary" style="padding: 4px 8px; font-size: 11px; background-color: #16a34a; border-color: #16a34a;" onclick="updateTaskStatusDirect('${taskId}')">
+            <i class="fa-solid fa-floppy-disk"></i> Lưu
+          </button>
+        </td>
+      `;
+    }
+
+    const progressBar = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="flex:1; background:#e2e8f0; height:8px; border-radius:4px; overflow:hidden;">
+          <div style="width:${task.progress || 0}%; background:${task.progress >= 100 ? "#16a34a" : badgeColor}; height:100%;"></div>
+        </div>
+        <span style="font-size:12px; font-weight:bold;">${task.progress || 0}%</span>
+      </div>
+    `;
+    const cleanAssignee = (task.assignee || "—").replace(/^\[[^\]]+\]\s*/, "");
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+<td class="text-center" style="vertical-align: middle;">${index++}</td>
+  <td style="vertical-align: middle;"><b>${task.name || "—"}</b></td>
+  <td style="vertical-align: middle;"><i class="fa-solid fa-user-gear" style="color:#0284c7;"></i> ${cleanAssignee}</td>
+      <td class="text-center" style="vertical-align: middle;">${task.startDate || "—"}</td>
+      <td class="text-center" style="vertical-align: middle;">${task.deadline || "—"}</td>
+      <td style="vertical-align: middle; color:#475569; font-style:italic;">${task.source || "—"}</td>
+      <td style="vertical-align: middle;">${task.product || "—"}</td>
+      <td style="vertical-align: middle;">${progressBar}</td>
+      <td class="text-center" style="vertical-align: middle;">${statusHtml}</td>
+      <td style="color:#475569; vertical-align: middle;">${task.note || "—"}</td>
+      ${actionHtml}
+    `;
+    tbody.appendChild(tr);
+  });
+
+  updateTaskMetrics(total, done, doing, late);
 }
 
 // HÀM LƯU TRỰC TIẾP TRẠNG THÁI TỪ BẢNG ĐỒNG BỘ NÊN FIREBASE
@@ -1379,7 +1420,6 @@ function updateTaskMetrics(total, done, doing, late) {
   if (elLate) elLate.textContent = late;
 }
 
-// Hàm trả về màu tương ứng với Tỷ lệ hoàn thành số hóa
 function getColorByRatio(ratio) {
   return ratio >= 70
     ? "#16a34a"

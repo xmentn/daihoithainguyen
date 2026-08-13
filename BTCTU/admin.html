@@ -1151,22 +1151,26 @@
               <i class="fa-solid fa-square-plus"></i> Cập nhật Nhiệm vụ nội bộ
             </h3>
 
+            <!-- Khung Form Cập nhật Nhiệm vụ nội bộ -->
             <form id="form-task">
-              <input type="hidden" id="task-id-hidden" />
+              <input type="hidden" id="task-id-hidden" value="" />
 
+              <!-- HÀNG 1 -->
               <div
+                class="row"
                 style="
-                  display: grid;
-                  grid-template-columns: 2fr 1fr 1fr 1fr;
+                  display: flex;
                   gap: 15px;
                   margin-bottom: 15px;
+                  flex-wrap: wrap;
                 "
               >
-                <div>
+                <!-- Tên nhiệm vụ -->
+                <div style="flex: 2; min-width: 280px">
                   <label
+                    for="task-name"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
                       display: block;
                       margin-bottom: 5px;
                     "
@@ -1183,23 +1187,74 @@
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   />
                 </div>
 
-                <div>
-                  <label
+                <!-- Nút chọn Đơn vị / Cá nhân & Dropdown Chọn chủ trì -->
+                <div style="flex: 2; min-width: 280px">
+                  <div
                     style="
-                      font-weight: bold;
-                      font-size: 13px;
-                      display: block;
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
                       margin-bottom: 5px;
                     "
                   >
-                    Đơn vị / Cá nhân chủ trì <span style="color: red">*</span>:
-                  </label>
+                    <label style="font-weight: bold; margin: 0"
+                      >Đơn vị / Cá nhân chủ trì
+                      <span style="color: red">*</span>:</label
+                    >
+                    <div
+                      style="
+                        font-size: 13px;
+                        font-weight: normal;
+                        background: #f1f5f9;
+                        padding: 2px 8px;
+                        border-radius: 4px;
+                        border: 1px solid #cbd5e1;
+                      "
+                    >
+                      <label style="margin-right: 8px; cursor: pointer"
+                        ><input
+                          type="radio"
+                          name="filter-assignee-type"
+                          value="ALL"
+                          checked
+                        />
+                        Tất cả</label
+                      >
+                      <label
+                        style="
+                          margin-right: 8px;
+                          cursor: pointer;
+                          color: #0369a1;
+                          font-weight: 600;
+                        "
+                        ><input
+                          type="radio"
+                          name="filter-assignee-type"
+                          value="Cơ quan, đơn vị"
+                        />
+                        Đơn vị</label
+                      >
+                      <label
+                        style="
+                          cursor: pointer;
+                          color: #b45309;
+                          font-weight: 600;
+                        "
+                        ><input
+                          type="radio"
+                          name="filter-assignee-type"
+                          value="Cá nhân"
+                        />
+                        Cá nhân</label
+                      >
+                    </div>
+                  </div>
                   <select
                     id="task-assignee-select"
                     class="form-control"
@@ -1207,7 +1262,7 @@
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   >
@@ -1215,11 +1270,12 @@
                   </select>
                 </div>
 
-                <div>
+                <!-- Ngày giao -->
+                <div style="flex: 1; min-width: 140px">
                   <label
+                    for="task-start-date"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
                       display: block;
                       margin-bottom: 5px;
                     "
@@ -1232,17 +1288,18 @@
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   />
                 </div>
 
-                <div>
+                <!-- Thời hạn -->
+                <div style="flex: 1; min-width: 140px">
                   <label
+                    for="task-deadline"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
                       display: block;
                       margin-bottom: 5px;
                     "
@@ -1255,26 +1312,54 @@
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   />
                 </div>
               </div>
 
+              <!-- HÀNG 2 -->
               <div
+                class="row"
                 style="
-                  display: grid;
-                  grid-template-columns: 2fr 1fr 1fr 2fr;
+                  display: flex;
                   gap: 15px;
                   margin-bottom: 15px;
+                  flex-wrap: wrap;
                 "
               >
-                <div>
+                <!-- MỚI: Nguồn / Căn cứ giao việc (Đặt trước Sản phẩm đầu ra) -->
+                <div style="flex: 1.5; min-width: 200px">
                   <label
+                    for="task-source"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
+                      display: block;
+                      margin-bottom: 5px;
+                    "
+                    >Nguồn / Căn cứ:</label
+                  >
+                  <input
+                    type="text"
+                    id="task-source"
+                    class="form-control"
+                    placeholder="Ví dụ: Kế hoạch số 12-KH/TU, Kết luận..."
+                    style="
+                      width: 100%;
+                      padding: 8px;
+                      border: 1px solid #ccc;
+                      border-radius: 4px;
+                    "
+                  />
+                </div>
+
+                <!-- Sản phẩm đầu ra -->
+                <div style="flex: 1.5; min-width: 200px">
+                  <label
+                    for="task-product"
+                    style="
+                      font-weight: bold;
                       display: block;
                       margin-bottom: 5px;
                     "
@@ -1288,43 +1373,45 @@
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   />
                 </div>
 
-                <div>
+                <!-- Tiến độ (%) -->
+                <div style="flex: 1; min-width: 110px">
                   <label
+                    for="task-progress"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
                       display: block;
                       margin-bottom: 5px;
                     "
-                    >Tiến độ thực hiện (%):</label
+                    >Tiến độ (%):</label
                   >
                   <input
                     type="number"
                     id="task-progress"
+                    class="form-control"
                     min="0"
                     max="100"
                     value="0"
-                    class="form-control"
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   />
                 </div>
 
-                <div>
+                <!-- Trạng thái -->
+                <div style="flex: 1; min-width: 140px">
                   <label
+                    for="task-status"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
                       display: block;
                       margin-bottom: 5px;
                     "
@@ -1336,7 +1423,7 @@
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   >
@@ -1346,11 +1433,12 @@
                   </select>
                 </div>
 
-                <div>
+                <!-- Ghi chú -->
+                <div style="flex: 2; min-width: 220px">
                   <label
+                    for="task-note"
                     style="
                       font-weight: bold;
-                      font-size: 13px;
                       display: block;
                       margin-bottom: 5px;
                     "
@@ -1360,27 +1448,28 @@
                     type="text"
                     id="task-note"
                     class="form-control"
-                    placeholder="Ghi chú chi tiết tiến độ..."
+                    placeholder="Ghi chú chi tiết..."
                     style="
                       width: 100%;
                       padding: 8px;
-                      border: 1px solid #cbd5e1;
+                      border: 1px solid #ccc;
                       border-radius: 4px;
                     "
                   />
                 </div>
               </div>
 
-              <div style="display: flex; gap: 10px">
+              <!-- NÚT BẤM -->
+              <div style="margin-top: 10px">
                 <button
                   type="submit"
                   class="btn btn-primary"
                   style="
                     background: #0284c7;
+                    color: white;
                     border: none;
                     padding: 8px 16px;
                     border-radius: 4px;
-                    color: #fff;
                     font-weight: bold;
                     cursor: pointer;
                   "
@@ -1389,14 +1478,14 @@
                 </button>
                 <button
                   type="button"
-                  class="btn btn-secondary btn-reset-task-form"
+                  class="btn btn-reset-task-form"
                   style="
                     background: #64748b;
+                    color: white;
                     border: none;
                     padding: 8px 16px;
                     border-radius: 4px;
-                    color: #fff;
-                    font-weight: bold;
+                    margin-left: 8px;
                     cursor: pointer;
                   "
                 >
@@ -1452,6 +1541,8 @@
                     <th style="padding: 8px; text-align: center; width: 100px">
                       Thời hạn
                     </th>
+                    <th>Nguồn / Căn cứ</th>
+                    <!-- MỚI THÊM -->
                     <th style="padding: 8px; text-align: left; width: 130px">
                       Sản phẩm đầu ra
                     </th>
