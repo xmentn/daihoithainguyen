@@ -229,6 +229,11 @@ function initMap() {
 
       const bounds = geojsonLayer.getBounds();
       map.fitBounds(bounds, { padding: [20, 20] });
+
+      // THÊM ĐOẠN CODE NÀY: Tô màu ngay khi bản đồ load xong nếu dữ liệu đã sẵn sàng
+      if (currentSoHoaSnapshot) {
+        renderMapBySelectedStep();
+      }
     })
     .catch((err) => console.error("Lỗi tải bản đồ ranh giới: ", err));
 }
@@ -259,13 +264,18 @@ function updateMapWithSoHoaData(snapshot) {
 
 function cleanUnitName(str) {
   if (!str) return "";
-  return str
-    .toString()
-    .toLowerCase()
-    .replace(/^(phường|xã|thị trấn|đảng bộ|đảng ủy)\s+/g, "")
-    .trim();
-}
+  let cleanStr = str.toString().toLowerCase().trim();
 
+  // 1. Cắt bỏ lớp tiền tố tổ chức (Đảng bộ, Đảng ủy)
+  cleanStr = cleanStr.replace(/^(đảng bộ|đảng ủy)\s+/g, "").trim();
+
+  // 2. Cắt bỏ tiếp lớp tiền tố hành chính (Phường, Xã, Huyện, Thành phố...)
+  cleanStr = cleanStr
+    .replace(/^(phường|xã|thị trấn|huyện|thành phố|thị xã|tp)\s+/g, "")
+    .trim();
+
+  return cleanStr;
+}
 window.renderMapBySelectedStep = function () {
   if (!currentSoHoaSnapshot || !geojsonLayer) return;
 
@@ -1123,7 +1133,7 @@ function renderKetNapDashboard(snapshot) {
     document.getElementById("kn-val-dtts").textContent =
       sumDtts.toLocaleString();
   if (document.getElementById("kn-pct-dtts"))
-    document.getElementById("pct-dtts").textContent =
+    document.getElementById("kn-pct-dtts").textContent =
       (sumDaKetNap > 0 ? ((sumDtts / sumDaKetNap) * 100).toFixed(2) : "0.00") +
       "% số đã kết nạp";
 
