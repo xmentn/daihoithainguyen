@@ -1116,48 +1116,83 @@ function resetDoiTuongForm() {
 doiTuongRef.on(
   "value",
   (snapshot) => {
-    const tbody = document.getElementById("table-doi-tuong-body");
-    if (tbody) tbody.innerHTML = "";
+    doiTuongListCache = []; // Xóa cache cũ
 
-    doiTuongListCache = [];
-
-    if (!snapshot.exists()) {
-      if (tbody)
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8;">Chưa có đơn vị, cá nhân nào trong danh mục.</td></tr>`;
-      renderAssigneeDropdown();
-      return;
+    if (snapshot.exists()) {
+      snapshot.forEach((child) => {
+        const key = child.key;
+        const d = child.val() || {};
+        d.key = key;
+        doiTuongListCache.push(d); // Lưu toàn bộ vào cache
+      });
     }
 
-    let index = 1;
-    snapshot.forEach((child) => {
-      const key = child.key;
-      const d = child.val() || {};
-      d.key = key;
-      doiTuongListCache.push(d);
-
-      if (tbody) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td style="text-align: center;">${index++}</td>
-          <td style="text-align: center;"><span style="background:${d.loai === "Cơ quan, đơn vị" ? "#e0f2fe" : "#fef3c7"}; color:${d.loai === "Cơ quan, đơn vị" ? "#0369a1" : "#b45309"}; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;">${d.loai || "—"}</span></td>
-          <td style="text-align: center;"><code>${d.ma || key}</code></td>
-          <td><b>${d.ten || "—"}</b></td>
-          <td>${d.ghiChu || "—"}</td>
-          <td style="text-align: center;">
-            <button class="btn btn-primary" style="padding: 3px 6px; font-size: 11px; background-color: #16a34a;" onclick="editDoiTuong('${key}')">Sửa</button>
-            <button class="btn btn-danger" style="padding: 3px 6px; font-size: 11px;" onclick="deleteDoiTuong('${key}')">Xóa</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      }
-    });
-
-    renderAssigneeDropdown();
+    // Thay vì vẽ thẳng, ta gọi hàm vẽ bảng và truyền dữ liệu cache vào
+    renderDoiTuongTable();
+    renderAssigneeDropdown(); // Cập nhật dropdown ở form Giao nhiệm vụ
   },
   (error) => {
     console.error("Lỗi đọc danh_muc_doi_tuong:", error);
   },
 );
+
+// HÀM MỚI: Xử lý vẽ bảng dựa trên bộ lọc và từ khóa tìm kiếm
+window.renderDoiTuongTable = function () {
+  const tbody = document.getElementById("table-doi-tuong-body");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+
+  // Lấy giá trị của bộ lọc radio hiện tại
+  const filterType =
+    document.querySelector('input[name="filter-table-doi-tuong"]:checked')
+      ?.value || "ALL";
+
+  // Lấy giá trị từ khóa tìm kiếm (chuyển về chữ thường để so sánh)
+  const searchInput = document.getElementById("search-doi-tuong");
+  const keyword = searchInput ? searchInput.value.trim().toLowerCase() : "";
+
+  // Lọc dữ liệu từ mảng cache kết hợp cả 2 điều kiện
+  const filteredData = doiTuongListCache.filter((d) => {
+    // 1. Kiểm tra điều kiện Loại (Radio)
+    const matchType = filterType === "ALL" || d.loai === filterType;
+
+    // 2. Kiểm tra điều kiện Từ khóa (Khớp với Tên hoặc Mã)
+    const ten = (d.ten || "").toLowerCase();
+    const ma = (d.ma || "").toLowerCase();
+    const matchKeyword =
+      !keyword || ten.includes(keyword) || ma.includes(keyword);
+
+    // Bắt buộc phải thỏa mãn cả 2 điều kiện mới hiển thị
+    return matchType && matchKeyword;
+  });
+
+  // Nếu mảng rỗng (không có dữ liệu)
+  if (filteredData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#94a3b8; padding: 15px;">Không tìm thấy dữ liệu phù hợp.</td></tr>`;
+    return;
+  }
+
+  let index = 1;
+  filteredData.forEach((d) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="text-align: center;">${index++}</td>
+      <td style="text-align: center;">
+        <span style="background:${d.loai === "Cơ quan, đơn vị" ? "#e0f2fe" : "#fef3c7"}; color:${d.loai === "Cơ quan, đơn vị" ? "#0369a1" : "#b45309"}; padding:2px 8px; border-radius:4px; font-weight:bold; font-size:11px;">
+          ${d.loai || "—"}
+        </span>
+      </td>
+      <td style="text-align: center;"><code>${d.ma || d.key}</code></td>
+      <td><b>${d.ten || "—"}</b></td>
+      <td>${d.ghiChu || "—"}</td>
+      <td style="text-align: center;">
+        <button class="btn btn-primary" style="padding: 3px 6px; font-size: 11px; background-color: #16a34a;" onclick="editDoiTuong('${d.key}')">Sửa</button>
+        <button class="btn btn-danger" style="padding: 3px 6px; font-size: 11px;" onclick="deleteDoiTuong('${d.key}')">Xóa</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+};
 
 // 9.4 Sự kiện Sửa / Xóa Danh mục Đơn vị / Cá nhân
 window.editDoiTuong = function (key) {
@@ -1202,8 +1237,14 @@ document.addEventListener("change", (e) => {
   if (e.target && e.target.name === "filter-assignee-type") {
     renderAssigneeDropdown();
   }
+  // Bổ sung lắng nghe sự kiện cho bộ lọc của bảng danh sách
+  if (e.target && e.target.name === "filter-table-doi-tuong") {
+    renderDoiTuongTable();
+  }
 });
-
+document.getElementById("search-doi-tuong")?.addEventListener("input", () => {
+  renderDoiTuongTable();
+});
 // =================================================================
 // 10. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (CÓ NGUỒN/CĂN CỨ & XÓA)
 // =================================================================

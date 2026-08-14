@@ -1753,18 +1753,130 @@
               box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             "
           >
-            <h3
+            <div
               style="
-                color: #334155;
-                font-size: 16px;
-                margin-top: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
                 margin-bottom: 15px;
-                font-weight: bold;
+                flex-wrap: wrap;
+                gap: 10px;
               "
             >
-              <i class="fa-solid fa-address-book"></i> Danh sách Cơ quan, Đơn vị
-              & Cá nhân
-            </h3>
+              <h3
+                style="
+                  color: #334155;
+                  font-size: 16px;
+                  margin: 0;
+                  font-weight: bold;
+                "
+              >
+                <i class="fa-solid fa-address-book"></i> Danh sách Cơ quan, Đơn
+                vị & Cá nhân
+              </h3>
+
+              <!-- BỘ CÔNG CỤ LỌC & TÌM KIẾM -->
+              <div
+                style="
+                  display: flex;
+                  gap: 15px;
+                  align-items: center;
+                  flex-wrap: wrap;
+                "
+              >
+                <!-- 1. Ô tìm kiếm -->
+                <div style="position: relative; width: 220px">
+                  <i
+                    class="fa-solid fa-magnifying-glass"
+                    style="
+                      position: absolute;
+                      left: 10px;
+                      top: 50%;
+                      transform: translateY(-50%);
+                      color: #94a3b8;
+                      font-size: 13px;
+                    "
+                  ></i>
+                  <input
+                    type="text"
+                    id="search-doi-tuong"
+                    placeholder="Tìm kiếm tên, mã..."
+                    style="
+                      width: 100%;
+                      padding: 6px 10px 6px 30px;
+                      font-size: 13px;
+                      border: 1px solid #cbd5e1;
+                      border-radius: 6px;
+                      outline: none;
+                    "
+                  />
+                </div>
+
+                <!-- 2. Nút Radio chọn loại -->
+                <div
+                  style="
+                    font-size: 13px;
+                    background: #f1f5f9;
+                    padding: 6px 12px;
+                    border-radius: 6px;
+                    border: 1px solid #cbd5e1;
+                    display: flex;
+                    gap: 15px;
+                  "
+                >
+                  <label
+                    style="
+                      cursor: pointer;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                    "
+                  >
+                    <input
+                      type="radio"
+                      name="filter-table-doi-tuong"
+                      value="ALL"
+                      checked
+                    />
+                    Tất cả
+                  </label>
+                  <label
+                    style="
+                      cursor: pointer;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      color: #0369a1;
+                      font-weight: 600;
+                    "
+                  >
+                    <input
+                      type="radio"
+                      name="filter-table-doi-tuong"
+                      value="Cơ quan, đơn vị"
+                    />
+                    Đơn vị
+                  </label>
+                  <label
+                    style="
+                      cursor: pointer;
+                      display: flex;
+                      align-items: center;
+                      gap: 6px;
+                      color: #b45309;
+                      font-weight: 600;
+                    "
+                  >
+                    <input
+                      type="radio"
+                      name="filter-table-doi-tuong"
+                      value="Cá nhân"
+                    />
+                    Cá nhân
+                  </label>
+                </div>
+              </div>
+            </div>
             <div style="overflow-x: auto">
               <table
                 class="report-table"
