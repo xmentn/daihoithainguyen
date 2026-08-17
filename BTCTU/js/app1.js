@@ -401,7 +401,6 @@ function fetchStatistics(selectedKey = "ALL") {
           key: key,
           ten: data.ten || key || "Chưa đặt tên",
           tongHoSo: Number(data.tongHoSo || 0),
-          soHsThieuTaiLieuCoBan: Number(data.soHsThieuTaiLieuCoBan || 0),
           daChinhLy: Number(data.daChinhLy || 0),
           daKySo: Number(data.daKySo || 0),
           daCapNhat: Number(data.daCapNhat || 0),
@@ -697,7 +696,6 @@ function renderTable(searchTerm = "") {
   });
 
   let sumCanSoHoa = 0,
-    sumThieuTaiLieu = 0,
     sumChinhLy = 0,
     sumKySo = 0,
     sumPhanMem = 0;
@@ -715,7 +713,6 @@ function renderTable(searchTerm = "") {
       : 0;
 
     sumCanSoHoa += item.tongHoSo;
-    sumThieuTaiLieu += item.soHsThieuTaiLieuCoBan;
     sumChinhLy += item.daChinhLy;
     sumKySo += item.daKySo;
     sumPhanMem += item.daCapNhat;
@@ -725,7 +722,6 @@ function renderTable(searchTerm = "") {
       <td class="text-center">${index + 1}</td>
       <td><b>${displayName}</b></td>
       <td class="text-right">${item.tongHoSo.toLocaleString()}</td>
-      <td class="text-right">${item.soHsThieuTaiLieuCoBan.toLocaleString()}</td>
       <td class="text-right" style="border-left: 1px solid #e2e8f0;">${item.daChinhLy.toLocaleString()}</td>
       <td class="text-center">${pChinhLy}%</td>
       <td class="text-right" style="border-left: 1px solid #e2e8f0;">${item.daKySo.toLocaleString()}</td>
@@ -740,9 +736,6 @@ function renderTable(searchTerm = "") {
   if (document.getElementById("foot-can-so-hoa"))
     document.getElementById("foot-can-so-hoa").textContent =
       sumCanSoHoa.toLocaleString();
-  if (document.getElementById("foot-thieu-tai-lieu"))
-    document.getElementById("foot-thieu-tai-lieu").textContent =
-      sumThieuTaiLieu.toLocaleString();
   if (document.getElementById("foot-sl-chinh-ly"))
     document.getElementById("foot-sl-chinh-ly").textContent =
       sumChinhLy.toLocaleString();

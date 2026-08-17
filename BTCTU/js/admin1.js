@@ -370,9 +370,6 @@ function setupDropdownChangeEvents() {
           if (document.getElementById("sohoa-can-so-hoa"))
             document.getElementById("sohoa-can-so-hoa").value =
               data.tongHoSo || 0;
-          if (document.getElementById("sohoa-thieu-tai-lieu"))
-            document.getElementById("sohoa-thieu-tai-lieu").value =
-              data.soHsThieuTaiLieuCoBan || 0;
           if (document.getElementById("sohoa-chinh-ly"))
             document.getElementById("sohoa-chinh-ly").value =
               data.daChinhLy || 0;
@@ -384,8 +381,6 @@ function setupDropdownChangeEvents() {
         } else {
           if (document.getElementById("sohoa-can-so-hoa"))
             document.getElementById("sohoa-can-so-hoa").value = 0;
-          if (document.getElementById("sohoa-thieu-tai-lieu"))
-            document.getElementById("sohoa-thieu-tai-lieu").value = 0;
           if (document.getElementById("sohoa-chinh-ly"))
             document.getElementById("sohoa-chinh-ly").value = 0;
           if (document.getElementById("sohoa-ky-so"))
@@ -484,8 +479,6 @@ if (formSoHoa) {
     const id = document.getElementById("select-dangbo-sohoa").value;
     const canSoHoa =
       parseInt(document.getElementById("sohoa-can-so-hoa")?.value) || 0;
-    const thieuTaiLieu =
-      parseInt(document.getElementById("sohoa-thieu-tai-lieu")?.value) || 0;
     const chinhLy =
       parseInt(document.getElementById("sohoa-chinh-ly")?.value) || 0;
     const kySo = parseInt(document.getElementById("sohoa-ky-so")?.value) || 0;
@@ -501,26 +494,11 @@ if (formSoHoa) {
       return;
     }
 
-    if (
-      canSoHoa < 0 ||
-      thieuTaiLieu < 0 ||
-      chinhLy < 0 ||
-      kySo < 0 ||
-      phanMem < 0
-    ) {
+    if (canSoHoa < 0 || chinhLy < 0 || kySo < 0 || phanMem < 0) {
       Swal.fire({
         icon: "error",
         title: "Lỗi",
         text: "Số liệu nhập vào phải lớn hơn hoặc bằng 0!",
-      });
-      return;
-    }
-
-    if (thieuTaiLieu > canSoHoa) {
-      Swal.fire({
-        icon: "error",
-        title: "Số liệu không hợp lệ",
-        text: 'Số HS thiếu tài liệu cơ bản không được lớn hơn số hồ sơ cần số hóa!',
       });
       return;
     }
@@ -538,7 +516,6 @@ if (formSoHoa) {
       .child(id)
       .update({
         tongHoSo: canSoHoa,
-        soHsThieuTaiLieuCoBan: thieuTaiLieu,
         daChinhLy: chinhLy,
         daKySo: kySo,
         daCapNhat: phanMem,
@@ -862,12 +839,11 @@ function loadProgressTables() {
         tr1.innerHTML = `
           <td><b>${ten}</b></td>
           <td>${Number(data.tongHoSo || 0).toLocaleString()}</td>
-          <td>${Number(data.soHsThieuTaiLieuCoBan || 0).toLocaleString()}</td>
           <td>${Number(data.daChinhLy || 0).toLocaleString()}</td>
           <td>${Number(data.daKySo || 0).toLocaleString()}</td>
           <td>${Number(data.daCapNhat || 0).toLocaleString()}</td>
           <td style="text-align: center;">
-            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editSoHoa('${key}', ${data.tongHoSo || 0}, ${data.soHsThieuTaiLieuCoBan || 0}, ${data.daChinhLy || 0}, ${data.daKySo || 0}, ${data.daCapNhat || 0})">
+            <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="editSoHoa('${key}', ${data.tongHoSo || 0}, ${data.daChinhLy || 0}, ${data.daKySo || 0}, ${data.daCapNhat || 0})">
               Sửa
             </button>
           </td>
@@ -926,19 +902,10 @@ function loadProgressTables() {
 }
 
 // Hàm gán lại dữ liệu cũ khi click nút Sửa
-window.editSoHoa = function (
-  id,
-  canSoHoa,
-  thieuTaiLieu,
-  chinhLy,
-  kySo,
-  phanMem,
-) {
+window.editSoHoa = function (id, canSoHoa, chinhLy, kySo, phanMem) {
   $("#select-dangbo-sohoa").val(id).trigger("change");
   if (document.getElementById("sohoa-can-so-hoa"))
     document.getElementById("sohoa-can-so-hoa").value = canSoHoa;
-  if (document.getElementById("sohoa-thieu-tai-lieu"))
-    document.getElementById("sohoa-thieu-tai-lieu").value = thieuTaiLieu;
   if (document.getElementById("sohoa-chinh-ly"))
     document.getElementById("sohoa-chinh-ly").value = chinhLy;
   if (document.getElementById("sohoa-ky-so"))
