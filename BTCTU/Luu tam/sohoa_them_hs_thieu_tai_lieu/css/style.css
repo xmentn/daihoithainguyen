@@ -614,23 +614,15 @@ body {
 .report-table td {
   padding: 8px 10px;
   border-bottom: 1px solid #e2e8f0;
-  border-right: 1px solid #d6dee8; /* thêm kẻ dọc giữa các cột */
 }
 
-.report-table th:last-child,
-.report-table td:last-child {
-  border-right: none; /* cột cuối không cần kẻ thêm */
-}
-
-.report-table thead th {
+.report-table th {
   background: #f8fafc;
   font-weight: bold;
   color: #475569;
   position: sticky;
   top: 0;
   z-index: 5;
-  text-align: center !important;   /* canh giữa tiêu đề cột */
-  vertical-align: middle;
 }
 
 .sub-header-table th {
@@ -638,9 +630,8 @@ body {
   color: #64748b;
   padding-top: 2px;
   padding-bottom: 5px;
-  text-align: center !important;   /* hàng tiêu đề con cũng canh giữa */
-  vertical-align: middle;
 }
+
 .report-table tbody tr:hover {
   background: #f1f5f9;
 }
