@@ -135,25 +135,8 @@ function initTabSwitchers() {
 
 // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP TẠI BANNER
 let homeUserRole = "guest";
-let homeUserEmail = "";
-const VIEW_ONLY_HOME_EMAIL = "btc.tn@gmail.com";
 
 function canAccessHomeNoiBo() {
-  // Có quyền XEM Quản lý nội bộ trên trang chủ:
-  // - admin: toàn quyền
-  // - nhap_lieu_btc: tài khoản nhập liệu Ban Tổ chức
-  // - xem_noi_bo: tài khoản chỉ xem Quản lý nội bộ (btc.tn@gmail.com)
-  return (
-    homeUserRole === "admin" ||
-    homeUserRole === "nhap_lieu_btc" ||
-    homeUserRole === "xem_noi_bo"
-  );
-}
-
-function canEditHomeNoiBo() {
-  // Chỉ Admin và tài khoản nhập liệu BTC được sửa trạng thái nhiệm vụ.
-  // btc.tn@gmail.com luôn là chỉ-xem, kể cả khi Firebase vô tình gán nhầm role.
-  if (homeUserEmail === VIEW_ONLY_HOME_EMAIL) return false;
   return homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
 }
 
@@ -194,16 +177,7 @@ firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     database.ref("users/" + user.uid).once("value", (snapshot) => {
       const userData = snapshot.val();
-      homeUserEmail = (user.email || "").trim().toLowerCase();
-
-      // Lớp phòng vệ giao diện: btc.tn luôn được coi là role chỉ-xem.
-      // Firebase Rules vẫn là lớp quyết định quyền dữ liệu thực sự.
-      homeUserRole =
-        homeUserEmail === VIEW_ONLY_HOME_EMAIL
-          ? "xem_noi_bo"
-          : userData
-            ? userData.role
-            : "guest";
+      homeUserRole = userData ? userData.role : "guest";
 
       if (sessionEmail) sessionEmail.textContent = user.email.split("@")[0];
       if (sessionRole) {
@@ -211,10 +185,8 @@ firebase.auth().onAuthStateChanged((user) => {
           homeUserRole === "admin"
             ? "Quản trị viên (Admin)"
             : homeUserRole === "nhap_lieu_btc"
-              ? "Cán bộ Ban Tổ chức (Nhập liệu)"
-              : homeUserRole === "xem_noi_bo"
-                ? "Ban Tổ chức (Chỉ xem nội bộ)"
-                : "Cán bộ Nhập liệu";
+              ? "Cán bộ Ban Tổ chức"
+              : "Cán bộ Nhập liệu";
       }
 
       if (dropdownIcon) dropdownIcon.style.display = "inline-block";
@@ -225,7 +197,6 @@ firebase.auth().onAuthStateChanged((user) => {
     });
   } else {
     homeUserRole = "guest";
-    homeUserEmail = "";
     if (sessionEmail) sessionEmail.textContent = "Guest";
     if (sessionRole) sessionRole.textContent = "";
 
@@ -1374,7 +1345,7 @@ function renderTasksTable() {
     return;
   }
 
-  const canEditStatus = canEditHomeNoiBo();
+  const canEditStatus = canAccessHomeNoiBo();
   if (thAction) {
     thAction.style.display = canEditStatus ? "table-cell" : "none";
   }
@@ -1560,17 +1531,6 @@ function renderTasksTable() {
 
 // HÀM LƯU TRỰC TIẾP TRẠNG THÁI TỪ BẢNG ĐỒNG BỘ NÊN FIREBASE
 window.updateTaskStatusDirect = function (taskId) {
-  // Phòng vệ phía giao diện: tài khoản chỉ xem không được phép gọi hàm cập nhật,
-  // kể cả khi cố gọi trực tiếp từ Console. Firebase Rules vẫn là lớp bảo vệ chính.
-  if (!canEditHomeNoiBo()) {
-    Swal.fire(
-      "Không có quyền",
-      "Tài khoản này chỉ được xem Quản lý nội bộ, không có quyền cập nhật dữ liệu.",
-      "warning",
-    );
-    return;
-  }
-
   const selectEl = document.getElementById(`select-status-${taskId}`);
   if (!selectEl) return;
 

@@ -15,19 +15,6 @@ const adminUserInfo = document.getElementById("admin-user-info");
 let dangBoCache = {};
 let currentRole = "nhap_lieu"; // Mặc định vai trò
 
-// Tài khoản BTC chỉ được xem Quản lý nội bộ ở trang chủ, tuyệt đối không vào admin.html
-const VIEW_ONLY_HOME_EMAIL = "btc.tn@gmail.com";
-
-function isViewOnlyHomeAccount(userOrEmail) {
-  const email =
-    typeof userOrEmail === "string"
-      ? userOrEmail
-      : userOrEmail && userOrEmail.email
-        ? userOrEmail.email
-        : "";
-  return email.trim().toLowerCase() === VIEW_ONLY_HOME_EMAIL;
-}
-
 // =================================================================
 // 1. KHỞI TẠO DỮ LIỆU & GÁN SỰ KIỆN KHI TRANG TẢI XONG
 // =================================================================
@@ -157,14 +144,8 @@ function initNoiBoSubTabs() {
 // =================================================================
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
-    // CHẶN NGAY theo email: btc.tn@gmail.com không bao giờ được ở lại admin.html.
-    // Dùng replace để bấm Back cũng không quay lại trang quản trị vừa bị chặn.
-    if (isViewOnlyHomeAccount(user)) {
-      window.location.replace("index.html");
-      return;
-    }
-
     // Chưa hiển thị khu vực quản trị cho đến khi đọc xong role.
+    // Điều này tránh tài khoản chỉ xem nhìn thấy thoáng qua form nhập liệu.
     if (loginSection) loginSection.style.display = "none";
     if (adminSection) adminSection.style.display = "none";
 
@@ -175,10 +156,19 @@ firebase.auth().onAuthStateChanged((user) => {
         const userData = snapshot.val();
         const role = userData ? userData.role : "nhap_lieu";
 
-        // Chặn tiếp theo role để bảo vệ mọi tài khoản chỉ-xem khác có thể tạo sau này.
+        // Role dành riêng cho btc.tn@gmail.com: chỉ xem Quản lý nội bộ ở trang chủ.
+        // Tài khoản này không được vào bất kỳ form nhập liệu nào của admin.html.
         if (role === "xem_noi_bo") {
           currentRole = role;
-          window.location.replace("index.html");
+          Swal.fire({
+            icon: "info",
+            title: "Tài khoản chỉ xem",
+            text: "Tài khoản này chỉ được xem phân hệ Quản lý nội bộ tại Trang chủ.",
+            timer: 1400,
+            showConfirmButton: false,
+          }).then(() => {
+            window.location.replace("index.html");
+          });
           return;
         }
 
@@ -277,13 +267,6 @@ function initAuthEvents() {
         .auth()
         .signInWithEmailAndPassword(email, password)
         .then((u) => {
-          // Tài khoản btc.tn chỉ dùng phiên đăng nhập để xem nội bộ ở Trang chủ.
-          // Chuyển ngay, không hiển thị giao diện admin và không chờ popup.
-          if (isViewOnlyHomeAccount(u.user)) {
-            window.location.replace("index.html");
-            return;
-          }
-
           Swal.fire({
             icon: "success",
             title: "Đăng nhập thành công",

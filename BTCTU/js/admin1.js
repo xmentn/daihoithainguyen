@@ -15,19 +15,6 @@ const adminUserInfo = document.getElementById("admin-user-info");
 let dangBoCache = {};
 let currentRole = "nhap_lieu"; // Mặc định vai trò
 
-// Tài khoản BTC chỉ được xem Quản lý nội bộ ở trang chủ, tuyệt đối không vào admin.html
-const VIEW_ONLY_HOME_EMAIL = "btc.tn@gmail.com";
-
-function isViewOnlyHomeAccount(userOrEmail) {
-  const email =
-    typeof userOrEmail === "string"
-      ? userOrEmail
-      : userOrEmail && userOrEmail.email
-        ? userOrEmail.email
-        : "";
-  return email.trim().toLowerCase() === VIEW_ONLY_HOME_EMAIL;
-}
-
 // =================================================================
 // 1. KHỞI TẠO DỮ LIỆU & GÁN SỰ KIỆN KHI TRANG TẢI XONG
 // =================================================================
@@ -157,53 +144,27 @@ function initNoiBoSubTabs() {
 // =================================================================
 firebase.auth().onAuthStateChanged((user) => {
   if (user) {
-    // CHẶN NGAY theo email: btc.tn@gmail.com không bao giờ được ở lại admin.html.
-    // Dùng replace để bấm Back cũng không quay lại trang quản trị vừa bị chặn.
-    if (isViewOnlyHomeAccount(user)) {
-      window.location.replace("index.html");
-      return;
-    }
-
-    // Chưa hiển thị khu vực quản trị cho đến khi đọc xong role.
     if (loginSection) loginSection.style.display = "none";
-    if (adminSection) adminSection.style.display = "none";
+    if (adminSection) adminSection.style.display = "block";
 
-    database
-      .ref("users/" + user.uid)
-      .once("value")
-      .then((snapshot) => {
-        const userData = snapshot.val();
-        const role = userData ? userData.role : "nhap_lieu";
+    // Đọc role của tài khoản đang đăng nhập từ Firebase
+    database.ref("users/" + user.uid).once("value", (snapshot) => {
+      const userData = snapshot.val();
+      const role = userData ? userData.role : "nhap_lieu";
 
-        // Chặn tiếp theo role để bảo vệ mọi tài khoản chỉ-xem khác có thể tạo sau này.
-        if (role === "xem_noi_bo") {
-          currentRole = role;
-          window.location.replace("index.html");
-          return;
-        }
+      const roleText =
+        role === "admin"
+          ? "Quản trị viên (Admin)"
+          : role === "nhap_lieu_btc"
+            ? "Cán bộ Ban Tổ chức"
+            : "Cán bộ Nhập liệu (Số hóa)";
+      if (adminUserInfo) {
+        adminUserInfo.innerHTML = `<i class="fa-solid fa-circle-user" style="color: #2ecc71;"></i> Tài khoản: <b>${user.email}</b> [${roleText}]`;
+      }
 
-        if (adminSection) adminSection.style.display = "block";
-
-        const roleText =
-          role === "admin"
-            ? "Quản trị viên (Admin)"
-            : role === "nhap_lieu_btc"
-              ? "Cán bộ Ban Tổ chức (Nhập liệu)"
-              : "Cán bộ Nhập liệu (Số hóa)";
-
-        if (adminUserInfo) {
-          adminUserInfo.innerHTML = `<i class="fa-solid fa-circle-user" style="color: #2ecc71;"></i> Tài khoản: <b>${user.email}</b> [${roleText}]`;
-        }
-
-        applyRolePermissions(role);
-        initAdminData();
-      })
-      .catch((error) => {
-        console.error("Lỗi đọc quyền tài khoản:", error);
-        if (adminSection) adminSection.style.display = "none";
-        if (loginSection) loginSection.style.display = "block";
-        Swal.fire("Lỗi", "Không thể xác định quyền của tài khoản.", "error");
-      });
+      applyRolePermissions(role);
+      initAdminData(); // Tải lại danh sách Dropdown ngay sau khi xác định xong quyền Admin
+    });
   } else {
     if (loginSection) loginSection.style.display = "block";
     if (adminSection) adminSection.style.display = "none";
@@ -221,16 +182,6 @@ function applyRolePermissions(role) {
   const timeConfigSection = document.getElementById(
     "admin-time-config-section",
   );
-
-  if (role === "xem_noi_bo") {
-    // Phòng vệ bổ sung: role chỉ xem không bao giờ được hiển thị module nhập liệu.
-    if (btnSoHoa) btnSoHoa.style.display = "none";
-    if (btnTcDang) btnTcDang.style.display = "none";
-    if (btnNoiBo) btnNoiBo.style.display = "none";
-    if (timeConfigSection) timeConfigSection.style.display = "none";
-    if (adminSection) adminSection.style.display = "none";
-    return;
-  }
 
   if (role === "admin") {
     if (btnSoHoa) btnSoHoa.style.display = "inline-flex";
@@ -277,13 +228,6 @@ function initAuthEvents() {
         .auth()
         .signInWithEmailAndPassword(email, password)
         .then((u) => {
-          // Tài khoản btc.tn chỉ dùng phiên đăng nhập để xem nội bộ ở Trang chủ.
-          // Chuyển ngay, không hiển thị giao diện admin và không chờ popup.
-          if (isViewOnlyHomeAccount(u.user)) {
-            window.location.replace("index.html");
-            return;
-          }
-
           Swal.fire({
             icon: "success",
             title: "Đăng nhập thành công",

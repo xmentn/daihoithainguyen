@@ -1,0 +1,26 @@
+PHÂN QUYỀN ĐÚNG CHO 2 TÀI KHOẢN BTC
+=====================================
+
+1) nhaplieu.btc@gmail.com
+users/<UID_NHAPLIEU_BTC>/role = "nhap_lieu_btc"
+=> Được nhập liệu Ban Tổ chức theo admin.html và được cập nhật nhiệm vụ nội bộ.
+
+2) btc.tn@gmail.com
+users/<UID_BTC_TN>/role = "xem_noi_bo"
+=> Chỉ được xem tab Quản lý nội bộ tại index.html; không có quyền nhập liệu.
+
+QUAN TRỌNG:
+Ảnh kiểm tra hiện tại đang hiển thị btc.tn@gmail.com là "Cán bộ Ban Tổ chức (Nhập liệu)",
+nghĩa là role trong /users/<UID>/role nhiều khả năng vẫn đang là "nhap_lieu_btc".
+Hãy đổi role này thành "xem_noi_bo".
+
+NHÁNH tasks NÊN DÙNG:
+"tasks": {
+  ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'nhap_lieu_btc' || root.child('users').child(auth.uid).child('role').val() === 'xem_noi_bo')",
+  ".write": "auth != null && auth.token.email != 'btc.tn@gmail.com' && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'nhap_lieu_btc')"
+}
+
+Với các nhánh nhập liệu khác như dang_bo, danh_muc_doi_tuong, config:
+- KHÔNG thêm role xem_noi_bo vào .write.
+- Có thể bổ sung điều kiện phòng vệ: auth.token.email != 'btc.tn@gmail.com'
+  trước điều kiện .write hiện tại.

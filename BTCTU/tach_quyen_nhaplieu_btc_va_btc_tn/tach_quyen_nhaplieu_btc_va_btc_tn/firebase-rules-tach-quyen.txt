@@ -1,0 +1,31 @@
+PHÂN QUYỀN MỚI
+================
+
+1) Tài khoản nhaplieu.btc@gmail.com
+Role giữ nguyên:
+{
+  "role": "nhap_lieu_btc"
+}
+- Được vào trang Quản trị theo quyền Ban Tổ chức hiện có.
+- Được xem Quản lý nội bộ ở trang chủ.
+- Được cập nhật trạng thái nhiệm vụ theo quyền hiện có.
+
+2) Tài khoản btc.tn@gmail.com
+Đổi role thành:
+{
+  "role": "xem_noi_bo"
+}
+- Chỉ được xem tab Quản lý nội bộ ở trang chủ.
+- Không được chỉnh trạng thái nhiệm vụ.
+- Không được vào các form nhập liệu của admin.html.
+
+3) THAY RIÊNG NHÁNH "tasks" TRONG FIREBASE RULES BẰNG:
+
+"tasks": {
+  ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'nhap_lieu_btc' || root.child('users').child(auth.uid).child('role').val() === 'xem_noi_bo')",
+  ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'nhap_lieu_btc')"
+}
+
+LƯU Ý QUAN TRỌNG:
+- Không thêm role "xem_noi_bo" vào bất kỳ điều kiện .write nào của dang_bo, danh_muc_doi_tuong, config hoặc node nhập liệu khác.
+- Role "xem_noi_bo" chỉ được thêm vào .read của "tasks" để xem Quản lý nội bộ.

@@ -135,8 +135,6 @@ function initTabSwitchers() {
 
 // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP TẠI BANNER
 let homeUserRole = "guest";
-let homeUserEmail = "";
-const VIEW_ONLY_HOME_EMAIL = "btc.tn@gmail.com";
 
 function canAccessHomeNoiBo() {
   // Có quyền XEM Quản lý nội bộ trên trang chủ:
@@ -152,8 +150,7 @@ function canAccessHomeNoiBo() {
 
 function canEditHomeNoiBo() {
   // Chỉ Admin và tài khoản nhập liệu BTC được sửa trạng thái nhiệm vụ.
-  // btc.tn@gmail.com luôn là chỉ-xem, kể cả khi Firebase vô tình gán nhầm role.
-  if (homeUserEmail === VIEW_ONLY_HOME_EMAIL) return false;
+  // Role xem_noi_bo tuyệt đối chỉ xem.
   return homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
 }
 
@@ -194,16 +191,7 @@ firebase.auth().onAuthStateChanged((user) => {
   if (user) {
     database.ref("users/" + user.uid).once("value", (snapshot) => {
       const userData = snapshot.val();
-      homeUserEmail = (user.email || "").trim().toLowerCase();
-
-      // Lớp phòng vệ giao diện: btc.tn luôn được coi là role chỉ-xem.
-      // Firebase Rules vẫn là lớp quyết định quyền dữ liệu thực sự.
-      homeUserRole =
-        homeUserEmail === VIEW_ONLY_HOME_EMAIL
-          ? "xem_noi_bo"
-          : userData
-            ? userData.role
-            : "guest";
+      homeUserRole = userData ? userData.role : "guest";
 
       if (sessionEmail) sessionEmail.textContent = user.email.split("@")[0];
       if (sessionRole) {
@@ -225,7 +213,6 @@ firebase.auth().onAuthStateChanged((user) => {
     });
   } else {
     homeUserRole = "guest";
-    homeUserEmail = "";
     if (sessionEmail) sessionEmail.textContent = "Guest";
     if (sessionRole) sessionRole.textContent = "";
 
