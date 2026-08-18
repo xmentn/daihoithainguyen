@@ -814,124 +814,55 @@ function renderTable(searchTerm = "") {
 
 // 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC
 function renderRankings() {
-  const completedListContainer = document.getElementById("rank-top-list");
-  const rankingListContainer = document.getElementById("rank-low-list");
-  const completedCountEl = document.getElementById("rank-completed-count");
+  const topListContainer = document.getElementById("rank-top-list");
+  const lowListContainer = document.getElementById("rank-low-list");
 
-  if (!completedListContainer || !rankingListContainer) return;
+  if (!topListContainer || !lowListContainer) return;
 
-  // Giữ nguyên dropdown chọn giai đoạn hiện có
   const stepSelect = document.getElementById("rank-step-select");
   const selectedStepField = stepSelect ? stepSelect.value : "daCapNhat";
 
-  // Dropdown mới: Top 10 hoặc 10 đơn vị thấp nhất
-  const rangeSelect = document.getElementById("rank-range-select");
-  const selectedRange = rangeSelect ? rangeSelect.value : "top10";
-
-  const rankingData = fullDataList.map((item) => {
-    const total = Number(item.tongHoSo || 0);
+  const sortedList = fullDataList.map((item) => {
+    const total = item.tongHoSo || 0;
     const countByStep = Number(item[selectedStepField] || 0);
     const percent = total > 0 ? (countByStep / total) * 100 : 0;
-
-    return {
-      ...item,
-      total,
-      countByStep,
-      percent,
-    };
+    return { ...item, percent: percent };
   });
 
-  // ===============================================================
-  // 1. CÁC ĐƠN VỊ ĐÃ HOÀN THÀNH
-  // Chỉ tính đơn vị thực sự có hồ sơ và đạt từ 100% ở giai đoạn đang chọn.
-  // Dùng >= 100 để không bỏ sót dữ liệu nếu số lượng thực tế vượt chỉ tiêu.
-  // ===============================================================
-  const completedUnits = rankingData
-    .filter((item) => item.total > 0 && item.percent >= 100)
-    .sort((a, b) => {
-      // Ưu tiên tỷ lệ cao hơn; nếu bằng nhau thì sắp tên A-Z cho dễ tra cứu
-      if (b.percent !== a.percent) return b.percent - a.percent;
-      return (a.ten || a.key || "").localeCompare(a.ten || a.key || "", "vi");
-    });
+  const sortedTop = [...sortedList]
+    .sort((a, b) => b.percent - a.percent)
+    .slice(0, 5);
 
-  completedListContainer.innerHTML = "";
+  const sortedLow = [...sortedList]
+    .sort((a, b) => a.percent - b.percent)
+    .slice(0, 5);
 
-  // Gộp số đơn vị hoàn thành / tổng số đơn vị báo cáo ngay trên dòng tiêu đề.
-  // Mẫu số lấy động từ fullDataList, không ghi cứng 96.
-  if (completedCountEl) {
-    const totalReportingUnits = fullDataList.length;
-    completedCountEl.textContent = `(${completedUnits.length}/${totalReportingUnits})`;
-  }
-
-  if (completedUnits.length === 0) {
-    completedListContainer.innerHTML = `
-      <div style="padding: 12px 10px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 4px; font-size: 12px;">
-        Chưa có đơn vị hoàn thành ở giai đoạn này.
-      </div>
-    `;
-  } else {
-    completedUnits.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.className = "rank-item";
-      div.innerHTML = `
-        <div class="rank-item-info">
-          <span class="rank-number top-rank-num">${index + 1}</span>
-          <span class="rank-name">${item.ten || item.key}</span>
-        </div>
-        <span class="rank-percent text-green">${item.percent.toFixed(1)}%</span>
-      `;
-      completedListContainer.appendChild(div);
-    });
-  }
-
-  // ===============================================================
-  // 2. TOP 10 / BOTTOM 10 THEO LỰA CHỌN
-  // Giữ cách tính tỷ lệ hiện tại: đơn vị không có tổng hồ sơ được xem là 0%.
-  // ===============================================================
-  let selectedRanking = [];
-  let percentClass = "text-green";
-  let rankNumberClass = "top-rank-num";
-
-  if (selectedRange === "bottom10") {
-    selectedRanking = [...rankingData]
-      .sort((a, b) => {
-        if (a.percent !== b.percent) return a.percent - b.percent;
-        return (a.ten || a.key || "").localeCompare(b.ten || b.key || "", "vi");
-      })
-      .slice(0, 10);
-    percentClass = "text-down";
-    rankNumberClass = "low-rank-num";
-  } else {
-    selectedRanking = [...rankingData]
-      .sort((a, b) => {
-        if (b.percent !== a.percent) return b.percent - a.percent;
-        return (a.ten || a.key || "").localeCompare(b.ten || b.key || "", "vi");
-      })
-      .slice(0, 10);
-  }
-
-  rankingListContainer.innerHTML = "";
-
-  if (selectedRanking.length === 0) {
-    rankingListContainer.innerHTML = `
-      <div style="padding: 12px 10px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 4px; font-size: 12px;">
-        Chưa có dữ liệu xếp hạng.
-      </div>
-    `;
-    return;
-  }
-
-  selectedRanking.forEach((item, index) => {
+  topListContainer.innerHTML = "";
+  sortedTop.forEach((item, index) => {
     const div = document.createElement("div");
     div.className = "rank-item";
     div.innerHTML = `
       <div class="rank-item-info">
-        <span class="rank-number ${rankNumberClass}">${index + 1}</span>
+        <span class="rank-number top-rank-num">${index + 1}</span>
         <span class="rank-name">${item.ten || item.key}</span>
       </div>
-      <span class="rank-percent ${percentClass}">${item.percent.toFixed(1)}%</span>
+      <span class="rank-percent text-green">${item.percent.toFixed(1)}%</span>
     `;
-    rankingListContainer.appendChild(div);
+    topListContainer.appendChild(div);
+  });
+
+  lowListContainer.innerHTML = "";
+  sortedLow.forEach((item, index) => {
+    const div = document.createElement("div");
+    div.className = "rank-item";
+    div.innerHTML = `
+      <div class="rank-item-info">
+        <span class="rank-number low-rank-num">${index + 1}</span>
+        <span class="rank-name">${item.ten || item.key}</span>
+      </div>
+      <span class="rank-percent text-down">${item.percent.toFixed(1)}%</span>
+    `;
+    lowListContainer.appendChild(div);
   });
 }
 

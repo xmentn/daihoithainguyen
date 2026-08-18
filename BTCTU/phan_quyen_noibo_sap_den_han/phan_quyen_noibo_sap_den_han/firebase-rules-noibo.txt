@@ -1,0 +1,16 @@
+THAY RIÊNG NHÁNH "tasks" TRONG RULES HIỆN TẠI BẰNG:
+
+"tasks": {
+  ".read": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'nhap_lieu_btc')",
+  ".write": "auth != null && (root.child('users').child(auth.uid).child('role').val() === 'admin' || root.child('users').child(auth.uid).child('role').val() === 'nhap_lieu_btc')"
+}
+
+KHUYẾN NGHỊ: nếu danh_muc_doi_tuong chỉ phục vụ Quản lý nội bộ, đổi cả .read của nhánh này theo cùng điều kiện trên.
+
+TÀI KHOẢN btc.tn@gmail.com:
+Sau khi tạo trong Authentication, vào Realtime Database > users > <UID của btc.tn@gmail.com> và đặt:
+{
+  "role": "nhap_lieu_btc"
+}
+
+Để chỉ btc.tn@gmail.com và admin có quyền này, không gán role nhap_lieu_btc cho tài khoản khác.

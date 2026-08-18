@@ -816,7 +816,6 @@ function renderTable(searchTerm = "") {
 function renderRankings() {
   const completedListContainer = document.getElementById("rank-top-list");
   const rankingListContainer = document.getElementById("rank-low-list");
-  const completedCountEl = document.getElementById("rank-completed-count");
 
   if (!completedListContainer || !rankingListContainer) return;
 
@@ -855,13 +854,6 @@ function renderRankings() {
     });
 
   completedListContainer.innerHTML = "";
-
-  // Gộp số đơn vị hoàn thành / tổng số đơn vị báo cáo ngay trên dòng tiêu đề.
-  // Mẫu số lấy động từ fullDataList, không ghi cứng 96.
-  if (completedCountEl) {
-    const totalReportingUnits = fullDataList.length;
-    completedCountEl.textContent = `(${completedUnits.length}/${totalReportingUnits})`;
-  }
 
   if (completedUnits.length === 0) {
     completedListContainer.innerHTML = `

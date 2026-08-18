@@ -287,7 +287,7 @@
         </section>
 
         <!-- Xếp hạng & Bảng số liệu Số hóa -->
-        <section class="charts-grid-bottom" style="align-items: stretch">
+        <section class="charts-grid-bottom">
           <div class="bottom-left-panel">
             <div class="rank-card">
               <!-- Thêm tiêu đề kết hợp Dropdown chọn giai đoạn -->
@@ -327,11 +327,13 @@
 
               <!-- Danh sách các đơn vị đã hoàn thành theo giai đoạn đang chọn -->
               <div class="rank-title text-green" style="margin-top: 10px">
-                <i class="fa-solid fa-circle-check"></i>
-                <span>
-                  CÁC ĐƠN VỊ ĐÃ HOÀN THÀNH
-                  <span id="rank-completed-count" style="font-weight: 800">(0/0)</span>
-                </span>
+                <i class="fa-solid fa-circle-check"></i> CÁC ĐƠN VỊ ĐÃ HOÀN THÀNH
+              </div>
+              <div
+                id="rank-completed-count"
+                style="font-size: 11px; color: #64748b; margin: 5px 0 8px 0; font-weight: 600;"
+              >
+                Số đơn vị đã hoàn thành: 0/0
               </div>
               <div
                 class="rank-list"
@@ -388,10 +390,7 @@
             </div>
           </div>
 
-          <div
-            class="bottom-right-panel"
-            style="display: flex; flex-direction: column; min-height: 0; height: 100%"
-          >
+          <div class="bottom-right-panel">
             <div class="table-header-row">
               <h3 class="chart-box-title">
                 TIẾN ĐỘ CHI TIẾT THEO ĐẢNG BỘ TRỰC THUỘC
@@ -414,10 +413,7 @@
               </div>
             </div>
 
-            <div
-              class="table-scroll-wrapper"
-              style="flex: 1 1 0; min-height: 0; max-height: none; overflow-y: auto"
-            >
+            <div class="table-scroll-wrapper">
               <table class="report-table">
                 <thead>
                   <tr>

@@ -856,11 +856,11 @@ function renderRankings() {
 
   completedListContainer.innerHTML = "";
 
-  // Gộp số đơn vị hoàn thành / tổng số đơn vị báo cáo ngay trên dòng tiêu đề.
+  // Hiển thị số đơn vị hoàn thành / tổng số đơn vị báo cáo.
   // Mẫu số lấy động từ fullDataList, không ghi cứng 96.
   if (completedCountEl) {
     const totalReportingUnits = fullDataList.length;
-    completedCountEl.textContent = `(${completedUnits.length}/${totalReportingUnits})`;
+    completedCountEl.textContent = `Số đơn vị đã hoàn thành: ${completedUnits.length}/${totalReportingUnits}`;
   }
 
   if (completedUnits.length === 0) {

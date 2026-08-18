@@ -11,6 +11,7 @@ let geojsonLayer;
 let fullDataList = []; // Chứa toàn bộ bản ghi dữ liệu phục vụ bộ lọc/sắp xếp
 let globalAgeData = [0, 0, 0, 0]; // Biến toàn cục lưu dữ liệu độ tuổi hiện tại
 let homeTasksCache = []; // Mảng toàn cục lưu danh sách nhiệm vụ nội bộ
+let isTasksListenerAttached = false; // Tránh gắn lặp listener Firebase cho nhánh tasks
 
 // =================================================================
 // 1. KHỞI TẠO TẤT CẢ CÁC SỰ KIỆN KHI TRANG TẢI XONG
@@ -19,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initMap();
   loadDangBoList();
   fetchStatistics();
-  fetchTasksData();
   initTcHomeSubTabs(); // Khởi tạo tab phụ ở Phân hệ 2
   initTabSwitchers(); // Khởi tạo tab chính toàn trang
   initLogoutEvents(); // Khởi tạo sự kiện đăng xuất
@@ -105,6 +105,10 @@ function initTabSwitchers() {
     btn.addEventListener("click", () => {
       const targetTab = btn.getAttribute("data-tab");
 
+      if (targetTab === "tab-quan-ly-noi-bo" && !canAccessHomeNoiBo()) {
+        return;
+      }
+
       tabBtns.forEach((b) => b.classList.remove("active"));
       btn.classList.add("active");
 
@@ -132,6 +136,38 @@ function initTabSwitchers() {
 // KIỂM TRA TRẠNG THÁI ĐĂNG NHẬP TẠI BANNER
 let homeUserRole = "guest";
 
+function canAccessHomeNoiBo() {
+  return homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
+}
+
+function applyHomeRolePermissions() {
+  const btnNoiBo = document.getElementById("tab-btn-quan-ly-noi-bo");
+  const tabNoiBo = document.getElementById("tab-quan-ly-noi-bo");
+  const btnSoHoa = document.querySelector('[data-tab="tab-so-hoa"]');
+  const tabSoHoa = document.getElementById("tab-so-hoa");
+  const allowed = canAccessHomeNoiBo();
+
+  if (btnNoiBo) btnNoiBo.style.display = allowed ? "inline-flex" : "none";
+
+  if (!allowed) {
+    // Nếu vừa đăng xuất khi đang ở Quản lý nội bộ thì đưa về phân hệ Số hóa.
+    if (tabNoiBo?.classList.contains("active")) {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach((c) => c.classList.remove("active"));
+      btnSoHoa?.classList.add("active");
+      tabSoHoa?.classList.add("active");
+      if (map) setTimeout(() => map.invalidateSize(), 200);
+    }
+
+    stopTasksListener();
+    homeTasksCache = [];
+    updateTaskMetrics(0, 0, 0, 0, 0);
+  } else {
+    fetchTasksData();
+  }
+}
+
+
 firebase.auth().onAuthStateChanged((user) => {
   const sessionEmail = document.getElementById("session-email");
   const sessionRole = document.getElementById("session-role");
@@ -156,8 +192,8 @@ firebase.auth().onAuthStateChanged((user) => {
       if (dropdownIcon) dropdownIcon.style.display = "inline-block";
       if (dropdownMenu) dropdownMenu.style.display = "";
 
-      // Tải lại bảng nhiệm vụ để áp dụng phân quyền
-      fetchTasksData();
+      // Áp dụng quyền hiển thị Phân hệ Quản lý nội bộ sau khi đã xác định role
+      applyHomeRolePermissions();
     });
   } else {
     homeUserRole = "guest";
@@ -167,7 +203,7 @@ firebase.auth().onAuthStateChanged((user) => {
     if (dropdownIcon) dropdownIcon.style.display = "none";
     if (dropdownMenu) dropdownMenu.style.display = "none";
 
-    fetchTasksData();
+    applyHomeRolePermissions();
   }
 });
 
@@ -401,6 +437,7 @@ function fetchStatistics(selectedKey = "ALL") {
           key: key,
           ten: data.ten || key || "Chưa đặt tên",
           tongHoSo: Number(data.tongHoSo || 0),
+          soHsThieuTaiLieuCoBan: Number(data.soHsThieuTaiLieuCoBan || 0),
           daChinhLy: Number(data.daChinhLy || 0),
           daKySo: Number(data.daKySo || 0),
           daCapNhat: Number(data.daCapNhat || 0),
@@ -696,6 +733,7 @@ function renderTable(searchTerm = "") {
   });
 
   let sumCanSoHoa = 0,
+    sumThieuTaiLieu = 0,
     sumChinhLy = 0,
     sumKySo = 0,
     sumPhanMem = 0;
@@ -713,6 +751,7 @@ function renderTable(searchTerm = "") {
       : 0;
 
     sumCanSoHoa += item.tongHoSo;
+    sumThieuTaiLieu += item.soHsThieuTaiLieuCoBan;
     sumChinhLy += item.daChinhLy;
     sumKySo += item.daKySo;
     sumPhanMem += item.daCapNhat;
@@ -722,6 +761,7 @@ function renderTable(searchTerm = "") {
       <td class="text-center">${index + 1}</td>
       <td><b>${displayName}</b></td>
       <td class="text-right">${item.tongHoSo.toLocaleString()}</td>
+      <td class="text-right">${item.soHsThieuTaiLieuCoBan.toLocaleString()}</td>
       <td class="text-right" style="border-left: 1px solid #e2e8f0;">${item.daChinhLy.toLocaleString()}</td>
       <td class="text-center">${pChinhLy}%</td>
       <td class="text-right" style="border-left: 1px solid #e2e8f0;">${item.daKySo.toLocaleString()}</td>
@@ -736,6 +776,9 @@ function renderTable(searchTerm = "") {
   if (document.getElementById("foot-can-so-hoa"))
     document.getElementById("foot-can-so-hoa").textContent =
       sumCanSoHoa.toLocaleString();
+  if (document.getElementById("foot-thieu-tai-lieu"))
+    document.getElementById("foot-thieu-tai-lieu").textContent =
+      sumThieuTaiLieu.toLocaleString();
   if (document.getElementById("foot-sl-chinh-ly"))
     document.getElementById("foot-sl-chinh-ly").textContent =
       sumChinhLy.toLocaleString();
@@ -771,55 +814,124 @@ function renderTable(searchTerm = "") {
 
 // 8. BẢNG XẾP HẠNG TOP DẪN ĐẦU & CẦN ĐÔN ĐỐC
 function renderRankings() {
-  const topListContainer = document.getElementById("rank-top-list");
-  const lowListContainer = document.getElementById("rank-low-list");
+  const completedListContainer = document.getElementById("rank-top-list");
+  const rankingListContainer = document.getElementById("rank-low-list");
+  const completedCountEl = document.getElementById("rank-completed-count");
 
-  if (!topListContainer || !lowListContainer) return;
+  if (!completedListContainer || !rankingListContainer) return;
 
+  // Giữ nguyên dropdown chọn giai đoạn hiện có
   const stepSelect = document.getElementById("rank-step-select");
   const selectedStepField = stepSelect ? stepSelect.value : "daCapNhat";
 
-  const sortedList = fullDataList.map((item) => {
-    const total = item.tongHoSo || 0;
+  // Dropdown mới: Top 10 hoặc 10 đơn vị thấp nhất
+  const rangeSelect = document.getElementById("rank-range-select");
+  const selectedRange = rangeSelect ? rangeSelect.value : "top10";
+
+  const rankingData = fullDataList.map((item) => {
+    const total = Number(item.tongHoSo || 0);
     const countByStep = Number(item[selectedStepField] || 0);
     const percent = total > 0 ? (countByStep / total) * 100 : 0;
-    return { ...item, percent: percent };
+
+    return {
+      ...item,
+      total,
+      countByStep,
+      percent,
+    };
   });
 
-  const sortedTop = [...sortedList]
-    .sort((a, b) => b.percent - a.percent)
-    .slice(0, 5);
+  // ===============================================================
+  // 1. CÁC ĐƠN VỊ ĐÃ HOÀN THÀNH
+  // Chỉ tính đơn vị thực sự có hồ sơ và đạt từ 100% ở giai đoạn đang chọn.
+  // Dùng >= 100 để không bỏ sót dữ liệu nếu số lượng thực tế vượt chỉ tiêu.
+  // ===============================================================
+  const completedUnits = rankingData
+    .filter((item) => item.total > 0 && item.percent >= 100)
+    .sort((a, b) => {
+      // Ưu tiên tỷ lệ cao hơn; nếu bằng nhau thì sắp tên A-Z cho dễ tra cứu
+      if (b.percent !== a.percent) return b.percent - a.percent;
+      return (a.ten || a.key || "").localeCompare(a.ten || a.key || "", "vi");
+    });
 
-  const sortedLow = [...sortedList]
-    .sort((a, b) => a.percent - b.percent)
-    .slice(0, 5);
+  completedListContainer.innerHTML = "";
 
-  topListContainer.innerHTML = "";
-  sortedTop.forEach((item, index) => {
+  // Gộp số đơn vị hoàn thành / tổng số đơn vị báo cáo ngay trên dòng tiêu đề.
+  // Mẫu số lấy động từ fullDataList, không ghi cứng 96.
+  if (completedCountEl) {
+    const totalReportingUnits = fullDataList.length;
+    completedCountEl.textContent = `(${completedUnits.length}/${totalReportingUnits})`;
+  }
+
+  if (completedUnits.length === 0) {
+    completedListContainer.innerHTML = `
+      <div style="padding: 12px 10px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 4px; font-size: 12px;">
+        Chưa có đơn vị hoàn thành ở giai đoạn này.
+      </div>
+    `;
+  } else {
+    completedUnits.forEach((item, index) => {
+      const div = document.createElement("div");
+      div.className = "rank-item";
+      div.innerHTML = `
+        <div class="rank-item-info">
+          <span class="rank-number top-rank-num">${index + 1}</span>
+          <span class="rank-name">${item.ten || item.key}</span>
+        </div>
+        <span class="rank-percent text-green">${item.percent.toFixed(1)}%</span>
+      `;
+      completedListContainer.appendChild(div);
+    });
+  }
+
+  // ===============================================================
+  // 2. TOP 10 / BOTTOM 10 THEO LỰA CHỌN
+  // Giữ cách tính tỷ lệ hiện tại: đơn vị không có tổng hồ sơ được xem là 0%.
+  // ===============================================================
+  let selectedRanking = [];
+  let percentClass = "text-green";
+  let rankNumberClass = "top-rank-num";
+
+  if (selectedRange === "bottom10") {
+    selectedRanking = [...rankingData]
+      .sort((a, b) => {
+        if (a.percent !== b.percent) return a.percent - b.percent;
+        return (a.ten || a.key || "").localeCompare(b.ten || b.key || "", "vi");
+      })
+      .slice(0, 10);
+    percentClass = "text-down";
+    rankNumberClass = "low-rank-num";
+  } else {
+    selectedRanking = [...rankingData]
+      .sort((a, b) => {
+        if (b.percent !== a.percent) return b.percent - a.percent;
+        return (a.ten || a.key || "").localeCompare(b.ten || b.key || "", "vi");
+      })
+      .slice(0, 10);
+  }
+
+  rankingListContainer.innerHTML = "";
+
+  if (selectedRanking.length === 0) {
+    rankingListContainer.innerHTML = `
+      <div style="padding: 12px 10px; text-align: center; color: #94a3b8; background: #f8fafc; border-radius: 4px; font-size: 12px;">
+        Chưa có dữ liệu xếp hạng.
+      </div>
+    `;
+    return;
+  }
+
+  selectedRanking.forEach((item, index) => {
     const div = document.createElement("div");
     div.className = "rank-item";
     div.innerHTML = `
       <div class="rank-item-info">
-        <span class="rank-number top-rank-num">${index + 1}</span>
+        <span class="rank-number ${rankNumberClass}">${index + 1}</span>
         <span class="rank-name">${item.ten || item.key}</span>
       </div>
-      <span class="rank-percent text-green">${item.percent.toFixed(1)}%</span>
+      <span class="rank-percent ${percentClass}">${item.percent.toFixed(1)}%</span>
     `;
-    topListContainer.appendChild(div);
-  });
-
-  lowListContainer.innerHTML = "";
-  sortedLow.forEach((item, index) => {
-    const div = document.createElement("div");
-    div.className = "rank-item";
-    div.innerHTML = `
-      <div class="rank-item-info">
-        <span class="rank-number low-rank-num">${index + 1}</span>
-        <span class="rank-name">${item.ten || item.key}</span>
-      </div>
-      <span class="rank-percent text-down">${item.percent.toFixed(1)}%</span>
-    `;
-    lowListContainer.appendChild(div);
+    rankingListContainer.appendChild(div);
   });
 }
 
@@ -1176,24 +1288,46 @@ function renderKnDoughnutChart(daKetNap, conLai) {
 // =================================================================
 // 11. ĐỌC DỮ LIỆU NHIỆM VỤ NỘI BỘ VÀ RENDER ĐẦY ĐỦ CÁC TRƯỜNG TRÊN TRANG CHỦ
 // =================================================================
+function stopTasksListener() {
+  if (isTasksListenerAttached) {
+    tasksRefHome.off("value");
+    isTasksListenerAttached = false;
+  }
+}
+
 function fetchTasksData() {
-  tasksRefHome.on("value", (snapshot) => {
+  if (!canAccessHomeNoiBo()) {
+    stopTasksListener();
     homeTasksCache = [];
+    return;
+  }
 
-    if (!snapshot.exists()) {
+  // Đảm bảo mỗi trang chỉ có một listener realtime cho tasks.
+  stopTasksListener();
+
+  tasksRefHome.on(
+    "value",
+    (snapshot) => {
+      homeTasksCache = [];
+
+      if (snapshot.exists()) {
+        snapshot.forEach((child) => {
+          const taskId = child.key;
+          const task = child.val() || {};
+          task.key = taskId;
+          homeTasksCache.push(task);
+        });
+      }
+
       renderTasksTable();
-      return;
-    }
-
-    snapshot.forEach((child) => {
-      const taskId = child.key;
-      const task = child.val() || {};
-      task.key = taskId;
-      homeTasksCache.push(task);
-    });
-
-    renderTasksTable();
-  });
+    },
+    (error) => {
+      console.error("Không có quyền đọc dữ liệu nhiệm vụ nội bộ:", error);
+      homeTasksCache = [];
+      updateTaskMetrics(0, 0, 0, 0, 0);
+    },
+  );
+  isTasksListenerAttached = true;
 }
 
 // HÀM RENDER VÀ LỌC TÌM KIẾM NHIỆM VỤ NỘI BỘ VỚI ĐẦY ĐỦ CÁC CỘT DỮ LIỆU
@@ -1206,8 +1340,12 @@ function renderTasksTable() {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  const canEditStatus =
-    homeUserRole === "admin" || homeUserRole === "nhap_lieu_btc";
+  if (!canAccessHomeNoiBo()) {
+    updateTaskMetrics(0, 0, 0, 0, 0);
+    return;
+  }
+
+  const canEditStatus = canAccessHomeNoiBo();
   if (thAction) {
     thAction.style.display = canEditStatus ? "table-cell" : "none";
   }
@@ -1239,13 +1377,8 @@ function renderTasksTable() {
   let total = 0,
     done = 0,
     doing = 0,
+    upcoming = 0,
     late = 0;
-
-  if (!filteredTasks || filteredTasks.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#94a3b8;">Không tìm thấy dữ liệu nhiệm vụ nội bộ.</td></tr>`;
-    updateTaskMetrics(0, 0, 0, 0);
-    return;
-  }
 
   let index = 1;
   const today = new Date();
@@ -1262,13 +1395,26 @@ function renderTasksTable() {
       );
     }
 
-    if (t.status === "Đã hoàn thành") done++;
-    else if (t.status === "Chậm tiến độ") late++;
-    else {
-      if (diffDays !== null && diffDays < 0) late++;
-      else doing++;
+    const isDone = t.status === "Đã hoàn thành";
+    const isLate = t.status === "Chậm tiến độ" || (diffDays !== null && diffDays < 0);
+
+    if (isDone) {
+      done++;
+    } else if (isLate) {
+      late++;
+    } else {
+      doing++;
+      // Sắp đến hạn là tập con của các nhiệm vụ đang thực hiện: còn từ 0 đến 3 ngày.
+      if (diffDays !== null && diffDays >= 0 && diffDays <= 3) upcoming++;
     }
   });
+
+  updateTaskMetrics(total, done, doing, upcoming, late);
+
+  if (!filteredTasks || filteredTasks.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#94a3b8;">Không tìm thấy dữ liệu nhiệm vụ nội bộ.</td></tr>`;
+    return;
+  }
 
   filteredTasks.forEach((task) => {
     const taskId = task.key;
@@ -1303,7 +1449,7 @@ function renderTasksTable() {
           badgeColor = "#dc2626";
           iconClass = "fa-triangle-exclamation";
           timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${Math.abs(diffDays)} ngày</div>`;
-        } else if (diffDays < 3) {
+        } else if (diffDays <= 3) {
           badgeColor = "#ea580c";
           iconClass = "fa-clock";
           timeNoticeHtml = `<div style="font-size: 11px; color: #ea580c; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-hourglass-half"></i> Còn ${diffDays} ngày</div>`;
@@ -1381,7 +1527,6 @@ function renderTasksTable() {
     tbody.appendChild(tr);
   });
 
-  updateTaskMetrics(total, done, doing, late);
 }
 
 // HÀM LƯU TRỰC TIẾP TRẠNG THÁI TỪ BẢNG ĐỒNG BỘ NÊN FIREBASE
@@ -1418,15 +1563,17 @@ window.updateTaskStatusDirect = function (taskId) {
     });
 };
 
-function updateTaskMetrics(total, done, doing, late) {
+function updateTaskMetrics(total, done, doing, upcoming, late) {
   const elTotal = document.getElementById("val-task-total");
   const elDone = document.getElementById("val-task-done");
   const elDoing = document.getElementById("val-task-doing");
+  const elUpcoming = document.getElementById("val-task-upcoming");
   const elLate = document.getElementById("val-task-late");
 
   if (elTotal) elTotal.textContent = total;
   if (elDone) elDone.textContent = done;
   if (elDoing) elDoing.textContent = doing;
+  if (elUpcoming) elUpcoming.textContent = upcoming;
   if (elLate) elLate.textContent = late;
 }
 
