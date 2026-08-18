@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Quản trị hệ thống</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body class="admin-page">
+    <!-- =====================================================
+         ĐANG KIỂM TRA QUYỀN
+    ====================================================== -->
+
+    <div id="adminLoading" class="admin-loading">
+      Đang kiểm tra quyền truy cập...
+    </div>
+
+    <!-- =====================================================
+         NỘI DUNG ADMIN
+         Mặc định ẩn
+    ====================================================== -->
+
+    <div id="adminApp" style="display: none">
+      <!-- =================================================
+             HEADER
+        ================================================== -->
+
+      <header class="admin-header">
+        <div class="admin-header-inner">
+          <div>
+            <h1>QUẢN TRỊ HỆ THỐNG</h1>
+
+            <p>Hệ thống theo dõi tiến độ giải phóng mặt bằng</p>
+          </div>
+
+          <div class="admin-header-actions">
+            <a href="index.html" class="admin-home-button"> Trang chủ </a>
+
+            <button type="button" id="logoutButton" class="admin-logout-button">
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- =================================================
+             KHUNG QUẢN TRỊ
+        ================================================== -->
+
+      <div class="admin-layout">
+        <!-- =============================================
+                 MENU TRÁI
+            ============================================== -->
+
+        <aside class="admin-sidebar">
+          <div class="admin-user-box">
+            <span> Đang đăng nhập </span>
+
+            <strong id="adminName"> Quản trị hệ thống </strong>
+          </div>
+
+          <nav class="admin-menu">
+            <a href="#" class="admin-menu-item active"> Tổng quan </a>
+
+            <a href="#unitManagement" class="admin-menu-item">
+              Quản lý đơn vị
+            </a>
+            <a href="#phaseManagement" class="admin-menu-item">
+              Quản lý giai đoạn
+            </a>
+            <a href="#" class="admin-menu-item disabled"> Quản lý tài khoản </a>
+
+            <a href="#" class="admin-menu-item disabled"> Quản lý số liệu </a>
+          </nav>
+        </aside>
+
+        <!-- =============================================
+                 NỘI DUNG
+            ============================================== -->
+
+        <main class="admin-main">
+          <!-- =========================================
+                     TIÊU ĐỀ
+                ========================================== -->
+
+          <div class="admin-page-title">
+            <div>
+              <h2>Quản lý đơn vị</h2>
+
+              <p>
+                Danh sách các đơn vị tham gia cập nhật tiến độ giải phóng mặt
+                bằng.
+              </p>
+            </div>
+          </div>
+
+          <!-- =========================================
+                     FORM THÊM ĐƠN VỊ
+                ========================================== -->
+
+          <section id="unitManagement" class="admin-card">
+            <div class="admin-card-header">
+              <h3>Thêm đơn vị</h3>
+            </div>
+
+            <form id="unitForm">
+              <div class="unit-form-grid">
+                <!-- TÊN ĐƠN VỊ -->
+
+                <div class="form-group">
+                  <label for="unitName">
+                    Tên đơn vị
+                    <span class="required">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="unitName"
+                    placeholder="Ví dụ: Xã Văn Lang"
+                    required
+                  />
+                </div>
+
+                <!-- MÃ ĐƠN VỊ -->
+
+                <div class="form-group">
+                  <label for="unitCode">
+                    Mã đơn vị
+                    <span class="required">*</span>
+                  </label>
+
+                  <input
+                    type="text"
+                    id="unitCode"
+                    placeholder="Ví dụ: VAN_LANG"
+                    required
+                  />
+                </div>
+
+                <!-- LOẠI ĐƠN VỊ -->
+
+                <div class="form-group">
+                  <label for="unitType"> Loại đơn vị </label>
+
+                  <select id="unitType">
+                    <option value="commune">Xã</option>
+
+                    <option value="ward">Phường</option>
+
+                    <option value="other">Khác</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="unitMessage" class="admin-message"></div>
+
+              <button
+                type="submit"
+                id="saveUnitButton"
+                class="admin-primary-button"
+              >
+                Thêm đơn vị
+              </button>
+            </form>
+          </section>
+
+          <!-- =========================================
+                     DANH SÁCH ĐƠN VỊ
+                ========================================== -->
+
+          <section class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3>Danh sách đơn vị</h3>
+
+                <p>
+                  Tổng số:
+                  <strong id="unitCount"> 0 </strong>
+                  đơn vị
+                </p>
+              </div>
+            </div>
+
+            <div class="admin-table-wrapper">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+
+                    <th>Tên đơn vị</th>
+
+                    <th>Mã đơn vị</th>
+
+                    <th>Loại</th>
+
+                    <th>Email được cấp</th>
+
+                    <th>Quyền tài khoản</th>
+
+                    <th>Trạng thái đơn vị</th>
+
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+
+                <tbody id="unitTableBody">
+                  <tr>
+                    <td colspan="8" class="table-empty">Đang tải dữ liệu...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+          <!-- =====================================================
+     QUẢN LÝ GIAI ĐOẠN
+====================================================== -->
+
+          <section id="phaseManagement" class="admin-management-section">
+            <!-- =================================================
+         TIÊU ĐỀ
+    ================================================== -->
+
+            <div class="admin-page-title phase-page-title">
+              <div>
+                <h2>Quản lý giai đoạn</h2>
+
+                <p>Thiết lập các giai đoạn thực hiện của dự án.</p>
+              </div>
+            </div>
+
+            <!-- =================================================
+         THÊM GIAI ĐOẠN
+    ================================================== -->
+
+            <section class="admin-card">
+              <div class="admin-card-header">
+                <h3>Thêm giai đoạn</h3>
+              </div>
+
+              <form id="phaseForm">
+                <div class="phase-form-grid">
+                  <!-- TÊN GIAI ĐOẠN -->
+
+                  <div class="form-group">
+                    <label for="phaseName">
+                      Tên giai đoạn
+
+                      <span class="required"> * </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      id="phaseName"
+                      placeholder="Ví dụ: Giai đoạn 1"
+                      required
+                    />
+                  </div>
+
+                  <!-- MÃ GIAI ĐOẠN -->
+
+                  <div class="form-group">
+                    <label for="phaseCode">
+                      Mã giai đoạn
+
+                      <span class="required"> * </span>
+                    </label>
+
+                    <input
+                      type="text"
+                      id="phaseCode"
+                      placeholder="Ví dụ: phase1"
+                      required
+                    />
+                  </div>
+
+                  <!-- THỨ TỰ -->
+
+                  <div class="form-group">
+                    <label for="phaseOrder"> Thứ tự hiển thị </label>
+
+                    <input
+                      type="number"
+                      id="phaseOrder"
+                      min="1"
+                      step="1"
+                      value="1"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div id="phaseMessage" class="admin-message"></div>
+
+                <button
+                  type="submit"
+                  id="savePhaseButton"
+                  class="admin-primary-button"
+                >
+                  Thêm giai đoạn
+                </button>
+              </form>
+            </section>
+
+            <!-- =================================================
+         DANH SÁCH GIAI ĐOẠN
+    ================================================== -->
+
+            <section class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <h3>Danh sách giai đoạn</h3>
+
+                  <p>
+                    Tổng số:
+
+                    <strong id="phaseCount"> 0 </strong>
+
+                    giai đoạn
+                  </p>
+                </div>
+              </div>
+
+              <div class="admin-table-wrapper">
+                <table class="admin-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+
+                      <th>Tên giai đoạn</th>
+
+                      <th>Mã</th>
+
+                      <th>Thứ tự</th>
+
+                      <th>Trạng thái</th>
+
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="phaseTableBody">
+                    <tr>
+                      <td colspan="6" class="table-empty">
+                        Đang tải dữ liệu...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </section>
+          <!-- =====================================================
+     HỘP CẤP QUYỀN TÀI KHOẢN
+====================================================== -->
+
+          <div id="accountModal" class="account-modal" style="display: none">
+            <div class="account-modal-overlay"></div>
+
+            <div class="account-modal-box">
+              <div class="account-modal-header">
+                <div>
+                  <h3>Cấp quyền tài khoản</h3>
+
+                  <p>
+                    Cho phép một email đăng ký và sử dụng tài khoản của đơn vị.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  id="closeAccountModal"
+                  class="account-modal-close"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form id="accountPermissionForm">
+                <!-- ID ĐƠN VỊ -->
+                <input type="hidden" id="accountUnitId" />
+
+                <!-- TÊN ĐƠN VỊ -->
+
+                <div class="account-unit-box">
+                  <span> Đơn vị </span>
+
+                  <strong id="accountUnitName"> - </strong>
+                </div>
+
+                <!-- EMAIL -->
+
+                <div class="form-group">
+                  <label for="accountEmail">
+                    Email được phép đăng ký
+
+                    <span class="required"> * </span>
+                  </label>
+
+                  <input
+                    type="email"
+                    id="accountEmail"
+                    placeholder="Ví dụ: chomoi.gpmb@gmail.com"
+                    required
+                  />
+
+                  <small class="form-note">
+                    Người dùng phải đăng ký bằng đúng email này mới được liên
+                    kết với đơn vị.
+                  </small>
+                </div>
+
+                <!-- TRẠNG THÁI -->
+
+                <div class="account-permission-option">
+                  <input type="checkbox" id="accountEnabled" checked />
+
+                  <label for="accountEnabled">
+                    Cho phép tài khoản hoạt động
+                  </label>
+                </div>
+
+                <!-- THÔNG BÁO -->
+
+                <div id="accountPermissionMessage" class="admin-message"></div>
+
+                <!-- BUTTON -->
+
+                <div class="account-modal-actions">
+                  <button
+                    type="button"
+                    id="cancelAccountPermission"
+                    class="admin-secondary-button"
+                  >
+                    Hủy
+                  </button>
+
+                  <button
+                    type="submit"
+                    id="saveAccountPermission"
+                    class="admin-primary-button"
+                  >
+                    Lưu quyền
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

@@ -1,371 +1,657 @@
 // ======================================================
-// 1. DỮ LIỆU MẪU THEO GIAI ĐOẠN
+// APP.JS
+//
+// DASHBOARD TRANG CHỦ
+//
+// - Danh mục giai đoạn lấy từ projectPhases
+// - Dữ liệu tiến độ lấy từ collectionGroup "phases"
+// - Chỉ tổng hợp các giai đoạn đang hoạt động
+// - Không viết cứng phase1 / phase2 / phase3
+//
 // ======================================================
 
-const dataByPhase = {
+import { auth, db } from "./firebase-config.js";
 
-    all: {
-        totalArea: 264.9,
-        recoveredArea: 129.7,
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-        totalLength: 38.8,
-        deliveredLength: 19.6,
+import {
+  collection,
+  collectionGroup,
+  query,
+  where,
+  orderBy,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
-        totalHouseholds: 933,
-        approvedHouseholds: 638,
-        paidHouseholds: 531,
-        handedOverHouseholds: 458,
-        notAgreedHouseholds: 98
-    },
+// ======================================================
+// 1. BIẾN DÙNG CHUNG
+// ======================================================
 
-    phase1: {
-        totalArea: 125.6,
-        recoveredArea: 82.4,
+// Danh sách giai đoạn lấy từ Firestore
+let projectPhases = [];
 
-        totalLength: 18.2,
-        deliveredLength: 12.8,
-
-        totalHouseholds: 468,
-        approvedHouseholds: 391,
-        paidHouseholds: 336,
-        handedOverHouseholds: 302,
-        notAgreedHouseholds: 41
-    },
-
-    phase2: {
-        totalArea: 86.5,
-        recoveredArea: 39.2,
-
-        totalLength: 11.7,
-        deliveredLength: 5.3,
-
-        totalHouseholds: 289,
-        approvedHouseholds: 184,
-        paidHouseholds: 151,
-        handedOverHouseholds: 127,
-        notAgreedHouseholds: 36
-    },
-
-    phase3: {
-        totalArea: 52.8,
-        recoveredArea: 8.1,
-
-        totalLength: 8.9,
-        deliveredLength: 1.5,
-
-        totalHouseholds: 176,
-        approvedHouseholds: 63,
-        paidHouseholds: 44,
-        handedOverHouseholds: 29,
-        notAgreedHouseholds: 21
-    }
-
+// Dữ liệu tổng hợp
+let phaseData = {
+  all: createEmptyData(),
 };
 
-
 // ======================================================
-// 2. HÀM LẤY PHẦN TỬ HTML THEO ID
-// ======================================================
-
-function getElement(id) {
-    return document.getElementById(id);
-}
-
-
-// ======================================================
-// 3. ĐỊNH DẠNG SỐ
+// 2. HTML
 // ======================================================
 
-function formatNumber(value, maximumFractionDigits = 1) {
+const phaseSelect = document.getElementById("phaseSelect");
 
-    return new Intl.NumberFormat("vi-VN", {
-        maximumFractionDigits: maximumFractionDigits
-    }).format(value);
-
-}
-
+const phaseCards = document.getElementById("phaseCards");
 
 // ======================================================
-// 4. TÍNH PHẦN TRĂM
+// 3. THEO DÕI ĐĂNG NHẬP
 // ======================================================
 
-function calculatePercent(value, total) {
+onAuthStateChanged(
+  auth,
 
-    if (!total || total <= 0) {
-        return 0;
+  async function (user) {
+    // ==================================================
+    // CHƯA ĐĂNG NHẬP
+    // ==================================================
+
+    if (!user) {
+      console.log("Dashboard: chưa đăng nhập.");
+
+      resetDashboard();
+
+      return;
     }
 
-    const percent = (value / total) * 100;
+    // ==================================================
+    // ĐÃ ĐĂNG NHẬP
+    // ==================================================
 
-    return Math.min(100, Math.max(0, percent));
-}
+    console.log("Dashboard: đang tải dữ liệu Firestore...");
 
+    await loadDashboard();
+  },
+);
 
 // ======================================================
-// 5. HIỂN THỊ DỮ LIỆU DASHBOARD
+// 4. TẢI TOÀN BỘ DASHBOARD
+// ======================================================
+
+async function loadDashboard() {
+  try {
+    // ==================================================
+    // BƯỚC A:
+    // TẢI DANH MỤC GIAI ĐOẠN
+    // ==================================================
+
+    await loadProjectPhases();
+
+    // ==================================================
+    // BƯỚC B:
+    // TẢI SỐ LIỆU TIẾN ĐỘ
+    // ==================================================
+
+    await loadProgressData();
+
+    // ==================================================
+    // BƯỚC C:
+    // HIỂN THỊ
+    // ==================================================
+
+    renderDashboard(phaseSelect.value);
+
+    renderPhaseCards();
+
+    console.log("Đã tải Dashboard hoàn chỉnh.");
+  } catch (error) {
+    console.error("Lỗi tải Dashboard:", error);
+
+    resetDashboard();
+  }
+}
+
+// ======================================================
+// 5. TẢI DANH MỤC GIAI ĐOẠN
+//
+// projectPhases
+// ======================================================
+
+async function loadProjectPhases() {
+  const phaseQuery = query(
+    collection(db, "projectPhases"),
+
+    where("active", "==", true),
+
+    orderBy("order", "asc"),
+  );
+
+  const snapshot = await getDocs(phaseQuery);
+
+  projectPhases = [];
+
+  snapshot.forEach(function (documentSnapshot) {
+    const data = documentSnapshot.data();
+
+    projectPhases.push({
+      id: documentSnapshot.id,
+
+      name: data.name || documentSnapshot.id,
+
+      code: data.code || documentSnapshot.id,
+
+      order: Number(data.order) || 0,
+    });
+  });
+
+  console.log("Danh mục giai đoạn:", projectPhases);
+
+  // ==================================================
+  // TẠO OBJECT DỮ LIỆU
+  // ==================================================
+
+  phaseData = {
+    all: createEmptyData(),
+  };
+
+  projectPhases.forEach(function (phase) {
+    phaseData[phase.id] = createEmptyData();
+  });
+
+  // ==================================================
+  // CẬP NHẬT SELECT
+  // ==================================================
+
+  renderPhaseSelect();
+}
+
+// ======================================================
+// 6. HIỂN THỊ SELECT GIAI ĐOẠN
+// ======================================================
+
+function renderPhaseSelect() {
+  if (!phaseSelect) {
+    return;
+  }
+
+  const previousValue = phaseSelect.value || "all";
+
+  let html = `
+
+        <option value="all">
+            Toàn bộ dự án
+        </option>
+
+    `;
+
+  projectPhases.forEach(function (phase) {
+    html += `
+
+                <option
+                    value="${escapeHtmlAttribute(phase.id)}"
+                >
+                    ${escapeHtmlText(phase.name)}
+                </option>
+
+            `;
+  });
+
+  phaseSelect.innerHTML = html;
+
+  // ==================================================
+  // GIỮ LỰA CHỌN CŨ NẾU VẪN CÒN
+  // ==================================================
+
+  const validValues = [
+    "all",
+    ...projectPhases.map(function (phase) {
+      return phase.id;
+    }),
+  ];
+
+  if (validValues.includes(previousValue)) {
+    phaseSelect.value = previousValue;
+  } else {
+    phaseSelect.value = "all";
+  }
+}
+
+// ======================================================
+// 7. TẢI TOÀN BỘ DỮ LIỆU TIẾN ĐỘ
+//
+// progress/{unitId}/phases/{phaseId}
+// ======================================================
+
+async function loadProgressData() {
+  const progressQuery = collectionGroup(db, "phases");
+
+  const snapshot = await getDocs(progressQuery);
+
+  console.log("Số bản ghi tiến độ:", snapshot.size);
+
+  // Danh sách mã giai đoạn đang hoạt động
+  const activePhaseIds = new Set(
+    projectPhases.map(function (phase) {
+      return phase.id;
+    }),
+  );
+
+  snapshot.forEach(function (documentSnapshot) {
+    // ==================================================
+    // CHỈ NHẬN DỮ LIỆU NẰM TRONG progress/
+    //
+    // Phòng trường hợp sau này có collection
+    // "phases" ở vị trí khác.
+    // ==================================================
+
+    const documentPath = documentSnapshot.ref.path;
+
+    if (!documentPath.startsWith("progress/")) {
+      return;
+    }
+
+    const data = documentSnapshot.data();
+
+    const phaseId = data.phaseId || documentSnapshot.id;
+
+    // ==================================================
+    // BỎ QUA GIAI ĐOẠN ĐÃ NGỪNG SỬ DỤNG
+    // ==================================================
+
+    if (!activePhaseIds.has(phaseId)) {
+      return;
+    }
+
+    // ==================================================
+    // CỘNG VÀO GIAI ĐOẠN
+    // ==================================================
+
+    addProgressData(phaseData[phaseId], data);
+
+    // ==================================================
+    // CỘNG VÀO TOÀN BỘ DỰ ÁN
+    // ==================================================
+
+    addProgressData(phaseData.all, data);
+  });
+
+  console.log("Dữ liệu tổng hợp:", phaseData);
+}
+
+// ======================================================
+// 8. OBJECT RỖNG
+// ======================================================
+
+function createEmptyData() {
+  return {
+    // Diện tích - m²
+    totalAreaM2: 0,
+
+    recoveredAreaM2: 0,
+
+    // Chiều dài - km
+    totalLengthKm: 0,
+
+    deliveredLengthKm: 0,
+
+    // Hộ dân / tổ chức
+    totalHouseholds: 0,
+
+    approvedHouseholds: 0,
+
+    paidHouseholds: 0,
+
+    handedOverHouseholds: 0,
+
+    notAgreedHouseholds: 0,
+
+    // Số bản ghi
+    recordCount: 0,
+  };
+}
+
+// ======================================================
+// 9. CỘNG DỮ LIỆU
+// ======================================================
+
+function addProgressData(target, source) {
+  if (!target) {
+    return;
+  }
+
+  target.totalAreaM2 += numberValue(source.totalAreaM2);
+
+  target.recoveredAreaM2 += numberValue(source.recoveredAreaM2);
+
+  target.totalLengthKm += numberValue(source.totalLengthKm);
+
+  target.deliveredLengthKm += numberValue(source.deliveredLengthKm);
+
+  target.totalHouseholds += integerValue(source.totalHouseholds);
+
+  target.approvedHouseholds += integerValue(source.approvedHouseholds);
+
+  target.paidHouseholds += integerValue(source.paidHouseholds);
+
+  target.handedOverHouseholds += integerValue(source.handedOverHouseholds);
+
+  target.notAgreedHouseholds += integerValue(source.notAgreedHouseholds);
+
+  target.recordCount++;
+}
+
+// ======================================================
+// 10. HIỂN THỊ DASHBOARD
 // ======================================================
 
 function renderDashboard(phaseKey) {
+  const data = phaseData[phaseKey] || createEmptyData();
 
-    const data = dataByPhase[phaseKey];
+  // ==================================================
+  // DIỆN TÍCH
+  // ==================================================
 
-    if (!data) {
-        return;
-    }
+  const totalAreaHa = m2ToHa(data.totalAreaM2);
 
+  const recoveredAreaHa = m2ToHa(data.recoveredAreaM2);
 
-    // --------------------------------------------------
-    // DIỆN TÍCH
-    // --------------------------------------------------
+  const remainingAreaHa = Math.max(0, totalAreaHa - recoveredAreaHa);
 
-    const remainingArea =
-        Math.max(
-            0,
-            data.totalArea - data.recoveredArea
-        );
+  const areaRate = calculatePercent(recoveredAreaHa, totalAreaHa);
 
-    const areaPercent =
-        calculatePercent(
-            data.recoveredArea,
-            data.totalArea
-        );
+  setText("totalArea", formatNumber(totalAreaHa, 2));
 
+  setText("recoveredArea", formatNumber(recoveredAreaHa, 2));
 
-    getElement("totalArea").textContent =
-        formatNumber(data.totalArea);
+  setText("remainingArea", formatNumber(remainingAreaHa, 2));
 
-    getElement("recoveredArea").textContent =
-        formatNumber(data.recoveredArea);
+  setText("areaPercent", formatNumber(areaRate, 1));
 
-    getElement("remainingArea").textContent =
-        formatNumber(remainingArea);
+  setText("areaProgressText", formatNumber(areaRate, 1) + "%");
 
-    getElement("areaPercent").textContent =
-        formatNumber(areaPercent);
+  setProgressWidth("areaProgressBar", areaRate);
 
+  // ==================================================
+  // CHIỀU DÀI
+  // ==================================================
 
-    getElement("areaProgressText").textContent =
-        formatNumber(areaPercent) + "%";
+  const remainingLength = Math.max(
+    0,
+    data.totalLengthKm - data.deliveredLengthKm,
+  );
 
-    getElement("areaProgressBar").style.width =
-        areaPercent + "%";
+  const lengthRate = calculatePercent(
+    data.deliveredLengthKm,
+    data.totalLengthKm,
+  );
 
+  setText("totalLength", formatNumber(data.totalLengthKm, 3));
 
-    // --------------------------------------------------
-    // CHIỀU DÀI TUYẾN
-    // --------------------------------------------------
+  setText("deliveredLength", formatNumber(data.deliveredLengthKm, 3));
 
-    const remainingLength =
-        Math.max(
-            0,
-            data.totalLength - data.deliveredLength
-        );
+  setText("remainingLength", formatNumber(remainingLength, 3));
 
-    const lengthPercent =
-        calculatePercent(
-            data.deliveredLength,
-            data.totalLength
-        );
+  setText("lengthPercent", formatNumber(lengthRate, 1));
 
+  setText("lengthProgressText", formatNumber(lengthRate, 1) + "%");
 
-    getElement("totalLength").textContent =
-        formatNumber(data.totalLength);
+  setProgressWidth("lengthProgressBar", lengthRate);
 
-    getElement("deliveredLength").textContent =
-        formatNumber(data.deliveredLength);
+  // ==================================================
+  // HỘ DÂN / TỔ CHỨC
+  // ==================================================
 
-    getElement("remainingLength").textContent =
-        formatNumber(remainingLength);
+  setText("totalHouseholds", formatNumber(data.totalHouseholds, 0));
 
-    getElement("lengthPercent").textContent =
-        formatNumber(lengthPercent);
+  setText("approvedHouseholds", formatNumber(data.approvedHouseholds, 0));
 
+  setText("paidHouseholds", formatNumber(data.paidHouseholds, 0));
 
-    getElement("lengthProgressText").textContent =
-        formatNumber(lengthPercent) + "%";
+  setText("handedOverHouseholds", formatNumber(data.handedOverHouseholds, 0));
 
-    getElement("lengthProgressBar").style.width =
-        lengthPercent + "%";
-
-
-    // --------------------------------------------------
-    // HỘ DÂN / TỔ CHỨC
-    // --------------------------------------------------
-
-    getElement("totalHouseholds").textContent =
-        formatNumber(
-            data.totalHouseholds,
-            0
-        );
-
-    getElement("approvedHouseholds").textContent =
-        formatNumber(
-            data.approvedHouseholds,
-            0
-        );
-
-    getElement("paidHouseholds").textContent =
-        formatNumber(
-            data.paidHouseholds,
-            0
-        );
-
-    getElement("handedOverHouseholds").textContent =
-        formatNumber(
-            data.handedOverHouseholds,
-            0
-        );
-
-    getElement("notAgreedHouseholds").textContent =
-        formatNumber(
-            data.notAgreedHouseholds,
-            0
-        );
-
+  setText("notAgreedHouseholds", formatNumber(data.notAgreedHouseholds, 0));
 }
 
-
 // ======================================================
-// 6. HIỂN THỊ CÁC CARD GIAI ĐOẠN
+// 11. HIỂN THỊ CARD CÁC GIAI ĐOẠN
 // ======================================================
 
 function renderPhaseCards() {
+  if (!phaseCards) {
+    return;
+  }
 
-    const phaseCards =
-        getElement("phaseCards");
+  // ==================================================
+  // CHƯA CÓ GIAI ĐOẠN
+  // ==================================================
 
-    if (!phaseCards) {
-        return;
-    }
-
-
-    const phases = [
-
-        {
-            key: "phase1",
-            name: "Giai đoạn 1"
-        },
-
-        {
-            key: "phase2",
-            name: "Giai đoạn 2"
-        },
-
-        {
-            key: "phase3",
-            name: "Giai đoạn 3"
-        }
-
-    ];
-
-
-    let html = "";
-
-
-    phases.forEach(function (phase) {
-
-        const data =
-            dataByPhase[phase.key];
-
-        const percent =
-            calculatePercent(
-                data.recoveredArea,
-                data.totalArea
-            );
-
-
-        html += `
+  if (projectPhases.length === 0) {
+    phaseCards.innerHTML = `
 
             <div class="phase-card">
 
-                <div class="phase-card-header">
-
-                    <h3>
-                        ${phase.name}
-                    </h3>
-
-                </div>
-
-
-                <div class="phase-percent">
-
-                    <strong>
-                        ${formatNumber(percent)}%
-                    </strong>
-
-                </div>
-
-
-                <div class="progress">
-
-                    <div
-                        class="progress-bar"
-                        style="width: ${percent}%;">
-                    </div>
-
-                </div>
-
-
                 <div class="phase-note">
-
-                    Đã thu hồi
-                    <strong>
-                        ${formatNumber(data.recoveredArea)}
-                    </strong>
-
-                    /
-
-                    <strong>
-                        ${formatNumber(data.totalArea)}
-                    </strong>
-
-                    ha
-
+                    Chưa có giai đoạn đang hoạt động.
                 </div>
 
             </div>
 
         `;
 
-    });
+    return;
+  }
+
+  phaseCards.innerHTML = projectPhases
+    .map(function (phase) {
+      const data = phaseData[phase.id] || createEmptyData();
+
+      const totalAreaHa = m2ToHa(data.totalAreaM2);
+
+      const recoveredAreaHa = m2ToHa(data.recoveredAreaM2);
+
+      const rate = calculatePercent(recoveredAreaHa, totalAreaHa);
+
+      return `
+
+                        <div class="phase-card">
+
+                            <div class="phase-card-header">
+
+                                <h3>
+                                    ${escapeHtmlText(phase.name)}
+                                </h3>
+
+                            </div>
 
 
-    phaseCards.innerHTML = html;
+                            <div class="phase-percent">
 
+                                <strong>
+                                    ${formatNumber(rate, 1)}%
+                                </strong>
+
+                            </div>
+
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width:${rate}%;">
+                                </div>
+
+                            </div>
+
+
+                            <div class="phase-note">
+
+                                Đã thu hồi
+
+                                <strong>
+                                    ${formatNumber(recoveredAreaHa, 2)}
+                                </strong>
+
+                                /
+
+                                <strong>
+                                    ${formatNumber(totalAreaHa, 2)}
+                                </strong>
+
+                                ha
+
+                            </div>
+
+
+                            <div class="phase-note">
+
+                                ${
+                                  data.recordCount > 0
+                                    ? data.recordCount + " đơn vị đã có số liệu"
+                                    : "Chưa có đơn vị nhập số liệu"
+                                }
+
+                            </div>
+
+                        </div>
+
+                    `;
+    })
+    .join("");
 }
 
-
 // ======================================================
-// 7. XỬ LÝ KHI CHỌN GIAI ĐOẠN
+// 12. KHI CHỌN GIAI ĐOẠN
 // ======================================================
-
-const phaseSelect =
-    getElement("phaseSelect");
-
 
 if (phaseSelect) {
+  phaseSelect.addEventListener(
+    "change",
 
-    phaseSelect.addEventListener(
-        "change",
-        function () {
-
-            const selectedPhase =
-                phaseSelect.value;
-
-            renderDashboard(
-                selectedPhase
-            );
-
-        }
-    );
-
+    function () {
+      renderDashboard(phaseSelect.value);
+    },
+  );
 }
 
+// ======================================================
+// 13. RESET DASHBOARD
+// ======================================================
+
+function resetDashboard() {
+  projectPhases = [];
+
+  phaseData = {
+    all: createEmptyData(),
+  };
+
+  if (phaseSelect) {
+    phaseSelect.innerHTML = `
+
+            <option value="all">
+                Toàn bộ dự án
+            </option>
+
+        `;
+  }
+
+  renderDashboard("all");
+
+  renderPhaseCards();
+}
 
 // ======================================================
-// 8. KHỞI TẠO KHI TRANG ĐƯỢC MỞ
+// 14. M² → HA
 // ======================================================
 
-renderDashboard("all");
+function m2ToHa(value) {
+  return numberValue(value) / 10000;
+}
 
-renderPhaseCards();
+// ======================================================
+// 15. TÍNH %
+// ======================================================
+
+function calculatePercent(value, total) {
+  if (!total || total <= 0) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, (value / total) * 100));
+}
+
+// ======================================================
+// 16. NUMBER
+// ======================================================
+
+function numberValue(value) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 0;
+  }
+
+  return number;
+}
+
+function integerValue(value) {
+  return Math.max(0, Math.floor(numberValue(value)));
+}
+
+// ======================================================
+// 17. FORMAT SỐ
+// ======================================================
+
+function formatNumber(value, digits = 1) {
+  return new Intl.NumberFormat(
+    "vi-VN",
+
+    {
+      minimumFractionDigits: 0,
+
+      maximumFractionDigits: digits,
+    },
+  ).format(numberValue(value));
+}
+
+// ======================================================
+// 18. SET TEXT
+// ======================================================
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+// ======================================================
+// 19. THANH TIẾN ĐỘ
+// ======================================================
+
+function setProgressWidth(id, percent) {
+  const element = document.getElementById(id);
+
+  if (element) {
+    element.style.width = percent + "%";
+  }
+}
+
+// ======================================================
+// 20. AN TOÀN HTML
+// ======================================================
+
+function escapeHtmlText(value) {
+  const div = document.createElement("div");
+
+  div.textContent = value ?? "";
+
+  return div.innerHTML;
+}
+
+function escapeHtmlAttribute(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}

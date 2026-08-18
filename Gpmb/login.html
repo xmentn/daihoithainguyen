@@ -1,93 +1,69 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Đăng nhập hệ thống</title>
 
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-<body class="login-page">
-
+  <body class="login-page">
     <div class="login-wrapper">
+      <div class="login-box">
+        <div class="login-header">
+          <h1>ĐĂNG NHẬP HỆ THỐNG</h1>
 
-        <div class="login-box">
-
-            <div class="login-header">
-
-                <h1>
-                    ĐĂNG NHẬP HỆ THỐNG
-                </h1>
-
-                <p>
-                    Theo dõi tiến độ giải phóng mặt bằng
-                </p>
-
-            </div>
-
-
-            <form id="loginForm">
-
-                <!-- EMAIL -->
-                <div class="form-group">
-
-                    <label for="email">
-                        Tài khoản
-                    </label>
-
-                    <input type="email" id="email" placeholder="Nhập email đăng nhập" autocomplete="username" required>
-
-                </div>
-
-
-                <!-- PASSWORD -->
-                <div class="form-group">
-
-                    <label for="password">
-                        Mật khẩu
-                    </label>
-
-                    <input type="password" id="password" placeholder="Nhập mật khẩu" autocomplete="current-password"
-                        required>
-
-                </div>
-
-
-                <!-- THÔNG BÁO -->
-                <div id="loginMessage" class="login-message">
-                </div>
-
-
-                <!-- BUTTON -->
-                <button type="submit" class="login-submit">
-
-                    Đăng nhập
-
-                </button>
-
-            </form>
-
-
-            <div class="login-footer">
-
-                <a href="index.html">
-                    ← Quay lại trang chủ
-                </a>
-
-            </div>
-
+          <p>Theo dõi tiến độ giải phóng mặt bằng</p>
         </div>
 
+        <form id="loginForm">
+          <!-- EMAIL -->
+          <div class="form-group">
+            <label for="email"> Tài khoản </label>
+
+            <input
+              type="email"
+              id="email"
+              placeholder="Nhập email đăng nhập"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <!-- PASSWORD -->
+          <div class="form-group">
+            <label for="password"> Mật khẩu </label>
+
+            <input
+              type="password"
+              id="password"
+              placeholder="Nhập mật khẩu"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <!-- THÔNG BÁO -->
+          <div id="loginMessage" class="login-message"></div>
+
+          <!-- BUTTON -->
+          <button type="submit" class="login-submit">Đăng nhập</button>
+        </form>
+        <div class="login-footer">
+          <p style="margin-bottom: 10px">Đơn vị chưa có tài khoản?</p>
+
+          <a href="register.html"> Đăng ký tài khoản </a>
+
+          <br /><br />
+
+          <a href="index.html"> ← Quay lại trang chủ </a>
+        </div>
+      </div>
     </div>
 
-
-    <script type="module" src="js/login.js">
-    </script>
-
-</body>
-
+    <script type="module" src="js/login.js"></script>
+  </body>
 </html>

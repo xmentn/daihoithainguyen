@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nhập số liệu GPMB</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body class="commune-page">
+    <!-- =====================================================
+         ĐANG KIỂM TRA TÀI KHOẢN
+    ====================================================== -->
+
+    <div id="communeLoading" class="commune-loading">
+      Đang kiểm tra tài khoản...
+    </div>
+
+    <!-- =====================================================
+         ỨNG DỤNG
+    ====================================================== -->
+
+    <div id="communeApp" style="display: none">
+      <!-- =================================================
+             HEADER
+        ================================================== -->
+
+      <header class="commune-header">
+        <div class="commune-header-inner">
+          <div>
+            <h1>NHẬP SỐ LIỆU GIẢI PHÓNG MẶT BẰNG</h1>
+
+            <p id="headerUnitName">Đơn vị</p>
+          </div>
+
+          <div class="commune-header-actions">
+            <a href="index.html" class="admin-home-button"> Trang chủ </a>
+
+            <button
+              type="button"
+              id="communeLogoutButton"
+              class="admin-logout-button"
+            >
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- =================================================
+             NỘI DUNG
+        ================================================== -->
+
+      <main class="commune-container">
+        <!-- =================================================
+                 THÔNG TIN ĐƠN VỊ
+            ================================================== -->
+
+        <section class="commune-unit-card">
+          <div>
+            <span> Đơn vị đang nhập số liệu </span>
+
+            <h2 id="communeUnitName">-</h2>
+
+            <p>
+              Mã đơn vị:
+              <strong id="communeUnitCode"> - </strong>
+            </p>
+          </div>
+
+          <div class="commune-user-info">
+            <span> Tài khoản </span>
+
+            <strong id="communeUserEmail"> - </strong>
+          </div>
+        </section>
+
+        <!-- =================================================
+                 CHỌN GIAI ĐOẠN
+            ================================================== -->
+
+        <section class="commune-phase-card">
+          <div>
+            <label for="communePhaseSelect"> Giai đoạn nhập liệu </label>
+
+            <p>Chọn giai đoạn cần nhập hoặc cập nhật số liệu.</p>
+          </div>
+
+          <select id="communePhaseSelect">
+            <option value="">Đang tải danh sách giai đoạn...</option>
+          </select>
+        </section>
+
+        <!-- =================================================
+                 FORM NHẬP SỐ LIỆU
+            ================================================== -->
+
+        <form id="progressForm">
+          <!-- =============================================
+                     1. DIỆN TÍCH
+                ============================================== -->
+
+          <section class="commune-data-card">
+            <div class="commune-card-title">
+              <div>
+                <h3>1. Diện tích cần thu hồi</h3>
+
+                <p>Nhập tổng diện tích và diện tích đã thu hồi.</p>
+              </div>
+
+              <div class="area-unit-selector">
+                <label for="areaUnit"> Đơn vị </label>
+
+                <select id="areaUnit">
+                  <option value="ha">ha</option>
+
+                  <option value="m2">m²</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="commune-form-grid">
+              <div class="form-group">
+                <label for="totalArea"> Tổng diện tích cần thu hồi </label>
+
+                <input
+                  type="number"
+                  id="totalArea"
+                  min="0"
+                  step="0.01"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="recoveredArea"> Đã thu hồi </label>
+
+                <input
+                  type="number"
+                  id="recoveredArea"
+                  min="0"
+                  step="0.01"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="remainingArea"> Còn lại </label>
+
+                <input type="text" id="remainingArea" value="0" readonly />
+              </div>
+
+              <div class="form-group">
+                <label for="areaPercent"> Tỷ lệ hoàn thành </label>
+
+                <input type="text" id="areaPercent" value="0%" readonly />
+              </div>
+            </div>
+          </section>
+
+          <!-- =============================================
+                     2. CHIỀU DÀI TUYẾN
+                ============================================== -->
+
+          <section class="commune-data-card">
+            <div class="commune-card-title">
+              <div>
+                <h3>2. Chiều dài tuyến</h3>
+
+                <p>Đơn vị tính: km</p>
+              </div>
+            </div>
+
+            <div class="commune-form-grid">
+              <div class="form-group">
+                <label for="totalLength"> Tổng chiều dài tuyến </label>
+
+                <input
+                  type="number"
+                  id="totalLength"
+                  min="0"
+                  step="0.001"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="deliveredLength"> Đã bàn giao mặt bằng </label>
+
+                <input
+                  type="number"
+                  id="deliveredLength"
+                  min="0"
+                  step="0.001"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="remainingLength"> Còn vướng </label>
+
+                <input type="text" id="remainingLength" value="0 km" readonly />
+              </div>
+
+              <div class="form-group">
+                <label for="lengthPercent"> Tỷ lệ hoàn thành </label>
+
+                <input type="text" id="lengthPercent" value="0%" readonly />
+              </div>
+            </div>
+          </section>
+
+          <!-- =============================================
+                     3. HỘ DÂN / TỔ CHỨC
+                ============================================== -->
+
+          <section class="commune-data-card">
+            <div class="commune-card-title">
+              <div>
+                <h3>3. Hộ dân / tổ chức bị ảnh hưởng</h3>
+
+                <p>Nhập số lượng theo tình trạng thực hiện.</p>
+              </div>
+            </div>
+
+            <div class="commune-form-grid households-input-grid">
+              <div class="form-group">
+                <label for="totalHouseholds">
+                  Tổng số hộ / tổ chức ảnh hưởng
+                </label>
+
+                <input
+                  type="number"
+                  id="totalHouseholds"
+                  min="0"
+                  step="1"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="approvedHouseholds"> Đã phê duyệt phương án </label>
+
+                <input
+                  type="number"
+                  id="approvedHouseholds"
+                  min="0"
+                  step="1"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="paidHouseholds"> Đã nhận tiền </label>
+
+                <input
+                  type="number"
+                  id="paidHouseholds"
+                  min="0"
+                  step="1"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="handedOverHouseholds"> Đã bàn giao mặt bằng </label>
+
+                <input
+                  type="number"
+                  id="handedOverHouseholds"
+                  min="0"
+                  step="1"
+                  value="0"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="notAgreedHouseholds"> Chưa đồng ý </label>
+
+                <input
+                  type="number"
+                  id="notAgreedHouseholds"
+                  min="0"
+                  step="1"
+                  value="0"
+                  required
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- =============================================
+                     LƯU
+                ============================================== -->
+
+          <section class="commune-save-card">
+            <div>
+              <div id="progressMessage" class="admin-message"></div>
+
+              <div id="lastUpdated" class="last-updated">
+                Chưa có dữ liệu được lưu.
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              id="saveProgressButton"
+              class="commune-save-button"
+            >
+              Lưu số liệu
+            </button>
+          </section>
+        </form>
+      </main>
+    </div>
+
+    <script type="module" src="js/commune.js"></script>
+  </body>
+</html>

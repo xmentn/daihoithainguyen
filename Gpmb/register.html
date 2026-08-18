@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Đăng ký tài khoản</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body class="login-page">
+    <div class="login-wrapper">
+      <div class="login-box">
+        <div class="login-header">
+          <h1>ĐĂNG KÝ TÀI KHOẢN</h1>
+
+          <p>Dành cho đơn vị đã được quản trị viên cấp email</p>
+        </div>
+
+        <form id="registerForm">
+          <!-- EMAIL -->
+
+          <div class="form-group">
+            <label for="registerEmail"> Email đã được cấp </label>
+
+            <input
+              type="email"
+              id="registerEmail"
+              placeholder="Nhập email được quản trị viên cấp"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <!-- MẬT KHẨU -->
+
+          <div class="form-group">
+            <label for="registerPassword"> Mật khẩu </label>
+
+            <input
+              type="password"
+              id="registerPassword"
+              placeholder="Nhập mật khẩu"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <!-- NHẬP LẠI MẬT KHẨU -->
+
+          <div class="form-group">
+            <label for="confirmPassword"> Nhập lại mật khẩu </label>
+
+            <input
+              type="password"
+              id="confirmPassword"
+              placeholder="Nhập lại mật khẩu"
+              autocomplete="new-password"
+              minlength="6"
+              required
+            />
+          </div>
+
+          <!-- THÔNG BÁO -->
+
+          <div id="registerMessage" class="login-message"></div>
+
+          <!-- NÚT -->
+
+          <button type="submit" id="registerButton" class="login-submit">
+            Đăng ký tài khoản
+          </button>
+        </form>
+
+        <div class="login-footer">
+          <p style="margin-bottom: 10px">Đã có tài khoản?</p>
+
+          <a href="login.html"> Đăng nhập </a>
+
+          <br /><br />
+
+          <a href="index.html"> ← Quay lại trang chủ </a>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="js/register.js"></script>
+  </body>
+</html>

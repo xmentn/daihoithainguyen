@@ -1,674 +1,359 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
 
-<head>
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Hệ thống theo dõi tiến độ giải phóng mặt bằng</title>
 
     <!-- File CSS -->
-    <link rel="stylesheet" href="css/style.css">
-</head>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-<body>
-
+  <body>
     <!-- =====================================================
          1. BANNER
     ====================================================== -->
     <header class="header">
-
-        <div class="banner-container">
-            <img src="images/banner.png" alt="Hệ thống theo dõi tiến độ giải phóng mặt bằng" class="banner-image">
-        </div>
-
+      <div class="banner-container">
+        <img
+          src="images/banner.png"
+          alt="Hệ thống theo dõi tiến độ giải phóng mặt bằng"
+          class="banner-image"
+        />
+      </div>
     </header>
-
 
     <!-- =====================================================
          2. THANH ĐIỀU HƯỚNG
     ====================================================== -->
     <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-left">
+          <a href="index.html" class="nav-item active"> Trang chủ </a>
 
-        <div class="navbar-container">
+          <a href="#" class="nav-item"> Tiến độ GPMB </a>
 
-            <div class="navbar-left">
+          <a href="#" class="nav-item"> Báo cáo </a>
 
-                <a href="index.html" class="nav-item active">
-                    Trang chủ
-                </a>
+          <!-- =============================================
+         CHỈ ADMIN MỚI HIỆN
+    ============================================== -->
 
-                <a href="#" class="nav-item">
-                    Tiến độ GPMB
-                </a>
+          <a
+            href="admin.html"
+            id="adminNavButton"
+            class="nav-item"
+            style="display: none"
+          >
+            Quản trị
+          </a>
 
-                <a href="#" class="nav-item">
-                    Báo cáo
-                </a>
+          <!-- =============================================
+         CHỈ TÀI KHOẢN ĐƠN VỊ MỚI HIỆN
+    ============================================== -->
 
-            </div>
-
-
-            <div class="navbar-right">
-
-                <a href="login.html" class="login-button">
-                    Đăng nhập
-                </a>
-
-            </div>
-
+          <a
+            href="commune.html"
+            id="communeDataNavButton"
+            class="nav-item"
+            style="display: none"
+          >
+            Nhập số liệu
+          </a>
         </div>
 
-    </nav>
+        <div class="navbar-right">
+          <!-- =============================================
+         CHƯA ĐĂNG NHẬP
+    ============================================== -->
 
+          <a href="login.html" class="login-button" id="loginButton">
+            Đăng nhập
+          </a>
+
+          <!-- =============================================
+         ĐÃ ĐĂNG NHẬP
+         Ban đầu phải ẩn
+    ============================================== -->
+
+          <div class="user-menu" id="userMenu" style="display: none">
+            <button type="button" class="user-menu-button" id="userMenuButton">
+              <span id="currentUserName"> Người dùng </span>
+
+              <span class="user-menu-arrow"> ▼ </span>
+            </button>
+
+            <!-- MENU XỔ XUỐNG -->
+
+            <div class="user-dropdown">
+              <div class="user-dropdown-info">
+                <span> Đang đăng nhập </span>
+
+                <strong id="currentUserEmail"> </strong>
+              </div>
+
+              <button
+                type="button"
+                id="homeLogoutButton"
+                class="user-logout-button"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
 
     <!-- =====================================================
          3. NỘI DUNG CHÍNH
     ====================================================== -->
     <main class="main-content">
-
-        <div class="container">
-
-
-            <!-- =================================================
+      <div class="container">
+        <!-- =================================================
                  TIÊU ĐỀ DASHBOARD
             ================================================== -->
-            <section class="dashboard-header">
+        <section class="dashboard-header">
+          <div>
+            <h1>DASHBOARD TIẾN ĐỘ GIẢI PHÓNG MẶT BẰNG</h1>
 
-                <div>
+            <p>Tổng hợp tình hình thực hiện dự án</p>
+          </div>
 
-                    <h1>
-                        DASHBOARD TIẾN ĐỘ GIẢI PHÓNG MẶT BẰNG
-                    </h1>
+          <!-- Chọn giai đoạn -->
+          <div class="phase-filter">
+            <label for="phaseSelect"> Giai đoạn: </label>
+            <select id="phaseSelect">
+              <option value="all">Toàn bộ dự án</option>
+            </select>
+          </div>
+        </section>
 
-                    <p>
-                        Tổng hợp tình hình thực hiện dự án
-                    </p>
-
-                </div>
-
-
-                <!-- Chọn giai đoạn -->
-                <div class="phase-filter">
-
-                    <label for="phaseSelect">
-                        Giai đoạn:
-                    </label>
-
-                    <select id="phaseSelect">
-
-                        <option value="all">
-                            Toàn bộ dự án
-                        </option>
-
-                        <option value="phase1">
-                            Giai đoạn 1
-                        </option>
-
-                        <option value="phase2">
-                            Giai đoạn 2
-                        </option>
-
-                        <option value="phase3">
-                            Giai đoạn 3
-                        </option>
-
-                    </select>
-
-                </div>
-
-            </section>
-
-
-
-            <!-- =================================================
+        <!-- =================================================
                  4. DIỆN TÍCH THU HỒI
             ================================================== -->
-            <section class="dashboard-section">
+        <section class="dashboard-section">
+          <div class="section-title">
+            <h2>Diện tích cần thu hồi</h2>
 
-                <div class="section-title">
+            <span class="section-unit"> ha / m² </span>
+          </div>
 
-                    <h2>
-                        Diện tích cần thu hồi
-                    </h2>
+          <div class="dashboard-grid area-grid">
+            <!-- Tổng diện tích -->
+            <div class="dashboard-card main-card">
+              <div class="card-title">Tổng diện tích cần thu hồi</div>
 
-                    <span class="section-unit">
-                        ha / m²
-                    </span>
+              <div class="card-value">
+                <span id="totalArea"> 0 </span>
 
-                </div>
+                <span class="card-unit"> ha </span>
+              </div>
+            </div>
 
+            <!-- Đã thu hồi -->
+            <div class="dashboard-card">
+              <div class="card-title">Đã thu hồi</div>
 
-                <div class="dashboard-grid area-grid">
+              <div class="card-value success">
+                <span id="recoveredArea"> 0 </span>
 
+                <span class="card-unit"> ha </span>
+              </div>
+            </div>
 
-                    <!-- Tổng diện tích -->
-                    <div class="dashboard-card main-card">
+            <!-- Còn lại -->
+            <div class="dashboard-card">
+              <div class="card-title">Còn lại</div>
 
-                        <div class="card-title">
-                            Tổng diện tích cần thu hồi
-                        </div>
+              <div class="card-value warning">
+                <span id="remainingArea"> 0 </span>
 
-                        <div class="card-value">
+                <span class="card-unit"> ha </span>
+              </div>
+            </div>
 
-                            <span id="totalArea">
-                                0
-                            </span>
+            <!-- Tỷ lệ hoàn thành -->
+            <div class="dashboard-card">
+              <div class="card-title">Tỷ lệ hoàn thành</div>
 
-                            <span class="card-unit">
-                                ha
-                            </span>
+              <div class="card-value percent">
+                <span id="areaPercent"> 0 </span>
 
-                        </div>
+                <span class="card-unit"> % </span>
+              </div>
+            </div>
+          </div>
 
-                    </div>
+          <!-- Thanh tiến độ -->
+          <div class="progress-wrapper">
+            <div class="progress-label">
+              <span> Tiến độ thu hồi diện tích </span>
 
+              <strong id="areaProgressText"> 0% </strong>
+            </div>
 
+            <div class="progress">
+              <div
+                class="progress-bar"
+                id="areaProgressBar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+        </section>
 
-                    <!-- Đã thu hồi -->
-                    <div class="dashboard-card">
-
-                        <div class="card-title">
-                            Đã thu hồi
-                        </div>
-
-                        <div class="card-value success">
-
-                            <span id="recoveredArea">
-                                0
-                            </span>
-
-                            <span class="card-unit">
-                                ha
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Còn lại -->
-                    <div class="dashboard-card">
-
-                        <div class="card-title">
-                            Còn lại
-                        </div>
-
-                        <div class="card-value warning">
-
-                            <span id="remainingArea">
-                                0
-                            </span>
-
-                            <span class="card-unit">
-                                ha
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Tỷ lệ hoàn thành -->
-                    <div class="dashboard-card">
-
-                        <div class="card-title">
-                            Tỷ lệ hoàn thành
-                        </div>
-
-                        <div class="card-value percent">
-
-                            <span id="areaPercent">
-                                0
-                            </span>
-
-                            <span class="card-unit">
-                                %
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-
-                <!-- Thanh tiến độ -->
-                <div class="progress-wrapper">
-
-                    <div class="progress-label">
-
-                        <span>
-                            Tiến độ thu hồi diện tích
-                        </span>
-
-                        <strong id="areaProgressText">
-                            0%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="progress">
-
-                        <div class="progress-bar" id="areaProgressBar" style="width: 0%;">
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-
-            <!-- =================================================
+        <!-- =================================================
                  5. CHIỀU DÀI TUYẾN
             ================================================== -->
-            <section class="dashboard-section">
+        <section class="dashboard-section">
+          <div class="section-title">
+            <h2>Chiều dài tuyến</h2>
 
-                <div class="section-title">
+            <span class="section-unit"> km </span>
+          </div>
 
-                    <h2>
-                        Chiều dài tuyến
-                    </h2>
+          <div class="dashboard-grid">
+            <!-- Tổng chiều dài -->
+            <div class="dashboard-card main-card">
+              <div class="card-title">Tổng chiều dài tuyến</div>
 
-                    <span class="section-unit">
-                        km
-                    </span>
+              <div class="card-value">
+                <span id="totalLength"> 0 </span>
 
-                </div>
+                <span class="card-unit"> km </span>
+              </div>
+            </div>
 
+            <!-- Đã bàn giao -->
+            <div class="dashboard-card">
+              <div class="card-title">Đã bàn giao mặt bằng</div>
 
-                <div class="dashboard-grid">
+              <div class="card-value success">
+                <span id="deliveredLength"> 0 </span>
 
+                <span class="card-unit"> km </span>
+              </div>
+            </div>
 
-                    <!-- Tổng chiều dài -->
-                    <div class="dashboard-card main-card">
+            <!-- Còn vướng -->
+            <div class="dashboard-card">
+              <div class="card-title">Còn vướng</div>
 
-                        <div class="card-title">
-                            Tổng chiều dài tuyến
-                        </div>
+              <div class="card-value danger">
+                <span id="remainingLength"> 0 </span>
 
-                        <div class="card-value">
+                <span class="card-unit"> km </span>
+              </div>
+            </div>
 
-                            <span id="totalLength">
-                                0
-                            </span>
+            <!-- Tỷ lệ -->
+            <div class="dashboard-card">
+              <div class="card-title">Tỷ lệ hoàn thành</div>
 
-                            <span class="card-unit">
-                                km
-                            </span>
+              <div class="card-value percent">
+                <span id="lengthPercent"> 0 </span>
 
-                        </div>
+                <span class="card-unit"> % </span>
+              </div>
+            </div>
+          </div>
 
-                    </div>
+          <!-- Thanh tiến độ -->
+          <div class="progress-wrapper">
+            <div class="progress-label">
+              <span> Tiến độ bàn giao tuyến </span>
 
+              <strong id="lengthProgressText"> 0% </strong>
+            </div>
 
+            <div class="progress">
+              <div
+                class="progress-bar"
+                id="lengthProgressBar"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+        </section>
 
-                    <!-- Đã bàn giao -->
-                    <div class="dashboard-card">
-
-                        <div class="card-title">
-                            Đã bàn giao mặt bằng
-                        </div>
-
-                        <div class="card-value success">
-
-                            <span id="deliveredLength">
-                                0
-                            </span>
-
-                            <span class="card-unit">
-                                km
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Còn vướng -->
-                    <div class="dashboard-card">
-
-                        <div class="card-title">
-                            Còn vướng
-                        </div>
-
-                        <div class="card-value danger">
-
-                            <span id="remainingLength">
-                                0
-                            </span>
-
-                            <span class="card-unit">
-                                km
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Tỷ lệ -->
-                    <div class="dashboard-card">
-
-                        <div class="card-title">
-                            Tỷ lệ hoàn thành
-                        </div>
-
-                        <div class="card-value percent">
-
-                            <span id="lengthPercent">
-                                0
-                            </span>
-
-                            <span class="card-unit">
-                                %
-                            </span>
-
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-
-                <!-- Thanh tiến độ -->
-                <div class="progress-wrapper">
-
-                    <div class="progress-label">
-
-                        <span>
-                            Tiến độ bàn giao tuyến
-                        </span>
-
-                        <strong id="lengthProgressText">
-                            0%
-                        </strong>
-
-                    </div>
-
-
-                    <div class="progress">
-
-                        <div class="progress-bar" id="lengthProgressBar" style="width: 0%;">
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-
-
-            <!-- =================================================
+        <!-- =================================================
                  6. HỘ DÂN / TỔ CHỨC
             ================================================== -->
-            <section class="dashboard-section">
+        <section class="dashboard-section">
+          <div class="section-title">
+            <h2>Hộ dân / tổ chức bị ảnh hưởng</h2>
 
-                <div class="section-title">
+            <span class="section-unit"> hộ / tổ chức </span>
+          </div>
 
-                    <h2>
-                        Hộ dân / tổ chức bị ảnh hưởng
-                    </h2>
+          <!-- Tổng số -->
+          <div class="household-total">
+            <div>
+              <span class="household-total-label">
+                Tổng số hộ dân / tổ chức bị ảnh hưởng
+              </span>
 
-                    <span class="section-unit">
-                        hộ / tổ chức
-                    </span>
+              <strong id="totalHouseholds"> 0 </strong>
+            </div>
+          </div>
 
-                </div>
+          <!-- Chi tiết -->
+          <div class="household-grid">
+            <div class="household-card">
+              <div class="household-title">Đã phê duyệt phương án</div>
 
+              <div class="household-value" id="approvedHouseholds">0</div>
+            </div>
 
-                <!-- Tổng số -->
-                <div class="household-total">
+            <div class="household-card">
+              <div class="household-title">Đã nhận tiền</div>
 
-                    <div>
+              <div class="household-value success" id="paidHouseholds">0</div>
+            </div>
 
-                        <span class="household-total-label">
-                            Tổng số hộ dân / tổ chức bị ảnh hưởng
-                        </span>
+            <div class="household-card">
+              <div class="household-title">Đã bàn giao mặt bằng</div>
 
-                        <strong id="totalHouseholds">
-                            0
-                        </strong>
+              <div class="household-value success" id="handedOverHouseholds">
+                0
+              </div>
+            </div>
 
-                    </div>
+            <div class="household-card alert-card">
+              <div class="household-title">Chưa đồng ý</div>
 
-                </div>
+              <div class="household-value danger" id="notAgreedHouseholds">
+                0
+              </div>
+            </div>
+          </div>
+        </section>
 
-
-                <!-- Chi tiết -->
-                <div class="household-grid">
-
-
-                    <div class="household-card">
-
-                        <div class="household-title">
-                            Đã phê duyệt phương án
-                        </div>
-
-                        <div class="household-value" id="approvedHouseholds">
-                            0
-                        </div>
-
-                    </div>
-
-
-
-                    <div class="household-card">
-
-                        <div class="household-title">
-                            Đã nhận tiền
-                        </div>
-
-                        <div class="household-value success" id="paidHouseholds">
-                            0
-                        </div>
-
-                    </div>
-
-
-
-                    <div class="household-card">
-
-                        <div class="household-title">
-                            Đã bàn giao mặt bằng
-                        </div>
-
-                        <div class="household-value success" id="handedOverHouseholds">
-                            0
-                        </div>
-
-                    </div>
-
-
-
-                    <div class="household-card alert-card">
-
-                        <div class="household-title">
-                            Chưa đồng ý
-                        </div>
-
-                        <div class="household-value danger" id="notAgreedHouseholds">
-                            0
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-            </section>
-
-
-
-            <!-- =================================================
+        <!-- =================================================
                  7. TIẾN ĐỘ CÁC GIAI ĐOẠN
             ================================================== -->
-            <section class="dashboard-section">
-
-                <div class="section-title">
-
-                    <h2>
-                        Tiến độ theo giai đoạn
-                    </h2>
-
-                </div>
-
-
-                <div class="phase-grid" id="phaseCards">
-
-
-                    <!-- Giai đoạn 1 -->
-                    <div class="phase-card">
-
-                        <div class="phase-card-header">
-
-                            <h3>
-                                Giai đoạn 1
-                            </h3>
-
-                        </div>
-
-
-                        <div class="phase-percent">
-
-                            <strong>
-                                0%
-                            </strong>
-
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div class="progress-bar" style="width:0%;">
-                            </div>
-
-                        </div>
-
-
-                        <div class="phase-note">
-                            Chưa có dữ liệu
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Giai đoạn 2 -->
-                    <div class="phase-card">
-
-                        <div class="phase-card-header">
-
-                            <h3>
-                                Giai đoạn 2
-                            </h3>
-
-                        </div>
-
-
-                        <div class="phase-percent">
-
-                            <strong>
-                                0%
-                            </strong>
-
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div class="progress-bar" style="width:0%;">
-                            </div>
-
-                        </div>
-
-
-                        <div class="phase-note">
-                            Chưa có dữ liệu
-                        </div>
-
-                    </div>
-
-
-
-                    <!-- Giai đoạn 3 -->
-                    <div class="phase-card">
-
-                        <div class="phase-card-header">
-
-                            <h3>
-                                Giai đoạn 3
-                            </h3>
-
-                        </div>
-
-
-                        <div class="phase-percent">
-
-                            <strong>
-                                0%
-                            </strong>
-
-                        </div>
-
-
-                        <div class="progress">
-
-                            <div class="progress-bar" style="width:0%;">
-                            </div>
-
-                        </div>
-
-
-                        <div class="phase-note">
-                            Chưa có dữ liệu
-                        </div>
-
-                    </div>
-
-
-                </div>
-
-            </section>
-
-
-        </div>
-
+        <section class="dashboard-section">
+          <div class="section-title">
+            <h2>Tiến độ theo giai đoạn</h2>
+          </div>
+          <div class="phase-grid" id="phaseCards">
+            <div class="phase-note">Đang tải danh sách giai đoạn...</div>
+          </div>
+        </section>
+      </div>
     </main>
-
 
     <!-- =====================================================
          8. FOOTER
     ====================================================== -->
     <footer class="footer">
-
-        <div class="container">
-
-            Hệ thống theo dõi tiến độ giải phóng mặt bằng
-
-        </div>
-
+      <div class="container">Hệ thống theo dõi tiến độ giải phóng mặt bằng</div>
     </footer>
+    <script type="module" src="js/app.js"></script>
 
-
-    <!-- =====================================================
-         FILE JAVASCRIPT
-    ====================================================== -->
-    <script src="js/app.js"></script>
-    <script type="module" src="js/test-firebase.js">
-    </script>
-
-</body>
-
+    <script type="module" src="js/index-auth.js"></script>
+  </body>
 </html>

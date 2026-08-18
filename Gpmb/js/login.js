@@ -1,504 +1,421 @@
 // ======================================================
 // LOGIN.JS
-// Đăng nhập + đọc quyền người dùng từ Firestore
+//
+// - Đăng nhập Firebase Authentication
+// - Kiểm tra hồ sơ users/{uid}
+// - Admin: đăng nhập bình thường
+// - Đơn vị lần đầu:
+//      + Phải xác minh email
+//      + Tìm đơn vị được Admin cấp email
+//      + Tự tạo users/{uid}
+//      + Gắn unitId
+// - Sau đăng nhập đều quay về index.html
+//
 // ======================================================
 
+import { auth, db } from "./firebase-config.js";
 
 // ======================================================
-// 1. IMPORT FIREBASE CONFIG
+// FIREBASE AUTH
 // ======================================================
 
 import {
-    auth,
-    db
-} from "./firebase-config.js";
-
-
-// ======================================================
-// 2. IMPORT FIREBASE AUTHENTICATION
-// ======================================================
-
-import {
-    signInWithEmailAndPassword,
-    signOut
+  signInWithEmailAndPassword,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-
 // ======================================================
-// 3. IMPORT FIRESTORE
+// FIRESTORE
 // ======================================================
 
 import {
-    doc,
-    getDoc
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  limit,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
 
+// ======================================================
+// LẤY CÁC PHẦN TỬ HTML
+// ======================================================
+
+const loginForm = document.getElementById("loginForm");
+
+const emailInput = document.getElementById("email");
+
+const passwordInput = document.getElementById("password");
+
+const loginMessage = document.getElementById("loginMessage");
+
+const submitButton = loginForm.querySelector("button[type='submit']");
 
 // ======================================================
-// 4. LẤY CÁC THÀNH PHẦN TRÊN TRANG LOGIN
-// ======================================================
-
-const loginForm =
-    document.getElementById("loginForm");
-
-const emailInput =
-    document.getElementById("email");
-
-const passwordInput =
-    document.getElementById("password");
-
-const loginMessage =
-    document.getElementById("loginMessage");
-
-const submitButton =
-    loginForm.querySelector(
-        "button[type='submit']"
-    );
-
-
-// ======================================================
-// 5. XỬ LÝ KHI NHẤN ĐĂNG NHẬP
+// XỬ LÝ ĐĂNG NHẬP
 // ======================================================
 
 loginForm.addEventListener(
-    "submit",
-    async function (event) {
+  "submit",
 
-        // Không cho form reload trang
-        event.preventDefault();
+  async function (event) {
+    event.preventDefault();
 
+    const email = emailInput.value.trim().toLowerCase();
 
-        // ==================================================
-        // LẤY EMAIL VÀ MẬT KHẨU
-        // ==================================================
+    const password = passwordInput.value;
 
-        const email =
-            emailInput.value.trim();
+    // ==================================================
+    // KIỂM TRA INPUT
+    // ==================================================
 
-        const password =
-            passwordInput.value;
+    if (!email) {
+      showMessage("Vui lòng nhập tài khoản.", "error");
 
+      emailInput.focus();
 
-        // ==================================================
-        // KIỂM TRA DỮ LIỆU NHẬP
-        // ==================================================
+      return;
+    }
 
-        if (!email) {
+    if (!password) {
+      showMessage("Vui lòng nhập mật khẩu.", "error");
 
-            showMessage(
-                "Vui lòng nhập tài khoản.",
-                "error"
-            );
+      passwordInput.focus();
 
-            emailInput.focus();
+      return;
+    }
 
-            return;
+    setLoading(true);
+
+    showMessage("Đang kiểm tra tài khoản...", "");
+
+    try {
+      // ==================================================
+      // 1. ĐĂNG NHẬP AUTHENTICATION
+      // ==================================================
+
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
+
+      let user = userCredential.user;
+
+      // ==================================================
+      // 2. LÀM MỚI THÔNG TIN USER
+      //
+      // Quan trọng sau khi người dùng
+      // vừa xác minh email.
+      // ==================================================
+
+      await user.reload();
+
+      user = auth.currentUser;
+
+      // Làm mới ID token để Firestore Rules
+      // nhận đúng email_verified
+      await user.getIdToken(true);
+
+      console.log("Đăng nhập Authentication thành công:");
+
+      console.log("Email:", user.email);
+
+      console.log("UID:", user.uid);
+
+      console.log("Email verified:", user.emailVerified);
+
+      // ==================================================
+      // 3. KIỂM TRA users/{uid} ĐÃ CÓ CHƯA
+      // ==================================================
+
+      const userRef = doc(db, "users", user.uid);
+
+      const userSnap = await getDoc(userRef);
+
+      // ==================================================
+      // 4. ĐÃ CÓ HỒ SƠ USER
+      // ==================================================
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+
+        console.log("Hồ sơ người dùng:", userData);
+
+        // ----------------------------------------------
+        // TÀI KHOẢN BỊ KHÓA
+        // ----------------------------------------------
+
+        if (userData.active === false) {
+          await signOut(auth);
+
+          showMessage(
+            "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị hệ thống.",
+            "error",
+          );
+
+          return;
         }
 
+        // ----------------------------------------------
+        // ADMIN
+        // ----------------------------------------------
 
-        if (!password) {
+        if (userData.role === "admin") {
+          console.log("Quyền: ADMIN");
 
-            showMessage(
-                "Vui lòng nhập mật khẩu.",
-                "error"
-            );
+          showMessage("Đăng nhập thành công!", "success");
 
-            passwordInput.focus();
+          redirectHome();
 
-            return;
+          return;
         }
 
-
-        // ==================================================
-        // KHÓA NÚT KHI ĐANG ĐĂNG NHẬP
-        // ==================================================
-
-        setLoading(true);
-
-
-        showMessage(
-            "Đang kiểm tra tài khoản...",
-            ""
-        );
-
-
-        try {
-
-            // ==================================================
-            // 6. ĐĂNG NHẬP FIREBASE AUTHENTICATION
-            // ==================================================
-
-            const userCredential =
-                await signInWithEmailAndPassword(
-                    auth,
-                    email,
-                    password
-                );
-
-
-            const user =
-                userCredential.user;
-
-
-            console.log(
-                "Authentication thành công:",
-                user.email
-            );
-
-
-            console.log(
-                "UID:",
-                user.uid
-            );
-
-
-            // ==================================================
-            // 7. ĐỌC HỒ SƠ USER TRONG FIRESTORE
-            //
-            // users/{UID}
-            // ==================================================
-
-            const userDocRef =
-                doc(
-                    db,
-                    "users",
-                    user.uid
-                );
-
-
-            const userDocSnap =
-                await getDoc(
-                    userDocRef
-                );
-
-
-            // ==================================================
-            // 8. KIỂM TRA HỒ SƠ CÓ TỒN TẠI KHÔNG
-            // ==================================================
-
-            if (!userDocSnap.exists()) {
-
-                console.error(
-                    "Không tìm thấy document users/" +
-                    user.uid
-                );
-
-
-                // Đăng xuất khỏi Firebase
-                // vì tài khoản chưa được cấp quyền hệ thống
-                await signOut(auth);
-
-
-                showMessage(
-                    "Tài khoản chưa được cấp quyền sử dụng hệ thống.",
-                    "error"
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // 9. LẤY DỮ LIỆU HỒ SƠ
-            // ==================================================
-
-            const userData =
-                userDocSnap.data();
-
-
-            console.log(
-                "Thông tin người dùng:",
-                userData
-            );
-
-
-            // ==================================================
-            // 10. KIỂM TRA TÀI KHOẢN CÓ BỊ KHÓA KHÔNG
-            // ==================================================
-
-            if (userData.active === false) {
-
-                await signOut(auth);
-
-
-                showMessage(
-                    "Tài khoản đã bị khóa. Vui lòng liên hệ quản trị hệ thống.",
-                    "error"
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // 11. KIỂM TRA ROLE
-            // ==================================================
-
-            const role =
-                userData.role;
-
-
-            // ==================================================
-            // ADMIN
-            // ==================================================
-
-            if (role === "admin") {
-
-                console.log(
-                    "Quyền người dùng: ADMIN"
-                );
-
-
-                showMessage(
-                    "Đăng nhập quản trị thành công!",
-                    "success"
-                );
-
-
-                // Chờ một chút để người dùng nhìn thấy thông báo
-                setTimeout(
-                    function () {
-
-                        window.location.href =
-                            "admin.html";
-
-                    },
-                    600
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // TÀI KHOẢN XÃ
-            // ==================================================
-
-            if (role === "commune") {
-
-                console.log(
-                    "Quyền người dùng: COMMUNE"
-                );
-
-
-                showMessage(
-                    "Đăng nhập thành công!",
-                    "success"
-                );
-
-
-                setTimeout(
-                    function () {
-
-                        window.location.href =
-                            "commune.html";
-
-                    },
-                    600
-                );
-
-
-                return;
-            }
-
-
-            // ==================================================
-            // ROLE KHÔNG HỢP LỆ
-            // ==================================================
-
-            console.error(
-                "Role không hợp lệ:",
-                role
-            );
-
-
+        // ----------------------------------------------
+        // ĐƠN VỊ
+        // ----------------------------------------------
+
+        if (userData.role === "commune") {
+          // Đơn vị bắt buộc xác minh email
+          if (!user.emailVerified) {
             await signOut(auth);
 
-
             showMessage(
-                "Tài khoản chưa được phân quyền hợp lệ.",
-                "error"
+              "Email chưa được xác minh. Vui lòng mở email và bấm liên kết xác minh trước khi đăng nhập.",
+              "error",
             );
 
+            return;
+          }
+
+          console.log("Quyền: ĐƠN VỊ");
+
+          console.log("Unit ID:", userData.unitId);
+
+          showMessage("Đăng nhập thành công!", "success");
+
+          redirectHome();
+
+          return;
         }
 
-        catch (error) {
+        // ----------------------------------------------
+        // ROLE KHÔNG HỢP LỆ
+        // ----------------------------------------------
 
-            // ==================================================
-            // 12. XỬ LÝ LỖI
-            // ==================================================
+        await signOut(auth);
 
-            console.error(
-                "Lỗi đăng nhập:",
-                error
-            );
+        showMessage("Tài khoản chưa được phân quyền hợp lệ.", "error");
 
+        return;
+      }
 
-            let message =
-                "Không thể đăng nhập. Vui lòng thử lại.";
+      // ==================================================
+      // 5. CHƯA CÓ users/{uid}
+      //
+      // Đây là trường hợp tài khoản đơn vị
+      // đăng nhập lần đầu tiên.
+      // ==================================================
 
+      // ==================================================
+      // PHẢI XÁC MINH EMAIL
+      // ==================================================
 
-            // Email không hợp lệ
-            if (
-                error.code ===
-                "auth/invalid-email"
-            ) {
+      if (!user.emailVerified) {
+        await signOut(auth);
 
-                message =
-                    "Địa chỉ email không hợp lệ.";
-
-            }
-
-
-            // Sai tài khoản hoặc mật khẩu
-            else if (
-                error.code ===
-                "auth/invalid-credential"
-            ) {
-
-                message =
-                    "Tài khoản hoặc mật khẩu không đúng.";
-
-            }
-
-
-            // Một số project/config cũ có thể trả mã này
-            else if (
-                error.code ===
-                "auth/wrong-password"
-            ) {
-
-                message =
-                    "Tài khoản hoặc mật khẩu không đúng.";
-
-            }
-
-
-            else if (
-                error.code ===
-                "auth/user-not-found"
-            ) {
-
-                message =
-                    "Tài khoản hoặc mật khẩu không đúng.";
-
-            }
-
-
-            // Quá nhiều lần thử
-            else if (
-                error.code ===
-                "auth/too-many-requests"
-            ) {
-
-                message =
-                    "Bạn đã đăng nhập sai quá nhiều lần. Vui lòng thử lại sau.";
-
-            }
-
-
-            // Lỗi mạng
-            else if (
-                error.code ===
-                "auth/network-request-failed"
-            ) {
-
-                message =
-                    "Không thể kết nối Firebase. Vui lòng kiểm tra Internet.";
-
-            }
-
-
-            // Không có quyền đọc Firestore
-            else if (
-                error.code ===
-                "permission-denied"
-            ) {
-
-                message =
-                    "Không có quyền đọc thông tin tài khoản trong Firestore. Hãy kiểm tra Firestore Rules.";
-
-            }
-
-
-            showMessage(
-                message,
-                "error"
-            );
-
-        }
-
-        finally {
-
-            // ==================================================
-            // 13. MỞ LẠI NÚT ĐĂNG NHẬP
-            // ==================================================
-
-            setLoading(false);
-
-        }
-
-    }
-);
-
-
-// ======================================================
-// 14. HÀM HIỂN THỊ THÔNG BÁO
-// ======================================================
-
-function showMessage(
-    message,
-    type
-) {
-
-    loginMessage.textContent =
-        message;
-
-
-    loginMessage.className =
-        "login-message";
-
-
-    if (type) {
-
-        loginMessage.classList.add(
-            type
+        showMessage(
+          "Email chưa được xác minh. Vui lòng mở email và bấm liên kết xác minh trước khi đăng nhập.",
+          "error",
         );
 
+        return;
+      }
+
+      // ==================================================
+      // 6. TÌM ĐƠN VỊ ĐƯỢC ADMIN CẤP EMAIL
+      // ==================================================
+
+      const loginEmail = user.email.trim().toLowerCase();
+
+      console.log("Đang tìm đơn vị theo email:", loginEmail);
+
+      const unitQuery = query(
+        collection(db, "units"),
+
+        where("loginEmail", "==", loginEmail),
+
+        where("accountEnabled", "==", true),
+
+        where("active", "==", true),
+
+        limit(2),
+      );
+
+      const unitSnapshot = await getDocs(unitQuery);
+
+      // ==================================================
+      // KHÔNG TÌM THẤY ĐƠN VỊ
+      // ==================================================
+
+      if (unitSnapshot.empty) {
+        await signOut(auth);
+
+        showMessage(
+          "Email này chưa được quản trị viên cấp quyền cho đơn vị nào.",
+          "error",
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // NẾU 1 EMAIL BỊ GÁN CHO NHIỀU ĐƠN VỊ
+      // ==================================================
+
+      if (unitSnapshot.size > 1) {
+        await signOut(auth);
+
+        showMessage(
+          "Email đang được gán cho nhiều đơn vị. Vui lòng liên hệ quản trị hệ thống.",
+          "error",
+        );
+
+        return;
+      }
+
+      // ==================================================
+      // 7. LẤY ĐƠN VỊ
+      // ==================================================
+
+      const unitDocument = unitSnapshot.docs[0];
+
+      const unitData = unitDocument.data();
+
+      const unitId = unitDocument.id;
+
+      console.log("Đã xác định đơn vị:");
+
+      console.log("Tên đơn vị:", unitData.name);
+
+      console.log("Unit ID:", unitId);
+
+      // ==================================================
+      // 8. TẠO USERS/{UID}
+      // ==================================================
+
+      await setDoc(
+        userRef,
+
+        {
+          displayName: unitData.name || loginEmail,
+
+          // Dùng đúng email Firebase Auth
+          // để khớp với Security Rules
+          email: user.email,
+
+          role: "commune",
+
+          unitId: unitId,
+
+          unitName: unitData.name || "",
+
+          unitCode: unitData.code || "",
+
+          active: true,
+
+          createdAt: serverTimestamp(),
+
+          updatedAt: serverTimestamp(),
+        },
+      );
+
+      console.log("Đã tạo hồ sơ users/" + user.uid);
+
+      console.log("Đã liên kết tài khoản với:", unitData.name);
+
+      // ==================================================
+      // 9. ĐĂNG NHẬP THÀNH CÔNG
+      // ==================================================
+
+      showMessage(
+        "Đăng nhập thành công! Tài khoản đã được liên kết với " +
+          (unitData.name || "đơn vị") +
+          ".",
+        "success",
+      );
+
+      redirectHome();
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error);
+
+      let message = "Không thể đăng nhập. Vui lòng thử lại.";
+
+      // ==================================================
+      // AUTH
+      // ==================================================
+
+      if (error.code === "auth/invalid-credential") {
+        message = "Tài khoản hoặc mật khẩu không đúng.";
+      } else if (error.code === "auth/invalid-email") {
+        message = "Địa chỉ email không hợp lệ.";
+      } else if (error.code === "auth/too-many-requests") {
+        message = "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.";
+      } else if (error.code === "auth/network-request-failed") {
+        message = "Không thể kết nối Firebase. Vui lòng kiểm tra Internet.";
+      }
+
+      // ==================================================
+      // FIRESTORE
+      // ==================================================
+      else if (error.code === "permission-denied") {
+        message =
+          "Không có quyền truy cập dữ liệu. Vui lòng kiểm tra Firestore Rules hoặc quyền tài khoản.";
+      } else if (error.code === "failed-precondition") {
+        message =
+          "Firestore cần bổ sung chỉ mục cho truy vấn. Hãy kiểm tra Console để xem hướng dẫn tạo index.";
+      }
+
+      showMessage(message, "error");
+    } finally {
+      setLoading(false);
     }
-
-}
-
+  },
+);
 
 // ======================================================
-// 15. HÀM ĐIỀU KHIỂN NÚT ĐĂNG NHẬP
+// CHUYỂN VỀ TRANG CHỦ
+// ======================================================
+
+function redirectHome() {
+  setTimeout(function () {
+    window.location.href = "index.html";
+  }, 700);
+}
+
+// ======================================================
+// HIỂN THỊ THÔNG BÁO
+// ======================================================
+
+function showMessage(message, type) {
+  loginMessage.textContent = message;
+
+  loginMessage.className = "login-message";
+
+  if (type) {
+    loginMessage.classList.add(type);
+  }
+}
+
+// ======================================================
+// LOADING
 // ======================================================
 
 function setLoading(isLoading) {
+  submitButton.disabled = isLoading;
 
-    if (isLoading) {
-
-        submitButton.disabled =
-            true;
-
-
-        submitButton.textContent =
-            "Đang đăng nhập...";
-
-    }
-
-    else {
-
-        submitButton.disabled =
-            false;
-
-
-        submitButton.textContent =
-            "Đăng nhập";
-
-    }
-
+  submitButton.textContent = isLoading ? "Đang đăng nhập..." : "Đăng nhập";
 }
