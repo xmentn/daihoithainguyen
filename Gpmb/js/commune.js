@@ -29,6 +29,10 @@ import {
   getDocs,
   serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import {
+  showConfirm,
+  showToast
+} from "./ui-notify.js";
 
 // ======================================================
 // BIẾN
@@ -692,25 +696,86 @@ progressForm.addEventListener(
 // ======================================================
 // 9. ĐĂNG XUẤT
 // ======================================================
+// ======================================================
+// ĐĂNG XUẤT
+// ======================================================
 
 communeLogoutButton.addEventListener(
   "click",
 
   async function () {
-    const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+
+
+    const confirmed =
+      await showConfirm({
+
+        title:
+          "Đăng xuất hệ thống",
+
+        message:
+          "Bạn có chắc chắn muốn kết thúc phiên làm việc hiện tại?",
+
+        confirmText:
+          "Đăng xuất",
+
+        cancelText:
+          "Ở lại",
+
+        type:
+          "warning"
+
+      });
+
 
     if (!confirmed) {
+
       return;
+
     }
+
 
     try {
+
+      communeLogoutButton.disabled =
+        true;
+
+
+      communeLogoutButton.textContent =
+        "Đang đăng xuất...";
+
+
       await signOut(auth);
 
-      window.location.href = "index.html";
-    } catch (error) {
-      console.error("Lỗi đăng xuất:", error);
+
+      window.location.href =
+        "index.html";
+
     }
-  },
+
+    catch (error) {
+
+      console.error(
+        "Lỗi đăng xuất:",
+        error
+      );
+
+
+      showToast(
+        "Không thể đăng xuất. Vui lòng thử lại.",
+        "error"
+      );
+
+
+      communeLogoutButton.disabled =
+        false;
+
+
+      communeLogoutButton.textContent =
+        "Đăng xuất";
+
+    }
+
+  }
 );
 
 // ======================================================

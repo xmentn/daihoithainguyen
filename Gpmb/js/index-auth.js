@@ -27,7 +27,10 @@ import {
   doc,
   getDoc,
 } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-
+import {
+  showConfirm,
+  showToast
+} from "./ui-notify.js";
 // ======================================================
 // HTML
 // ======================================================
@@ -243,34 +246,92 @@ function hideCommuneButton() {
 // 6. ĐĂNG XUẤT
 // ======================================================
 
+// ======================================================
+// ĐĂNG XUẤT TRÊN TRANG CHỦ
+// ======================================================
+
 if (homeLogoutButton) {
+
   homeLogoutButton.addEventListener(
     "click",
 
     async function () {
-      const confirmed = confirm("Bạn có chắc chắn muốn đăng xuất?");
+
+
+      // ==================================================
+      // HỘP XÁC NHẬN ĐẸP
+      // ==================================================
+
+      const confirmed =
+        await showConfirm({
+
+          title:
+            "Đăng xuất hệ thống",
+
+          message:
+            "Bạn có chắc chắn muốn kết thúc phiên làm việc hiện tại?",
+
+          confirmText:
+            "Đăng xuất",
+
+          cancelText:
+            "Ở lại",
+
+          type:
+            "warning"
+
+        });
+
 
       if (!confirmed) {
+
         return;
+
       }
 
-      try {
-        homeLogoutButton.disabled = true;
 
-        homeLogoutButton.textContent = "Đang đăng xuất...";
+      try {
+
+        homeLogoutButton.disabled =
+          true;
+
+
+        homeLogoutButton.textContent =
+          "Đang đăng xuất...";
+
 
         await signOut(auth);
 
-        window.location.href = "index.html";
-      } catch (error) {
-        console.error("Lỗi đăng xuất:", error);
 
-        alert("Không thể đăng xuất.");
+        window.location.href =
+          "index.html";
 
-        homeLogoutButton.disabled = false;
-
-        homeLogoutButton.textContent = "Đăng xuất";
       }
-    },
+
+      catch (error) {
+
+        console.error(
+          "Lỗi đăng xuất:",
+          error
+        );
+
+
+        showToast(
+          "Không thể đăng xuất. Vui lòng thử lại.",
+          "error"
+        );
+
+
+        homeLogoutButton.disabled =
+          false;
+
+
+        homeLogoutButton.textContent =
+          "Đăng xuất";
+
+      }
+
+    }
   );
+
 }
