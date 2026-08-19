@@ -407,7 +407,7 @@ body {
   color: var(--primary-dark);
 }
 
-.card-value>span:first-child {
+.card-value > span:first-child {
   font-size: 31px;
   font-weight: 750;
 }
@@ -654,7 +654,6 @@ body {
 ========================================================= */
 
 @media (max-width: 1000px) {
-
   .dashboard-grid,
   .household-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2165,7 +2164,6 @@ body {
 /* RESPONSIVE */
 
 @media (max-width: 1050px) {
-
   .commune-form-grid,
   .households-input-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2173,7 +2171,6 @@ body {
 }
 
 @media (max-width: 700px) {
-
   .commune-header-inner,
   .commune-unit-card,
   .commune-phase-card,
@@ -2280,7 +2277,6 @@ body.modal-open {
   overflow: hidden;
 }
 
-
 /* =========================================================
    MODAL XÁC NHẬN
 ========================================================= */
@@ -2306,25 +2302,20 @@ body.modal-open {
     visibility 0.18s ease;
 }
 
-
 .app-confirm-modal.show {
   opacity: 1;
   visibility: visible;
 }
-
 
 .app-confirm-overlay {
   position: absolute;
 
   inset: 0;
 
-  background:
-    rgba(7, 31, 54, 0.54);
+  background: rgba(7, 31, 54, 0.54);
 
-  backdrop-filter:
-    blur(2px);
+  backdrop-filter: blur(2px);
 }
-
 
 .app-confirm-box {
   position: relative;
@@ -2338,26 +2329,18 @@ body.modal-open {
 
   border-radius: 16px;
 
-  box-shadow:
-    0 25px 65px rgba(3, 31, 56, 0.25);
+  box-shadow: 0 25px 65px rgba(3, 31, 56, 0.25);
 
-  transform:
-    translateY(12px) scale(0.98);
+  transform: translateY(12px) scale(0.98);
 
-  transition:
-    transform 0.2s ease;
+  transition: transform 0.2s ease;
 
   z-index: 1;
 }
 
-
 .app-confirm-modal.show .app-confirm-box {
-
-  transform:
-    translateY(0) scale(1);
-
+  transform: translateY(0) scale(1);
 }
-
 
 /* ICON */
 
@@ -2377,50 +2360,37 @@ body.modal-open {
   font-weight: 800;
 }
 
-
 /* WARNING */
 
 .type-warning .app-confirm-icon {
-
   background-color: #fff4d9;
 
   color: #ca8100;
-
 }
-
 
 /* DANGER */
 
 .type-danger .app-confirm-icon {
-
   background-color: #fdeaea;
 
   color: #d63d3d;
-
 }
-
 
 /* INFO */
 
 .type-info .app-confirm-icon {
-
   background-color: #e8f3fc;
 
   color: #075fa7;
-
 }
-
 
 /* SUCCESS */
 
 .type-success .app-confirm-icon {
-
   background-color: #e8f7ef;
 
   color: #12905a;
-
 }
-
 
 /* TEXT */
 
@@ -2434,7 +2404,6 @@ body.modal-open {
   font-weight: 750;
 }
 
-
 .app-confirm-content p {
   margin: 0;
 
@@ -2444,7 +2413,6 @@ body.modal-open {
 
   line-height: 1.6;
 }
-
 
 /* BUTTONS */
 
@@ -2457,7 +2425,6 @@ body.modal-open {
 
   gap: 10px;
 }
-
 
 .app-confirm-actions button {
   min-width: 92px;
@@ -2477,7 +2444,6 @@ body.modal-open {
   transition: 0.18s;
 }
 
-
 .app-confirm-cancel {
   border: 1px solid #d8e0e7;
 
@@ -2486,23 +2452,17 @@ body.modal-open {
   color: #425568;
 }
 
-
 .app-confirm-cancel:hover {
   background-color: #f4f7f9;
 }
 
-
 .app-confirm-ok {
   border: none;
 
-  background:
-    linear-gradient(90deg,
-      #07549b,
-      #0875bd);
+  background: linear-gradient(90deg, #07549b, #0875bd);
 
   color: #ffffff;
 }
-
 
 .app-confirm-ok:hover {
   opacity: 0.92;
@@ -2510,17 +2470,9 @@ body.modal-open {
   transform: translateY(-1px);
 }
 
-
 .type-danger .app-confirm-ok {
-
-  background:
-    linear-gradient(90deg,
-      #c93737,
-      #e04c4c);
-
+  background: linear-gradient(90deg, #c93737, #e04c4c);
 }
-
-
 
 /* =========================================================
    TOAST
@@ -2534,8 +2486,7 @@ body.modal-open {
 
   z-index: 21000;
 
-  width:
-    min(380px, calc(100vw - 32px));
+  width: min(380px, calc(100vw - 32px));
 
   display: flex;
   flex-direction: column;
@@ -2544,7 +2495,6 @@ body.modal-open {
 
   pointer-events: none;
 }
-
 
 .app-toast {
   width: 100%;
@@ -2555,8 +2505,7 @@ body.modal-open {
 
   display: grid;
 
-  grid-template-columns:
-    36px minmax(0, 1fr) 30px;
+  grid-template-columns: 36px minmax(0, 1fr) 30px;
 
   align-items: center;
 
@@ -2568,13 +2517,11 @@ body.modal-open {
 
   border-radius: 11px;
 
-  box-shadow:
-    0 12px 35px rgba(8, 43, 70, 0.16);
+  box-shadow: 0 12px 35px rgba(8, 43, 70, 0.16);
 
   opacity: 0;
 
-  transform:
-    translateX(25px);
+  transform: translateX(25px);
 
   transition:
     opacity 0.22s ease,
@@ -2583,14 +2530,11 @@ body.modal-open {
   pointer-events: auto;
 }
 
-
 .app-toast.show {
   opacity: 1;
 
-  transform:
-    translateX(0);
+  transform: translateX(0);
 }
-
 
 .app-toast-icon {
   width: 34px;
@@ -2606,7 +2550,6 @@ body.modal-open {
   font-weight: 800;
 }
 
-
 .app-toast-message {
   color: #34495c;
 
@@ -2614,7 +2557,6 @@ body.modal-open {
 
   line-height: 1.45;
 }
-
 
 .app-toast-close {
   width: 28px;
@@ -2633,106 +2575,112 @@ body.modal-open {
   cursor: pointer;
 }
 
-
 .app-toast-close:hover {
   background-color: #f1f4f6;
 
   color: #475666;
 }
 
-
 /* SUCCESS */
 
 .app-toast-success {
-  border-left:
-    4px solid #15975b;
+  border-left: 4px solid #15975b;
 }
 
-
 .app-toast-success .app-toast-icon {
-
   background-color: #e7f7ef;
 
   color: #15975b;
 }
 
-
 /* ERROR */
 
 .app-toast-error {
-  border-left:
-    4px solid #d83b3b;
+  border-left: 4px solid #d83b3b;
 }
 
-
 .app-toast-error .app-toast-icon {
-
   background-color: #fdeaea;
 
   color: #d83b3b;
 }
 
-
 /* WARNING */
 
 .app-toast-warning {
-  border-left:
-    4px solid #e28a17;
+  border-left: 4px solid #e28a17;
 }
 
-
 .app-toast-warning .app-toast-icon {
-
   background-color: #fff4df;
 
   color: #c97800;
 }
 
-
 /* INFO */
 
 .app-toast-info {
-  border-left:
-    4px solid #0b73c5;
+  border-left: 4px solid #0b73c5;
 }
 
-
 .app-toast-info .app-toast-icon {
-
   background-color: #e7f2fb;
 
   color: #0b73c5;
 }
-
-
 
 /* =========================================================
    MOBILE
 ========================================================= */
 
 @media (max-width: 600px) {
-
   .app-confirm-box {
     padding: 22px;
   }
-
 
   .app-confirm-actions {
     flex-direction: column-reverse;
   }
 
-
   .app-confirm-actions button {
     width: 100%;
   }
-
 
   .app-toast-container {
     top: 12px;
     right: 12px;
 
-    width:
-      calc(100vw - 24px);
+    width: calc(100vw - 24px);
   }
+}
+.unit-form-grid {
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+}
 
+.table-action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.table-action-button.danger {
+  border-color: #d64a4a;
+  color: #c63b3b;
+}
+
+.table-action-button.danger:hover {
+  background-color: #d64a4a;
+  color: #ffffff;
+}
+
+@media (max-width: 1000px) {
+  .unit-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .unit-form-grid {
+    grid-template-columns: 1fr;
+  }
 }

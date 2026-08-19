@@ -108,6 +108,7 @@
             </div>
 
             <form id="unitForm">
+              <input type="hidden" id="unitEditId" />
               <div class="unit-form-grid">
                 <!-- TÊN ĐƠN VỊ -->
 
@@ -154,6 +155,15 @@
                     <option value="other">Khác</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label for="unitActive"> Trạng thái </label>
+
+                  <select id="unitActive">
+                    <option value="true">Hoạt động</option>
+
+                    <option value="false">Ngừng hoạt động</option>
+                  </select>
+                </div>
               </div>
 
               <div id="unitMessage" class="admin-message"></div>
@@ -164,6 +174,14 @@
                 class="admin-primary-button"
               >
                 Thêm đơn vị
+              </button>
+              <button
+                type="button"
+                id="cancelUnitEditButton"
+                class="admin-secondary-button"
+                style="display: none"
+              >
+                Hủy sửa
               </button>
             </form>
           </section>
