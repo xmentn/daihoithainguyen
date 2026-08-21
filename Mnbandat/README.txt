@@ -1,13 +1,17 @@
-GÓI NÂNG CẤP GIAO DIỆN TRANG CHỦ
+NÂNG CẤP TRANG CHỦ - SẮP XẾP TIẾNG VIỆT + XUẤT EXCEL
 
-Có 2 file cần thay trong dự án:
-1. index.html
-2. styles.css
+Thay 3 file sau vào thư mục dự án:
+- index.html
+- app.js
+- styles.css
 
-Cách làm:
-- Sao lưu index.html và styles.css hiện tại nếu muốn.
-- Chép đè 2 file trong gói này vào thư mục dự án.
-- KHÔNG thay app.js, admin.js, firebase-config.js.
-- Quay lại trình duyệt và nhấn Ctrl + F5.
+Không thay firebase-config.js, admin.js, admin.html hoặc dữ liệu Firebase.
 
-Giao diện mới vẫn giữ nguyên các ID mà app.js đang sử dụng, nên dữ liệu Firebase, tìm kiếm, lọc, thống kê và đăng xuất vẫn hoạt động như trước.
+Chức năng mới:
+1. Danh sách hộ luôn sắp xếp A → Z theo quy tắc tiếng Việt bằng Intl.Collator("vi-VN").
+2. Nếu trùng tên: sắp tiếp theo Xóm/Tổ và STT nguồn.
+3. Nút "Xuất Excel" xuất đúng danh sách đang hiển thị theo bộ lọc/tìm kiếm hiện tại.
+4. File Excel có các cột dữ liệu chính, trạng thái và nguồn; có AutoFilter và độ rộng cột.
+5. Tên file: Danh-sach-ho-gia-dinh-YYYY-MM-DD.xlsx.
+
+Sau khi chép đè, nhấn Ctrl+F5 trên trình duyệt.

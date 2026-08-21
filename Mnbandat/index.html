@@ -131,7 +131,13 @@
       <div class="panel-heading-row">
         <div>
           <h3>Danh sách chi tiết</h3>
-          <p>Dữ liệu hiển thị theo điều kiện tìm kiếm và bộ lọc hiện tại.</p>
+          <p>Dữ liệu luôn được sắp xếp theo thứ tự chữ cái tiếng Việt (A → Z). File Excel xuất ra theo đúng bộ lọc hiện tại.</p>
+        </div>
+        <div class="panel-actions">
+          <button class="btn excel-btn" id="exportExcelBtn" type="button">
+            <span class="excel-icon" aria-hidden="true">X</span>
+            Xuất Excel
+          </button>
         </div>
       </div>
 
@@ -160,6 +166,7 @@
     <div>HỆ THỐNG QUẢN TRỊ DỮ LIỆU • TRƯỜNG MẦM NON BÀN ĐẠT</div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@ const dangBoRef = database.ref("dang_bo");
 const tasksRefHome = database.ref("tasks");
 
 // Lưu trữ đối tượng các Chart để hủy khi vẽ lại
-let chartChinhLy, chartKySo, chartPhanMem, chartHoAnThanh, timeLineChartObj;
+let chartChinhLy, chartKySo, chartPhanMem, chartHoAnThanh;
 let ageChartObj, admissionChartObj;
 let knDoughnutChartInstance = null; // Biểu đồ vành khăn Kết nạp
 let map;
@@ -428,7 +428,8 @@ function fetchStatistics(selectedKey = "ALL") {
       let tCanSoHoa = 0,
         tChinhLy = 0,
         tKySo = 0,
-        tPhanMem = 0;
+        tPhanMem = 0,
+        tThieuTaiLieu = 0;
       let tSoTccs = 0,
         tSoChiBo = 0,
         tTongDv = 0,
@@ -486,6 +487,7 @@ function fetchStatistics(selectedKey = "ALL") {
         tChinhLy += item.daChinhLy;
         tKySo += item.daKySo;
         tPhanMem += item.daCapNhat;
+        tThieuTaiLieu += item.soHsThieuTaiLieuCoBan;
 
         tSoTccs += item.soTccsDang;
         tSoChiBo += item.soChiBo;
@@ -501,6 +503,13 @@ function fetchStatistics(selectedKey = "ALL") {
 
       if (selectedKey === "ALL" || selectedKey === "tinh_thai_nguyen") {
         updateDashboard(tCanSoHoa, tChinhLy, tKySo, tPhanMem);
+        renderBottleneckDashboard(
+          tCanSoHoa,
+          tChinhLy,
+          tKySo,
+          tPhanMem,
+          tThieuTaiLieu,
+        );
 
         if (provincialRecord) {
           updateTcDangDashboard(
@@ -535,6 +544,13 @@ function fetchStatistics(selectedKey = "ALL") {
             target.daKySo,
             target.daCapNhat,
           );
+          renderBottleneckDashboard(
+            target.tongHoSo,
+            target.daChinhLy,
+            target.daKySo,
+            target.daCapNhat,
+            target.soHsThieuTaiLieuCoBan,
+          );
           updateTcDangDashboard(
             target.soTccsDang,
             target.soChiBo,
@@ -553,7 +569,6 @@ function fetchStatistics(selectedKey = "ALL") {
 
       renderTable();
       renderRankings();
-      renderLineChart();
       renderTcDangVienCharts(globalAgeData);
       renderKetNapDashboard(snapshot);
       updateMapWithSoHoaData(snapshot);
@@ -685,67 +700,72 @@ function drawCircularChart(canvasId, percent, color, chartObj, setChartObj) {
   setChartObj(newChartObj);
 }
 
-// 6. VẼ BIỂU ĐỒ ĐƯỜNG TIMELINE
-function renderLineChart() {
-  const canvas = document.getElementById("timeLineChart");
-  if (!canvas) return;
-  if (timeLineChartObj) timeLineChartObj.destroy();
+// 6. HIỂN THỊ ĐIỂM NGHẼN TRONG QUY TRÌNH SỐ HÓA
+function renderBottleneckDashboard(
+  canSoHoa,
+  chinhLy,
+  kySo,
+  phanMem,
+  thieuTaiLieu,
+) {
+  const total = Math.max(Number(canSoHoa || 0), 0);
+  const standardized = Math.max(Number(chinhLy || 0), 0);
+  const signed = Math.max(Number(kySo || 0), 0);
+  const uploaded = Math.max(Number(phanMem || 0), 0);
+  const missingDocs = Math.max(Number(thieuTaiLieu || 0), 0);
 
-  const ctx = canvas.getContext("2d");
-  timeLineChartObj = new Chart(ctx, {
-    type: "line",
-    data: {
-      labels: [
-        "01/2026",
-        "02/2026",
-        "03/2026",
-        "04/2026",
-        "05/2026",
-        "06/2026",
-        "07/2026",
-      ],
-      datasets: [
-        {
-          label: "Đã chuẩn hóa",
-          data: [200, 600, 1000, 1500, 2000, 2250, 2327],
-          borderColor: "#ea580c",
-          backgroundColor: "#ea580c",
-          tension: 0.3,
-          borderWidth: 2,
-        },
-        {
-          label: "Đã ký số",
-          data: [100, 400, 700, 1100, 1400, 1600, 1690],
-          borderColor: "#9333ea",
-          backgroundColor: "#9333ea",
-          tension: 0.3,
-          borderWidth: 2,
-        },
-        {
-          label: "Đã đưa lên phần mềm",
-          data: [50, 250, 500, 800, 1100, 1350, 1500],
-          borderColor: "#16a34a",
-          backgroundColor: "#16a34a",
-          tension: 0.3,
-          borderWidth: 2,
-        },
-      ],
+  // Dùng Math.max để dữ liệu bất thường không tạo ra số âm trên dashboard.
+  const bottlenecks = [
+    {
+      key: "not-standardized",
+      label: "Chưa chuẩn hóa",
+      value: Math.max(total - standardized, 0),
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: "top",
-          labels: { boxWidth: 12, font: { size: 10 } },
-        },
-      },
-      scales: {
-        y: { grid: { color: "#f1f5f9" }, ticks: { font: { size: 10 } } },
-        x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-      },
+    {
+      key: "not-signed",
+      label: "Đã chuẩn hóa, chưa ký số",
+      value: Math.max(standardized - signed, 0),
     },
+    {
+      key: "not-uploaded",
+      label: "Đã ký số, chưa đưa lên PM",
+      value: Math.max(signed - uploaded, 0),
+    },
+    {
+      key: "missing-docs",
+      label: "HS thiếu tài liệu cơ bản",
+      value: missingDocs,
+    },
+  ];
+
+  bottlenecks.forEach((item) => {
+    const percent = total > 0 ? (item.value / total) * 100 : 0;
+    const valueEl = document.getElementById(`bn-${item.key}`);
+    const pctEl = document.getElementById(`bn-${item.key}-pct`);
+    const barEl = document.getElementById(`bn-${item.key}-bar`);
+
+    if (valueEl) valueEl.textContent = item.value.toLocaleString("vi-VN");
+    if (pctEl) pctEl.textContent = `${percent.toFixed(1)}% tổng HS`;
+    if (barEl) barEl.style.width = `${Math.min(percent, 100)}%`;
   });
+
+  // Điểm nghẽn vận hành chỉ xét 3 bước chuyển tiếp chính;
+  // hồ sơ thiếu tài liệu được giữ như một chỉ báo nguyên nhân riêng.
+  const processBottlenecks = bottlenecks.slice(0, 3);
+  const largest = processBottlenecks.reduce(
+    (maxItem, item) => (item.value > maxItem.value ? item : maxItem),
+    processBottlenecks[0],
+  );
+
+  const summaryEl = document.getElementById("bn-summary");
+  if (summaryEl) {
+    if (total <= 0) {
+      summaryEl.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart"></i> <strong>Điểm nghẽn lớn nhất:</strong> Chưa có dữ liệu.`;
+    } else {
+      const largestPct = ((largest.value / total) * 100).toFixed(1);
+      summaryEl.innerHTML = `<i class="fa-solid fa-magnifying-glass-chart"></i> <strong>Điểm nghẽn lớn nhất:</strong> ${largest.label} — <b>${largest.value.toLocaleString("vi-VN")} HS</b> (${largestPct}% tổng HS).`;
+    }
+  }
 }
 
 // 7. XỬ LÝ BẢNG THỐNG KÊ CHI TIẾT SỐ HÓA
@@ -1359,6 +1379,46 @@ function fetchTasksData() {
   isTasksListenerAttached = true;
 }
 
+// ===== HỖ TRỢ TÍNH NGÀY NHIỆM VỤ (KHÔNG BỊ LỆCH DO MÚI GIỜ) =====
+function parseTaskDateOnly(dateValue) {
+  if (!dateValue) return null;
+  const match = String(dateValue).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const y = Number(match[1]);
+    const m = Number(match[2]);
+    const d = Number(match[3]);
+    const date = new Date(y, m - 1, d);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function taskTimestampToLocalDate(timestampValue) {
+  if (!timestampValue) return null;
+  const raw = typeof timestampValue === "number" ? timestampValue : Number(timestampValue);
+  const date = Number.isFinite(raw) ? new Date(raw) : new Date(timestampValue);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function taskDayNumber(date) {
+  if (!date) return null;
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000;
+}
+
+function taskDiffDays(fromDate, toDate) {
+  const fromDay = taskDayNumber(fromDate);
+  const toDay = taskDayNumber(toDate);
+  if (fromDay === null || toDay === null) return null;
+  return Math.round(toDay - fromDay);
+}
+
 // HÀM RENDER VÀ LỌC TÌM KIẾM NHIỆM VỤ NỘI BỘ VỚI ĐẦY ĐỦ CÁC CỘT DỮ LIỆU
 function renderTasksTable() {
   const tbody =
@@ -1417,11 +1477,8 @@ function renderTasksTable() {
     total++;
     let diffDays = null;
     if (t.deadline) {
-      const deadlineDate = new Date(t.deadline);
-      deadlineDate.setHours(0, 0, 0, 0);
-      diffDays = Math.ceil(
-        (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const deadlineDate = parseTaskDateOnly(t.deadline);
+      if (deadlineDate) diffDays = taskDiffDays(today, deadlineDate);
     }
 
     const isDone = t.status === "Đã hoàn thành";
@@ -1449,12 +1506,19 @@ function renderTasksTable() {
     const taskId = task.key;
 
     let diffDays = null;
-    if (task.deadline) {
-      const deadlineDate = new Date(task.deadline);
-      deadlineDate.setHours(0, 0, 0, 0);
-      const diffTime = deadlineDate.getTime() - today.getTime();
-      diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const deadlineDate = parseTaskDateOnly(task.deadline);
+    if (deadlineDate) {
+      diffDays = taskDiffDays(today, deadlineDate);
     }
+
+    // Nếu đã hoàn thành: ưu tiên mốc completedAt mới. Với dữ liệu cũ chưa có
+    // completedAt, tạm dùng updatedAt làm mốc hoàn thành gần đúng.
+    const completedDate =
+      task.status === "Đã hoàn thành"
+        ? taskTimestampToLocalDate(task.completedAt || task.updatedAt)
+        : null;
+    const completedOverdueDays =
+      deadlineDate && completedDate ? taskDiffDays(deadlineDate, completedDate) : null;
 
     let badgeColor = "#0284c7";
     let iconClass = "fa-spinner";
@@ -1463,7 +1527,11 @@ function renderTasksTable() {
     if (task.status === "Đã hoàn thành") {
       badgeColor = "#16a34a";
       iconClass = "fa-check";
-      timeNoticeHtml = `<div style="font-size: 11px; color: #16a34a; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i> Đã hoàn thành</div>`;
+      if (completedOverdueDays !== null && completedOverdueDays > 0) {
+        timeNoticeHtml = `<div style="font-size: 11px; color: #dc2626; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-clock"></i> Quá hạn ${completedOverdueDays} ngày</div>`;
+      } else {
+        timeNoticeHtml = `<div style="font-size: 11px; color: #16a34a; font-weight: bold; margin-top: 3px;"><i class="fa-solid fa-circle-check"></i> Đã hoàn thành</div>`;
+      }
     } else if (task.status === "Chậm tiến độ") {
       badgeColor = "#dc2626";
       iconClass = "fa-triangle-exclamation";
@@ -1576,6 +1644,9 @@ window.updateTaskStatusDirect = function (taskId) {
 
   const newStatus = selectEl.value;
 
+  const currentTask = homeTasksCache.find((task) => task.key === taskId) || {};
+  const oldStatus = currentTask.status || "Đang thực hiện";
+
   const updatePayload = {
     status: newStatus,
     updatedAt: firebase.database.ServerValue.TIMESTAMP,
@@ -1583,6 +1654,14 @@ window.updateTaskStatusDirect = function (taskId) {
 
   if (newStatus === "Đã hoàn thành") {
     updatePayload.progress = 100;
+    // Chỉ ghi thời điểm hoàn thành ở đúng thời điểm chuyển sang Đã hoàn thành.
+    // Nếu bản ghi đã hoàn thành trước đó thì giữ nguyên completedAt lịch sử.
+    if (oldStatus !== "Đã hoàn thành" || !currentTask.completedAt) {
+      updatePayload.completedAt = firebase.database.ServerValue.TIMESTAMP;
+    }
+  } else if (oldStatus === "Đã hoàn thành" || currentTask.completedAt) {
+    // Mở lại nhiệm vụ: xóa mốc hoàn thành cũ để lần hoàn thành sau ghi mốc mới.
+    updatePayload.completedAt = null;
   }
 
   tasksRefHome

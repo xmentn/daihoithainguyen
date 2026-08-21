@@ -1334,6 +1334,46 @@ document.addEventListener("change", (e) => {
 document.getElementById("search-doi-tuong")?.addEventListener("input", () => {
   renderDoiTuongTable();
 });
+// ===== HỖ TRỢ TÍNH NGÀY NHIỆM VỤ (KHÔNG BỊ LỆCH DO MÚI GIỜ) =====
+function parseAdminTaskDateOnly(dateValue) {
+  if (!dateValue) return null;
+  const match = String(dateValue).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    const y = Number(match[1]);
+    const m = Number(match[2]);
+    const d = Number(match[3]);
+    const date = new Date(y, m - 1, d);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }
+
+  const date = new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function adminTaskTimestampToLocalDate(timestampValue) {
+  if (!timestampValue) return null;
+  const raw = typeof timestampValue === "number" ? timestampValue : Number(timestampValue);
+  const date = Number.isFinite(raw) ? new Date(raw) : new Date(timestampValue);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+function adminTaskDayNumber(date) {
+  if (!date) return null;
+  return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000;
+}
+
+function adminTaskDiffDays(fromDate, toDate) {
+  const fromDay = adminTaskDayNumber(fromDate);
+  const toDay = adminTaskDayNumber(toDate);
+  if (fromDay === null || toDay === null) return null;
+  return Math.round(toDay - fromDay);
+}
+
 // =================================================================
 // 10. PHÂN HỆ 3: QUẢN LÝ NỘI BỘ - TIẾN ĐỘ NHIỆM VỤ (CÓ NGUỒN/CĂN CỨ & XÓA)
 // =================================================================
@@ -1392,9 +1432,24 @@ function initTaskEvents() {
       };
 
       if (taskId) {
+        // Đọc trạng thái cũ để chỉ ghi completedAt đúng lúc chuyển sang Đã hoàn thành.
         tasksRef
           .child(taskId)
-          .update(taskData)
+          .once("value")
+          .then((snapshot) => {
+            const oldTask = snapshot.val() || {};
+            const oldStatus = oldTask.status || "Đang thực hiện";
+
+            if (status === "Đã hoàn thành") {
+              if (oldStatus !== "Đã hoàn thành" || !oldTask.completedAt) {
+                taskData.completedAt = firebase.database.ServerValue.TIMESTAMP;
+              }
+            } else if (oldStatus === "Đã hoàn thành" || oldTask.completedAt) {
+              taskData.completedAt = null;
+            }
+
+            return tasksRef.child(taskId).update(taskData);
+          })
           .then(() => {
             Swal.fire({
               icon: "success",
@@ -1406,6 +1461,9 @@ function initTaskEvents() {
             resetTaskForm();
           });
       } else {
+        if (status === "Đã hoàn thành") {
+          taskData.completedAt = firebase.database.ServerValue.TIMESTAMP;
+        }
         tasksRef.push(taskData).then(() => {
           Swal.fire({
             icon: "success",
@@ -1460,34 +1518,41 @@ tasksRef.on("value", (snapshot) => {
 
     let statusText = task.status || "Đang thực hiện";
     let badgeColor = "#0284c7";
+    const deadlineDate = parseAdminTaskDateOnly(task.deadline);
+    const diffDays = deadlineDate ? adminTaskDiffDays(today, deadlineDate) : null;
 
     if (task.status === "Đã hoàn thành") {
       badgeColor = "#16a34a";
-      statusText = "Đã hoàn thành";
+      const completedDate = adminTaskTimestampToLocalDate(
+        task.completedAt || task.updatedAt,
+      );
+      const overdueAtCompletion =
+        deadlineDate && completedDate
+          ? adminTaskDiffDays(deadlineDate, completedDate)
+          : null;
+      statusText =
+        overdueAtCompletion !== null && overdueAtCompletion > 0
+          ? `Đã hoàn thành (Quá hạn ${overdueAtCompletion} ngày)`
+          : "Đã hoàn thành";
     } else if (task.status === "Chậm tiến độ") {
       badgeColor = "#dc2626";
-      statusText = "Chậm tiến độ";
-    } else {
-      if (task.deadline) {
-        const deadlineDate = new Date(task.deadline);
-        deadlineDate.setHours(0, 0, 0, 0);
-        const diffDays = Math.ceil(
-          (deadlineDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
-        );
-
-        if (diffDays < 0) {
-          badgeColor = "#dc2626";
-          statusText = `Quá hạn ${Math.abs(diffDays)} ngày`;
-        } else if (diffDays < 3) {
-          badgeColor = "#ea580c";
-          statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
-        } else if (diffDays <= 7) {
-          badgeColor = "#ca8a04";
-          statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
-        } else {
-          badgeColor = "#0284c7";
-          statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
-        }
+      statusText =
+        diffDays !== null && diffDays < 0
+          ? `Quá hạn ${Math.abs(diffDays)} ngày`
+          : "Chậm tiến độ";
+    } else if (diffDays !== null) {
+      if (diffDays < 0) {
+        badgeColor = "#dc2626";
+        statusText = `Quá hạn ${Math.abs(diffDays)} ngày`;
+      } else if (diffDays <= 3) {
+        badgeColor = "#ea580c";
+        statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+      } else if (diffDays <= 7) {
+        badgeColor = "#ca8a04";
+        statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
+      } else {
+        badgeColor = "#0284c7";
+        statusText = `Đang thực hiện (Còn ${diffDays} ngày)`;
       }
     }
     const cleanAssignee = (task.assignee || "—").replace(/^\[[^\]]+\]\s*/, "");

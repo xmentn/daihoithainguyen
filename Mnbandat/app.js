@@ -21,11 +21,20 @@ const els = {
   totalHouseholds: document.querySelector("#totalHouseholds"),
   totalPopulation: document.querySelector("#totalPopulation"),
   totalVillages: document.querySelector("#totalVillages"),
-  totalFlooded: document.querySelector("#totalFlooded")
+  totalFlooded: document.querySelector("#totalFlooded"),
+  exportExcel: document.querySelector("#exportExcelBtn")
 };
 
 let allHouseholds = [];
 let unsubscribe = null;
+
+// Bộ so sánh theo bảng chữ cái tiếng Việt: A, Ă, Â, B, C, D, Đ, E, Ê...
+const viCollator = new Intl.Collator("vi-VN", {
+  usage: "sort",
+  sensitivity: "base",
+  numeric: true,
+  ignorePunctuation: true
+});
 
 onAuthStateChanged(auth, (user) => {
   if (!user) {
@@ -73,15 +82,26 @@ function getFiltered() {
   const village = els.village.value;
   const status = els.status.value;
 
-  return allHouseholds.filter((item) => {
-    const matchesSearch = !search || norm(item.headName).includes(search);
-    const matchesVillage = !village || item.village === village;
-    const isActive = item.active !== false;
-    const matchesStatus = status === "all" ||
-      (status === "active" && isActive) ||
-      (status === "inactive" && !isActive);
-    return matchesSearch && matchesVillage && matchesStatus;
-  });
+  return allHouseholds
+    .filter((item) => {
+      const matchesSearch = !search || norm(item.headName).includes(search);
+      const matchesVillage = !village || item.village === village;
+      const isActive = item.active !== false;
+      const matchesStatus = status === "all" ||
+        (status === "active" && isActive) ||
+        (status === "inactive" && !isActive);
+      return matchesSearch && matchesVillage && matchesStatus;
+    })
+    .sort((a, b) => {
+      // Ưu tiên sắp xếp theo họ và tên chủ hộ bằng quy tắc tiếng Việt.
+      const byName = viCollator.compare(a.headName || "", b.headName || "");
+      if (byName !== 0) return byName;
+
+      // Nếu trùng tên, sắp tiếp theo xóm/tổ rồi STT nguồn để thứ tự ổn định.
+      const byVillage = viCollator.compare(a.village || "", b.village || "");
+      if (byVillage !== 0) return byVillage;
+      return Number(a.sourceStt || 0) - Number(b.sourceStt || 0);
+    });
 }
 
 function render() {
@@ -129,6 +149,63 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+
+
+function exportCurrentListToExcel() {
+  const data = getFiltered();
+
+  if (!data.length) {
+    alert("Không có dữ liệu phù hợp để xuất Excel.");
+    return;
+  }
+
+  if (!window.XLSX) {
+    alert("Chưa tải được thư viện xuất Excel. Vui lòng kiểm tra kết nối mạng và thử lại.");
+    return;
+  }
+
+  // Xuất đúng danh sách đang hiển thị sau khi tìm kiếm/lọc và đã sắp xếp A → Z tiếng Việt.
+  const rows = data.map((item, index) => ({
+    "STT": index + 1,
+    "Họ và tên chủ hộ": item.headName || "",
+    "Thường trú phường/xã": item.permanentResidence || item.commune || "",
+    "Xóm/Tổ": item.village || "",
+    "Địa chỉ chi tiết": item.detailAddress || item.village || "",
+    "Số lượng nhân khẩu": Number(item.population || 0),
+    "Ngập nền nhà": truthyFlag(item.floodedFloor) ? "Có" : "",
+    "Ngập nóc nhà": truthyFlag(item.floodedRoof) ? "Có" : "",
+    "Trạng thái": item.active === false ? "Đã khóa" : "Đang sử dụng",
+    "Nguồn": item.sourceFile || ""
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows);
+
+  // Giữ hàng tiêu đề khi lọc trong Excel và đặt độ rộng cột dễ đọc.
+  const range = XLSX.utils.decode_range(ws["!ref"]);
+  ws["!autofilter"] = { ref: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: range.e.r, c: range.e.c } }) };
+  ws["!cols"] = [
+    { wch: 7 },
+    { wch: 30 },
+    { wch: 24 },
+    { wch: 22 },
+    { wch: 30 },
+    { wch: 18 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 38 }
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Danh sách hộ gia đình");
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  XLSX.writeFile(wb, `Danh-sach-ho-gia-dinh-${yyyy}-${mm}-${dd}.xlsx`);
+}
+
 [els.search, els.village, els.status].forEach(el => el.addEventListener("input", render));
 els.clear.addEventListener("click", () => {
   els.search.value = "";
@@ -136,4 +213,5 @@ els.clear.addEventListener("click", () => {
   els.status.value = "active";
   render();
 });
+els.exportExcel?.addEventListener("click", exportCurrentListToExcel);
 els.logout.addEventListener("click", () => signOut(auth));
