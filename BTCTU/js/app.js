@@ -12,6 +12,12 @@ let fullDataList = []; // Chứa toàn bộ bản ghi dữ liệu phục vụ b�
 let globalAgeData = [0, 0, 0, 0]; // Biến toàn cục lưu dữ liệu độ tuổi hiện tại
 let homeTasksCache = []; // Mảng toàn cục lưu danh sách nhiệm vụ nội bộ
 let isTasksListenerAttached = false; // Tránh gắn lặp listener Firebase cho nhánh tasks
+let taskUnitDashboardData = []; // Thống kê nhiệm vụ theo từng cơ quan/đơn vị chủ trì
+let taskUnitDashboardCharts = {
+  best: null,
+  attention: null,
+  selected: null,
+};
 
 // =================================================================
 // 1. KHỞI TẠO TẤT CẢ CÁC SỰ KIỆN KHI TRANG TẢI XONG
@@ -62,6 +68,16 @@ document.addEventListener("DOMContentLoaded", () => {
   if (taskSearch) {
     taskSearch.addEventListener("input", () => {
       renderTasksTable();
+    });
+  }
+
+  // Dashboard nhiệm vụ theo đơn vị: đổi đơn vị được lựa chọn
+  const taskUnitDashboardSelect = document.getElementById(
+    "task-unit-dashboard-select",
+  );
+  if (taskUnitDashboardSelect) {
+    taskUnitDashboardSelect.addEventListener("change", () => {
+      renderSelectedTaskUnitDashboard();
     });
   }
 });
@@ -1374,6 +1390,7 @@ function fetchTasksData() {
       console.error("Không có quyền đọc dữ liệu nhiệm vụ nội bộ:", error);
       homeTasksCache = [];
       updateTaskMetrics(0, 0, 0, 0, 0);
+      renderTaskUnitDashboards();
     },
   );
   isTasksListenerAttached = true;
@@ -1419,6 +1436,280 @@ function taskDiffDays(fromDate, toDate) {
   return Math.round(toDay - fromDay);
 }
 
+// =================================================================
+// DASHBOARD NHIỆM VỤ THEO CƠ QUAN / ĐƠN VỊ CHỦ TRÌ
+// =================================================================
+
+// Dữ liệu assignee hiện được lưu theo dạng: [DV001] Tên đơn vị hoặc [CN001] Tên cá nhân.
+// Dashboard lãnh đạo chỉ tổng hợp các nhiệm vụ giao cho mã đơn vị DV...
+function getTaskUnitFromAssignee(assignee) {
+  const raw = String(assignee || "").trim();
+  const match = raw.match(/^\[([^\]]+)\]\s*(.+)$/);
+  if (!match) return null;
+
+  const code = String(match[1] || "").trim().toUpperCase();
+  const name = String(match[2] || "").trim();
+
+  if (!code.startsWith("DV") || !name) return null;
+  return { code, name };
+}
+
+function getTaskStatusBucket(task, todayDate) {
+  if ((task.status || "") === "Đã hoàn thành") return "done";
+
+  const deadlineDate = parseTaskDateOnly(task.deadline);
+  const diffDays = deadlineDate ? taskDiffDays(todayDate, deadlineDate) : null;
+
+  if (
+    (task.status || "") === "Chậm tiến độ" ||
+    (diffDays !== null && diffDays < 0)
+  ) {
+    return "late";
+  }
+
+  return "doing";
+}
+
+function buildTaskUnitDashboardData() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const unitMap = new Map();
+
+  homeTasksCache.forEach((task) => {
+    const unit = getTaskUnitFromAssignee(task.assignee);
+    if (!unit) return;
+
+    if (!unitMap.has(unit.code)) {
+      unitMap.set(unit.code, {
+        code: unit.code,
+        name: unit.name,
+        total: 0,
+        done: 0,
+        doing: 0,
+        late: 0,
+      });
+    }
+
+    const stat = unitMap.get(unit.code);
+    const bucket = getTaskStatusBucket(task, today);
+
+    stat.total++;
+    stat[bucket]++;
+  });
+
+  taskUnitDashboardData = Array.from(unitMap.values()).map((unit) => ({
+    ...unit,
+    doneRate: unit.total > 0 ? unit.done / unit.total : 0,
+    lateRate: unit.total > 0 ? unit.late / unit.total : 0,
+  }));
+
+  return taskUnitDashboardData;
+}
+
+function setTaskUnitCardEmpty(kind, message = "Chưa có dữ liệu nhiệm vụ theo đơn vị") {
+  const prefix = `task-unit-${kind}`;
+  const nameEl = document.getElementById(`${prefix}-name`);
+  const totalEl = document.getElementById(`${prefix}-total`);
+  const doneEl = document.getElementById(`${prefix}-done`);
+  const doingEl = document.getElementById(`${prefix}-doing`);
+  const lateEl = document.getElementById(`${prefix}-late`);
+  if (nameEl) nameEl.textContent = message;
+  if (totalEl) totalEl.innerHTML = `0<span>nhiệm vụ</span>`;
+  if (doneEl) {
+    doneEl.textContent = "0";
+    const label = doneEl.parentElement?.querySelector("span");
+    if (label) label.textContent = "Hoàn thành (0.0%)";
+  }
+  if (doingEl) {
+    doingEl.textContent = "0";
+    const label = doingEl.parentElement?.querySelector("span");
+    if (label) label.textContent = "Đang thực hiện (0.0%)";
+  }
+  if (lateEl) {
+    lateEl.textContent = "0";
+    const label = lateEl.parentElement?.querySelector("span");
+    if (label) label.textContent = "Chậm / quá hạn (0.0%)";
+  }
+
+  if (taskUnitDashboardCharts[kind]) {
+    taskUnitDashboardCharts[kind].destroy();
+    taskUnitDashboardCharts[kind] = null;
+  }
+}
+
+function renderTaskUnitDoughnut(kind, unit) {
+  if (!unit) {
+    setTaskUnitCardEmpty(kind);
+    return;
+  }
+
+  const prefix = `task-unit-${kind}`;
+  const canvas = document.getElementById(`${prefix}-chart`);
+  const nameEl = document.getElementById(`${prefix}-name`);
+  const totalEl = document.getElementById(`${prefix}-total`);
+  const doneEl = document.getElementById(`${prefix}-done`);
+  const doingEl = document.getElementById(`${prefix}-doing`);
+  const lateEl = document.getElementById(`${prefix}-late`);
+  if (nameEl) nameEl.textContent = unit.name;
+  if (totalEl) {
+    totalEl.innerHTML = `${unit.total}<span>nhiệm vụ</span>`;
+  }
+
+  const pctText = (value) =>
+    unit.total > 0 ? ((value / unit.total) * 100).toFixed(1) : "0.0";
+
+  if (doneEl) {
+    doneEl.textContent = unit.done;
+    const label = doneEl.parentElement?.querySelector("span");
+    if (label) label.textContent = `Hoàn thành (${pctText(unit.done)}%)`;
+  }
+  if (doingEl) {
+    doingEl.textContent = unit.doing;
+    const label = doingEl.parentElement?.querySelector("span");
+    if (label) label.textContent = `Đang thực hiện (${pctText(unit.doing)}%)`;
+  }
+  if (lateEl) {
+    lateEl.textContent = unit.late;
+    const label = lateEl.parentElement?.querySelector("span");
+    if (label) label.textContent = `Chậm / quá hạn (${pctText(unit.late)}%)`;
+  }
+
+  if (!canvas) return;
+
+  if (taskUnitDashboardCharts[kind]) {
+    taskUnitDashboardCharts[kind].destroy();
+  }
+
+  taskUnitDashboardCharts[kind] = new Chart(canvas.getContext("2d"), {
+    type: "doughnut",
+    data: {
+      labels: ["Đã hoàn thành", "Đang thực hiện", "Chậm / quá hạn"],
+      datasets: [
+        {
+          data: [unit.done, unit.doing, unit.late],
+          backgroundColor: ["#16a34a", "#f59e0b", "#dc2626"],
+          borderColor: "#ffffff",
+          borderWidth: 3,
+          hoverOffset: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "72%",
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label(context) {
+              const value = Number(context.raw || 0);
+              const pct =
+                unit.total > 0 ? ((value / unit.total) * 100).toFixed(1) : "0.0";
+              return `${context.label}: ${value} nhiệm vụ (${pct}%)`;
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+function renderSelectedTaskUnitDashboard() {
+  const select = document.getElementById("task-unit-dashboard-select");
+  if (!select) return;
+
+  const selectedCode = select.value;
+  const selectedUnit = taskUnitDashboardData.find(
+    (unit) => unit.code === selectedCode,
+  );
+
+  renderTaskUnitDoughnut("selected", selectedUnit || null);
+}
+
+function renderTaskUnitDashboards() {
+  const section = document.getElementById("task-unit-dashboard-section");
+  if (!section) return;
+
+  if (!canAccessHomeNoiBo()) {
+    section.style.display = "none";
+    taskUnitDashboardData = [];
+    ["best", "attention", "selected"].forEach((kind) =>
+      setTaskUnitCardEmpty(kind),
+    );
+    return;
+  }
+
+  section.style.display = "block";
+  const units = buildTaskUnitDashboardData();
+
+  const select = document.getElementById("task-unit-dashboard-select");
+  const previousSelected = select ? select.value : "";
+
+  if (!units.length) {
+    renderTaskUnitDoughnut("best", null);
+    renderTaskUnitDoughnut("attention", null);
+    renderTaskUnitDoughnut("selected", null);
+
+    if (select) {
+      select.innerHTML = '<option value="">-- Chưa có đơn vị có nhiệm vụ --</option>';
+    }
+    return;
+  }
+
+  // ĐƠN VỊ THỰC HIỆN TỐT:
+  // 1) Tỷ lệ hoàn thành cao hơn; 2) tỷ lệ chậm thấp hơn;
+  // 3) nếu vẫn bằng nhau, ưu tiên đơn vị có nhiều nhiệm vụ hơn.
+  const bestUnit = [...units].sort((a, b) => {
+    if (b.doneRate !== a.doneRate) return b.doneRate - a.doneRate;
+    if (a.lateRate !== b.lateRate) return a.lateRate - b.lateRate;
+    if (b.done !== a.done) return b.done - a.done;
+    if (b.total !== a.total) return b.total - a.total;
+    return a.name.localeCompare(b.name, "vi");
+  })[0];
+
+  // ĐƠN VỊ CẦN LƯU Ý:
+  // Ưu tiên tỷ lệ chậm/quá hạn cao; sau đó số nhiệm vụ chậm cao;
+  // nếu chưa có nhiệm vụ chậm thì đơn vị có tỷ lệ hoàn thành thấp hơn sẽ được lưu ý.
+  const attentionPool =
+    units.length > 1 ? units.filter((unit) => unit.code !== bestUnit.code) : units;
+  const attentionUnit = [...attentionPool].sort((a, b) => {
+    if (b.lateRate !== a.lateRate) return b.lateRate - a.lateRate;
+    if (b.late !== a.late) return b.late - a.late;
+    if (a.doneRate !== b.doneRate) return a.doneRate - b.doneRate;
+    if (b.doing !== a.doing) return b.doing - a.doing;
+    if (b.total !== a.total) return b.total - a.total;
+    return a.name.localeCompare(b.name, "vi");
+  })[0];
+
+  renderTaskUnitDoughnut("best", bestUnit);
+  renderTaskUnitDoughnut("attention", attentionUnit);
+
+  if (select) {
+    const sortedUnits = [...units].sort((a, b) =>
+      a.name.localeCompare(b.name, "vi"),
+    );
+
+    select.innerHTML =
+      '<option value="">-- Chọn đơn vị để xem dashboard --</option>';
+
+    sortedUnits.forEach((unit) => {
+      const option = document.createElement("option");
+      option.value = unit.code;
+      option.textContent = `${unit.name} (${unit.total} nhiệm vụ)`;
+      select.appendChild(option);
+    });
+
+    const canKeepPrevious = sortedUnits.some(
+      (unit) => unit.code === previousSelected,
+    );
+    select.value = canKeepPrevious ? previousSelected : bestUnit.code;
+  }
+
+  renderSelectedTaskUnitDashboard();
+}
+
 // HÀM RENDER VÀ LỌC TÌM KIẾM NHIỆM VỤ NỘI BỘ VỚI ĐẦY ĐỦ CÁC CỘT DỮ LIỆU
 function renderTasksTable() {
   const tbody =
@@ -1431,6 +1722,7 @@ function renderTasksTable() {
 
   if (!canAccessHomeNoiBo()) {
     updateTaskMetrics(0, 0, 0, 0, 0);
+    renderTaskUnitDashboards();
     return;
   }
 
@@ -1496,6 +1788,7 @@ function renderTasksTable() {
   });
 
   updateTaskMetrics(total, done, doing, upcoming, late);
+  renderTaskUnitDashboards();
 
   if (!filteredTasks || filteredTasks.length === 0) {
     tbody.innerHTML = `<tr><td colspan="11" style="text-align:center; padding: 20px; color:#94a3b8;">Không tìm thấy dữ liệu nhiệm vụ nội bộ.</td></tr>`;

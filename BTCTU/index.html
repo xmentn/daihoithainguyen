@@ -100,31 +100,15 @@
         transition: width 0.35s ease;
       }
 
-      .bottleneck-fill.stage-1 {
-        background: #ea580c;
-      }
-      .bottleneck-fill.stage-2 {
-        background: #9333ea;
-      }
-      .bottleneck-fill.stage-3 {
-        background: #16a34a;
-      }
-      .bottleneck-fill.stage-4 {
-        background: #dc2626;
-      }
+      .bottleneck-fill.stage-1 { background: #ea580c; }
+      .bottleneck-fill.stage-2 { background: #9333ea; }
+      .bottleneck-fill.stage-3 { background: #16a34a; }
+      .bottleneck-fill.stage-4 { background: #dc2626; }
 
-      .bottleneck-icon.stage-1 {
-        color: #ea580c;
-      }
-      .bottleneck-icon.stage-2 {
-        color: #9333ea;
-      }
-      .bottleneck-icon.stage-3 {
-        color: #16a34a;
-      }
-      .bottleneck-icon.stage-4 {
-        color: #dc2626;
-      }
+      .bottleneck-icon.stage-1 { color: #ea580c; }
+      .bottleneck-icon.stage-2 { color: #9333ea; }
+      .bottleneck-icon.stage-3 { color: #16a34a; }
+      .bottleneck-icon.stage-4 { color: #dc2626; }
 
       .bottleneck-summary {
         margin-top: 2px;
@@ -137,9 +121,7 @@
         line-height: 1.4;
       }
 
-      .bottleneck-summary strong {
-        color: #0056b3;
-      }
+      .bottleneck-summary strong { color: #0056b3; }
     </style>
   </head>
   <body>
@@ -335,107 +317,66 @@
           </div>
 
           <div class="grid-card">
-            <h3 class="chart-box-title">THÔNG SỐ CẦN LƯU Ý</h3>
+            <h3 class="chart-box-title">ĐIỂM NGHẼN TRONG QUY TRÌNH SỐ HÓA</h3>
             <div class="bottleneck-subtitle">
-              Khối lượng hồ sơ còn tồn tại tại từng bước · Tỷ lệ tính trên tổng
-              số hồ sơ cần số hóa
+              Khối lượng hồ sơ còn tồn tại tại từng bước · Tỷ lệ tính trên tổng số hồ sơ cần số hóa
             </div>
 
             <div class="bottleneck-panel">
               <div class="bottleneck-item">
                 <div class="bottleneck-item-header">
                   <div class="bottleneck-label">
-                    <i
-                      class="fa-solid fa-file-circle-exclamation bottleneck-icon stage-1"
-                    ></i>
+                    <i class="fa-solid fa-file-circle-exclamation bottleneck-icon stage-1"></i>
                     CHƯA CHUẨN HÓA
                   </div>
                   <div class="bottleneck-value-wrap">
-                    <span class="bottleneck-value" id="bn-not-standardized"
-                      >0</span
-                    >
-                    <span
-                      class="bottleneck-percent"
-                      id="bn-not-standardized-pct"
-                      >0%</span
-                    >
+                    <span class="bottleneck-value" id="bn-not-standardized">0</span>
+                    <span class="bottleneck-percent" id="bn-not-standardized-pct">0%</span>
                   </div>
                 </div>
-                <div class="bottleneck-track">
-                  <div
-                    class="bottleneck-fill stage-1"
-                    id="bn-not-standardized-bar"
-                  ></div>
-                </div>
+                <div class="bottleneck-track"><div class="bottleneck-fill stage-1" id="bn-not-standardized-bar"></div></div>
               </div>
 
               <div class="bottleneck-item">
                 <div class="bottleneck-item-header">
                   <div class="bottleneck-label">
-                    <i
-                      class="fa-solid fa-signature bottleneck-icon stage-2"
-                    ></i>
+                    <i class="fa-solid fa-signature bottleneck-icon stage-2"></i>
                     ĐÃ CHUẨN HÓA, CHƯA KÝ SỐ
                   </div>
                   <div class="bottleneck-value-wrap">
                     <span class="bottleneck-value" id="bn-not-signed">0</span>
-                    <span class="bottleneck-percent" id="bn-not-signed-pct"
-                      >0%</span
-                    >
+                    <span class="bottleneck-percent" id="bn-not-signed-pct">0%</span>
                   </div>
                 </div>
-                <div class="bottleneck-track">
-                  <div
-                    class="bottleneck-fill stage-2"
-                    id="bn-not-signed-bar"
-                  ></div>
-                </div>
+                <div class="bottleneck-track"><div class="bottleneck-fill stage-2" id="bn-not-signed-bar"></div></div>
               </div>
 
               <div class="bottleneck-item">
                 <div class="bottleneck-item-header">
                   <div class="bottleneck-label">
-                    <i
-                      class="fa-solid fa-cloud-arrow-up bottleneck-icon stage-3"
-                    ></i>
+                    <i class="fa-solid fa-cloud-arrow-up bottleneck-icon stage-3"></i>
                     ĐÃ KÝ SỐ, CHƯA ĐƯA LÊN PM
                   </div>
                   <div class="bottleneck-value-wrap">
                     <span class="bottleneck-value" id="bn-not-uploaded">0</span>
-                    <span class="bottleneck-percent" id="bn-not-uploaded-pct"
-                      >0%</span
-                    >
+                    <span class="bottleneck-percent" id="bn-not-uploaded-pct">0%</span>
                   </div>
                 </div>
-                <div class="bottleneck-track">
-                  <div
-                    class="bottleneck-fill stage-3"
-                    id="bn-not-uploaded-bar"
-                  ></div>
-                </div>
+                <div class="bottleneck-track"><div class="bottleneck-fill stage-3" id="bn-not-uploaded-bar"></div></div>
               </div>
 
               <div class="bottleneck-item">
                 <div class="bottleneck-item-header">
                   <div class="bottleneck-label">
-                    <i
-                      class="fa-solid fa-file-circle-xmark bottleneck-icon stage-4"
-                    ></i>
+                    <i class="fa-solid fa-file-circle-xmark bottleneck-icon stage-4"></i>
                     HS THIẾU TÀI LIỆU CƠ BẢN
                   </div>
                   <div class="bottleneck-value-wrap">
                     <span class="bottleneck-value" id="bn-missing-docs">0</span>
-                    <span class="bottleneck-percent" id="bn-missing-docs-pct"
-                      >0%</span
-                    >
+                    <span class="bottleneck-percent" id="bn-missing-docs-pct">0%</span>
                   </div>
                 </div>
-                <div class="bottleneck-track">
-                  <div
-                    class="bottleneck-fill stage-4"
-                    id="bn-missing-docs-bar"
-                  ></div>
-                </div>
+                <div class="bottleneck-track"><div class="bottleneck-fill stage-4" id="bn-missing-docs-bar"></div></div>
               </div>
 
               <div class="bottleneck-summary" id="bn-summary">
@@ -551,9 +492,7 @@
                 <i class="fa-solid fa-circle-check"></i>
                 <span>
                   CÁC ĐƠN VỊ ĐÃ HOÀN THÀNH
-                  <span id="rank-completed-count" style="font-weight: 800"
-                    >(0/0)</span
-                  >
+                  <span id="rank-completed-count" style="font-weight: 800">(0/0)</span>
                 </span>
               </div>
               <div
@@ -584,13 +523,8 @@
                   margin-bottom: 10px;
                 "
               >
-                <span
-                  style="display: inline-flex; align-items: center; gap: 6px"
-                >
-                  <i
-                    class="fa-solid fa-ranking-star"
-                    style="color: #0056b3"
-                  ></i>
+                <span style="display: inline-flex; align-items: center; gap: 6px">
+                  <i class="fa-solid fa-ranking-star" style="color: #0056b3"></i>
                   XẾP HẠNG THEO LỰA CHỌN
                 </span>
                 <select
@@ -618,12 +552,7 @@
 
           <div
             class="bottom-right-panel"
-            style="
-              display: flex;
-              flex-direction: column;
-              min-height: 0;
-              height: 100%;
-            "
+            style="display: flex; flex-direction: column; min-height: 0; height: 100%"
           >
             <div class="table-header-row">
               <h3 class="chart-box-title">
@@ -649,12 +578,7 @@
 
             <div
               class="table-scroll-wrapper"
-              style="
-                flex: 1 1 0;
-                min-height: 0;
-                max-height: none;
-                overflow-y: auto;
-              "
+              style="flex: 1 1 0; min-height: 0; max-height: none; overflow-y: auto"
             >
               <table class="report-table">
                 <thead>
@@ -1543,7 +1467,10 @@
         </div>
 
         <!-- 5 Thẻ chỉ số tổng quan Nhiệm vụ -->
-        <section class="metrics-grid" style="margin-bottom: 20px">
+        <section
+          class="metrics-grid"
+          style="margin-bottom: 20px"
+        >
           <div class="metric-card card-blue">
             <div class="card-header-icon">
               <i class="fa-solid fa-list-ul"></i>
@@ -1609,6 +1536,310 @@
           </div>
         </section>
 
+        <!-- Dashboard đánh giá tiến độ nhiệm vụ theo cơ quan / đơn vị -->
+        <section
+          class="grid-card"
+          id="task-unit-dashboard-section"
+          style="margin-bottom: 20px"
+        >
+          <style>
+            #task-unit-dashboard-section .task-unit-dashboard-header {
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              gap: 12px;
+              flex-wrap: wrap;
+              margin-bottom: 14px;
+            }
+            #task-unit-dashboard-section .task-unit-dashboard-legend {
+              display: flex;
+              align-items: center;
+              gap: 14px;
+              flex-wrap: wrap;
+              font-size: 11px;
+              font-weight: 700;
+              color: #475569;
+            }
+            #task-unit-dashboard-section .task-unit-dashboard-legend span {
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
+            }
+            #task-unit-dashboard-section .task-unit-dashboard-dot {
+              width: 9px;
+              height: 9px;
+              border-radius: 50%;
+              display: inline-block;
+            }
+            #task-unit-dashboard-section .task-unit-dashboard-grid {
+              display: grid;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 15px;
+            }
+            #task-unit-dashboard-section .task-unit-card {
+              border: 1px solid #e2e8f0;
+              border-radius: 9px;
+              padding: 13px;
+              background: #ffffff;
+              min-width: 0;
+            }
+            #task-unit-dashboard-section .task-unit-card.best {
+              border-top: 4px solid #16a34a;
+            }
+            #task-unit-dashboard-section .task-unit-card.attention {
+              border-top: 4px solid #dc2626;
+            }
+            #task-unit-dashboard-section .task-unit-card.selected {
+              border-top: 4px solid #2563eb;
+            }
+            #task-unit-dashboard-section .task-unit-card-title {
+              font-size: 12px;
+              font-weight: 900;
+              text-transform: uppercase;
+              display: flex;
+              align-items: center;
+              gap: 6px;
+              margin-bottom: 6px;
+            }
+            #task-unit-dashboard-section .task-unit-name {
+              min-height: 34px;
+              font-size: 13px;
+              font-weight: 800;
+              color: #1e293b;
+              line-height: 17px;
+              margin-bottom: 6px;
+            }
+            #task-unit-dashboard-section .task-unit-chart-wrap {
+              height: 160px;
+              position: relative;
+              margin: 2px auto 8px;
+            }
+            #task-unit-dashboard-section .task-unit-chart-center {
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              text-align: center;
+              font-size: 25px;
+              line-height: 24px;
+              font-weight: 900;
+              color: #0f172a;
+              pointer-events: none;
+            }
+            #task-unit-dashboard-section .task-unit-chart-center span {
+              display: block;
+              font-size: 10px;
+              line-height: 14px;
+              font-weight: 700;
+              color: #64748b;
+              margin-top: 3px;
+            }
+            #task-unit-dashboard-section .task-unit-stats {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              gap: 6px;
+            }
+            #task-unit-dashboard-section .task-unit-stat {
+              border-radius: 6px;
+              padding: 8px 4px;
+              text-align: center;
+              background: #f8fafc;
+              display: flex;
+              align-items: baseline;
+              justify-content: center;
+              gap: 4px;
+              white-space: nowrap;
+            }
+            #task-unit-dashboard-section .task-unit-stat strong {
+              display: inline;
+              font-size: 17px;
+              line-height: 20px;
+              margin: 0;
+            }
+            #task-unit-dashboard-section .task-unit-stat span {
+              display: inline;
+              font-size: 9.5px;
+              line-height: 12px;
+              color: #64748b;
+              font-weight: 700;
+            }
+            #task-unit-dashboard-section #task-unit-dashboard-select {
+              width: 100%;
+              min-height: 32px;
+              border: 1px solid #cbd5e1;
+              border-radius: 6px;
+              padding: 5px 8px;
+              font-size: 11px;
+              font-weight: 700;
+              color: #1d4ed8;
+              background: #ffffff;
+              outline: none;
+              margin-bottom: 7px;
+            }
+            @media (max-width: 1100px) {
+              #task-unit-dashboard-section .task-unit-dashboard-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+          </style>
+
+          <div class="task-unit-dashboard-header">
+            <h3 class="chart-box-title" style="margin: 0">
+              <i class="fa-solid fa-chart-pie"></i>
+              DASHBOARD TIẾN ĐỘ NHIỆM VỤ THEO ĐƠN VỊ
+            </h3>
+            <div class="task-unit-dashboard-legend">
+              <span
+                ><i
+                  class="task-unit-dashboard-dot"
+                  style="background: #16a34a"
+                ></i
+                >Đã hoàn thành</span
+              >
+              <span
+                ><i
+                  class="task-unit-dashboard-dot"
+                  style="background: #f59e0b"
+                ></i
+                >Đang thực hiện</span
+              >
+              <span
+                ><i
+                  class="task-unit-dashboard-dot"
+                  style="background: #dc2626"
+                ></i
+                >Chậm / quá hạn</span
+              >
+            </div>
+          </div>
+
+          <div class="task-unit-dashboard-grid">
+            <!-- Đơn vị thực hiện tốt -->
+            <div class="task-unit-card best">
+              <div class="task-unit-card-title" style="color: #15803d">
+                <i class="fa-solid fa-award"></i> ĐƠN VỊ THỰC HIỆN TỐT
+              </div>
+              <div class="task-unit-name" id="task-unit-best-name">—</div>
+              <div class="task-unit-chart-wrap">
+                <canvas id="task-unit-best-chart"></canvas>
+                <div
+                  class="task-unit-chart-center"
+                  id="task-unit-best-total"
+                >
+                  0<span>nhiệm vụ</span>
+                </div>
+              </div>
+              <div class="task-unit-stats">
+                <div class="task-unit-stat">
+                  <strong id="task-unit-best-done" style="color: #16a34a"
+                    >0</strong
+                  >
+                  <span>Hoàn thành</span>
+                </div>
+                <div class="task-unit-stat">
+                  <strong id="task-unit-best-doing" style="color: #d97706"
+                    >0</strong
+                  >
+                  <span>Đang thực hiện</span>
+                </div>
+                <div class="task-unit-stat">
+                  <strong id="task-unit-best-late" style="color: #dc2626"
+                    >0</strong
+                  >
+                  <span>Chậm / quá hạn</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Đơn vị cần lưu ý -->
+            <div class="task-unit-card attention">
+              <div class="task-unit-card-title" style="color: #b91c1c">
+                <i class="fa-solid fa-triangle-exclamation"></i> ĐƠN VỊ CẦN
+                LƯU Ý
+              </div>
+              <div class="task-unit-name" id="task-unit-attention-name">—</div>
+              <div class="task-unit-chart-wrap">
+                <canvas id="task-unit-attention-chart"></canvas>
+                <div
+                  class="task-unit-chart-center"
+                  id="task-unit-attention-total"
+                >
+                  0<span>nhiệm vụ</span>
+                </div>
+              </div>
+              <div class="task-unit-stats">
+                <div class="task-unit-stat">
+                  <strong
+                    id="task-unit-attention-done"
+                    style="color: #16a34a"
+                    >0</strong
+                  >
+                  <span>Hoàn thành</span>
+                </div>
+                <div class="task-unit-stat">
+                  <strong
+                    id="task-unit-attention-doing"
+                    style="color: #d97706"
+                    >0</strong
+                  >
+                  <span>Đang thực hiện</span>
+                </div>
+                <div class="task-unit-stat">
+                  <strong
+                    id="task-unit-attention-late"
+                    style="color: #dc2626"
+                    >0</strong
+                  >
+                  <span>Chậm / quá hạn</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dashboard đơn vị được người dùng lựa chọn -->
+            <div class="task-unit-card selected">
+              <div class="task-unit-card-title" style="color: #1d4ed8">
+                <i class="fa-solid fa-building-user"></i> DASHBOARD ĐƠN VỊ
+                LỰA CHỌN
+              </div>
+              <select id="task-unit-dashboard-select">
+                <option value="">-- Chọn đơn vị để xem dashboard --</option>
+              </select>
+              <div class="task-unit-name" id="task-unit-selected-name">—</div>
+              <div class="task-unit-chart-wrap">
+                <canvas id="task-unit-selected-chart"></canvas>
+                <div
+                  class="task-unit-chart-center"
+                  id="task-unit-selected-total"
+                >
+                  0<span>nhiệm vụ</span>
+                </div>
+              </div>
+              <div class="task-unit-stats">
+                <div class="task-unit-stat">
+                  <strong id="task-unit-selected-done" style="color: #16a34a"
+                    >0</strong
+                  >
+                  <span>Hoàn thành</span>
+                </div>
+                <div class="task-unit-stat">
+                  <strong
+                    id="task-unit-selected-doing"
+                    style="color: #d97706"
+                    >0</strong
+                  >
+                  <span>Đang thực hiện</span>
+                </div>
+                <div class="task-unit-stat">
+                  <strong id="task-unit-selected-late" style="color: #dc2626"
+                    >0</strong
+                  >
+                  <span>Chậm / quá hạn</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Bảng danh sách Nhiệm vụ chi tiết -->
         <section class="grid-card">
           <div class="table-header-row" style="margin-bottom: 15px">
@@ -1670,12 +1901,7 @@
                   <th style="width: 90px; text-align: center">TIẾN ĐỘ (%)</th>
                   <th style="width: 120px; text-align: center">TRẠNG THÁI</th>
                   <th style="width: 10%">GHI CHÚ / ĐÔN ĐỐC</th>
-                  <th
-                    id="th-task-action"
-                    style="width: 70px; text-align: center"
-                  >
-                    THAO TÁC
-                  </th>
+                  <th id="th-task-action" style="width: 70px; text-align: center">THAO TÁC</th>
                 </tr>
               </thead>
               <tbody id="public-task-body">
