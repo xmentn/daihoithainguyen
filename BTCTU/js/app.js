@@ -194,7 +194,7 @@ function applyHomeRolePermissions() {
 
     stopTasksListener();
     homeTasksCache = [];
-    updateTaskMetrics(0, 0, 0, 0, 0);
+    updateTaskMetrics(0, 0, 0, 0, 0, 0);
   } else {
     fetchTasksData();
   }
@@ -1389,7 +1389,7 @@ function fetchTasksData() {
     (error) => {
       console.error("Không có quyền đọc dữ liệu nhiệm vụ nội bộ:", error);
       homeTasksCache = [];
-      updateTaskMetrics(0, 0, 0, 0, 0);
+      updateTaskMetrics(0, 0, 0, 0, 0, 0);
       renderTaskUnitDashboards();
     },
   );
@@ -1455,13 +1455,26 @@ function getTaskUnitFromAssignee(assignee) {
 }
 
 function getTaskStatusBucket(task, todayDate) {
-  if ((task.status || "") === "Đã hoàn thành") return "done";
-
+  const status = task.status || "";
   const deadlineDate = parseTaskDateOnly(task.deadline);
+
+  // Nhiệm vụ đã hoàn thành được tách riêng thành:
+  // - done: hoàn thành đúng hạn / trước hạn
+  // - doneLate: hoàn thành sau thời hạn
+  if (status === "Đã hoàn thành") {
+    const completedDate = taskTimestampToLocalDate(task.completedAt || task.updatedAt);
+    const completedOverdueDays =
+      deadlineDate && completedDate ? taskDiffDays(deadlineDate, completedDate) : null;
+
+    return completedOverdueDays !== null && completedOverdueDays > 0
+      ? "doneLate"
+      : "done";
+  }
+
   const diffDays = deadlineDate ? taskDiffDays(todayDate, deadlineDate) : null;
 
   if (
-    (task.status || "") === "Chậm tiến độ" ||
+    status === "Chậm tiến độ" ||
     (diffDays !== null && diffDays < 0)
   ) {
     return "late";
@@ -1486,7 +1499,9 @@ function buildTaskUnitDashboardData() {
         name: unit.name,
         total: 0,
         done: 0,
+        doneLate: 0,
         doing: 0,
+        upcoming: 0,
         late: 0,
       });
     }
@@ -1496,41 +1511,94 @@ function buildTaskUnitDashboardData() {
 
     stat.total++;
     stat[bucket]++;
+    if (bucket === "doing") {
+      const deadlineDate = parseTaskDateOnly(task.deadline);
+      if (deadlineDate) {
+        const diffDays = taskDiffDays(today, deadlineDate);
+        if (diffDays !== null && diffDays >= 0 && diffDays <= 3) {
+          stat.upcoming++;
+        }
+      }
+    }
   });
 
   taskUnitDashboardData = Array.from(unitMap.values()).map((unit) => ({
     ...unit,
     doneRate: unit.total > 0 ? unit.done / unit.total : 0,
+    completedRate:
+      unit.total > 0 ? (unit.done + unit.doneLate) / unit.total : 0,
+    doneLateRate: unit.total > 0 ? unit.doneLate / unit.total : 0,
     lateRate: unit.total > 0 ? unit.late / unit.total : 0,
+    doingNormal: Math.max(0, unit.doing - unit.upcoming),
   }));
 
   return taskUnitDashboardData;
+}
+
+function buildTaskUnitSummaryHtml(unit) {
+  const pct = (value) =>
+    unit && unit.total > 0 ? ((value / unit.total) * 100).toFixed(1) : "0.0";
+
+  const completedTotal = (unit?.done || 0) + (unit?.doneLate || 0);
+  const doingNormal = unit?.doingNormal || 0;
+  const upcoming = unit?.upcoming || 0;
+  const late = unit?.late || 0;
+
+  return `
+    <div class="task-unit-group">
+      <div class="task-unit-group-main">
+        <strong style="color:#16a34a">${completedTotal}</strong>
+        <span>Đã hoàn thành</span>
+      </div>
+      <div class="task-unit-subgrid">
+        <div class="task-unit-subitem">
+          <strong style="color:#16a34a">${unit?.done || 0}</strong>
+          <span>Đúng hạn (${pct(unit?.done || 0)}%)</span>
+        </div>
+        <div class="task-unit-subitem">
+          <strong style="color:#7e22ce">${unit?.doneLate || 0}</strong>
+          <span>Quá hạn (${pct(unit?.doneLate || 0)}%)</span>
+        </div>
+      </div>
+    </div>
+    <div class="task-unit-group">
+      <div class="task-unit-group-main">
+        <strong style="color:#d97706">${unit?.doing || 0}</strong>
+        <span>Đang thực hiện</span>
+      </div>
+      <div class="task-unit-subgrid">
+        <div class="task-unit-subitem">
+          <strong style="color:#0f766e">${doingNormal}</strong>
+          <span>Còn > 3 ngày (${pct(doingNormal)}%)</span>
+        </div>
+        <div class="task-unit-subitem">
+          <strong style="color:#f59e0b">${upcoming}</strong>
+          <span>Sắp đến hạn (${pct(upcoming)}%)</span>
+        </div>
+      </div>
+    </div>
+    <div class="task-unit-group">
+      <div class="task-unit-group-main">
+        <strong style="color:#dc2626">${late}</strong>
+        <span>Chậm / quá hạn</span>
+      </div>
+      <div class="task-unit-subgrid one-col">
+        <div class="task-unit-subitem">
+          <strong style="color:#dc2626">${late}</strong>
+          <span>Cần đôn đốc (${pct(late)}%)</span>
+        </div>
+      </div>
+    </div>`;
 }
 
 function setTaskUnitCardEmpty(kind, message = "Chưa có dữ liệu nhiệm vụ theo đơn vị") {
   const prefix = `task-unit-${kind}`;
   const nameEl = document.getElementById(`${prefix}-name`);
   const totalEl = document.getElementById(`${prefix}-total`);
-  const doneEl = document.getElementById(`${prefix}-done`);
-  const doingEl = document.getElementById(`${prefix}-doing`);
-  const lateEl = document.getElementById(`${prefix}-late`);
+  const summaryEl = document.getElementById(`${prefix}-summary`);
   if (nameEl) nameEl.textContent = message;
   if (totalEl) totalEl.innerHTML = `0<span>nhiệm vụ</span>`;
-  if (doneEl) {
-    doneEl.textContent = "0";
-    const label = doneEl.parentElement?.querySelector("span");
-    if (label) label.textContent = "Hoàn thành (0.0%)";
-  }
-  if (doingEl) {
-    doingEl.textContent = "0";
-    const label = doingEl.parentElement?.querySelector("span");
-    if (label) label.textContent = "Đang thực hiện (0.0%)";
-  }
-  if (lateEl) {
-    lateEl.textContent = "0";
-    const label = lateEl.parentElement?.querySelector("span");
-    if (label) label.textContent = "Chậm / quá hạn (0.0%)";
-  }
+  if (summaryEl) summaryEl.innerHTML = buildTaskUnitSummaryHtml({ total: 0, done: 0, doneLate: 0, doing: 0, doingNormal: 0, upcoming: 0, late: 0 });
 
   if (taskUnitDashboardCharts[kind]) {
     taskUnitDashboardCharts[kind].destroy();
@@ -1542,12 +1610,11 @@ function restoreTaskUnitCardDisplay(kind) {
   const prefix = `task-unit-${kind}`;
   const nameEl = document.getElementById(`${prefix}-name`);
   const canvas = document.getElementById(`${prefix}-chart`);
-  const doneEl = document.getElementById(`${prefix}-done`);
   const chartWrap = canvas?.closest(".task-unit-chart-wrap");
-  const statsEl = doneEl?.closest(".task-unit-stats");
+  const summaryEl = document.getElementById(`${prefix}-summary`);
 
   if (chartWrap) chartWrap.style.display = "block";
-  if (statsEl) statsEl.style.display = "grid";
+  if (summaryEl) summaryEl.style.display = "grid";
   if (nameEl) {
     nameEl.style.display = "block";
     nameEl.style.minHeight = "34px";
@@ -1564,9 +1631,8 @@ function setTaskUnitAttentionNone() {
   const prefix = "task-unit-attention";
   const nameEl = document.getElementById(`${prefix}-name`);
   const canvas = document.getElementById(`${prefix}-chart`);
-  const doneEl = document.getElementById(`${prefix}-done`);
   const chartWrap = canvas?.closest(".task-unit-chart-wrap");
-  const statsEl = doneEl?.closest(".task-unit-stats");
+  const summaryEl = document.getElementById(`${prefix}-summary`);
 
   if (taskUnitDashboardCharts.attention) {
     taskUnitDashboardCharts.attention.destroy();
@@ -1574,7 +1640,7 @@ function setTaskUnitAttentionNone() {
   }
 
   if (chartWrap) chartWrap.style.display = "none";
-  if (statsEl) statsEl.style.display = "none";
+  if (summaryEl) summaryEl.style.display = "none";
 
   if (nameEl) {
     nameEl.textContent = "KHÔNG CÓ";
@@ -1601,31 +1667,13 @@ function renderTaskUnitDoughnut(kind, unit) {
   const canvas = document.getElementById(`${prefix}-chart`);
   const nameEl = document.getElementById(`${prefix}-name`);
   const totalEl = document.getElementById(`${prefix}-total`);
-  const doneEl = document.getElementById(`${prefix}-done`);
-  const doingEl = document.getElementById(`${prefix}-doing`);
-  const lateEl = document.getElementById(`${prefix}-late`);
+  const summaryEl = document.getElementById(`${prefix}-summary`);
   if (nameEl) nameEl.textContent = unit.name;
   if (totalEl) {
     totalEl.innerHTML = `${unit.total}<span>nhiệm vụ</span>`;
   }
-
-  const pctText = (value) =>
-    unit.total > 0 ? ((value / unit.total) * 100).toFixed(1) : "0.0";
-
-  if (doneEl) {
-    doneEl.textContent = unit.done;
-    const label = doneEl.parentElement?.querySelector("span");
-    if (label) label.textContent = `Hoàn thành (${pctText(unit.done)}%)`;
-  }
-  if (doingEl) {
-    doingEl.textContent = unit.doing;
-    const label = doingEl.parentElement?.querySelector("span");
-    if (label) label.textContent = `Đang thực hiện (${pctText(unit.doing)}%)`;
-  }
-  if (lateEl) {
-    lateEl.textContent = unit.late;
-    const label = lateEl.parentElement?.querySelector("span");
-    if (label) label.textContent = `Chậm / quá hạn (${pctText(unit.late)}%)`;
+  if (summaryEl) {
+    summaryEl.innerHTML = buildTaskUnitSummaryHtml(unit);
   }
 
   if (!canvas) return;
@@ -1637,11 +1685,16 @@ function renderTaskUnitDoughnut(kind, unit) {
   taskUnitDashboardCharts[kind] = new Chart(canvas.getContext("2d"), {
     type: "doughnut",
     data: {
-      labels: ["Đã hoàn thành", "Đang thực hiện", "Chậm / quá hạn"],
+      labels: [
+        "Đã hoàn thành",
+        "Đã hoàn thành (quá hạn)",
+        "Đang thực hiện",
+        "Chậm / quá hạn",
+      ],
       datasets: [
         {
-          data: [unit.done, unit.doing, unit.late],
-          backgroundColor: ["#16a34a", "#f59e0b", "#dc2626"],
+          data: [unit.done, unit.doneLate, unit.doing, unit.late],
+          backgroundColor: ["#16a34a", "#7e22ce", "#f59e0b", "#dc2626"],
           borderColor: "#ffffff",
           borderWidth: 3,
           hoverOffset: 4,
@@ -1658,8 +1711,7 @@ function renderTaskUnitDoughnut(kind, unit) {
           callbacks: {
             label(context) {
               const value = Number(context.raw || 0);
-              const pct =
-                unit.total > 0 ? ((value / unit.total) * 100).toFixed(1) : "0.0";
+              const pct = unit.total > 0 ? ((value / unit.total) * 100).toFixed(1) : "0.0";
               return `${context.label}: ${value} nhiệm vụ (${pct}%)`;
             },
           },
@@ -1711,9 +1763,6 @@ function renderTaskUnitDashboards() {
     return;
   }
 
-  // ĐƠN VỊ THỰC HIỆN TỐT:
-  // 1) Tỷ lệ hoàn thành cao hơn; 2) tỷ lệ chậm thấp hơn;
-  // 3) nếu vẫn bằng nhau, ưu tiên đơn vị có nhiều nhiệm vụ hơn.
   const bestUnit = [...units].sort((a, b) => {
     if (b.doneRate !== a.doneRate) return b.doneRate - a.doneRate;
     if (a.lateRate !== b.lateRate) return a.lateRate - b.lateRate;
@@ -1722,10 +1771,6 @@ function renderTaskUnitDashboards() {
     return a.name.localeCompare(b.name, "vi");
   })[0];
 
-  // ĐƠN VỊ CẦN LƯU Ý:
-  // Chỉ hiển thị khi thực sự có nhiệm vụ thuộc nhóm Chậm / quá hạn.
-  // Nếu không có đơn vị nào có nhiệm vụ chậm/quá hạn thì hiển thị "KHÔNG CÓ",
-  // không vẽ vòng nhẫn và không hiện các ô thống kê.
   const attentionPool = units.filter((unit) => unit.late > 0);
   const attentionUnit = attentionPool.length
     ? [...attentionPool].sort((a, b) => {
@@ -1780,7 +1825,7 @@ function renderTasksTable() {
   tbody.innerHTML = "";
 
   if (!canAccessHomeNoiBo()) {
-    updateTaskMetrics(0, 0, 0, 0, 0);
+    updateTaskMetrics(0, 0, 0, 0, 0, 0);
     renderTaskUnitDashboards();
     return;
   }
@@ -1816,6 +1861,7 @@ function renderTasksTable() {
 
   let total = 0,
     done = 0,
+    doneLate = 0,
     doing = 0,
     upcoming = 0,
     late = 0;
@@ -1833,10 +1879,22 @@ function renderTasksTable() {
     }
 
     const isDone = t.status === "Đã hoàn thành";
-    const isLate = t.status === "Chậm tiến độ" || (diffDays !== null && diffDays < 0);
+    const isLate =
+      t.status === "Chậm tiến độ" || (diffDays !== null && diffDays < 0);
 
     if (isDone) {
-      done++;
+      const deadlineDate = parseTaskDateOnly(t.deadline);
+      const completedDate = taskTimestampToLocalDate(t.completedAt || t.updatedAt);
+      const completedOverdueDays =
+        deadlineDate && completedDate
+          ? taskDiffDays(deadlineDate, completedDate)
+          : null;
+
+      if (completedOverdueDays !== null && completedOverdueDays > 0) {
+        doneLate++;
+      } else {
+        done++;
+      }
     } else if (isLate) {
       late++;
     } else {
@@ -1846,7 +1904,7 @@ function renderTasksTable() {
     }
   });
 
-  updateTaskMetrics(total, done, doing, upcoming, late);
+  updateTaskMetrics(total, done, doneLate, doing, upcoming, late);
   renderTaskUnitDashboards();
 
   if (!filteredTasks || filteredTasks.length === 0) {
@@ -2034,16 +2092,182 @@ window.updateTaskStatusDirect = function (taskId) {
     });
 };
 
-function updateTaskMetrics(total, done, doing, upcoming, late) {
+
+// =================================================================
+// CỬA SỔ CHI TIẾT KHI BẤM VÀO CÁC Ô THỐNG KÊ NHIỆM VỤ
+// =================================================================
+function escapeTaskMetricHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getTaskMetricInfo(task, todayDate) {
+  const deadlineDate = parseTaskDateOnly(task.deadline);
+  const bucket = getTaskStatusBucket(task, todayDate);
+  const diffDays = deadlineDate ? taskDiffDays(todayDate, deadlineDate) : null;
+
+  if (bucket === "doneLate") {
+    const completedDate = taskTimestampToLocalDate(task.completedAt || task.updatedAt);
+    const overdueDays =
+      deadlineDate && completedDate ? taskDiffDays(deadlineDate, completedDate) : null;
+    return {
+      bucket,
+      isUpcoming: false,
+      detail:
+        overdueDays !== null && overdueDays > 0
+          ? `Hoàn thành quá hạn ${overdueDays} ngày`
+          : "Đã hoàn thành (quá hạn)",
+      color: "#7e22ce",
+    };
+  }
+
+  if (bucket === "done") {
+    return {
+      bucket,
+      isUpcoming: false,
+      detail: "Đã hoàn thành đúng hạn",
+      color: "#16a34a",
+    };
+  }
+
+  if (bucket === "late") {
+    const overdueDays = diffDays !== null && diffDays < 0 ? Math.abs(diffDays) : null;
+    return {
+      bucket,
+      isUpcoming: false,
+      detail: overdueDays ? `Quá hạn ${overdueDays} ngày` : "Chậm tiến độ",
+      color: "#dc2626",
+    };
+  }
+
+  const isUpcoming = diffDays !== null && diffDays >= 0 && diffDays <= 3;
+  return {
+    bucket: "doing",
+    isUpcoming,
+    detail:
+      diffDays === null
+        ? "Đang thực hiện"
+        : diffDays === 0
+          ? "Hết hạn hôm nay"
+          : `Còn ${diffDays} ngày`,
+    color: isUpcoming ? "#d97706" : "#ea580c",
+  };
+}
+
+window.openTaskMetricModal = function (metricKey) {
+  if (!canAccessHomeNoiBo()) {
+    Swal.fire("Không có quyền", "Tài khoản này không được xem dữ liệu Quản lý nội bộ.", "warning");
+    return;
+  }
+
+  const configs = {
+    total: { title: "TỔNG SỐ NHIỆM VỤ", color: "#0284c7" },
+    doneAll: { title: "ĐÃ HOÀN THÀNH", color: "#16a34a" },
+    done: { title: "ĐÃ HOÀN THÀNH - ĐÚNG HẠN", color: "#16a34a" },
+    doneLate: { title: "ĐÃ HOÀN THÀNH - QUÁ HẠN", color: "#7e22ce" },
+    doing: { title: "ĐANG THỰC HIỆN", color: "#2563eb" },
+    doingNormal: { title: "ĐANG THỰC HIỆN - CÒN TRÊN 3 NGÀY", color: "#2563eb" },
+    upcoming: { title: "SẮP ĐẾN HẠN", color: "#d97706" },
+    late: { title: "CHẬM TIẾN ĐỘ / QUÁ HẠN", color: "#dc2626" },
+  };
+  const config = configs[metricKey] || configs.total;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const rows = homeTasksCache
+    .map((task) => ({ task, info: getTaskMetricInfo(task, today) }))
+    .filter(({ info }) => {
+      if (metricKey === "total") return true;
+      if (metricKey === "doneAll") return info.bucket === "done" || info.bucket === "doneLate";
+      if (metricKey === "upcoming") return info.bucket === "doing" && info.isUpcoming;
+      if (metricKey === "doingNormal") return info.bucket === "doing" && !info.isUpcoming;
+      return info.bucket === metricKey;
+    });
+
+  let bodyHtml = "";
+  if (rows.length === 0) {
+    bodyHtml = `
+      <div style="padding:34px 15px; text-align:center; color:#64748b; font-weight:700;">
+        Không có nhiệm vụ thuộc nhóm này.
+      </div>`;
+  } else {
+    const tableRows = rows
+      .map(({ task, info }, index) => {
+        const assignee = (task.assignee || "—").replace(/^\[[^\]]+\]\s*/, "");
+        return `
+          <tr>
+            <td style="text-align:center; width:44px;">${index + 1}</td>
+            <td style="text-align:left; min-width:260px;"><b>${escapeTaskMetricHtml(task.name || "—")}</b></td>
+            <td style="text-align:left; min-width:180px;">${escapeTaskMetricHtml(assignee)}</td>
+            <td style="text-align:center; white-space:nowrap;">${escapeTaskMetricHtml(task.deadline || "—")}</td>
+            <td style="text-align:left; min-width:150px; color:${info.color}; font-weight:800;">${escapeTaskMetricHtml(info.detail)}</td>
+          </tr>`;
+      })
+      .join("");
+
+    bodyHtml = `
+      <div style="max-height:56vh; overflow:auto; border:1px solid #dbe3ec; border-radius:7px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead style="position:sticky; top:0; z-index:2; background:#f8fafc;">
+            <tr>
+              <th style="padding:9px 7px; border:1px solid #dbe3ec;">STT</th>
+              <th style="padding:9px 7px; border:1px solid #dbe3ec;">TÊN NHIỆM VỤ / NỘI DUNG CÔNG VIỆC</th>
+              <th style="padding:9px 7px; border:1px solid #dbe3ec;">ĐƠN VỊ / CÁN BỘ CHỦ TRÌ</th>
+              <th style="padding:9px 7px; border:1px solid #dbe3ec;">THỜI HẠN</th>
+              <th style="padding:9px 7px; border:1px solid #dbe3ec;">TÌNH TRẠNG</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  Swal.fire({
+    title: `${config.title} (${rows.length})`,
+    html: bodyHtml,
+    width: "min(1120px, 96vw)",
+    confirmButtonText: "Đóng",
+    confirmButtonColor: config.color,
+    showCloseButton: true,
+    customClass: { htmlContainer: "task-metric-modal-container" },
+    didOpen: () => {
+      const container = document.querySelector(".task-metric-modal-container");
+      if (container) {
+        container.style.margin = "0";
+        container.style.textAlign = "left";
+      }
+      document.querySelectorAll(".task-metric-modal-container td").forEach((td) => {
+        td.style.padding = "8px 7px";
+        td.style.border = "1px solid #dbe3ec";
+        td.style.verticalAlign = "middle";
+      });
+    },
+  });
+};
+
+function updateTaskMetrics(total, done, doneLate, doing, upcoming, late) {
   const elTotal = document.getElementById("val-task-total");
+  const elDoneTotal = document.getElementById("val-task-done-total");
   const elDone = document.getElementById("val-task-done");
+  const elDoneLate = document.getElementById("val-task-done-late");
   const elDoing = document.getElementById("val-task-doing");
+  const elDoingNormal = document.getElementById("val-task-doing-normal");
   const elUpcoming = document.getElementById("val-task-upcoming");
   const elLate = document.getElementById("val-task-late");
 
   if (elTotal) elTotal.textContent = total;
+  if (elDoneTotal) elDoneTotal.textContent = done + doneLate;
   if (elDone) elDone.textContent = done;
+  if (elDoneLate) elDoneLate.textContent = doneLate;
   if (elDoing) elDoing.textContent = doing;
+  if (elDoingNormal) elDoingNormal.textContent = Math.max(0, doing - upcoming);
   if (elUpcoming) elUpcoming.textContent = upcoming;
   if (elLate) elLate.textContent = late;
 }

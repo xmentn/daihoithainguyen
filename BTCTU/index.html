@@ -1466,72 +1466,187 @@
           </button>
         </div>
 
-        <!-- 5 Thẻ chỉ số tổng quan Nhiệm vụ -->
-        <section
-          class="metrics-grid"
-          style="margin-bottom: 20px"
-        >
-          <div class="metric-card card-blue">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-list-ul"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">TỔNG SỐ NHIỆM VỤ</span>
-              <span class="card-number" id="val-task-total">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-bars-progress"></i> Đang theo dõi</span
-              >
+        <!-- Thống kê tổng quan nhiệm vụ - trình bày dạng khối tổng hợp, bấm trực tiếp để xem chi tiết -->
+        <section id="task-metrics-summary" class="task-metrics-summary" aria-label="Thống kê tiến độ các nhiệm vụ">
+          <style>
+            #task-metrics-summary {
+              display: grid;
+              grid-template-columns: 0.95fr 1.75fr 2.05fr 1.1fr;
+              gap: 10px;
+              margin-bottom: 20px;
+              align-items: stretch;
+            }
+            #task-metrics-summary .task-summary-box {
+              --box-color: #0f172a;
+              min-width: 0;
+              min-height: 148px;
+              background: #fff;
+              border: 1px solid #e2e8f0;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 2px 7px rgba(15, 23, 42, 0.05);
+            }
+            #task-metrics-summary .task-click-zone {
+              cursor: pointer;
+              user-select: none;
+              transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+            }
+            #task-metrics-summary .task-click-zone:hover {
+              background: #f8fafc;
+              box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--zone-color, #0f172a) 25%, transparent);
+            }
+            #task-metrics-summary .task-click-zone:active { transform: scale(.995); }
+            #task-metrics-summary .task-click-zone:focus-visible {
+              outline: 3px solid color-mix(in srgb, var(--zone-color, #2563eb) 25%, transparent);
+              outline-offset: -3px;
+            }
+            #task-metrics-summary .task-summary-main {
+              min-height: 148px;
+              height: 100%;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+              text-align: center;
+              padding: 16px 12px;
+              --zone-color: var(--box-color);
+            }
+            #task-metrics-summary .task-summary-title {
+              font-size: 14px;
+              line-height: 1.35;
+              font-weight: 800;
+              color: #172033;
+              margin-bottom: 8px;
+            }
+            #task-metrics-summary .task-summary-number {
+              font-size: 34px;
+              line-height: 1;
+              font-weight: 900;
+              color: var(--box-color);
+            }
+            #task-metrics-summary .task-summary-group {
+              display: flex;
+              flex-direction: column;
+              min-height: 148px;
+            }
+            #task-metrics-summary .task-group-head {
+              flex: 1 1 auto;
+              min-height: 86px;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              padding: 12px 10px 9px;
+              --zone-color: var(--box-color);
+            }
+            #task-metrics-summary .task-group-head .task-summary-title { margin-bottom: 5px; }
+            #task-metrics-summary .task-group-head .task-summary-number { font-size: 31px; }
+            #task-metrics-summary .task-group-subrow {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              border-top: 1px solid #e2e8f0;
+              min-height: 61px;
+            }
+            #task-metrics-summary .task-group-sub {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 3px;
+              text-align: center;
+              padding: 7px 6px;
+            }
+            #task-metrics-summary .task-group-sub + .task-group-sub { border-left: 1px solid #e2e8f0; }
+            #task-metrics-summary .task-sub-label {
+              font-size: 10.5px;
+              line-height: 1.2;
+              font-weight: 700;
+              color: #475569;
+            }
+            #task-metrics-summary .task-sub-number {
+              font-size: 22px;
+              line-height: 1;
+              font-weight: 900;
+              color: var(--zone-color, #0f172a);
+            }
+            @media (max-width: 1200px) {
+              #task-metrics-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            }
+            @media (max-width: 720px) {
+              #task-metrics-summary { grid-template-columns: 1fr 1fr; gap: 8px; }
+              #task-metrics-summary .task-summary-box { min-height: 126px; }
+              #task-metrics-summary .task-summary-main { min-height: 126px; }
+              #task-metrics-summary .task-summary-title { font-size: 12px; }
+              #task-metrics-summary .task-summary-number { font-size: 29px; }
+            }
+          </style>
+
+          <!-- Tổng số nhiệm vụ -->
+          <div class="task-summary-box" style="--box-color:#0284c7">
+            <div class="task-summary-main task-click-zone" role="button" tabindex="0"
+                 onclick="openTaskMetricModal('total')"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('total');}">
+              <div class="task-summary-title">TỔNG SỐ NHIỆM VỤ</div>
+              <div class="task-summary-number" id="val-task-total">0</div>
             </div>
           </div>
-          <div class="metric-card card-green">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-circle-check"></i>
+
+          <!-- Đã hoàn thành: tổng ở trên, chia đúng hạn / quá hạn ở dưới -->
+          <div class="task-summary-box task-summary-group" style="--box-color:#16a34a">
+            <div class="task-group-head task-click-zone" role="button" tabindex="0"
+                 onclick="openTaskMetricModal('doneAll')"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('doneAll');}">
+              <div class="task-summary-title">ĐÃ HOÀN THÀNH</div>
+              <div class="task-summary-number" id="val-task-done-total">0</div>
             </div>
-            <div class="card-data">
-              <span class="card-title">ĐÃ HOÀN THÀNH</span>
-              <span class="card-number" id="val-task-done">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-check"></i> Đúng tiến độ</span
-              >
-            </div>
-          </div>
-          <div class="metric-card card-orange">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-clock-rotate-left"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">ĐANG THỰC HIỆN</span>
-              <span class="card-number" id="val-task-doing">0</span>
-              <span class="card-subtext text-up"
-                ><i class="fa-solid fa-spinner"></i> Đang triển khai</span
-              >
-            </div>
-          </div>
-          <div class="metric-card">
-            <div
-              class="card-header-icon"
-              style="background: #fef3c7; color: #d97706"
-            >
-              <i class="fa-solid fa-hourglass-half"></i>
-            </div>
-            <div class="card-data">
-              <span class="card-title">SẮP ĐẾN HẠN</span>
-              <span class="card-number" id="val-task-upcoming">0</span>
-              <span class="card-subtext" style="color: #d97706"
-                ><i class="fa-solid fa-clock"></i> Còn ≤ 3 ngày</span
-              >
+            <div class="task-group-subrow">
+              <div class="task-group-sub task-click-zone" style="--zone-color:#16a34a" role="button" tabindex="0"
+                   onclick="openTaskMetricModal('done')"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('done');}">
+                <span class="task-sub-label">ĐÚNG HẠN</span>
+                <span class="task-sub-number" id="val-task-done">0</span>
+              </div>
+              <div class="task-group-sub task-click-zone" style="--zone-color:#7e22ce" role="button" tabindex="0"
+                   onclick="openTaskMetricModal('doneLate')"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('doneLate');}">
+                <span class="task-sub-label">QUÁ HẠN</span>
+                <span class="task-sub-number" id="val-task-done-late">0</span>
+              </div>
             </div>
           </div>
-          <div class="metric-card card-red">
-            <div class="card-header-icon">
-              <i class="fa-solid fa-triangle-exclamation"></i>
+
+          <!-- Đang thực hiện: tổng ở trên, sắp đến hạn được tách ở hàng dưới giống mẫu tham khảo -->
+          <div class="task-summary-box task-summary-group" style="--box-color:#2563eb">
+            <div class="task-group-head task-click-zone" role="button" tabindex="0"
+                 onclick="openTaskMetricModal('doing')"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('doing');}">
+              <div class="task-summary-title">ĐANG THỰC HIỆN</div>
+              <div class="task-summary-number" id="val-task-doing">0</div>
             </div>
-            <div class="card-data">
-              <span class="card-title">CHẬM TIẾN ĐỘ / QUÁ HẠN</span>
-              <span class="card-number" id="val-task-late">0</span>
-              <span class="card-subtext text-up" style="color: #dc2626"
-                ><i class="fa-solid fa-bell"></i> Cần đôn đốc</span
-              >
+            <div class="task-group-subrow">
+              <div class="task-group-sub task-click-zone" style="--zone-color:#2563eb" role="button" tabindex="0"
+                   onclick="openTaskMetricModal('doingNormal')"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('doingNormal');}">
+                <span class="task-sub-label">CÒN TRÊN 3 NGÀY</span>
+                <span class="task-sub-number" id="val-task-doing-normal">0</span>
+              </div>
+              <div class="task-group-sub task-click-zone" style="--zone-color:#d97706" role="button" tabindex="0"
+                   onclick="openTaskMetricModal('upcoming')"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('upcoming');}">
+                <span class="task-sub-label">SẮP ĐẾN HẠN</span>
+                <span class="task-sub-number" id="val-task-upcoming">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chậm tiến độ / quá hạn -->
+          <div class="task-summary-box" style="--box-color:#dc2626">
+            <div class="task-summary-main task-click-zone" role="button" tabindex="0"
+                 onclick="openTaskMetricModal('late')"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openTaskMetricModal('late');}">
+              <div class="task-summary-title">CHẬM TIẾN ĐỘ / QUÁ HẠN</div>
+              <div class="task-summary-number" id="val-task-late">0</div>
             </div>
           </div>
         </section>
@@ -1634,34 +1749,64 @@
               color: #64748b;
               margin-top: 3px;
             }
-            #task-unit-dashboard-section .task-unit-stats {
+            #task-unit-dashboard-section .task-unit-summary-groups {
               display: grid;
-              grid-template-columns: repeat(3, 1fr);
-              gap: 6px;
+              grid-template-columns: repeat(3, minmax(0, 1fr));
+              gap: 8px;
             }
-            #task-unit-dashboard-section .task-unit-stat {
-              border-radius: 6px;
-              padding: 8px 4px;
-              text-align: center;
+            #task-unit-dashboard-section .task-unit-group {
+              border-radius: 8px;
               background: #f8fafc;
-              display: flex;
-              align-items: baseline;
-              justify-content: center;
-              gap: 4px;
-              white-space: nowrap;
+              border: 1px solid #e2e8f0;
+              overflow: hidden;
             }
-            #task-unit-dashboard-section .task-unit-stat strong {
-              display: inline;
-              font-size: 17px;
-              line-height: 20px;
-              margin: 0;
+            #task-unit-dashboard-section .task-unit-group-main {
+              text-align: center;
+              padding: 8px 6px 6px;
+              border-bottom: 1px solid #e2e8f0;
             }
-            #task-unit-dashboard-section .task-unit-stat span {
-              display: inline;
-              font-size: 9.5px;
+            #task-unit-dashboard-section .task-unit-group-main strong {
+              display: block;
+              font-size: 20px;
+              line-height: 22px;
+              font-weight: 900;
+              margin-bottom: 2px;
+            }
+            #task-unit-dashboard-section .task-unit-group-main span {
+              font-size: 10px;
               line-height: 12px;
+              color: #475569;
+              font-weight: 800;
+              text-transform: uppercase;
+            }
+            #task-unit-dashboard-section .task-unit-subgrid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            #task-unit-dashboard-section .task-unit-subgrid.one-col {
+              grid-template-columns: 1fr;
+            }
+            #task-unit-dashboard-section .task-unit-subitem {
+              text-align: center;
+              padding: 7px 4px;
+            }
+            #task-unit-dashboard-section .task-unit-subitem + .task-unit-subitem {
+              border-left: 1px solid #e2e8f0;
+            }
+            #task-unit-dashboard-section .task-unit-subitem strong {
+              display: block;
+              font-size: 16px;
+              line-height: 18px;
+              font-weight: 900;
+              margin-bottom: 2px;
+            }
+            #task-unit-dashboard-section .task-unit-subitem span {
+              display: block;
+              font-size: 9px;
+              line-height: 11px;
               color: #64748b;
-              font-weight: 700;
+              font-weight: 800;
+              text-transform: uppercase;
             }
             #task-unit-dashboard-section #task-unit-dashboard-select {
               width: 100%;
@@ -1699,6 +1844,13 @@
               <span
                 ><i
                   class="task-unit-dashboard-dot"
+                  style="background: #7e22ce"
+                ></i
+                >Hoàn thành (quá hạn)</span
+              >
+              <span
+                ><i
+                  class="task-unit-dashboard-dot"
                   style="background: #f59e0b"
                 ></i
                 >Đang thực hiện</span
@@ -1729,26 +1881,7 @@
                   0<span>nhiệm vụ</span>
                 </div>
               </div>
-              <div class="task-unit-stats">
-                <div class="task-unit-stat">
-                  <strong id="task-unit-best-done" style="color: #16a34a"
-                    >0</strong
-                  >
-                  <span>Hoàn thành</span>
-                </div>
-                <div class="task-unit-stat">
-                  <strong id="task-unit-best-doing" style="color: #d97706"
-                    >0</strong
-                  >
-                  <span>Đang thực hiện</span>
-                </div>
-                <div class="task-unit-stat">
-                  <strong id="task-unit-best-late" style="color: #dc2626"
-                    >0</strong
-                  >
-                  <span>Chậm / quá hạn</span>
-                </div>
-              </div>
+              <div class="task-unit-summary-groups" id="task-unit-best-summary"></div>
             </div>
 
             <!-- Đơn vị cần lưu ý -->
@@ -1767,32 +1900,7 @@
                   0<span>nhiệm vụ</span>
                 </div>
               </div>
-              <div class="task-unit-stats">
-                <div class="task-unit-stat">
-                  <strong
-                    id="task-unit-attention-done"
-                    style="color: #16a34a"
-                    >0</strong
-                  >
-                  <span>Hoàn thành</span>
-                </div>
-                <div class="task-unit-stat">
-                  <strong
-                    id="task-unit-attention-doing"
-                    style="color: #d97706"
-                    >0</strong
-                  >
-                  <span>Đang thực hiện</span>
-                </div>
-                <div class="task-unit-stat">
-                  <strong
-                    id="task-unit-attention-late"
-                    style="color: #dc2626"
-                    >0</strong
-                  >
-                  <span>Chậm / quá hạn</span>
-                </div>
-              </div>
+              <div class="task-unit-summary-groups" id="task-unit-attention-summary"></div>
             </div>
 
             <!-- Dashboard đơn vị được người dùng lựa chọn -->
@@ -1814,28 +1922,7 @@
                   0<span>nhiệm vụ</span>
                 </div>
               </div>
-              <div class="task-unit-stats">
-                <div class="task-unit-stat">
-                  <strong id="task-unit-selected-done" style="color: #16a34a"
-                    >0</strong
-                  >
-                  <span>Hoàn thành</span>
-                </div>
-                <div class="task-unit-stat">
-                  <strong
-                    id="task-unit-selected-doing"
-                    style="color: #d97706"
-                    >0</strong
-                  >
-                  <span>Đang thực hiện</span>
-                </div>
-                <div class="task-unit-stat">
-                  <strong id="task-unit-selected-late" style="color: #dc2626"
-                    >0</strong
-                  >
-                  <span>Chậm / quá hạn</span>
-                </div>
-              </div>
+<div class="task-unit-summary-groups" id="task-unit-selected-summary"></div>
             </div>
           </div>
         </section>
