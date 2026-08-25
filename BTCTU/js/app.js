@@ -1538,11 +1538,64 @@ function setTaskUnitCardEmpty(kind, message = "Chưa có dữ liệu nhiệm v�
   }
 }
 
+function restoreTaskUnitCardDisplay(kind) {
+  const prefix = `task-unit-${kind}`;
+  const nameEl = document.getElementById(`${prefix}-name`);
+  const canvas = document.getElementById(`${prefix}-chart`);
+  const doneEl = document.getElementById(`${prefix}-done`);
+  const chartWrap = canvas?.closest(".task-unit-chart-wrap");
+  const statsEl = doneEl?.closest(".task-unit-stats");
+
+  if (chartWrap) chartWrap.style.display = "block";
+  if (statsEl) statsEl.style.display = "grid";
+  if (nameEl) {
+    nameEl.style.display = "block";
+    nameEl.style.minHeight = "34px";
+    nameEl.style.fontSize = "13px";
+    nameEl.style.fontWeight = "800";
+    nameEl.style.color = "#1e293b";
+    nameEl.style.textAlign = "left";
+    nameEl.style.alignItems = "";
+    nameEl.style.justifyContent = "";
+  }
+}
+
+function setTaskUnitAttentionNone() {
+  const prefix = "task-unit-attention";
+  const nameEl = document.getElementById(`${prefix}-name`);
+  const canvas = document.getElementById(`${prefix}-chart`);
+  const doneEl = document.getElementById(`${prefix}-done`);
+  const chartWrap = canvas?.closest(".task-unit-chart-wrap");
+  const statsEl = doneEl?.closest(".task-unit-stats");
+
+  if (taskUnitDashboardCharts.attention) {
+    taskUnitDashboardCharts.attention.destroy();
+    taskUnitDashboardCharts.attention = null;
+  }
+
+  if (chartWrap) chartWrap.style.display = "none";
+  if (statsEl) statsEl.style.display = "none";
+
+  if (nameEl) {
+    nameEl.textContent = "KHÔNG CÓ";
+    nameEl.style.display = "flex";
+    nameEl.style.minHeight = "205px";
+    nameEl.style.alignItems = "center";
+    nameEl.style.justifyContent = "center";
+    nameEl.style.textAlign = "center";
+    nameEl.style.fontSize = "24px";
+    nameEl.style.fontWeight = "900";
+    nameEl.style.color = "#16a34a";
+  }
+}
+
 function renderTaskUnitDoughnut(kind, unit) {
   if (!unit) {
     setTaskUnitCardEmpty(kind);
     return;
   }
+
+  restoreTaskUnitCardDisplay(kind);
 
   const prefix = `task-unit-${kind}`;
   const canvas = document.getElementById(`${prefix}-chart`);
@@ -1670,21 +1723,27 @@ function renderTaskUnitDashboards() {
   })[0];
 
   // ĐƠN VỊ CẦN LƯU Ý:
-  // Ưu tiên tỷ lệ chậm/quá hạn cao; sau đó số nhiệm vụ chậm cao;
-  // nếu chưa có nhiệm vụ chậm thì đơn vị có tỷ lệ hoàn thành thấp hơn sẽ được lưu ý.
-  const attentionPool =
-    units.length > 1 ? units.filter((unit) => unit.code !== bestUnit.code) : units;
-  const attentionUnit = [...attentionPool].sort((a, b) => {
-    if (b.lateRate !== a.lateRate) return b.lateRate - a.lateRate;
-    if (b.late !== a.late) return b.late - a.late;
-    if (a.doneRate !== b.doneRate) return a.doneRate - b.doneRate;
-    if (b.doing !== a.doing) return b.doing - a.doing;
-    if (b.total !== a.total) return b.total - a.total;
-    return a.name.localeCompare(b.name, "vi");
-  })[0];
+  // Chỉ hiển thị khi thực sự có nhiệm vụ thuộc nhóm Chậm / quá hạn.
+  // Nếu không có đơn vị nào có nhiệm vụ chậm/quá hạn thì hiển thị "KHÔNG CÓ",
+  // không vẽ vòng nhẫn và không hiện các ô thống kê.
+  const attentionPool = units.filter((unit) => unit.late > 0);
+  const attentionUnit = attentionPool.length
+    ? [...attentionPool].sort((a, b) => {
+        if (b.lateRate !== a.lateRate) return b.lateRate - a.lateRate;
+        if (b.late !== a.late) return b.late - a.late;
+        if (a.doneRate !== b.doneRate) return a.doneRate - b.doneRate;
+        if (b.doing !== a.doing) return b.doing - a.doing;
+        if (b.total !== a.total) return b.total - a.total;
+        return a.name.localeCompare(b.name, "vi");
+      })[0]
+    : null;
 
   renderTaskUnitDoughnut("best", bestUnit);
-  renderTaskUnitDoughnut("attention", attentionUnit);
+  if (attentionUnit) {
+    renderTaskUnitDoughnut("attention", attentionUnit);
+  } else {
+    setTaskUnitAttentionNone();
+  }
 
   if (select) {
     const sortedUnits = [...units].sort((a, b) =>
