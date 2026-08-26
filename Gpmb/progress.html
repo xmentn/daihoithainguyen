@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Tiến độ giải phóng mặt bằng</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body>
+    <!-- =====================================================
+         BANNER
+    ====================================================== -->
+
+    <header class="header">
+      <div class="banner-container">
+        <img
+          src="images/banner.png"
+          alt="Hệ thống theo dõi tiến độ giải phóng mặt bằng"
+          class="banner-image"
+        />
+      </div>
+    </header>
+
+    <!-- =====================================================
+         THANH MENU
+    ====================================================== -->
+
+    <nav class="navbar">
+      <div class="navbar-container">
+        <div class="navbar-left">
+          <a href="index.html" class="nav-item"> Trang chủ </a>
+
+          <a href="progress.html" class="nav-item active"> Tiến độ GPMB </a>
+
+          <a href="#" class="nav-item"> Báo cáo </a>
+
+          <!-- ADMIN -->
+
+          <a
+            href="admin.html"
+            id="adminNavButton"
+            class="nav-item"
+            style="display: none"
+          >
+            Quản trị
+          </a>
+
+          <!-- TÀI KHOẢN ĐƠN VỊ -->
+
+          <a
+            href="commune-workflow.html"
+            id="communeDataNavButton"
+            class="nav-item"
+            style="display: none"
+          >
+            Nhập số liệu
+          </a>
+        </div>
+
+        <!-- =================================================
+                 TÀI KHOẢN
+            ================================================== -->
+
+        <div class="navbar-right">
+          <a href="login.html" class="login-button" id="loginButton">
+            Đăng nhập
+          </a>
+
+          <div class="user-menu" id="userMenu" style="display: none">
+            <button type="button" class="user-menu-button" id="userMenuButton">
+              <span id="currentUserName"> Người dùng </span>
+
+              <span class="user-menu-arrow"> ▼ </span>
+            </button>
+
+            <div class="user-dropdown">
+              <div class="user-dropdown-info">
+                <span> Đang đăng nhập </span>
+
+                <strong id="currentUserEmail"> </strong>
+              </div>
+
+              <button
+                type="button"
+                id="homeLogoutButton"
+                class="user-logout-button"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="main-content">
+      <div class="container">
+        <!-- =================================================
+                 TIÊU ĐỀ
+            ================================================== -->
+
+        <section class="progress-page-header">
+          <div>
+            <h1>CHI TIẾT TIẾN ĐỘ GIẢI PHÓNG MẶT BẰNG</h1>
+
+            <p>
+              Theo dõi kết quả thực hiện, khối lượng còn lại và các vướng mắc
+              theo từng bước nghiệp vụ.
+            </p>
+          </div>
+
+          <div id="progressUpdatedAt" class="progress-update-time">
+            Đang tải dữ liệu...
+          </div>
+        </section>
+
+        <!-- =================================================
+                 BỘ LỌC
+            ================================================== -->
+
+        <section class="progress-filter-card">
+          <div class="progress-filter-group">
+            <label for="progressUnitSelect"> Đơn vị </label>
+
+            <select id="progressUnitSelect">
+              <option value="all">Toàn bộ dự án</option>
+            </select>
+          </div>
+
+          <div class="progress-filter-note">
+            Chọn đơn vị để xem riêng tiến độ của xã/phường tương ứng.
+          </div>
+        </section>
+
+        <!-- =================================================
+                 5 BƯỚC
+            ================================================== -->
+
+        <section class="progress-workflow-tabs">
+          <button
+            type="button"
+            class="progress-step-tab active"
+            data-step="inventory"
+          >
+            <span>1</span>
+
+            Kiểm đếm
+          </button>
+
+          <button
+            type="button"
+            class="progress-step-tab"
+            data-step="compensation"
+          >
+            <span>2</span>
+
+            Bồi thường
+          </button>
+
+          <button type="button" class="progress-step-tab" data-step="support">
+            <span>3</span>
+
+            Hỗ trợ
+          </button>
+
+          <button
+            type="button"
+            class="progress-step-tab"
+            data-step="resettlement"
+          >
+            <span>4</span>
+
+            Tái định cư
+          </button>
+
+          <button type="button" class="progress-step-tab" data-step="handover">
+            <span>5</span>
+
+            GPMB / Bàn giao
+          </button>
+        </section>
+
+        <!-- =================================================
+                 TỔNG QUAN BƯỚC ĐANG CHỌN
+            ================================================== -->
+
+        <section class="dashboard-section">
+          <div class="section-title">
+            <div>
+              <h2 id="progressStepTitle">Kiểm đếm</h2>
+
+              <p id="progressStepDescription" class="section-description">
+                Tổng hợp tình hình thực hiện kiểm đếm.
+              </p>
+            </div>
+
+            <span class="section-unit" id="progressStepRate"> 0% </span>
+          </div>
+
+          <!-- 4 KPI -->
+
+          <div class="progress-detail-kpis" id="progressDetailKpis">
+            <div class="progress-detail-kpi primary">
+              <span id="progressKpi1Label"> Tổng phải thực hiện </span>
+
+              <strong id="progressKpi1Value"> 0 </strong>
+            </div>
+
+            <div class="progress-detail-kpi">
+              <span id="progressKpi2Label"> Đã thực hiện </span>
+
+              <strong id="progressKpi2Value" class="green-text"> 0 </strong>
+            </div>
+
+            <div class="progress-detail-kpi">
+              <span id="progressKpi3Label"> Còn lại </span>
+
+              <strong id="progressKpi3Value" class="orange-text"> 0 </strong>
+            </div>
+
+            <div class="progress-detail-kpi">
+              <span> Tỷ lệ hoàn thành </span>
+
+              <strong id="progressKpiPercent" class="blue-text"> 0% </strong>
+            </div>
+          </div>
+
+          <div class="progress">
+            <div
+              id="progressMainBar"
+              class="progress-bar"
+              style="width: 0%"
+            ></div>
+          </div>
+          <!-- =================================================
+     CÁC CHỈ TIÊU CHI TIẾT
+================================================== -->
+
+          <div class="progress-extra-section">
+            <div class="progress-extra-heading">
+              <h3>Các chỉ tiêu chi tiết</h3>
+
+              <p>Số liệu chi tiết của bước nghiệp vụ đang được lựa chọn.</p>
+            </div>
+
+            <div id="progressExtraMetrics" class="progress-extra-grid">
+              <div class="progress-extra-empty">Đang tải dữ liệu...</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- =================================================
+                 BẢNG CHI TIẾT THEO ĐƠN VỊ
+            ================================================== -->
+
+        <section class="dashboard-section">
+          <div class="section-title">
+            <div>
+              <h2>Chi tiết theo đơn vị</h2>
+
+              <p class="section-description">
+                Danh sách kết quả của bước nghiệp vụ đang được lựa chọn.
+              </p>
+            </div>
+
+            <span class="section-unit" id="progressUnitCount"> 0 đơn vị </span>
+          </div>
+
+          <div class="workflow-table-wrap">
+            <table class="workflow-unit-table" id="progressDetailTable">
+              <thead id="progressDetailHead">
+                <tr>
+                  <th>STT</th>
+
+                  <th>Đơn vị</th>
+
+                  <th>Tổng</th>
+
+                  <th>Đã thực hiện</th>
+
+                  <th>Còn lại</th>
+
+                  <th>Tỷ lệ</th>
+
+                  <th>Vướng mắc</th>
+                </tr>
+              </thead>
+
+              <tbody id="progressDetailBody">
+                <tr>
+                  <td colspan="7" class="workflow-table-empty">
+                    Đang tải dữ liệu...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- =================================================
+                 VƯỚNG MẮC
+            ================================================== -->
+
+        <section class="dashboard-section">
+          <div class="section-title">
+            <div>
+              <h2>Vướng mắc cần theo dõi</h2>
+
+              <p class="section-description">
+                Tổng hợp nội dung ghi chú, khó khăn do các đơn vị cập nhật.
+              </p>
+            </div>
+          </div>
+
+          <div id="progressIssues" class="progress-issues">
+            <div class="workflow-table-empty">Đang tải dữ liệu...</div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer class="footer">
+      <div class="container">Hệ thống theo dõi tiến độ giải phóng mặt bằng</div>
+    </footer>
+
+    <!-- =====================================================
+         JS
+    ====================================================== -->
+
+    <script type="module" src="js/progress.js"></script>
+
+    <script type="module" src="js/index-auth.js"></script>
+  </body>
+</html>

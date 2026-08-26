@@ -2684,3 +2684,996 @@ body.modal-open {
     grid-template-columns: 1fr;
   }
 }
+/* =========================================================
+   QUY TRÌNH GPMB 5 BƯỚC
+========================================================= */
+
+.workflow-intro {
+  margin-bottom: 16px;
+}
+
+.workflow-intro h2 {
+  margin: 0;
+
+  color: #073b6d;
+
+  font-size: 22px;
+}
+
+.workflow-intro p {
+  margin-top: 5px;
+
+  color: #6f8090;
+
+  font-size: 13px;
+}
+
+/* =========================================================
+   DANH SÁCH BƯỚC
+========================================================= */
+
+.workflow-steps {
+  margin-bottom: 20px;
+
+  display: grid;
+
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.workflow-step-button {
+  min-height: 94px;
+
+  padding: 14px 12px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  border: 1px solid #d7e1e9;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: #26445f;
+
+  font-family: inherit;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.workflow-step-button:hover {
+  transform: translateY(-2px);
+
+  border-color: #0b6eb7;
+
+  box-shadow: 0 8px 24px rgba(7, 65, 107, 0.09);
+}
+
+.workflow-step-button.active {
+  border-color: #075ba5;
+
+  background: linear-gradient(135deg, #07549b, #0875bd);
+
+  color: #ffffff;
+
+  box-shadow: 0 10px 28px rgba(7, 84, 155, 0.2);
+}
+
+.workflow-step-index {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e9f2fa;
+
+  color: #07549b;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.workflow-step-button.active .workflow-step-index {
+  background: rgba(255, 255, 255, 0.18);
+
+  color: #ffffff;
+}
+
+.workflow-step-name {
+  text-align: center;
+
+  font-size: 14px;
+
+  font-weight: 750;
+
+  line-height: 1.35;
+}
+
+.workflow-loading-text {
+  grid-column: 1 / -1;
+
+  padding: 25px;
+
+  text-align: center;
+
+  color: #718291;
+}
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.workflow-content-card {
+  padding: 24px;
+
+  background: #ffffff;
+
+  border: 1px solid #dce4ea;
+
+  border-radius: 13px;
+
+  box-shadow: 0 5px 18px rgba(6, 48, 80, 0.06);
+}
+
+.workflow-content-header {
+  padding-bottom: 18px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  border-bottom: 1px solid #e4ebf0;
+}
+
+.workflow-step-number {
+  width: 46px;
+  height: 46px;
+
+  flex: 0 0 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: linear-gradient(135deg, #07549b, #0878c4);
+
+  color: #ffffff;
+
+  font-size: 19px;
+
+  font-weight: 800;
+}
+
+.workflow-content-header span {
+  color: #7a8996;
+
+  font-size: 12px;
+}
+
+.workflow-content-header h2 {
+  margin: 2px 0 0;
+
+  color: #073b6d;
+
+  font-size: 20px;
+}
+
+/* PLACEHOLDER */
+
+.workflow-placeholder {
+  padding: 48px 20px;
+
+  text-align: center;
+}
+
+.workflow-placeholder-icon {
+  width: 54px;
+  height: 54px;
+
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e8f4fb;
+
+  color: #0870b8;
+
+  font-size: 24px;
+
+  font-weight: 800;
+}
+
+.workflow-placeholder h3 {
+  margin: 0 0 8px;
+
+  color: #173f63;
+
+  font-size: 18px;
+}
+
+.workflow-placeholder p {
+  max-width: 680px;
+
+  margin: 0 auto;
+
+  color: #748391;
+
+  font-size: 14px;
+
+  line-height: 1.65;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1050px) {
+  .workflow-steps {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .workflow-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-step-button {
+    min-height: 70px;
+
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+}
+/* =========================================================
+   FORM QUY TRÌNH GPMB
+========================================================= */
+
+.workflow-form-section {
+  padding: 22px 0;
+
+  border-bottom: 1px solid #e3eaf0;
+}
+
+.workflow-form-section:last-of-type {
+  border-bottom: none;
+}
+
+.workflow-form-title {
+  margin-bottom: 17px;
+}
+
+.workflow-form-title h3 {
+  margin: 0;
+
+  color: #073b6d;
+
+  font-size: 17px;
+}
+
+.workflow-form-title p {
+  margin: 4px 0 0;
+
+  color: #758492;
+
+  font-size: 12px;
+}
+
+.workflow-title-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.workflow-form-grid {
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 15px;
+}
+
+.workflow-form-grid input {
+  width: 100%;
+
+  height: 44px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d8e1e8;
+
+  border-radius: 8px;
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  outline: none;
+}
+
+.workflow-form-grid input:focus {
+  border-color: #0870b8;
+
+  box-shadow: 0 0 0 3px rgba(8, 112, 184, 0.08);
+}
+
+.workflow-form-grid input[readonly] {
+  background-color: #f3f6f8;
+
+  color: #073b6d;
+
+  font-weight: 700;
+}
+
+.workflow-area-unit {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+}
+
+.workflow-area-unit select {
+  height: 39px;
+
+  padding: 0 12px;
+
+  border: 1px solid #d8e1e8;
+
+  border-radius: 7px;
+
+  background: #ffffff;
+}
+
+.workflow-textarea {
+  width: 100%;
+
+  padding: 12px;
+
+  border: 1px solid #d8e1e8;
+
+  border-radius: 8px;
+
+  resize: vertical;
+
+  font-family: inherit;
+
+  font-size: 14px;
+}
+
+.workflow-save-area {
+  padding-top: 22px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+@media (max-width: 1000px) {
+  .workflow-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .workflow-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-title-row,
+  .workflow-save-area {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+}
+/* =========================================================
+   DASHBOARD QUY TRÌNH GPMB
+========================================================= */
+
+.section-description {
+  margin: 4px 0 0;
+  color: #718292;
+  font-size: 13px;
+}
+
+/* 5 BƯỚC */
+
+.workflow-dashboard-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.workflow-dashboard-card {
+  min-width: 0;
+}
+
+.workflow-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.workflow-card-number {
+  width: 28px;
+  height: 28px;
+
+  flex: 0 0 28px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #e8f2fa;
+  color: #07549b;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.workflow-card-heading h3 {
+  margin: 0;
+
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   BẢNG ĐƠN VỊ
+========================================================= */
+
+.workflow-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.workflow-unit-table {
+  width: 100%;
+  min-width: 900px;
+
+  border-collapse: collapse;
+}
+
+.workflow-unit-table th,
+.workflow-unit-table td {
+  padding: 13px 12px;
+
+  border-bottom: 1px solid #e3eaf0;
+
+  text-align: left;
+  vertical-align: middle;
+}
+
+.workflow-unit-table th {
+  background: #f3f6f8;
+
+  color: #073b6d;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.workflow-unit-table td {
+  color: #334a5f;
+
+  font-size: 13px;
+}
+
+.workflow-unit-code {
+  margin-top: 3px;
+
+  color: #80909f;
+
+  font-size: 11px;
+}
+
+/* % */
+
+.workflow-rate-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 66px;
+
+  padding: 6px 9px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.workflow-rate-badge.is-good {
+  background: #e7f7ef;
+  color: #168b56;
+}
+
+.workflow-rate-badge.is-medium {
+  background: #fff3dd;
+  color: #c47706;
+}
+
+.workflow-rate-badge.is-low {
+  background: #fdeaea;
+  color: #c83d3d;
+}
+
+.workflow-rate-badge.is-empty {
+  background: #eef2f5;
+  color: #7b8996;
+}
+
+.workflow-table-empty {
+  padding: 28px !important;
+
+  text-align: center !important;
+
+  color: #788896 !important;
+}
+
+@media (max-width: 1150px) {
+  .workflow-dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .workflow-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* =========================================================
+   TRANG CHI TIẾT TIẾN ĐỘ GPMB
+========================================================= */
+
+.progress-page-header {
+  margin-bottom: 22px;
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.progress-page-header h1 {
+  margin: 0;
+
+  color: #073b6d;
+
+  font-size: 28px;
+}
+
+.progress-page-header p {
+  margin: 5px 0 0;
+
+  color: #718292;
+
+  font-size: 14px;
+}
+
+.progress-update-time {
+  padding: 12px 15px;
+
+  border: 1px solid #dce5eb;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #536b7d;
+
+  font-size: 13px;
+}
+
+/* FILTER */
+
+.progress-filter-card {
+  margin-bottom: 18px;
+  padding: 16px 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  background: #ffffff;
+
+  border: 1px solid #dce5eb;
+  border-radius: 12px;
+
+  box-shadow: 0 4px 14px rgba(5, 49, 80, 0.05);
+}
+
+.progress-filter-group {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+}
+
+.progress-filter-group label {
+  color: #36556f;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.progress-filter-group select {
+  min-width: 230px;
+
+  height: 42px;
+
+  padding: 0 12px;
+
+  border: 1px solid #cad8e3;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #173f63;
+
+  font-family: inherit;
+}
+
+.progress-filter-note {
+  color: #778894;
+
+  font-size: 12px;
+}
+
+/* =========================================================
+   5 TAB NGHIỆP VỤ
+========================================================= */
+
+.progress-workflow-tabs {
+  margin-bottom: 20px;
+
+  display: grid;
+
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.progress-step-tab {
+  min-height: 68px;
+
+  padding: 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  border: 1px solid #d8e2e9;
+  border-radius: 10px;
+
+  background: #ffffff;
+
+  color: #16476f;
+
+  font-family: inherit;
+
+  font-size: 13px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  transition: 0.18s ease;
+}
+
+.progress-step-tab span {
+  width: 26px;
+  height: 26px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #eaf3fa;
+
+  color: #075ba5;
+
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.progress-step-tab:hover {
+  border-color: #0c72ba;
+
+  transform: translateY(-1px);
+}
+
+.progress-step-tab.active {
+  border-color: #075ba5;
+
+  background: linear-gradient(135deg, #07549b, #0877bd);
+
+  color: #ffffff;
+
+  box-shadow: 0 8px 22px rgba(7, 84, 155, 0.16);
+}
+
+.progress-step-tab.active span {
+  background: rgba(255, 255, 255, 0.18);
+
+  color: #ffffff;
+}
+
+/* =========================================================
+   KPI
+========================================================= */
+
+.progress-detail-kpis {
+  margin-bottom: 18px;
+
+  display: grid;
+
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+.progress-detail-kpi {
+  min-height: 112px;
+
+  padding: 17px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  border: 1px solid #dce5eb;
+  border-radius: 10px;
+
+  background: #ffffff;
+}
+
+.progress-detail-kpi.primary {
+  border-color: #07599f;
+
+  background: linear-gradient(135deg, #075192, #0a62a8);
+
+  color: #ffffff;
+}
+
+.progress-detail-kpi span {
+  font-size: 13px;
+}
+
+.progress-detail-kpi strong {
+  font-size: 27px;
+}
+
+.green-text {
+  color: #169a58;
+}
+
+.orange-text {
+  color: #e48109;
+}
+
+.blue-text {
+  color: #0871f5;
+}
+
+/* =========================================================
+   VƯỚNG MẮC
+========================================================= */
+
+.progress-issues {
+  display: grid;
+
+  gap: 10px;
+}
+
+.progress-issue-item {
+  padding: 14px 16px;
+
+  border: 1px solid #eadfcf;
+  border-left: 4px solid #e59a27;
+  border-radius: 9px;
+
+  background: #fffdf8;
+}
+
+.progress-issue-item strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #173f63;
+}
+
+.progress-issue-item p {
+  margin: 0;
+
+  color: #657785;
+
+  line-height: 1.55;
+
+  font-size: 13px;
+}
+
+@media (max-width: 1000px) {
+  .progress-workflow-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .progress-detail-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  .progress-page-header,
+  .progress-filter-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .progress-workflow-tabs,
+  .progress-detail-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .progress-filter-group select {
+    width: 100%;
+  }
+}
+/* =========================================================
+   CÁC CHỈ TIÊU CHI TIẾT - TRANG TIẾN ĐỘ
+========================================================= */
+
+.progress-extra-section {
+  margin-top: 24px;
+  padding-top: 20px;
+
+  border-top: 1px solid #e2e9ef;
+}
+
+.progress-extra-heading {
+  margin-bottom: 14px;
+}
+
+.progress-extra-heading h3 {
+  margin: 0;
+
+  color: #073b6d;
+
+  font-size: 17px;
+}
+
+.progress-extra-heading p {
+  margin: 4px 0 0;
+
+  color: #7a8996;
+
+  font-size: 12px;
+}
+
+.progress-extra-grid {
+  display: grid;
+
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.progress-extra-card {
+  min-height: 92px;
+
+  padding: 14px 15px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  border: 1px solid #dce5eb;
+  border-radius: 9px;
+
+  background: #fafdff;
+}
+
+.progress-extra-card span {
+  color: #687b8b;
+
+  font-size: 12px;
+
+  line-height: 1.4;
+}
+
+.progress-extra-card strong {
+  margin-top: 10px;
+
+  color: #084d88;
+
+  font-size: 21px;
+
+  line-height: 1.2;
+}
+
+.progress-extra-card.warning {
+  border-color: #f0d6aa;
+
+  background: #fffaf2;
+}
+
+.progress-extra-card.warning strong {
+  color: #d77b08;
+}
+
+.progress-extra-card.danger {
+  border-color: #f1c6c6;
+
+  background: #fff7f7;
+}
+
+.progress-extra-card.danger strong {
+  color: #d63838;
+}
+
+.progress-extra-card.success strong {
+  color: #159a57;
+}
+
+.progress-extra-empty {
+  grid-column: 1 / -1;
+
+  padding: 20px;
+
+  text-align: center;
+
+  color: #7c8b97;
+}
+
+@media (max-width: 900px) {
+  .progress-extra-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .progress-extra-grid {
+    grid-template-columns: 1fr;
+  }
+}

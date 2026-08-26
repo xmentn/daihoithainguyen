@@ -33,7 +33,7 @@
         <div class="navbar-left">
           <a href="index.html" class="nav-item active"> Trang chủ </a>
 
-          <a href="progress.html" class="nav-item"> Tiến độ GPMB </a>
+          <a href="#" class="nav-item"> Tiến độ GPMB </a>
 
           <a href="#" class="nav-item"> Báo cáo </a>
 
@@ -55,7 +55,7 @@
     ============================================== -->
 
           <a
-            href="commune-workflow.html"
+            href="commune.html"
             id="communeDataNavButton"
             class="nav-item"
             style="display: none"
@@ -118,15 +118,16 @@
         <section class="dashboard-header">
           <div>
             <h1>DASHBOARD TIẾN ĐỘ GIẢI PHÓNG MẶT BẰNG</h1>
-            <p>
-              Tổng hợp theo quy trình: Kiểm đếm → Bồi thường → Hỗ trợ → Tái định
-              cư → Giải phóng mặt bằng / Bàn giao
-            </p>
+
+            <p>Tổng hợp tình hình thực hiện dự án</p>
           </div>
 
           <!-- Chọn giai đoạn -->
           <div class="phase-filter">
-            <span id="dashboardUpdatedAt"> Đang tải dữ liệu... </span>
+            <label for="phaseSelect"> Giai đoạn: </label>
+            <select id="phaseSelect">
+              <option value="all">Toàn bộ dự án</option>
+            </select>
           </div>
         </section>
 
@@ -334,67 +335,12 @@
         <!-- =================================================
                  7. TIẾN ĐỘ CÁC GIAI ĐOẠN
             ================================================== -->
-        <section class="dashboard-section" id="workflowProgressSection">
+        <section class="dashboard-section">
           <div class="section-title">
-            <div>
-              <h2>Tiến độ theo quy trình GPMB</h2>
-
-              <p class="section-description">
-                Tổng hợp mức độ hoàn thành của 05 bước nghiệp vụ.
-              </p>
-            </div>
+            <h2>Tiến độ theo giai đoạn</h2>
           </div>
-
-          <div class="phase-grid workflow-dashboard-grid" id="workflowCards">
-            <div class="phase-note">Đang tải tiến độ quy trình...</div>
-          </div>
-        </section>
-        <!-- =================================================
-     TIẾN ĐỘ THEO ĐƠN VỊ
-================================================== -->
-
-        <section class="dashboard-section" id="unitProgressSection">
-          <div class="section-title">
-            <div>
-              <h2>Tiến độ theo đơn vị</h2>
-
-              <p class="section-description">
-                So sánh mức độ thực hiện từng bước giữa các xã, phường và đơn vị
-                tham gia dự án.
-              </p>
-            </div>
-
-            <span class="section-unit" id="unitCountText"> 0 đơn vị </span>
-          </div>
-
-          <div class="workflow-table-wrap">
-            <table class="workflow-unit-table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-
-                  <th>Đơn vị</th>
-
-                  <th>Kiểm đếm</th>
-
-                  <th>Bồi thường</th>
-
-                  <th>Hỗ trợ</th>
-
-                  <th>Tái định cư</th>
-
-                  <th>Bàn giao</th>
-                </tr>
-              </thead>
-
-              <tbody id="unitProgressBody">
-                <tr>
-                  <td colspan="7" class="workflow-table-empty">
-                    Đang tải dữ liệu...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="phase-grid" id="phaseCards">
+            <div class="phase-note">Đang tải danh sách giai đoạn...</div>
           </div>
         </section>
       </div>
@@ -406,7 +352,7 @@
     <footer class="footer">
       <div class="container">Hệ thống theo dõi tiến độ giải phóng mặt bằng</div>
     </footer>
-    <script type="module" src="js/app-workflow.js"></script>
+    <script type="module" src="js/app.js"></script>
 
     <script type="module" src="js/index-auth.js"></script>
   </body>

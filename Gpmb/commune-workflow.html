@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Nhập số liệu GPMB theo quy trình</title>
+
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+
+  <body class="commune-page">
+    <!-- =====================================================
+         LOADING
+    ====================================================== -->
+
+    <div id="workflowLoading" class="commune-loading">
+      Đang kiểm tra tài khoản...
+    </div>
+
+    <!-- =====================================================
+         APP
+    ====================================================== -->
+
+    <div id="workflowApp" style="display: none">
+      <!-- =================================================
+             HEADER
+        ================================================== -->
+
+      <header class="commune-header">
+        <div class="commune-header-inner">
+          <div>
+            <h1>NHẬP SỐ LIỆU GIẢI PHÓNG MẶT BẰNG</h1>
+
+            <p id="workflowHeaderUnitName">-</p>
+          </div>
+
+          <div class="commune-header-actions">
+            <a href="index.html" class="admin-home-button"> Trang chủ </a>
+
+            <button
+              type="button"
+              id="workflowLogoutButton"
+              class="admin-logout-button"
+            >
+              Đăng xuất
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- =================================================
+             MAIN
+        ================================================== -->
+
+      <main class="commune-container">
+        <!-- =================================================
+                 THÔNG TIN ĐƠN VỊ
+            ================================================== -->
+
+        <section class="commune-unit-card">
+          <div>
+            <span> Đơn vị đang cập nhật số liệu </span>
+
+            <h2 id="workflowUnitName">-</h2>
+
+            <p>
+              Mã đơn vị:
+
+              <strong id="workflowUnitCode"> - </strong>
+            </p>
+          </div>
+
+          <div class="commune-user-info">
+            <span> Tài khoản </span>
+
+            <strong id="workflowUserEmail"> - </strong>
+          </div>
+        </section>
+
+        <!-- =================================================
+                 TIÊU ĐỀ QUY TRÌNH
+            ================================================== -->
+
+        <section class="workflow-intro">
+          <div>
+            <h2>Quy trình thực hiện giải phóng mặt bằng</h2>
+
+            <p>Chọn bước nghiệp vụ cần nhập hoặc cập nhật số liệu.</p>
+          </div>
+        </section>
+
+        <!-- =================================================
+                 5 BƯỚC
+            ================================================== -->
+
+        <section id="workflowStepsContainer" class="workflow-steps">
+          <div class="workflow-loading-text">Đang tải quy trình...</div>
+        </section>
+
+        <!-- =================================================
+                 NỘI DUNG BƯỚC ĐANG CHỌN
+            ================================================== -->
+
+        <section id="workflowContent" class="workflow-content-card">
+          <div class="workflow-content-header">
+            <div id="workflowStepNumber" class="workflow-step-number">1</div>
+
+            <div>
+              <span> Bước nghiệp vụ </span>
+
+              <h2 id="workflowStepTitle">-</h2>
+            </div>
+          </div>
+
+          <div id="workflowStepBody">
+            <div class="workflow-placeholder">
+              <div class="workflow-placeholder-icon">✓</div>
+
+              <h3>Chọn bước nghiệp vụ</h3>
+
+              <p>Biểu mẫu nhập số liệu sẽ hiển thị tại đây.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="js/commune-workflow.js"></script>
+  </body>
+</html>
