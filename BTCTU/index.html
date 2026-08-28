@@ -1808,6 +1808,35 @@
               font-weight: 800;
               text-transform: uppercase;
             }
+            #task-unit-dashboard-section .task-unit-dashboard-title-wrap {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              flex-wrap: wrap;
+            }
+            #task-unit-dashboard-section .task-unit-scoring-btn {
+              border: 1px solid #94a3b8;
+              background: #ffffff;
+              color: #334155;
+              border-radius: 6px;
+              padding: 5px 9px;
+              font-size: 10.5px;
+              line-height: 14px;
+              font-weight: 800;
+              cursor: pointer;
+              transition: all 0.18s ease;
+              white-space: nowrap;
+            }
+            #task-unit-dashboard-section .task-unit-scoring-btn:hover {
+              border-color: #2563eb;
+              color: #1d4ed8;
+              background: #eff6ff;
+              transform: translateY(-1px);
+            }
+            #task-unit-dashboard-section .task-unit-score {
+              font-weight: 900;
+              white-space: nowrap;
+            }
             #task-unit-dashboard-section #task-unit-dashboard-select {
               width: 100%;
               min-height: 32px;
@@ -1829,10 +1858,15 @@
           </style>
 
           <div class="task-unit-dashboard-header">
-            <h3 class="chart-box-title" style="margin: 0">
-              <i class="fa-solid fa-chart-pie"></i>
-              DASHBOARD TIẾN ĐỘ NHIỆM VỤ THEO ĐƠN VỊ
-            </h3>
+            <div class="task-unit-dashboard-title-wrap">
+              <h3 class="chart-box-title" style="margin: 0">
+                <i class="fa-solid fa-chart-pie"></i>
+                DASHBOARD TIẾN ĐỘ NHIỆM VỤ THEO ĐƠN VỊ
+              </h3>
+              <button type="button" class="task-unit-scoring-btn" id="task-unit-scoring-help" title="Xem nguyên tắc chấm điểm KPI">
+                <i class="fa-solid fa-circle-info"></i> CÁCH CHẤM ĐIỂM
+              </button>
+            </div>
             <div class="task-unit-dashboard-legend">
               <span
                 ><i

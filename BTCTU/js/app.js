@@ -1436,6 +1436,106 @@ function taskDiffDays(fromDate, toDate) {
   return Math.round(toDay - fromDay);
 }
 
+
+// =================================================================
+// CHẤM ĐIỂM KPI NHIỆM VỤ THEO NGUYÊN TẮC ĐƯỢC DUYỆT
+// Dễ thay đổi về sau: chỉ cần sửa các hằng số bên dưới.
+// =================================================================
+const TASK_KPI_SCORES = Object.freeze({
+  DONE_ON_TIME: 100,
+  DONE_LATE_LE_3: 30,
+  DONE_LATE_GT_3: 0,
+  DOING_ON_TIME: 20,
+  OVERDUE_LE_3: -20,
+  OVERDUE_GT_3: -30,
+});
+
+function formatTaskKpiScore(value) {
+  const n = Number(value || 0);
+  if (!Number.isFinite(n)) return "0";
+  const rounded = Math.round(n * 10) / 10;
+  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+}
+
+function getTaskKpiScore(task, todayDate) {
+  const status = task?.status || "Đang thực hiện";
+  const deadlineDate = parseTaskDateOnly(task?.deadline);
+
+  // Không đủ căn cứ xác định đúng hạn/quá hạn: không đưa vào mẫu số KPI.
+  if (!deadlineDate) {
+    return { score: 0, scorable: false, category: "missingDeadline", overdueDays: null };
+  }
+
+  if (status === "Đã hoàn thành") {
+    const completedDate = taskTimestampToLocalDate(task.completedAt || task.updatedAt);
+    if (!completedDate) {
+      return { score: 0, scorable: false, category: "missingCompletedAt", overdueDays: null };
+    }
+
+    const overdueDays = taskDiffDays(deadlineDate, completedDate);
+    if (overdueDays <= 0) {
+      return { score: TASK_KPI_SCORES.DONE_ON_TIME, scorable: true, category: "doneOnTime", overdueDays: 0 };
+    }
+    if (overdueDays <= 3) {
+      return { score: TASK_KPI_SCORES.DONE_LATE_LE_3, scorable: true, category: "doneLateLe3", overdueDays };
+    }
+    return { score: TASK_KPI_SCORES.DONE_LATE_GT_3, scorable: true, category: "doneLateGt3", overdueDays };
+  }
+
+  const daysUntilDeadline = taskDiffDays(todayDate, deadlineDate);
+  if (daysUntilDeadline >= 0) {
+    return { score: TASK_KPI_SCORES.DOING_ON_TIME, scorable: true, category: "doingOnTime", overdueDays: 0 };
+  }
+
+  const overdueDays = Math.abs(daysUntilDeadline);
+  if (overdueDays <= 3) {
+    return { score: TASK_KPI_SCORES.OVERDUE_LE_3, scorable: true, category: "overdueLe3", overdueDays };
+  }
+  return { score: TASK_KPI_SCORES.OVERDUE_GT_3, scorable: true, category: "overdueGt3", overdueDays };
+}
+
+function showTaskKpiScoringHelp() {
+  const html = `
+    <div style="text-align:left; font-size:13px; color:#334155;">
+      <div style="overflow-x:auto; margin-bottom:12px;">
+        <table style="width:100%; border-collapse:collapse; font-size:12px;">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th style="border:1px solid #cbd5e1; padding:7px; text-align:left;">Tình trạng nhiệm vụ</th>
+              <th style="border:1px solid #cbd5e1; padding:7px; text-align:center; width:90px;">Điểm</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td style="border:1px solid #cbd5e1; padding:7px;">Hoàn thành đúng hạn / trước hạn</td><td style="border:1px solid #cbd5e1; padding:7px; text-align:center; font-weight:900; color:#16a34a;">${TASK_KPI_SCORES.DONE_ON_TIME}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:7px;">Hoàn thành quá hạn không quá 3 ngày (≤ 3 ngày)</td><td style="border:1px solid #cbd5e1; padding:7px; text-align:center; font-weight:900; color:#7e22ce;">${TASK_KPI_SCORES.DONE_LATE_LE_3}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:7px;">Hoàn thành quá hạn trên 3 ngày</td><td style="border:1px solid #cbd5e1; padding:7px; text-align:center; font-weight:900;">${TASK_KPI_SCORES.DONE_LATE_GT_3}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:7px;">Đang thực hiện, chưa quá hạn</td><td style="border:1px solid #cbd5e1; padding:7px; text-align:center; font-weight:900; color:#d97706;">${TASK_KPI_SCORES.DOING_ON_TIME}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:7px;">Chậm / quá hạn không quá 3 ngày (≤ 3 ngày)</td><td style="border:1px solid #cbd5e1; padding:7px; text-align:center; font-weight:900; color:#dc2626;">${TASK_KPI_SCORES.OVERDUE_LE_3}</td></tr>
+            <tr><td style="border:1px solid #cbd5e1; padding:7px;">Chậm / quá hạn trên 3 ngày</td><td style="border:1px solid #cbd5e1; padding:7px; text-align:center; font-weight:900; color:#b91c1c;">${TASK_KPI_SCORES.OVERDUE_GT_3}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:7px; padding:10px; margin-bottom:8px;">
+        <b>Điểm trung bình của đơn vị</b> = Tổng điểm của các nhiệm vụ / Tổng số nhiệm vụ của đơn vị.
+      </div>
+      <div style="font-size:12px; color:#64748b; line-height:1.5;">
+        <b>Đơn vị thực hiện tốt:</b> điểm trung bình cao nhất.<br>
+        <b>Đơn vị cần lưu ý:</b> điểm trung bình thấp nhất.<br>
+        Nhiệm vụ chưa có thời hạn hoặc nhiệm vụ đã hoàn thành nhưng chưa xác định được thời điểm hoàn thành được tạm tính 0 điểm cho đến khi bổ sung đủ dữ liệu; nhiệm vụ đó vẫn nằm trong tổng số nhiệm vụ của đơn vị.
+      </div>
+    </div>`;
+
+  if (typeof Swal !== "undefined") {
+    Swal.fire({
+      title: "CÁCH CHẤM ĐIỂM KPI NHIỆM VỤ",
+      html,
+      width: 700,
+      confirmButtonText: "Đóng",
+      confirmButtonColor: "#2563eb",
+    });
+  }
+}
+
 // =================================================================
 // DASHBOARD NHIỆM VỤ THEO CƠ QUAN / ĐƠN VỊ CHỦ TRÌ
 // =================================================================
@@ -1503,6 +1603,9 @@ function buildTaskUnitDashboardData() {
         doing: 0,
         upcoming: 0,
         late: 0,
+        kpiTotalScore: 0,
+        kpiScoredTasks: 0,
+        kpiUnscoredTasks: 0,
       });
     }
 
@@ -1520,6 +1623,14 @@ function buildTaskUnitDashboardData() {
         }
       }
     }
+
+    const kpi = getTaskKpiScore(task, today);
+    if (kpi.scorable) {
+      stat.kpiTotalScore += kpi.score;
+      stat.kpiScoredTasks++;
+    } else {
+      stat.kpiUnscoredTasks++;
+    }
   });
 
   taskUnitDashboardData = Array.from(unitMap.values()).map((unit) => ({
@@ -1530,9 +1641,54 @@ function buildTaskUnitDashboardData() {
     doneLateRate: unit.total > 0 ? unit.doneLate / unit.total : 0,
     lateRate: unit.total > 0 ? unit.late / unit.total : 0,
     doingNormal: Math.max(0, unit.doing - unit.upcoming),
+    avgScore:
+      unit.total > 0
+        ? unit.kpiTotalScore / unit.total
+        : 0,
   }));
 
   return taskUnitDashboardData;
+}
+
+function buildAllAgencyTaskUnit(units) {
+  const sourceUnits = Array.isArray(units) ? units : [];
+  const all = {
+    code: "__ALL_AGENCY__",
+    name: "TOÀN BỘ CƠ QUAN",
+    total: 0,
+    done: 0,
+    doneLate: 0,
+    doing: 0,
+    upcoming: 0,
+    late: 0,
+    kpiTotalScore: 0,
+    kpiScoredTasks: 0,
+    kpiUnscoredTasks: 0,
+  };
+
+  sourceUnits.forEach((unit) => {
+    all.total += Number(unit.total || 0);
+    all.done += Number(unit.done || 0);
+    all.doneLate += Number(unit.doneLate || 0);
+    all.doing += Number(unit.doing || 0);
+    all.upcoming += Number(unit.upcoming || 0);
+    all.late += Number(unit.late || 0);
+    all.kpiTotalScore += Number(unit.kpiTotalScore || 0);
+    all.kpiScoredTasks += Number(unit.kpiScoredTasks || 0);
+    all.kpiUnscoredTasks += Number(unit.kpiUnscoredTasks || 0);
+  });
+
+  all.doneRate = all.total > 0 ? all.done / all.total : 0;
+  all.completedRate =
+    all.total > 0 ? (all.done + all.doneLate) / all.total : 0;
+  all.doneLateRate = all.total > 0 ? all.doneLate / all.total : 0;
+  all.lateRate = all.total > 0 ? all.late / all.total : 0;
+  all.doingNormal = Math.max(0, all.doing - all.upcoming);
+  // Điểm toàn cơ quan = tổng điểm của toàn bộ nhiệm vụ / tổng số nhiệm vụ.
+  // Đây là bình quân gia quyền theo số nhiệm vụ, không phải trung bình cộng điểm các đơn vị.
+  all.avgScore = all.total > 0 ? all.kpiTotalScore / all.total : 0;
+
+  return all;
 }
 
 function buildTaskUnitSummaryHtml(unit) {
@@ -1598,7 +1754,7 @@ function setTaskUnitCardEmpty(kind, message = "Chưa có dữ liệu nhiệm v�
   const summaryEl = document.getElementById(`${prefix}-summary`);
   if (nameEl) nameEl.textContent = message;
   if (totalEl) totalEl.innerHTML = `0<span>nhiệm vụ</span>`;
-  if (summaryEl) summaryEl.innerHTML = buildTaskUnitSummaryHtml({ total: 0, done: 0, doneLate: 0, doing: 0, doingNormal: 0, upcoming: 0, late: 0 });
+  if (summaryEl) summaryEl.innerHTML = buildTaskUnitSummaryHtml({ total: 0, done: 0, doneLate: 0, doing: 0, doingNormal: 0, upcoming: 0, late: 0, avgScore: 0, kpiScoredTasks: 0 });
 
   if (taskUnitDashboardCharts[kind]) {
     taskUnitDashboardCharts[kind].destroy();
@@ -1668,7 +1824,9 @@ function renderTaskUnitDoughnut(kind, unit) {
   const nameEl = document.getElementById(`${prefix}-name`);
   const totalEl = document.getElementById(`${prefix}-total`);
   const summaryEl = document.getElementById(`${prefix}-summary`);
-  if (nameEl) nameEl.textContent = unit.name;
+  if (nameEl) {
+    nameEl.textContent = `${unit.name} (${formatTaskKpiScore(unit.avgScore)} điểm)`;
+  }
   if (totalEl) {
     totalEl.innerHTML = `${unit.total}<span>nhiệm vụ</span>`;
   }
@@ -1726,9 +1884,15 @@ function renderSelectedTaskUnitDashboard() {
   if (!select) return;
 
   const selectedCode = select.value;
-  const selectedUnit = taskUnitDashboardData.find(
-    (unit) => unit.code === selectedCode,
-  );
+  let selectedUnit = null;
+
+  if (selectedCode === "__ALL_AGENCY__") {
+    selectedUnit = buildAllAgencyTaskUnit(taskUnitDashboardData);
+  } else {
+    selectedUnit = taskUnitDashboardData.find(
+      (unit) => unit.code === selectedCode,
+    );
+  }
 
   renderTaskUnitDoughnut("selected", selectedUnit || null);
 }
@@ -1763,40 +1927,42 @@ function renderTaskUnitDashboards() {
     return;
   }
 
+  // XẾP HẠNG ĐƠN VỊ THEO ĐIỂM TRUNG BÌNH KPI.
+  // Điểm cao nhất = thực hiện tốt; điểm thấp nhất = cần lưu ý.
+  // Các tiêu chí phụ chỉ dùng để phân định khi điểm trung bình bằng nhau.
   const bestUnit = [...units].sort((a, b) => {
-    if (b.doneRate !== a.doneRate) return b.doneRate - a.doneRate;
+    if (b.avgScore !== a.avgScore) return b.avgScore - a.avgScore;
+    if (b.completedRate !== a.completedRate) return b.completedRate - a.completedRate;
     if (a.lateRate !== b.lateRate) return a.lateRate - b.lateRate;
-    if (b.done !== a.done) return b.done - a.done;
-    if (b.total !== a.total) return b.total - a.total;
+    if (b.kpiScoredTasks !== a.kpiScoredTasks) return b.kpiScoredTasks - a.kpiScoredTasks;
     return a.name.localeCompare(b.name, "vi");
   })[0];
 
-  const attentionPool = units.filter((unit) => unit.late > 0);
-  const attentionUnit = attentionPool.length
-    ? [...attentionPool].sort((a, b) => {
-        if (b.lateRate !== a.lateRate) return b.lateRate - a.lateRate;
-        if (b.late !== a.late) return b.late - a.late;
-        if (a.doneRate !== b.doneRate) return a.doneRate - b.doneRate;
-        if (b.doing !== a.doing) return b.doing - a.doing;
-        if (b.total !== a.total) return b.total - a.total;
-        return a.name.localeCompare(b.name, "vi");
-      })[0]
-    : null;
+  const attentionUnit = [...units].sort((a, b) => {
+    if (a.avgScore !== b.avgScore) return a.avgScore - b.avgScore;
+    if (b.lateRate !== a.lateRate) return b.lateRate - a.lateRate;
+    if (a.completedRate !== b.completedRate) return a.completedRate - b.completedRate;
+    if (b.kpiScoredTasks !== a.kpiScoredTasks) return b.kpiScoredTasks - a.kpiScoredTasks;
+    return b.name.localeCompare(a.name, "vi");
+  })[0];
 
   renderTaskUnitDoughnut("best", bestUnit);
-  if (attentionUnit) {
-    renderTaskUnitDoughnut("attention", attentionUnit);
-  } else {
-    setTaskUnitAttentionNone();
-  }
+  renderTaskUnitDoughnut("attention", attentionUnit);
 
   if (select) {
     const sortedUnits = [...units].sort((a, b) =>
       a.name.localeCompare(b.name, "vi"),
     );
 
+    const allAgency = buildAllAgencyTaskUnit(units);
+
     select.innerHTML =
       '<option value="">-- Chọn đơn vị để xem dashboard --</option>';
+
+    const allOption = document.createElement("option");
+    allOption.value = "__ALL_AGENCY__";
+    allOption.textContent = `TOÀN BỘ CƠ QUAN (${allAgency.total} nhiệm vụ)`;
+    select.appendChild(allOption);
 
     sortedUnits.forEach((unit) => {
       const option = document.createElement("option");
@@ -1805,10 +1971,12 @@ function renderTaskUnitDashboards() {
       select.appendChild(option);
     });
 
-    const canKeepPrevious = sortedUnits.some(
-      (unit) => unit.code === previousSelected,
-    );
-    select.value = canKeepPrevious ? previousSelected : bestUnit.code;
+    const canKeepPrevious =
+      previousSelected === "__ALL_AGENCY__" ||
+      sortedUnits.some((unit) => unit.code === previousSelected);
+
+    // Lần đầu mở dashboard, mặc định hiển thị toàn bộ cơ quan để làm mốc đối chiếu.
+    select.value = canKeepPrevious ? previousSelected : "__ALL_AGENCY__";
   }
 
   renderSelectedTaskUnitDashboard();
@@ -2281,3 +2449,13 @@ function getColorByRatio(ratio) {
         ? "#f97316"
         : "#ef4444";
 }
+
+
+// Nút giải thích cách chấm điểm KPI và dropdown dashboard đơn vị.
+document.addEventListener("DOMContentLoaded", () => {
+  const scoringHelpBtn = document.getElementById("task-unit-scoring-help");
+  if (scoringHelpBtn && !scoringHelpBtn.dataset.bound) {
+    scoringHelpBtn.dataset.bound = "1";
+    scoringHelpBtn.addEventListener("click", showTaskKpiScoringHelp);
+  }
+});
