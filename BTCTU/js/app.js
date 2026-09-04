@@ -1283,36 +1283,65 @@ function renderKetNapDashboard(snapshot) {
     document.getElementById("kn-text-ratio").textContent =
       `${sumDaKetNap.toLocaleString()} / ${sumChiTieu.toLocaleString()}`;
 
+  // Chỉ tiêu các nhóm trọng tâm áp dụng cho tổng hợp toàn tỉnh.
+  // Khi người dùng lọc một Đảng bộ riêng lẻ, không áp chỉ tiêu cấp tỉnh cho đơn vị đó.
+  const KN_GROUP_TARGETS = {
+    hssv: 500,
+    doanhNghiep: 350,
+    doanhNghiepNgoaiNN: 200,
+  };
+  const isProvinceView = selectedKey === "ALL";
+  const formatTargetLine = (actual, target) => {
+    const pct = target > 0 ? (actual / target) * 100 : 0;
+    return `Chỉ tiêu ${target.toLocaleString()} · Đạt ${actual.toLocaleString()}/${target.toLocaleString()} (${pct.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%)`;
+  };
+
   if (document.getElementById("kn-val-hssv"))
     document.getElementById("kn-val-hssv").textContent =
       sumTongHSSV.toLocaleString();
-  if (document.getElementById("kn-pct-hssv"))
-    document.getElementById("kn-pct-hssv").textContent =
-      (sumDaKetNap > 0
-        ? ((sumTongHSSV / sumDaKetNap) * 100).toFixed(2)
-        : "0.00") + "% số đã kết nạp";
+  const targetHssvEl = document.getElementById("kn-target-hssv");
+  if (targetHssvEl) {
+    targetHssvEl.style.display = isProvinceView ? "inline" : "none";
+    if (isProvinceView) {
+      targetHssvEl.textContent = formatTargetLine(
+        sumTongHSSV,
+        KN_GROUP_TARGETS.hssv,
+      );
+    }
+  }
 
   if (document.getElementById("kn-val-dn"))
     document.getElementById("kn-val-dn").textContent =
       sumTongDN.toLocaleString();
-  if (document.getElementById("kn-pct-dn"))
-    document.getElementById("kn-pct-dn").textContent =
-      (sumDaKetNap > 0
-        ? ((sumTongDN / sumDaKetNap) * 100).toFixed(2)
-        : "0.00") + "% số đã kết nạp";
+  const targetDnEl = document.getElementById("kn-target-dn");
+  if (targetDnEl) {
+    targetDnEl.style.display = isProvinceView ? "inline" : "none";
+    if (isProvinceView) {
+      targetDnEl.textContent = formatTargetLine(
+        sumTongDN,
+        KN_GROUP_TARGETS.doanhNghiep,
+      );
+    }
+  }
 
   const sumGroupNgoaiNN = sumDnNgoaiNN + sumNldKdc + sumHtx;
   if (document.getElementById("kn-text-sub-dn"))
     document.getElementById("kn-text-sub-dn").textContent =
-      `Trong đó DN ngoài NN: ${sumGroupNgoaiNN.toLocaleString()}`;
+      `DOANH NGHIỆP NGOÀI NHÀ NƯỚC: ${sumGroupNgoaiNN.toLocaleString()}`;
+  const targetSubDnEl = document.getElementById("kn-target-sub-dn");
+  if (targetSubDnEl) {
+    targetSubDnEl.style.display = isProvinceView ? "block" : "none";
+    if (isProvinceView) {
+      targetSubDnEl.textContent = formatTargetLine(
+        sumGroupNgoaiNN,
+        KN_GROUP_TARGETS.doanhNghiepNgoaiNN,
+      );
+    }
+  }
 
   if (document.getElementById("kn-val-dtts"))
     document.getElementById("kn-val-dtts").textContent =
       sumDtts.toLocaleString();
-  if (document.getElementById("kn-pct-dtts"))
-    document.getElementById("kn-pct-dtts").textContent =
-      (sumDaKetNap > 0 ? ((sumDtts / sumDaKetNap) * 100).toFixed(2) : "0.00") +
-      "% số đã kết nạp";
 
   renderKnDoughnutChart(sumDaKetNap, conLai > 0 ? conLai : 0);
 }
