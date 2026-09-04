@@ -48,6 +48,10 @@ const unitCountText = document.getElementById("unitCountText");
 
 const dashboardUpdatedAt = document.getElementById("dashboardUpdatedAt");
 
+const dashboardAlerts = document.getElementById("dashboardAlerts");
+
+const unitRanking = document.getElementById("unitRanking");
+
 // ======================================================
 // 3. THEO DÕI ĐĂNG NHẬP
 // ======================================================
@@ -112,6 +116,10 @@ async function loadDashboard() {
     renderMainDashboard();
 
     renderWorkflowCards();
+
+    renderDashboardAlerts();
+
+    renderUnitRanking();
 
     renderUnitTable();
 
@@ -521,12 +529,10 @@ function renderWorkflowCards() {
 
   if (workflowSteps.length === 0) {
     workflowCards.innerHTML = `
-
-            <div class="phase-note">
-                Chưa có danh mục quy trình.
-            </div>
-
-        `;
+      <div class="phase-note workflow-process-empty">
+        Chưa có danh mục quy trình.
+      </div>
+    `;
 
     return;
   }
@@ -534,84 +540,137 @@ function renderWorkflowCards() {
   workflowCards.innerHTML = workflowSteps
     .map(function (step, index) {
       const summary = calculateStepSummary(step.id);
-
-      const rate = summary.rate;
+      const visual = getWorkflowStepVisual(step.id);
+      const hasData = summary.recordCount > 0;
+      const rate = hasData ? Math.min(100, Math.max(0, summary.rate)) : 0;
+      const rateText = hasData ? formatNumber(rate, 1) + "%" : "—";
+      const countText = hasData
+        ? summary.recordCount + " đơn vị đã có số liệu"
+        : "Chưa có đơn vị nhập số liệu";
 
       return `
+        <article
+          class="workflow-process-card ${visual.className}"
+          data-workflow-step="${escapeHtmlText(step.id)}"
+        >
+          <div class="workflow-process-topline">
+            <div class="workflow-process-identity">
+              <span class="workflow-process-number">${index + 1}</span>
 
-                        <div
-                            class="
-                                phase-card
-                                workflow-dashboard-card
-                            "
-                        >
+              <span class="workflow-process-icon" aria-hidden="true">
+                ${visual.icon}
+              </span>
 
-                            <div class="phase-card-header">
+              <div class="workflow-process-name">
+                <span>Bước ${index + 1}</span>
+                <h3>${escapeHtmlText(step.name)}</h3>
+              </div>
+            </div>
 
-                                <div class="workflow-card-heading">
+            <span class="workflow-process-status ${hasData ? "has-data" : "no-data"}">
+              ${hasData ? "Đang theo dõi" : "Chưa có dữ liệu"}
+            </span>
+          </div>
 
-                                    <span class="workflow-card-number">
-                                        ${index + 1}
-                                    </span>
+          <div class="workflow-process-main">
+            <div
+              class="workflow-process-ring"
+              style="--workflow-rate:${rate};"
+              role="img"
+              aria-label="Tỷ lệ hoàn thành ${rateText}"
+            >
+              <div class="workflow-process-ring-inner">
+                <strong>${rateText}</strong>
+                <span>hoàn thành</span>
+              </div>
+            </div>
 
-                                    <h3>
-                                        ${escapeHtmlText(step.name)}
-                                    </h3>
+            <div class="workflow-process-copy">
+              <p>${escapeHtmlText(summary.description)}</p>
 
-                                </div>
+              <div class="workflow-process-mini-progress" aria-hidden="true">
+                <span style="width:${rate}%;"></span>
+              </div>
 
-                            </div>
+              <div class="workflow-process-meta">
+                <span class="workflow-process-dot"></span>
+                <span>${escapeHtmlText(countText)}</span>
+              </div>
+            </div>
+          </div>
 
-
-                            <div class="phase-percent">
-
-                                <strong>
-                                    ${
-                                      summary.recordCount > 0
-                                        ? formatNumber(rate, 1) + "%"
-                                        : "—"
-                                    }
-                                </strong>
-
-                            </div>
-
-
-                            <div class="progress">
-
-                                <div
-                                    class="progress-bar"
-                                    style="width:${
-                                      summary.recordCount > 0 ? rate : 0
-                                    }%;"
-                                >
-                                </div>
-
-                            </div>
-
-
-                            <div class="phase-note">
-
-                                ${escapeHtmlText(summary.description)}
-
-                            </div>
-
-
-                            <div class="phase-note">
-
-                                ${
-                                  summary.recordCount > 0
-                                    ? summary.recordCount +
-                                      " đơn vị đã có số liệu"
-                                    : "Chưa có đơn vị nhập số liệu"
-                                }
-
-                            </div>
-
-                        </div>
-
-                    `;
+          ${
+            index < workflowSteps.length - 1
+              ? `<span class="workflow-process-connector" aria-hidden="true">→</span>`
+              : ""
+          }
+        </article>
+      `;
     })
     .join("");
+}
+
+// ======================================================
+// GIAO DIỆN RIÊNG CHO 05 BƯỚC NGHIỆP VỤ
+//
+// Chỉ phục vụ hiển thị. Không thay đổi dữ liệu,
+// công thức tính hoặc cấu trúc Firestore.
+// ======================================================
+
+function getWorkflowStepVisual(stepId) {
+  const visuals = {
+    inventory: {
+      className: "step-inventory",
+      icon: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M9 3h6l1 2h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h3l1-2Zm1.2 2-.5 1h4.6l-.5-1h-3.6ZM7 10h10v2H7v-2Zm0 4h7v2H7v-2Z" />
+        </svg>
+      `,
+    },
+    compensation: {
+      className: "step-compensation",
+      icon: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M6 2h9l4 4v16H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 2v4h4M8 12h8v2H8v-2Zm0 4h5v2H8v-2Zm10.7-4.7 1.4 1.4-5.8 5.8-2.8-2.8 1.4-1.4 1.4 1.4 4.4-4.4Z" />
+        </svg>
+      `,
+    },
+    support: {
+      className: "step-support",
+      icon: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M12 21s-7-4.4-9.3-8.4C.9 9.5 2.4 5.5 6 5.1c2-.2 3.6.8 4.5 2.1.9-1.3 2.5-2.3 4.5-2.1 3.6.4 5.1 4.4 3.3 7.5C16 16.6 12 21 12 21Zm-1-9H8v2h3v3h2v-3h3v-2h-3V9h-2v3Z" />
+        </svg>
+      `,
+    },
+    resettlement: {
+      className: "step-resettlement",
+      icon: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="m12 3 9 7-1.2 1.6L18 10.2V21h-5v-6h-2v6H6V10.2l-1.8 1.4L3 10l9-7Zm0 2.5L8 8.6V19h1v-6h6v6h1V8.6l-4-3.1Z" />
+        </svg>
+      `,
+    },
+    handover: {
+      className: "step-handover",
+      icon: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M7.2 7.3 10 10.1 8.6 11.5 5.8 8.7 3 11.5l4.9 4.9a3 3 0 0 0 4.2 0l1-1 1 1a3 3 0 0 0 4.2 0L21 13.7l-1.4-1.4-2.7 2.7a1 1 0 0 1-1.4 0l-2.4-2.4 3.5-3.5a2.5 2.5 0 0 0-3.5 0l-.6.6-2.8-2.8a3.5 3.5 0 0 0-5 0L3.6 8l1.4 1.4 1.1-1.1a1.5 1.5 0 0 1 2.1 0Zm4.2 4.2 3.1 3.1-1 1-3.1-3.1 1-1Z" />
+        </svg>
+      `,
+    },
+  };
+
+  return (
+    visuals[stepId] || {
+      className: "step-default",
+      icon: `
+        <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+          <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-1 14-4-4 1.4-1.4 2.6 2.6 4.6-4.6L17 10l-6 6Z" />
+        </svg>
+      `,
+    }
+  );
 }
 
 // ======================================================
@@ -764,7 +823,291 @@ function getStepSummaryText(stepId, numerator, denominator) {
 }
 
 // ======================================================
-// 13. BẢNG TIẾN ĐỘ TỪNG ĐƠN VỊ
+// 13. ĐIỂM NGHẼN / CẢNH BÁO
+//
+// Chỉ đọc và tổng hợp từ dữ liệu hiện có:
+// - inventory.uncooperativeHouseholds
+// - compensation.notAgreedHouseholds
+// - handover.obstructionLocations
+// - notes của từng bước
+// - tỷ lệ từng bước dưới 50%
+//
+// Không ghi thêm dữ liệu và không thay đổi công thức nghiệp vụ.
+// ======================================================
+
+function renderDashboardAlerts() {
+  if (!dashboardAlerts) {
+    return;
+  }
+
+  let uncooperativeHouseholds = 0;
+  let notAgreedHouseholds = 0;
+  let obstructionLocations = 0;
+  let noteCount = 0;
+
+  const lowProgressUnits = new Set();
+
+  unitsData.forEach(function (unit) {
+    const inventory = unit.steps.inventory;
+    const compensation = unit.steps.compensation;
+    const handover = unit.steps.handover;
+
+    if (inventory) {
+      uncooperativeHouseholds += integerValue(
+        inventory.uncooperativeHouseholds,
+      );
+    }
+
+    if (compensation) {
+      // Dùng cùng nguồn với KPI "Chưa đồng ý" trên trang chủ.
+      notAgreedHouseholds += integerValue(
+        compensation.notAgreedHouseholds,
+      );
+    }
+
+    if (handover) {
+      obstructionLocations += integerValue(handover.obstructionLocations);
+    }
+
+    workflowSteps.forEach(function (step) {
+      const data = unit.steps[step.id];
+
+      if (!data) {
+        return;
+      }
+
+      const note = String(data.notes || "").trim();
+
+      if (note) {
+        noteCount++;
+      }
+
+      const values = getStepRateValues(step.id, data);
+
+      if (values.denominator <= 0) {
+        return;
+      }
+
+      const rate = calculatePercent(values.numerator, values.denominator);
+
+      if (rate < 50) {
+        lowProgressUnits.add(unit.id);
+      }
+    });
+  });
+
+  const items = [];
+
+  if (notAgreedHouseholds > 0) {
+    items.push({
+      type: "danger",
+      value: formatNumber(notAgreedHouseholds, 0),
+      title: "hộ / tổ chức chưa đồng ý",
+      description: "Theo số liệu đang cập nhật tại bước Bồi thường.",
+    });
+  }
+
+  if (obstructionLocations > 0) {
+    items.push({
+      type: "warning",
+      value: formatNumber(obstructionLocations, 0),
+      title: "vị trí còn vướng",
+      description: "Theo số liệu bước GPMB / Bàn giao.",
+    });
+  }
+
+  if (uncooperativeHouseholds > 0) {
+    items.push({
+      type: "warning",
+      value: formatNumber(uncooperativeHouseholds, 0),
+      title: "hộ chưa phối hợp kiểm đếm",
+      description: "Cần tiếp tục theo dõi tại bước Kiểm đếm.",
+    });
+  }
+
+  if (lowProgressUnits.size > 0) {
+    items.push({
+      type: "info",
+      value: formatNumber(lowProgressUnits.size, 0),
+      title: "đơn vị có bước đạt dưới 50%",
+      description: "Tính trên các bước có số liệu và có mẫu số lớn hơn 0.",
+    });
+  }
+
+  if (noteCount > 0) {
+    items.push({
+      type: "note",
+      value: formatNumber(noteCount, 0),
+      title: "ghi chú / vướng mắc có nội dung",
+      description: "Tổng số ghi chú đang có trong 05 bước nghiệp vụ.",
+    });
+  }
+
+  if (items.length === 0) {
+    dashboardAlerts.innerHTML = `
+      <div class="home-alert-clear">
+        <span class="home-alert-clear-icon" aria-hidden="true">✓</span>
+        <div>
+          <strong>Chưa ghi nhận cảnh báo từ các chỉ tiêu hiện có</strong>
+          <p>Các số liệu cảnh báo sẽ tự động xuất hiện khi đơn vị cập nhật.</p>
+        </div>
+      </div>
+    `;
+
+    return;
+  }
+
+  dashboardAlerts.innerHTML = items
+    .slice(0, 5)
+    .map(function (item) {
+      return `
+        <div class="home-alert-item alert-${item.type}">
+          <span class="home-alert-icon" aria-hidden="true">
+            ${getDashboardAlertIcon(item.type)}
+          </span>
+
+          <div class="home-alert-copy">
+            <div class="home-alert-heading">
+              <strong>${escapeHtmlText(item.value)}</strong>
+              <span>${escapeHtmlText(item.title)}</span>
+            </div>
+            <p>${escapeHtmlText(item.description)}</p>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function getDashboardAlertIcon(type) {
+  if (type === "danger") {
+    return `
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M12 3 1.8 20.5h20.4L12 3Zm0 5.3c.7 0 1.2.5 1.2 1.2v4.3a1.2 1.2 0 1 1-2.4 0V9.5c0-.7.5-1.2 1.2-1.2Zm0 9.2a1.35 1.35 0 1 1 0-2.7 1.35 1.35 0 0 1 0 2.7Z"/>
+      </svg>
+    `;
+  }
+
+  if (type === "warning") {
+    return `
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M12 2 22 20H2L12 2Zm0 5.2-5.7 10h11.4L12 7.2Zm-1 3.1h2v4.1h-2v-4.1Zm0 5.5h2v2h-2v-2Z"/>
+      </svg>
+    `;
+  }
+
+  if (type === "note") {
+    return `
+      <svg viewBox="0 0 24 24" focusable="false">
+        <path d="M5 3h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-7l-5 4v-4H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm2 5v2h10V8H7Zm0 4v2h7v-2H7Z"/>
+      </svg>
+    `;
+  }
+
+  return `
+    <svg viewBox="0 0 24 24" focusable="false">
+      <path d="M11 17h2v-6h-2v6Zm0-8h2V7h-2v2Zm1-7a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16Z"/>
+    </svg>
+  `;
+}
+
+// ======================================================
+// 14. XẾP HẠNG TIẾN ĐỘ BÀN GIAO
+//
+// Không tạo "điểm tiến độ tổng hợp" mới.
+// Xếp hạng chỉ dựa trên một chỉ tiêu đã có:
+// handedOverHouseholds / totalHouseholds của bước handover.
+// ======================================================
+
+function renderUnitRanking() {
+  if (!unitRanking) {
+    return;
+  }
+
+  const ranking = [];
+
+  unitsData.forEach(function (unit) {
+    const handover = unit.steps.handover;
+
+    if (!handover) {
+      return;
+    }
+
+    const values = getStepRateValues("handover", handover);
+
+    if (values.denominator <= 0) {
+      return;
+    }
+
+    ranking.push({
+      unit: unit,
+      completed: values.numerator,
+      total: values.denominator,
+      rate: calculatePercent(values.numerator, values.denominator),
+    });
+  });
+
+  ranking.sort(function (a, b) {
+    if (b.rate !== a.rate) {
+      return b.rate - a.rate;
+    }
+
+    return String(a.unit.name || "").localeCompare(
+      String(b.unit.name || ""),
+      "vi",
+      { sensitivity: "base" },
+    );
+  });
+
+  if (ranking.length === 0) {
+    unitRanking.innerHTML = `
+      <div class="home-insight-empty">
+        Chưa có số liệu bàn giao để xếp hạng.
+      </div>
+    `;
+
+    return;
+  }
+
+  unitRanking.innerHTML = ranking
+    .slice(0, 5)
+    .map(function (item, index) {
+      const position = index + 1;
+      const rankClass = position <= 3 ? "rank-" + position : "rank-other";
+
+      return `
+        <div class="home-ranking-item ${rankClass}">
+          <span class="home-rank-number">${position}</span>
+
+          <div class="home-rank-main">
+            <div class="home-rank-row">
+              <div class="home-rank-name">
+                <strong>${escapeHtmlText(item.unit.name)}</strong>
+                <span>${escapeHtmlText(item.unit.code || "")}</span>
+              </div>
+
+              <strong class="home-rank-rate">
+                ${formatNumber(item.rate, 1)}%
+              </strong>
+            </div>
+
+            <div class="home-rank-progress" aria-hidden="true">
+              <span style="width:${Math.min(100, Math.max(0, item.rate))}%;"></span>
+            </div>
+
+            <div class="home-rank-meta">
+              Đã bàn giao ${formatNumber(item.completed, 0)} /
+              ${formatNumber(item.total, 0)} hộ / tổ chức
+            </div>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+// ======================================================
+// 15. BẢNG TIẾN ĐỘ TỪNG ĐƠN VỊ
 // ======================================================
 
 function renderUnitTable() {
@@ -853,7 +1196,7 @@ function renderUnitTable() {
 }
 
 // ======================================================
-// 14. Ô % CỦA TỪNG ĐƠN VỊ
+// 16. Ô % CỦA TỪNG ĐƠN VỊ
 // ======================================================
 
 function renderUnitRateCell(unit, stepId) {
@@ -903,7 +1246,7 @@ function renderUnitRateCell(unit, stepId) {
 }
 
 // ======================================================
-// 15. MÀU TỶ LỆ
+// 17. MÀU TỶ LỆ
 // ======================================================
 
 function getRateClass(rate) {
@@ -919,7 +1262,7 @@ function getRateClass(rate) {
 }
 
 // ======================================================
-// 16. THỜI GIAN CẬP NHẬT
+// 18. THỜI GIAN CẬP NHẬT
 // ======================================================
 
 function updateLatestTimestamp(timestamp) {
@@ -958,7 +1301,7 @@ function renderUpdatedTime() {
 }
 
 // ======================================================
-// 17. RESET
+// 19. RESET
 // ======================================================
 
 function resetDashboard() {
@@ -1040,10 +1383,22 @@ function resetDashboard() {
 
         `;
   }
+
+  if (dashboardAlerts) {
+    dashboardAlerts.innerHTML = `
+      <div class="home-insight-empty">Đăng nhập để xem dữ liệu.</div>
+    `;
+  }
+
+  if (unitRanking) {
+    unitRanking.innerHTML = `
+      <div class="home-insight-empty">Đăng nhập để xem dữ liệu.</div>
+    `;
+  }
 }
 
 // ======================================================
-// 18. M² → HA
+// 20. M² → HA
 // ======================================================
 
 function m2ToHa(value) {
@@ -1051,7 +1406,7 @@ function m2ToHa(value) {
 }
 
 // ======================================================
-// 19. TÍNH %
+// 21. TÍNH %
 // ======================================================
 
 function calculatePercent(value, total) {

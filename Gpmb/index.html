@@ -2,16 +2,14 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Hệ thống theo dõi tiến độ giải phóng mặt bằng</title>
 
-    <!-- File CSS -->
     <link rel="stylesheet" href="css/style.css" />
   </head>
 
-  <body>
+  <body class="home-dashboard">
     <!-- =====================================================
          1. BANNER
     ====================================================== -->
@@ -108,281 +106,313 @@
     </nav>
 
     <!-- =====================================================
-         3. NỘI DUNG CHÍNH
+         3. NỘI DUNG DASHBOARD
     ====================================================== -->
-    <main class="main-content">
-      <div class="container">
+    <main class="main-content home-main-content">
+      <div class="container home-dashboard-container">
         <!-- =================================================
-                 TIÊU ĐỀ DASHBOARD
-            ================================================== -->
-        <section class="dashboard-header">
-          <div>
-            <h1>DASHBOARD TIẾN ĐỘ GIẢI PHÓNG MẶT BẰNG</h1>
-            <p>
-              Tổng hợp theo quy trình: Kiểm đếm → Bồi thường → Hỗ trợ → Tái định
-              cư → Giải phóng mặt bằng / Bàn giao
-            </p>
-          </div>
+             TIÊU ĐỀ DASHBOARD
+        ================================================== -->
+        <section class="dashboard-header home-dashboard-header">
+          <div class="home-dashboard-title-wrap">
+            <span class="home-dashboard-title-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 13h4v7H4v-7Zm6-5h4v12h-4V8Zm6-4h4v16h-4V4ZM3 22h18v-2H3v2Z" />
+              </svg>
+            </span>
 
-          <!-- Chọn giai đoạn -->
-          <div class="phase-filter">
-            <span id="dashboardUpdatedAt"> Đang tải dữ liệu... </span>
-          </div>
-        </section>
-
-        <!-- =================================================
-                 4. DIỆN TÍCH THU HỒI
-            ================================================== -->
-        <section class="dashboard-section">
-          <div class="section-title">
-            <h2>Diện tích cần thu hồi</h2>
-
-            <span class="section-unit"> ha / m² </span>
-          </div>
-
-          <div class="dashboard-grid area-grid">
-            <!-- Tổng diện tích -->
-            <div class="dashboard-card main-card">
-              <div class="card-title">Tổng diện tích cần thu hồi</div>
-
-              <div class="card-value">
-                <span id="totalArea"> 0 </span>
-
-                <span class="card-unit"> ha </span>
-              </div>
-            </div>
-
-            <!-- Đã thu hồi -->
-            <div class="dashboard-card">
-              <div class="card-title">Đã thu hồi</div>
-
-              <div class="card-value success">
-                <span id="recoveredArea"> 0 </span>
-
-                <span class="card-unit"> ha </span>
-              </div>
-            </div>
-
-            <!-- Còn lại -->
-            <div class="dashboard-card">
-              <div class="card-title">Còn lại</div>
-
-              <div class="card-value warning">
-                <span id="remainingArea"> 0 </span>
-
-                <span class="card-unit"> ha </span>
-              </div>
-            </div>
-
-            <!-- Tỷ lệ hoàn thành -->
-            <div class="dashboard-card">
-              <div class="card-title">Tỷ lệ hoàn thành</div>
-
-              <div class="card-value percent">
-                <span id="areaPercent"> 0 </span>
-
-                <span class="card-unit"> % </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Thanh tiến độ -->
-          <div class="progress-wrapper">
-            <div class="progress-label">
-              <span> Tiến độ thu hồi diện tích </span>
-
-              <strong id="areaProgressText"> 0% </strong>
-            </div>
-
-            <div class="progress">
-              <div
-                class="progress-bar"
-                id="areaProgressBar"
-                style="width: 0%"
-              ></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- =================================================
-                 5. CHIỀU DÀI TUYẾN
-            ================================================== -->
-        <section class="dashboard-section">
-          <div class="section-title">
-            <h2>Chiều dài tuyến</h2>
-
-            <span class="section-unit"> km </span>
-          </div>
-
-          <div class="dashboard-grid">
-            <!-- Tổng chiều dài -->
-            <div class="dashboard-card main-card">
-              <div class="card-title">Tổng chiều dài tuyến</div>
-
-              <div class="card-value">
-                <span id="totalLength"> 0 </span>
-
-                <span class="card-unit"> km </span>
-              </div>
-            </div>
-
-            <!-- Đã bàn giao -->
-            <div class="dashboard-card">
-              <div class="card-title">Đã bàn giao mặt bằng</div>
-
-              <div class="card-value success">
-                <span id="deliveredLength"> 0 </span>
-
-                <span class="card-unit"> km </span>
-              </div>
-            </div>
-
-            <!-- Còn vướng -->
-            <div class="dashboard-card">
-              <div class="card-title">Còn vướng</div>
-
-              <div class="card-value danger">
-                <span id="remainingLength"> 0 </span>
-
-                <span class="card-unit"> km </span>
-              </div>
-            </div>
-
-            <!-- Tỷ lệ -->
-            <div class="dashboard-card">
-              <div class="card-title">Tỷ lệ hoàn thành</div>
-
-              <div class="card-value percent">
-                <span id="lengthPercent"> 0 </span>
-
-                <span class="card-unit"> % </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Thanh tiến độ -->
-          <div class="progress-wrapper">
-            <div class="progress-label">
-              <span> Tiến độ bàn giao tuyến </span>
-
-              <strong id="lengthProgressText"> 0% </strong>
-            </div>
-
-            <div class="progress">
-              <div
-                class="progress-bar"
-                id="lengthProgressBar"
-                style="width: 0%"
-              ></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- =================================================
-                 6. HỘ DÂN / TỔ CHỨC
-            ================================================== -->
-        <section class="dashboard-section">
-          <div class="section-title">
-            <h2>Hộ dân / tổ chức bị ảnh hưởng</h2>
-
-            <span class="section-unit"> hộ / tổ chức </span>
-          </div>
-
-          <!-- Tổng số -->
-          <div class="household-total">
             <div>
-              <span class="household-total-label">
-                Tổng số hộ dân / tổ chức bị ảnh hưởng
+              <h1>Dashboard tiến độ giải phóng mặt bằng</h1>
+              <p>
+                Tổng hợp kết quả thực hiện theo diện tích, chiều dài tuyến, hộ
+                dân và 05 bước nghiệp vụ GPMB.
+              </p>
+            </div>
+          </div>
+
+          <div class="phase-filter home-update-chip">
+            <span class="home-update-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5v4.6l3.2 1.9-1 1.7L11 12.7V7h2Z" />
+              </svg>
+            </span>
+            <span id="dashboardUpdatedAt">Đang tải dữ liệu...</span>
+          </div>
+        </section>
+
+        <!-- =================================================
+             5. BA CỤM KPI CHÍNH
+        ================================================== -->
+        <section class="home-kpi-grid" aria-label="Các chỉ số tổng quan">
+          <!-- DIỆN TÍCH -->
+          <article class="home-kpi-panel home-kpi-panel-area">
+            <div class="home-kpi-panel-header">
+              <div class="home-kpi-heading">
+                <span class="home-kpi-index">1</span>
+                <div>
+                  <h2>Diện tích cần thu hồi</h2>
+                  <span>Đơn vị: ha</span>
+                </div>
+              </div>
+
+              <span class="home-kpi-symbol home-kpi-symbol-blue" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 18 9 5l4 7 3-4 4 10H4Zm4.8-3.5 2.1-5.4L13.8 14l1.8-2.4 1.2 2.9h-8Z" />
+                </svg>
               </span>
-
-              <strong id="totalHouseholds"> 0 </strong>
-            </div>
-          </div>
-
-          <!-- Chi tiết -->
-          <div class="household-grid">
-            <div class="household-card">
-              <div class="household-title">Đã phê duyệt phương án</div>
-
-              <div class="household-value" id="approvedHouseholds">0</div>
             </div>
 
-            <div class="household-card">
-              <div class="household-title">Đã nhận tiền</div>
+            <div class="home-kpi-metrics home-kpi-metrics-four">
+              <div class="home-mini-metric">
+                <span>Tổng diện tích</span>
+                <strong><span id="totalArea">0</span><small> ha</small></strong>
+              </div>
 
-              <div class="household-value success" id="paidHouseholds">0</div>
-            </div>
+              <div class="home-mini-metric is-success">
+                <span>Đã thu hồi</span>
+                <strong><span id="recoveredArea">0</span><small> ha</small></strong>
+              </div>
 
-            <div class="household-card">
-              <div class="household-title">Đã bàn giao mặt bằng</div>
+              <div class="home-mini-metric is-warning">
+                <span>Còn lại</span>
+                <strong><span id="remainingArea">0</span><small> ha</small></strong>
+              </div>
 
-              <div class="household-value success" id="handedOverHouseholds">
-                0
+              <div class="home-mini-metric home-mini-metric-rate">
+                <span>Hoàn thành</span>
+                <strong><span id="areaPercent">0</span><small>%</small></strong>
               </div>
             </div>
 
-            <div class="household-card alert-card">
-              <div class="household-title">Chưa đồng ý</div>
+            <div class="home-panel-progress">
+              <div class="home-panel-progress-label">
+                <span>Tiến độ thu hồi diện tích</span>
+                <strong id="areaProgressText">0%</strong>
+              </div>
 
-              <div class="household-value danger" id="notAgreedHouseholds">
-                0
+              <div class="progress">
+                <div
+                  class="progress-bar"
+                  id="areaProgressBar"
+                  style="width: 0%"
+                ></div>
               </div>
             </div>
-          </div>
+          </article>
+
+          <!-- CHIỀU DÀI TUYẾN -->
+          <article class="home-kpi-panel home-kpi-panel-length">
+            <div class="home-kpi-panel-header">
+              <div class="home-kpi-heading">
+                <span class="home-kpi-index">2</span>
+                <div>
+                  <h2>Chiều dài tuyến</h2>
+                  <span>Đơn vị: km</span>
+                </div>
+              </div>
+
+              <span class="home-kpi-symbol home-kpi-symbol-green" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M7 21h10l-1.3-5H8.3L7 21Zm2-7h6l-1-4h-4l-1 4Zm2-6h2l-.8-5h-.4L11 8ZM4 21h2l1.6-6H5.8L4 21Zm14 0h2l-1.8-6h-1.8L18 21Z" />
+                </svg>
+              </span>
+            </div>
+
+            <div class="home-kpi-metrics home-kpi-metrics-four">
+              <div class="home-mini-metric">
+                <span>Tổng chiều dài</span>
+                <strong><span id="totalLength">0</span><small> km</small></strong>
+              </div>
+
+              <div class="home-mini-metric is-success">
+                <span>Đã bàn giao</span>
+                <strong><span id="deliveredLength">0</span><small> km</small></strong>
+              </div>
+
+              <div class="home-mini-metric is-warning">
+                <span>Còn vướng</span>
+                <strong><span id="remainingLength">0</span><small> km</small></strong>
+              </div>
+
+              <div class="home-mini-metric home-mini-metric-rate">
+                <span>Hoàn thành</span>
+                <strong><span id="lengthPercent">0</span><small>%</small></strong>
+              </div>
+            </div>
+
+            <div class="home-panel-progress">
+              <div class="home-panel-progress-label">
+                <span>Tiến độ bàn giao tuyến</span>
+                <strong id="lengthProgressText">0%</strong>
+              </div>
+
+              <div class="progress">
+                <div
+                  class="progress-bar"
+                  id="lengthProgressBar"
+                  style="width: 0%"
+                ></div>
+              </div>
+            </div>
+          </article>
+
+          <!-- HỘ DÂN / TỔ CHỨC -->
+          <article class="home-kpi-panel home-kpi-panel-household">
+            <div class="home-kpi-panel-header">
+              <div class="home-kpi-heading">
+                <span class="home-kpi-index">3</span>
+                <div>
+                  <h2>Hộ dân / tổ chức bị ảnh hưởng</h2>
+                  <span>Theo tình trạng thực hiện</span>
+                </div>
+              </div>
+
+              <span class="home-kpi-symbol home-kpi-symbol-cyan" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 13c-4 0-7 2-7 4.7V21h14v-3.3C15 15 12 13 8 13Zm8 0c-.5 0-1 .1-1.5.1 1.5 1.1 2.5 2.7 2.5 4.6V21h6v-2.8c0-3-3-5.2-7-5.2Z" />
+                </svg>
+              </span>
+            </div>
+
+            <div class="home-household-total-row">
+              <span>Tổng số bị ảnh hưởng</span>
+              <strong id="totalHouseholds">0</strong>
+            </div>
+
+            <div class="home-household-status-grid">
+              <div class="home-status-item is-approved">
+                <span>Đã phê duyệt</span>
+                <strong id="approvedHouseholds">0</strong>
+              </div>
+
+              <div class="home-status-item is-paid">
+                <span>Đã nhận tiền</span>
+                <strong id="paidHouseholds">0</strong>
+              </div>
+
+              <div class="home-status-item is-handed">
+                <span>Đã bàn giao MB</span>
+                <strong id="handedOverHouseholds">0</strong>
+              </div>
+
+              <div class="home-status-item is-alert">
+                <span>Chưa đồng ý</span>
+                <strong id="notAgreedHouseholds">0</strong>
+              </div>
+            </div>
+          </article>
         </section>
 
         <!-- =================================================
-                 7. TIẾN ĐỘ CÁC GIAI ĐOẠN
-            ================================================== -->
-        <section class="dashboard-section" id="workflowProgressSection">
-          <div class="section-title">
+             6. TIẾN ĐỘ THEO QUY TRÌNH
+             Đợt 1 giữ nguyên logic render hiện tại.
+        ================================================== -->
+        <section
+          class="dashboard-section home-dashboard-section"
+          id="workflowProgressSection"
+        >
+          <div class="section-title home-section-title">
             <div>
+              <span class="home-section-eyebrow">QUY TRÌNH NGHIỆP VỤ</span>
               <h2>Tiến độ theo quy trình GPMB</h2>
-
               <p class="section-description">
                 Tổng hợp mức độ hoàn thành của 05 bước nghiệp vụ.
               </p>
             </div>
+
+            <a href="progress.html" class="home-section-link">
+              Xem chi tiết
+              <span aria-hidden="true">→</span>
+            </a>
           </div>
 
           <div class="phase-grid workflow-dashboard-grid" id="workflowCards">
             <div class="phase-note">Đang tải tiến độ quy trình...</div>
           </div>
         </section>
+
         <!-- =================================================
-     TIẾN ĐỘ THEO ĐƠN VỊ
-================================================== -->
+             7. ĐIỂM NGHẼN / CẢNH BÁO + XẾP HẠNG ĐƠN VỊ
+             Đợt 3: chỉ tổng hợp từ dữ liệu hiện có.
+        ================================================== -->
+        <section class="home-insight-grid" id="dashboardInsightsSection">
+          <!-- ĐIỂM NGHẼN / CẢNH BÁO -->
+          <article
+            class="dashboard-section home-dashboard-section home-insight-card home-alert-panel"
+          >
+            <div class="section-title home-section-title home-insight-title">
+              <div>
+                <span class="home-section-eyebrow">CẦN CHÚ Ý</span>
+                <h2>Điểm nghẽn / Cảnh báo</h2>
+                <p class="section-description">
+                  Tổng hợp tự động từ số liệu nghiệp vụ và nội dung ghi chú của
+                  các đơn vị.
+                </p>
+              </div>
 
-        <section class="dashboard-section" id="unitProgressSection">
-          <div class="section-title">
+              <a href="progress.html" class="home-section-link">
+                Xem chi tiết
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
+
+            <div id="dashboardAlerts" class="home-alert-list">
+              <div class="home-insight-empty">Đang tổng hợp cảnh báo...</div>
+            </div>
+          </article>
+
+          <!-- XẾP HẠNG ĐƠN VỊ -->
+          <article
+            class="dashboard-section home-dashboard-section home-insight-card home-ranking-panel"
+          >
+            <div class="section-title home-section-title home-insight-title">
+              <div>
+                <span class="home-section-eyebrow">SO SÁNH KẾT QUẢ</span>
+                <h2>Xếp hạng tiến độ bàn giao</h2>
+                <p class="section-description">
+                  Xếp theo tỷ lệ số hộ / tổ chức đã bàn giao mặt bằng.
+                </p>
+              </div>
+
+              <span class="home-ranking-unit">Theo % bàn giao</span>
+            </div>
+
+            <div id="unitRanking" class="home-ranking-list">
+              <div class="home-insight-empty">Đang tổng hợp xếp hạng...</div>
+            </div>
+          </article>
+        </section>
+
+        <!-- =================================================
+             8. TIẾN ĐỘ THEO ĐƠN VỊ
+        ================================================== -->
+        <section
+          class="dashboard-section home-dashboard-section"
+          id="unitProgressSection"
+        >
+          <div class="section-title home-section-title">
             <div>
+              <span class="home-section-eyebrow">SO SÁNH ĐƠN VỊ</span>
               <h2>Tiến độ theo đơn vị</h2>
-
               <p class="section-description">
                 So sánh mức độ thực hiện từng bước giữa các xã, phường và đơn vị
                 tham gia dự án.
               </p>
             </div>
 
-            <span class="section-unit" id="unitCountText"> 0 đơn vị </span>
+            <span class="section-unit" id="unitCountText">0 đơn vị</span>
           </div>
 
-          <div class="workflow-table-wrap">
+          <div class="workflow-table-wrap home-table-wrap">
             <table class="workflow-unit-table">
               <thead>
                 <tr>
                   <th>STT</th>
-
                   <th>Đơn vị</th>
-
                   <th>Kiểm đếm</th>
-
                   <th>Bồi thường</th>
-
                   <th>Hỗ trợ</th>
-
                   <th>Tái định cư</th>
-
                   <th>Bàn giao</th>
                 </tr>
               </thead>
@@ -401,13 +431,15 @@
     </main>
 
     <!-- =====================================================
-         8. FOOTER
+         9. FOOTER
     ====================================================== -->
-    <footer class="footer">
-      <div class="container">Hệ thống theo dõi tiến độ giải phóng mặt bằng</div>
+    <footer class="footer home-footer">
+      <div class="container">
+        Hệ thống theo dõi tiến độ giải phóng mặt bằng
+      </div>
     </footer>
-    <script type="module" src="js/app-workflow.js"></script>
 
+    <script type="module" src="js/app-workflow.js"></script>
     <script type="module" src="js/index-auth.js"></script>
   </body>
 </html>
