@@ -11,7 +11,10 @@ import {
   deleteMember,
   updateMemberAttendance,
   updateMemberContribution,
+  subscribeContributionsByClass,
+  migrateLegacyClassData,
   subscribeMembersByClass,
+  subscribePublicMembersByClass,
   addSponsor,
   updateSponsor,
   deleteSponsor,
@@ -235,13 +238,39 @@ const sponsorTypeFilter =
   document.getElementById("sponsorTypeFilter");
 const sponsorTableBody =
   document.getElementById("sponsorTableBody");
+const publicClassDetail =
+  document.getElementById("publicClassDetail");
+const publicClassTitle =
+  document.getElementById("publicClassTitle");
+const publicClassMemberCount =
+  document.getElementById("publicClassMemberCount");
+const publicClassAttendingCount =
+  document.getElementById("publicClassAttendingCount");
+const publicClassSponsorTotal =
+  document.getElementById("publicClassSponsorTotal");
+const publicClassMemberBody =
+  document.getElementById("publicClassMemberBody");
+const publicClassSponsorBody =
+  document.getElementById("publicClassSponsorBody");
+const closePublicClassButton =
+  document.getElementById("closePublicClassButton");
+const publicClassButtons =
+  document.querySelectorAll(".public-class-button");
 
 let currentSession = null;
 let unsubscribeMembers = null;
 let classMembers = [];
 
+let unsubscribeContributions = null;
+let classContributions = [];
+
 let unsubscribeSponsors = null;
 let classSponsors = [];
+
+let unsubscribePublicMembers = null;
+let unsubscribePublicSponsors = null;
+let publicClassMembers = [];
+let publicClassSponsors = [];
 
 function escapeHtml(value = "") {
   return String(value)
@@ -384,6 +413,35 @@ function stopMemberSubscription() {
   renderMembers();
 }
 
+
+function stopContributionSubscription() {
+  if (unsubscribeContributions) {
+    unsubscribeContributions();
+    unsubscribeContributions = null;
+  }
+
+  classContributions = [];
+  renderContributionManagement();
+}
+
+function startContributionSubscription(classId) {
+  stopContributionSubscription();
+
+  unsubscribeContributions =
+    subscribeContributionsByClass(
+      classId,
+      (items) => {
+        classContributions = items;
+        renderContributionManagement();
+      },
+      () => {
+        console.error(
+          "Không đọc được dữ liệu đóng góp riêng tư.",
+        );
+      },
+    );
+}
+
 function startMemberSubscription(classId) {
   stopMemberSubscription();
 
@@ -519,6 +577,14 @@ function formatCurrency(amount) {
   ) + " đ";
 }
 
+function getContributionAmount(memberId) {
+  const item = classContributions.find(
+    (row) => row.memberId === memberId || row.id === memberId,
+  );
+
+  return Number(item?.amount) || 0;
+}
+
 function renderContributionManagement() {
   const keyword = (contributionSearch.value || "")
     .trim()
@@ -537,7 +603,7 @@ function renderContributionManagement() {
       fullName.includes(keyword) ||
       phone.includes(keyword);
 
-    const amount = Number(member.contributionAmount) || 0;
+    const amount = getContributionAmount(member.id);
 
     let matchesFilter = true;
 
@@ -551,12 +617,11 @@ function renderContributionManagement() {
   });
 
   const contributors = classMembers.filter(
-    (member) => (Number(member.contributionAmount) || 0) > 0,
+    (member) => getContributionAmount(member.id) > 0,
   );
 
-  const total = classMembers.reduce(
-    (sum, member) =>
-      sum + (Number(member.contributionAmount) || 0),
+  const total = classContributions.reduce(
+    (sum, item) => sum + (Number(item.amount) || 0),
     0,
   );
 
@@ -580,7 +645,7 @@ function renderContributionManagement() {
 
   contributionTableBody.innerHTML = filtered
     .map((member, index) => {
-      const amount = Number(member.contributionAmount) || 0;
+      const amount = getContributionAmount(member.id);
 
       return `
         <tr>
@@ -807,10 +872,178 @@ function startSponsorSubscription(classId) {
     );
 }
 
+
+function stopPublicClassSubscriptions() {
+  if (unsubscribePublicMembers) {
+    unsubscribePublicMembers();
+    unsubscribePublicMembers = null;
+  }
+
+  if (unsubscribePublicSponsors) {
+    unsubscribePublicSponsors();
+    unsubscribePublicSponsors = null;
+  }
+
+  publicClassMembers = [];
+  publicClassSponsors = [];
+}
+
+function renderPublicClassDetail() {
+  publicClassMemberCount.textContent =
+    publicClassMembers.length;
+
+  publicClassAttendingCount.textContent =
+    publicClassMembers.filter(
+      (item) => item.attending === true,
+    ).length;
+
+  const sponsorTotal = publicClassSponsors.reduce(
+    (sum, item) =>
+      sum +
+      (
+        item.type === "money"
+          ? Number(item.amount) || 0
+          : 0
+      ),
+    0,
+  );
+
+  publicClassSponsorTotal.textContent =
+    formatCurrency(sponsorTotal);
+
+  if (publicClassMembers.length === 0) {
+    publicClassMemberBody.innerHTML = `
+      <tr>
+        <td colspan="3" class="empty-row">
+          Chưa có dữ liệu công khai
+        </td>
+      </tr>
+    `;
+  } else {
+    publicClassMemberBody.innerHTML =
+      publicClassMembers
+        .map(
+          (item, index) => `
+            <tr>
+              <td>${index + 1}</td>
+              <td>
+                <strong>
+                  ${escapeHtml(item.fullName || "")}
+                </strong>
+              </td>
+              <td>
+                ${
+                  item.attending === true
+                    ? '<span class="attending-status yes">Tham gia</span>'
+                    : '<span class="attending-status no">Chưa xác nhận</span>'
+                }
+              </td>
+            </tr>
+          `,
+        )
+        .join("");
+  }
+
+  if (publicClassSponsors.length === 0) {
+    publicClassSponsorBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-row">
+          Chưa có dữ liệu tài trợ
+        </td>
+      </tr>
+    `;
+  } else {
+    publicClassSponsorBody.innerHTML =
+      publicClassSponsors
+        .map(
+          (item, index) => {
+            const isMoney = item.type === "money";
+
+            return `
+              <tr>
+                <td>${index + 1}</td>
+                <td>
+                  <strong>
+                    ${escapeHtml(item.sponsorName || "")}
+                  </strong>
+                </td>
+                <td>
+                  ${
+                    isMoney
+                      ? "Tiền"
+                      : "Hiện vật/dịch vụ"
+                  }
+                </td>
+                <td>
+                  ${
+                    isMoney
+                      ? formatCurrency(item.amount)
+                      : escapeHtml(item.content || "")
+                  }
+                </td>
+              </tr>
+            `;
+          },
+        )
+        .join("");
+  }
+}
+
+function openPublicClass(classId) {
+  stopPublicClassSubscriptions();
+
+  publicClassTitle.textContent =
+    `Lớp ${classId}`;
+
+  publicClassDetail.classList.remove("hidden");
+
+  unsubscribePublicMembers =
+    subscribePublicMembersByClass(
+      classId,
+      (items) => {
+        publicClassMembers = items;
+        renderPublicClassDetail();
+      },
+      () => {
+        publicClassMemberBody.innerHTML = `
+          <tr>
+            <td colspan="3" class="empty-row">
+              Không đọc được dữ liệu công khai
+            </td>
+          </tr>
+        `;
+      },
+    );
+
+  unsubscribePublicSponsors =
+    subscribeSponsorsByClass(
+      classId,
+      (items) => {
+        publicClassSponsors = items;
+        renderPublicClassDetail();
+      },
+      () => {
+        publicClassSponsorBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="empty-row">
+              Không đọc được dữ liệu tài trợ
+            </td>
+          </tr>
+        `;
+      },
+    );
+
+  publicClassDetail.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+  });
+}
+
 function showLoggedOutUI() {
   currentSession = null;
 
   stopMemberSubscription();
+  stopContributionSubscription();
   stopSponsorSubscription();
 
   resetMemberForm();
@@ -865,7 +1098,24 @@ function showLoggedInUI(session) {
         : "Đại diện lớp";
 
     if (classId) {
+      /*
+       * One-time safe migration:
+       * - create publicMembers mirror
+       * - move legacy contributionAmount to private contributions
+       * - remove contributionAmount from members
+       */
+      migrateLegacyClassData(
+        classId,
+        authUser.uid,
+      ).catch((error) => {
+        console.error(
+          "Lỗi chuyển dữ liệu cũ:",
+          error,
+        );
+      });
+
       startMemberSubscription(classId);
+      startContributionSubscription(classId);
       startSponsorSubscription(classId);
     }
   } else if (profile.role === "admin") {
@@ -1340,9 +1590,24 @@ if (contributionTableBody) {
       button.textContent = "Đang lưu...";
 
       try {
+        const member = classMembers.find(
+          (item) => item.id === memberId,
+        );
+
+        if (!member) {
+          throw new Error(
+            "Không tìm thấy thành viên.",
+          );
+        }
+
         await updateMemberContribution(
           memberId,
-          amount,
+          {
+            classId: currentSession.profile.classId,
+            memberName: member.fullName || "",
+            amount,
+            updatedBy: currentSession.authUser.uid,
+          },
         );
       } catch (error) {
         console.error(
@@ -1617,6 +1882,23 @@ if (cancelSponsorEditButton) {
     "click",
     () => {
       resetSponsorForm();
+    },
+  );
+}
+
+
+publicClassButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    openPublicClass(button.dataset.classId);
+  });
+});
+
+if (closePublicClassButton) {
+  closePublicClassButton.addEventListener(
+    "click",
+    () => {
+      stopPublicClassSubscriptions();
+      publicClassDetail.classList.add("hidden");
     },
   );
 }

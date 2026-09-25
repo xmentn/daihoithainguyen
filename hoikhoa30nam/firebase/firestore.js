@@ -8,11 +8,18 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  setDoc,
+  getDocs,
   query,
   where,
   onSnapshot,
   serverTimestamp,
+  deleteField,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+/* =========================================
+   MEMBERS - PRIVATE WORKING DATA
+========================================= */
 
 async function addMember({
   fullName,
@@ -21,17 +28,29 @@ async function addMember({
   classId,
   createdBy,
 }) {
-  return await addDoc(collection(db, "members"), {
+  const memberRef = await addDoc(collection(db, "members"), {
     fullName: fullName.trim(),
     phone: phone.trim(),
     note: note.trim(),
     classId,
     attending: false,
-    contributionAmount: 0,
     createdBy,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  await setDoc(
+    doc(db, "publicMembers", memberRef.id),
+    {
+      fullName: fullName.trim(),
+      classId,
+      attending: false,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+
+  return memberRef;
 }
 
 async function updateMember(
@@ -50,32 +69,47 @@ async function updateMember(
     note: note.trim(),
     updatedAt: serverTimestamp(),
   });
+
+  await setDoc(
+    doc(db, "publicMembers", memberId),
+    {
+      fullName: fullName.trim(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
 async function deleteMember(memberId) {
-  const memberRef = doc(db, "members", memberId);
-  await deleteDoc(memberRef);
+  await deleteDoc(doc(db, "members", memberId));
+
+  try {
+    await deleteDoc(doc(db, "publicMembers", memberId));
+  } catch (_) {
+    // Ignore if public mirror does not exist.
+  }
+
+  try {
+    await deleteDoc(doc(db, "contributions", memberId));
+  } catch (_) {
+    // Ignore if private contribution does not exist.
+  }
 }
 
 async function updateMemberAttendance(memberId, attending) {
-  const memberRef = doc(db, "members", memberId);
-
-  await updateDoc(memberRef, {
+  await updateDoc(doc(db, "members", memberId), {
     attending: Boolean(attending),
     updatedAt: serverTimestamp(),
   });
-}
 
-
-async function updateMemberContribution(memberId, contributionAmount) {
-  const memberRef = doc(db, "members", memberId);
-
-  const amount = Number(contributionAmount) || 0;
-
-  await updateDoc(memberRef, {
-    contributionAmount: amount < 0 ? 0 : amount,
-    updatedAt: serverTimestamp(),
-  });
+  await setDoc(
+    doc(db, "publicMembers", memberId),
+    {
+      attending: Boolean(attending),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
 }
 
 function subscribeMembersByClass(
@@ -107,22 +141,181 @@ function subscribeMembersByClass(
       callback(members);
     },
     (error) => {
-      console.error(
-        "Lỗi đọc danh sách thành viên:",
-        error,
-      );
-
-      if (errorCallback) {
-        errorCallback(error);
-      }
+      console.error("Lỗi đọc danh sách thành viên:", error);
+      if (errorCallback) errorCallback(error);
     },
   );
 }
 
+/* =========================================
+   PUBLIC MEMBERS
+========================================= */
 
+function subscribePublicMembersByClass(
+  classId,
+  callback,
+  errorCallback,
+) {
+  const q = query(
+    collection(db, "publicMembers"),
+    where("classId", "==", classId),
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const members = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      members.sort((a, b) =>
+        (a.fullName || "").localeCompare(
+          b.fullName || "",
+          "vi",
+          { sensitivity: "base" },
+        ),
+      );
+
+      callback(members);
+    },
+    (error) => {
+      console.error("Lỗi đọc dữ liệu công khai:", error);
+      if (errorCallback) errorCallback(error);
+    },
+  );
+}
 
 /* =========================================
-   TÀI TRỢ
+   CONTRIBUTIONS - PRIVATE
+========================================= */
+
+async function updateMemberContribution(
+  memberId,
+  {
+    classId,
+    memberName,
+    amount,
+    updatedBy,
+  },
+) {
+  const contributionRef =
+    doc(db, "contributions", memberId);
+
+  const normalizedAmount =
+    Math.max(0, Number(amount) || 0);
+
+  if (normalizedAmount === 0) {
+    try {
+      await deleteDoc(contributionRef);
+    } catch (_) {
+      // Ignore if document does not exist.
+    }
+    return;
+  }
+
+  await setDoc(
+    contributionRef,
+    {
+      memberId,
+      memberName: memberName || "",
+      classId,
+      amount: normalizedAmount,
+      updatedBy,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+function subscribeContributionsByClass(
+  classId,
+  callback,
+  errorCallback,
+) {
+  const q = query(
+    collection(db, "contributions"),
+    where("classId", "==", classId),
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const items = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      callback(items);
+    },
+    (error) => {
+      console.error("Lỗi đọc đóng góp:", error);
+      if (errorCallback) errorCallback(error);
+    },
+  );
+}
+
+/* =========================================
+   ONE-TIME MIGRATION FOR LEGACY DATA
+========================================= */
+
+async function migrateLegacyClassData(classId, userId) {
+  const q = query(
+    collection(db, "members"),
+    where("classId", "==", classId),
+  );
+
+  const snapshot = await getDocs(q);
+
+  for (const item of snapshot.docs) {
+    const data = item.data();
+
+    await setDoc(
+      doc(db, "publicMembers", item.id),
+      {
+        fullName: data.fullName || "",
+        classId,
+        attending: data.attending === true,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+
+    if (Object.prototype.hasOwnProperty.call(
+      data,
+      "contributionAmount",
+    )) {
+      const amount =
+        Math.max(0, Number(data.contributionAmount) || 0);
+
+      if (amount > 0) {
+        await setDoc(
+          doc(db, "contributions", item.id),
+          {
+            memberId: item.id,
+            memberName: data.fullName || "",
+            classId,
+            amount,
+            updatedBy: userId,
+            updatedAt: serverTimestamp(),
+          },
+          { merge: true },
+        );
+      }
+
+      await updateDoc(
+        doc(db, "members", item.id),
+        {
+          contributionAmount: deleteField(),
+          updatedAt: serverTimestamp(),
+        },
+      );
+    }
+  }
+}
+
+/* =========================================
+   SPONSORS - PUBLIC READ, PRIVATE WRITE
 ========================================= */
 
 async function addSponsor({
@@ -162,14 +355,12 @@ async function updateSponsor(
     note = "",
   },
 ) {
-  const sponsorRef = doc(db, "sponsors", sponsorId);
-
   const normalizedAmount =
     type === "money"
       ? Math.max(0, Number(amount) || 0)
       : 0;
 
-  await updateDoc(sponsorRef, {
+  await updateDoc(doc(db, "sponsors", sponsorId), {
     sponsorName: sponsorName.trim(),
     type,
     amount: normalizedAmount,
@@ -180,8 +371,7 @@ async function updateSponsor(
 }
 
 async function deleteSponsor(sponsorId) {
-  const sponsorRef = doc(db, "sponsors", sponsorId);
-  await deleteDoc(sponsorRef);
+  await deleteDoc(doc(db, "sponsors", sponsorId));
 }
 
 function subscribeSponsorsByClass(
@@ -213,11 +403,8 @@ function subscribeSponsorsByClass(
       callback(sponsors);
     },
     (error) => {
-      console.error("Lỗi đọc danh sách tài trợ:", error);
-
-      if (errorCallback) {
-        errorCallback(error);
-      }
+      console.error("Lỗi đọc tài trợ:", error);
+      if (errorCallback) errorCallback(error);
     },
   );
 }
@@ -227,8 +414,11 @@ export {
   updateMember,
   deleteMember,
   updateMemberAttendance,
-  updateMemberContribution,
   subscribeMembersByClass,
+  subscribePublicMembersByClass,
+  updateMemberContribution,
+  subscribeContributionsByClass,
+  migrateLegacyClassData,
   addSponsor,
   updateSponsor,
   deleteSponsor,

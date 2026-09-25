@@ -213,7 +213,11 @@
               <div class="class-content">
                 <h3>Lớp 12A</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12A"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -223,7 +227,11 @@
               <div class="class-content">
                 <h3>Lớp 12B</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12B"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -233,7 +241,11 @@
               <div class="class-content">
                 <h3>Lớp 12C</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12C"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -243,7 +255,11 @@
               <div class="class-content">
                 <h3>Lớp 12D</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12D"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -253,7 +269,11 @@
               <div class="class-content">
                 <h3>Lớp 12E</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12E"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -263,7 +283,11 @@
               <div class="class-content">
                 <h3>Lớp 12G</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12G"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -273,7 +297,11 @@
               <div class="class-content">
                 <h3>Lớp 12H</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12H"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -283,7 +311,11 @@
               <div class="class-content">
                 <h3>Lớp 12K</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12K"
+                >
                   Xem chi tiết →
                 </button>
               </div>
@@ -293,12 +325,101 @@
               <div class="class-content">
                 <h3>Lớp 12M</h3>
                 <p>Danh sách thành viên</p>
-                <button class="text-button" type="button">
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12M"
+                >
                   Xem chi tiết →
                 </button>
               </div>
             </article>
           </div>
+
+          <div class="public-class-detail hidden" id="publicClassDetail">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">THÔNG TIN LỚP</span>
+                <h3 id="publicClassTitle">Lớp</h3>
+                <p>
+                  Thông tin công khai: danh sách thành viên, người tham gia và tài trợ.
+                </p>
+              </div>
+
+              <button
+                class="secondary-action-button"
+                id="closePublicClassButton"
+                type="button"
+              >
+                Đóng
+              </button>
+            </div>
+
+            <div class="public-class-stats">
+              <div class="stat-card compact-stat">
+                <div class="stat-number" id="publicClassMemberCount">0</div>
+                <div class="stat-label">Thành viên</div>
+              </div>
+
+              <div class="stat-card compact-stat">
+                <div class="stat-number" id="publicClassAttendingCount">0</div>
+                <div class="stat-label">Tham gia Hội khóa</div>
+              </div>
+
+              <div class="stat-card compact-stat">
+                <div class="stat-number stat-money" id="publicClassSponsorTotal">0 đ</div>
+                <div class="stat-label">Tài trợ bằng tiền</div>
+              </div>
+            </div>
+
+            <div class="public-class-grid">
+              <div class="table-card">
+                <h4>Danh sách thành viên</h4>
+                <div class="table-responsive">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Họ và tên</th>
+                        <th>Tham gia</th>
+                      </tr>
+                    </thead>
+                    <tbody id="publicClassMemberBody">
+                      <tr>
+                        <td colspan="3" class="empty-row">Chưa có dữ liệu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="table-card">
+                <h4>Danh sách tài trợ</h4>
+                <div class="table-responsive">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Người/đơn vị</th>
+                        <th>Hình thức</th>
+                        <th>Giá trị/Nội dung</th>
+                      </tr>
+                    </thead>
+                    <tbody id="publicClassSponsorBody">
+                      <tr>
+                        <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="privacy-note">
+              Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công khai.
+            </div>
+          </div>
+
         </div>
       </section>
 

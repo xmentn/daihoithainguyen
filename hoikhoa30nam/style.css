@@ -1777,3 +1777,55 @@ td {
         width: 100%;
     }
 }
+
+
+/* =========================================
+   PUBLIC CLASS DETAIL
+========================================= */
+
+.public-class-detail {
+    margin-top: 30px;
+}
+
+.public-class-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.compact-stat {
+    padding: 18px 14px;
+}
+
+.public-class-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 20px;
+}
+
+.public-class-grid .table-card h4 {
+    margin-bottom: 14px;
+    color: var(--blue-dark);
+    font-size: 18px;
+}
+
+.privacy-note {
+    margin-top: 18px;
+    padding: 13px 16px;
+    border-radius: 10px;
+    background: #fff7e7;
+    border: 1px solid #ead5ad;
+    color: #6d5a38;
+    font-size: 13px;
+}
+
+@media (max-width: 900px) {
+    .public-class-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .public-class-grid {
+        grid-template-columns: 1fr;
+    }
+}
