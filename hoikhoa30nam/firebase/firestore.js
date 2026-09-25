@@ -57,6 +57,15 @@ async function deleteMember(memberId) {
   await deleteDoc(memberRef);
 }
 
+async function updateMemberAttendance(memberId, attending) {
+  const memberRef = doc(db, "members", memberId);
+
+  await updateDoc(memberRef, {
+    attending: Boolean(attending),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 function subscribeMembersByClass(
   classId,
   callback,
@@ -102,5 +111,6 @@ export {
   addMember,
   updateMember,
   deleteMember,
+  updateMemberAttendance,
   subscribeMembersByClass,
 };

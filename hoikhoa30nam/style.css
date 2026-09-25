@@ -1461,3 +1461,106 @@ td {
         width: 100%;
     }
 }
+
+
+/* =========================================
+   PARTICIPANT MANAGEMENT
+========================================= */
+
+.participant-management {
+    margin-top: 28px;
+}
+
+.participant-count-group {
+    display: flex;
+    gap: 12px;
+}
+
+.attending-count-box {
+    background: #eef9f1;
+    border-color: #c7e5cf;
+}
+
+.attending-count-box strong {
+    color: #23723a;
+}
+
+.participant-card {
+    overflow: hidden;
+    border: 1px solid #e8e0d5;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.participant-toolbar {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #eeeeee;
+}
+
+.participant-toolbar input,
+.participant-toolbar select {
+    min-height: 42px;
+    padding: 0 13px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+}
+
+.participant-toolbar input {
+    flex: 1;
+}
+
+.participant-toolbar select {
+    width: 190px;
+}
+
+.participant-toolbar input:focus,
+.participant-toolbar select:focus {
+    border-color: var(--blue);
+}
+
+.attending-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    font-weight: 700;
+    color: #555555;
+}
+
+.attending-switch input {
+    width: 18px;
+    height: 18px;
+    accent-color: #2d8a48;
+    cursor: pointer;
+}
+
+.attending-status.yes {
+    color: #23723a;
+}
+
+.attending-status.no {
+    color: #8a6d5a;
+}
+
+@media (max-width: 760px) {
+    .participant-count-group {
+        width: 100%;
+    }
+
+    .participant-count-group .member-count-box {
+        flex: 1;
+    }
+
+    .participant-toolbar {
+        flex-direction: column;
+    }
+
+    .participant-toolbar select {
+        width: 100%;
+    }
+}

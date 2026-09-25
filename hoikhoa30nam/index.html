@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="vi">
   <head>
-    <link rel="icon" type="image/png" href="assets/images/Logo.png" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
@@ -413,8 +412,8 @@
             </button>
 
             <button
-              class="management-card coming-soon-card"
-              data-soon="Danh sách tham gia"
+              class="management-card"
+              id="manageParticipantsButton"
               type="button"
             >
               <div class="management-icon">✅</div>
@@ -552,6 +551,66 @@
               </div>
             </div>
           </div>
+
+          <div class="participant-management hidden" id="participantManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">THAM GIA HỘI KHÓA</span>
+                <h3 id="participantSectionTitle">Danh sách tham gia</h3>
+                <p>Đánh dấu những thành viên xác nhận tham dự Hội khóa.</p>
+              </div>
+
+              <div class="participant-count-group">
+                <div class="member-count-box">
+                  <span>Tổng thành viên</span>
+                  <strong id="participantTotalCount">0</strong>
+                  <small>người</small>
+                </div>
+
+                <div class="member-count-box attending-count-box">
+                  <span>Đã xác nhận</span>
+                  <strong id="attendingCount">0</strong>
+                  <small>người tham gia</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="participant-card">
+              <div class="participant-toolbar">
+                <input
+                  type="text"
+                  id="participantManageSearch"
+                  placeholder="Tìm theo họ tên hoặc số điện thoại..."
+                >
+
+                <select id="participantStatusFilter">
+                  <option value="all">Tất cả</option>
+                  <option value="attending">Đã xác nhận</option>
+                  <option value="not-attending">Chưa xác nhận</option>
+                </select>
+              </div>
+
+              <div class="table-responsive">
+                <table class="participant-management-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Họ và tên</th>
+                      <th>Số điện thoại</th>
+                      <th>Tham gia Hội khóa</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="participantManageTableBody">
+                    <tr>
+                      <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           </div>
         </div>
       </section>

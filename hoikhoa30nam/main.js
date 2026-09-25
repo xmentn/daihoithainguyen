@@ -9,6 +9,7 @@ import {
   addMember,
   updateMember,
   deleteMember,
+  updateMemberAttendance,
   subscribeMembersByClass,
 } from "./firebase/firestore.js";
 
@@ -151,6 +152,26 @@ const memberTableBody =
 
 const comingSoonCards =
   document.querySelectorAll(".coming-soon-card");
+const manageMembersButton =
+  document.getElementById("manageMembersButton");
+const manageParticipantsButton =
+  document.getElementById("manageParticipantsButton");
+const memberManagement =
+  document.getElementById("memberManagement");
+const participantManagement =
+  document.getElementById("participantManagement");
+const participantSectionTitle =
+  document.getElementById("participantSectionTitle");
+const participantTotalCount =
+  document.getElementById("participantTotalCount");
+const attendingCount =
+  document.getElementById("attendingCount");
+const participantManageSearch =
+  document.getElementById("participantManageSearch");
+const participantStatusFilter =
+  document.getElementById("participantStatusFilter");
+const participantManageTableBody =
+  document.getElementById("participantManageTableBody");
 
 let currentSession = null;
 let unsubscribeMembers = null;
@@ -233,6 +254,7 @@ function renderMembers() {
   );
 
   memberCount.textContent = classMembers.length;
+  renderParticipantManagement();
 
   if (filtered.length === 0) {
     memberTableBody.innerHTML = `
@@ -301,6 +323,9 @@ function startMemberSubscription(classId) {
   memberSectionTitle.textContent =
     `Danh sách thành viên lớp ${classId}`;
 
+  participantSectionTitle.textContent =
+    `Danh sách tham gia lớp ${classId}`;
+
   unsubscribeMembers =
     subscribeMembersByClass(
       classId,
@@ -315,6 +340,98 @@ function startMemberSubscription(classId) {
         );
       },
     );
+}
+
+
+function setActiveManagementCard(activeButton) {
+  document.querySelectorAll(".management-card").forEach((card) => {
+    card.classList.remove("active-management-card");
+  });
+
+  if (activeButton) {
+    activeButton.classList.add("active-management-card");
+  }
+}
+
+function showManagementPanel(panelName) {
+  memberManagement.classList.add("hidden");
+  participantManagement.classList.add("hidden");
+
+  if (panelName === "participants") {
+    participantManagement.classList.remove("hidden");
+    setActiveManagementCard(manageParticipantsButton);
+  } else {
+    memberManagement.classList.remove("hidden");
+    setActiveManagementCard(manageMembersButton);
+  }
+}
+
+function renderParticipantManagement() {
+  const keyword = (participantManageSearch.value || "")
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const status = participantStatusFilter.value;
+
+  const filtered = classMembers.filter((member) => {
+    const fullName = (member.fullName || "").toLocaleLowerCase("vi");
+    const phone = (member.phone || "").toLocaleLowerCase("vi");
+
+    const matchesKeyword =
+      !keyword ||
+      fullName.includes(keyword) ||
+      phone.includes(keyword);
+
+    let matchesStatus = true;
+
+    if (status === "attending") {
+      matchesStatus = member.attending === true;
+    } else if (status === "not-attending") {
+      matchesStatus = member.attending !== true;
+    }
+
+    return matchesKeyword && matchesStatus;
+  });
+
+  participantTotalCount.textContent = classMembers.length;
+  attendingCount.textContent =
+    classMembers.filter((member) => member.attending === true).length;
+
+  if (filtered.length === 0) {
+    participantManageTableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-row">
+          ${classMembers.length === 0
+            ? "Chưa có dữ liệu thành viên"
+            : "Không tìm thấy thành viên phù hợp"}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  participantManageTableBody.innerHTML = filtered
+    .map((member, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${escapeHtml(member.fullName || "")}</strong></td>
+        <td>${escapeHtml(member.phone || "")}</td>
+        <td>
+          <label class="attending-switch">
+            <input
+              type="checkbox"
+              class="attendance-checkbox"
+              data-member-id="${member.id}"
+              ${member.attending === true ? "checked" : ""}
+            >
+            <span class="attending-status ${member.attending === true ? "yes" : "no"}">
+              ${member.attending === true ? "Đã xác nhận" : "Chưa xác nhận"}
+            </span>
+          </label>
+        </td>
+      </tr>
+    `)
+    .join("");
 }
 
 function showLoggedOutUI() {
@@ -391,6 +508,7 @@ function showLoggedInUI(session) {
       "Danh sách thành viên - phần Admin sẽ hoàn thiện sau";
   }
 
+  showManagementPanel("members");
   openTab("management");
 }
 
@@ -728,6 +846,61 @@ if (memberSearch) {
       renderMembers();
     },
   );
+}
+
+
+if (manageMembersButton) {
+  manageMembersButton.addEventListener("click", () => {
+    showManagementPanel("members");
+  });
+}
+
+if (manageParticipantsButton) {
+  manageParticipantsButton.addEventListener("click", () => {
+    showManagementPanel("participants");
+    renderParticipantManagement();
+  });
+}
+
+if (participantManageSearch) {
+  participantManageSearch.addEventListener("input", () => {
+    renderParticipantManagement();
+  });
+}
+
+if (participantStatusFilter) {
+  participantStatusFilter.addEventListener("change", () => {
+    renderParticipantManagement();
+  });
+}
+
+if (participantManageTableBody) {
+  participantManageTableBody.addEventListener("change", async (event) => {
+    const checkbox = event.target.closest(".attendance-checkbox");
+
+    if (!checkbox) return;
+
+    const memberId = checkbox.dataset.memberId;
+    const member = classMembers.find((item) => item.id === memberId);
+
+    if (!member) return;
+
+    checkbox.disabled = true;
+
+    try {
+      await updateMemberAttendance(memberId, checkbox.checked);
+    } catch (error) {
+      console.error("Lỗi cập nhật trạng thái tham gia:", error);
+
+      checkbox.checked = member.attending === true;
+
+      alert(
+        "Không cập nhật được trạng thái tham gia. Vui lòng kiểm tra Firestore Rules.",
+      );
+    } finally {
+      checkbox.disabled = false;
+    }
+  });
 }
 
 comingSoonCards.forEach((card) => {
