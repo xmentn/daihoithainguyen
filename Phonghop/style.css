@@ -38,25 +38,27 @@ body {
   display: block;
   width: 100%;
   /* Gọi ảnh trực tiếp thông qua thẻ ảo để dựng độ cao co giãn tự nhiên theo chiều rộng màn hình */
-  background: url("/images/Banner2.png") no-repeat center center;
+  background: url("/images/banner-bg.png") no-repeat center center;
   background-size: 100% auto;
-  padding-top: 21.5%; /* Tỷ lệ vàng chính xác theo kích thước file Banner_2.png của bạn */
+  padding-top: 4.6875%; /* Tỷ lệ ảnh banner-bg.png: 3840 x 180 */
 }
 
-/* ĐỊNH VỊ TUYỆT ĐỐI KHỐI CHỮ VÀ NÚT ĐỂ NỔI LÊN TRÊN BANNER */
+/* ĐỊNH VỊ KHỐI CHỮ VÀ NÚT TRÊN ẢNH NỀN BANNER */
 .main-header .header-left {
   position: absolute !important;
-  top: 15px !important; /* Đẩy sát lên mép trên 15px */
-  left: 20px !important; /* Đẩy sát ra lề trái 20px */
-  transform: none !important; /* Loại bỏ việc căn giữa theo chiều dọc cũ */
+  top: 50% !important;
+  left: 40px !important;
+  transform: translateY(-50%) !important;
   z-index: 10;
   display: flex;
   align-items: center;
+  max-width: calc(100% - 230px);
 }
+
 .main-header .header-admin-btn {
   position: absolute !important;
-  top: 90% !important;
-  right: 40px !important;
+  top: 50% !important;
+  right: 30px !important;
   transform: translateY(-50%) !important;
   z-index: 10;
 }
@@ -74,18 +76,37 @@ body {
   border-radius: 50%;
 }
 
-.header-left h2,
-.header-left p,
+.header-left h2 {
+  display: block;
+  color: #f7d774;
+  font-size: clamp(15px, 1.35vw, 24px);
+  line-height: 1.15;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.header-left p {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: clamp(10px, 0.75vw, 14px);
+  line-height: 1.1;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
 .header-icon {
-  display: none !important; /* Ẩn hoàn toàn chữ cũ nhưng không làm lỗi file script.js */
+  display: none !important;
 }
 .header-admin-btn {
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.4);
   color: white;
-  padding: 10px 18px;
+  padding: 7px 12px;
   border-radius: 4px;
   font-weight: bold;
+  font-size: 12px;
   cursor: pointer;
   transition: 0.2s;
 }

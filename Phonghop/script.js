@@ -1,5 +1,9 @@
 import { db, collection, onSnapshot } from "./firebase-config.js";
-import { auth, signInWithEmailAndPassword } from "./firebase-config.js";
+import {
+  auth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+} from "./firebase-config.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- ĐĂNG NHẬP QUẢN TRỊ (ĐÃ SỬA ĐẦY ĐỦ BIẾN) ---
@@ -13,7 +17,34 @@ document.addEventListener("DOMContentLoaded", () => {
   const passIn = document.getElementById("password");
   const errorMsg = document.getElementById("login-error");
 
-  adminBtn.addEventListener("click", () => {
+  // Theo dõi trạng thái đăng nhập hiện tại để không bắt đăng nhập lại
+  // khi quản trị viên quay từ admin.html về trang chủ.
+  let currentAdminUser = null;
+  let authInitialized = false;
+  let resolveAuthReady;
+  const authReadyPromise = new Promise((resolve) => {
+    resolveAuthReady = resolve;
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    currentAdminUser = user;
+    if (!authInitialized) {
+      authInitialized = true;
+      resolveAuthReady(user);
+    }
+  });
+
+  adminBtn.addEventListener("click", async () => {
+    // Chờ Firebase khôi phục phiên đăng nhập trước khi quyết định mở form login.
+    if (!authInitialized) {
+      await authReadyPromise;
+    }
+
+    if (currentAdminUser) {
+      window.location.href = "admin.html";
+      return;
+    }
+
     loginModal.style.display = "flex";
   });
   closeLogin.addEventListener("click", () => {
@@ -132,35 +163,124 @@ document.addEventListener("DOMContentLoaded", () => {
     if (activeConfId) renderActiveConference();
   });
 
-  onSnapshot(collection(db, "conferences"), (snapshot) => {
-    globalConferences = [];
-    viewConfSelect.innerHTML = "";
-    snapshot.forEach((docSnap) => {
-      globalConferences.push({ id: docSnap.id, ...docSnap.data() });
+  function getLocalDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  function formatConferenceDate(dateString) {
+    if (!dateString || !/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return "";
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  function isConferenceAvailable(conf) {
+    return Boolean(
+      conf?.conferenceDate && conf.conferenceDate >= getLocalDateString(),
+    );
+  }
+
+  function resetAuditoriumView() {
+    activeConfId = "";
+    chairmanContainer.innerHTML = "";
+
+    document.querySelectorAll(".a-seat").forEach((seat) => {
+      seat.classList.remove(
+        "has-delegate",
+        "seat-trung-uong",
+        "seat-btv",
+        "seat-bch",
+        "seat-khac",
+      );
+      seat.removeAttribute("data-tooltip");
+      seat.innerHTML = `<span class="seat-code">${seat.dataset.code}</span>`;
     });
 
-    if (globalConferences.length === 0) {
-      viewConfSelect.innerHTML = "<option>-- Chưa có hội nghị --</option>";
+    headerTitle.textContent = "SƠ ĐỒ HỘI TRƯỜNG";
+    headerSubtitle.textContent = "Hội trường Tỉnh ủy";
+
+    const totalChairsCount = document.querySelectorAll(".a-seat").length;
+    document.getElementById("stat-total").textContent = totalChairsCount;
+    document.getElementById("stat-selected").textContent = "0";
+    document.getElementById("stat-empty").textContent = totalChairsCount;
+    document.getElementById("stat-percent").textContent = "0.0%";
+
+    const donutChart = document.getElementById("donut-chart");
+    const chartPercentText = document.getElementById("chart-percent-text");
+    if (donutChart && chartPercentText) {
+      chartPercentText.textContent = "0.0%";
+      donutChart.style.background =
+        "conic-gradient(#922b21 0% 0%, #f4efe2 0% 100%)";
+    }
+  }
+
+  function populatePublicConferenceSelect() {
+    const availableConferences = globalConferences
+      .filter(isConferenceAvailable)
+      .sort((a, b) => {
+        if (a.conferenceDate !== b.conferenceDate) {
+          return a.conferenceDate.localeCompare(b.conferenceDate);
+        }
+        return String(a.name || "").localeCompare(String(b.name || ""), "vi");
+      });
+
+    if (
+      activeConfId &&
+      !availableConferences.some((conf) => conf.id === activeConfId)
+    ) {
+      activeConfId = "";
+    }
+
+    viewConfSelect.innerHTML = "";
+
+    if (availableConferences.length === 0) {
+      viewConfSelect.innerHTML =
+        '<option value="">-- Không có Hội nghị đang hoặc sắp diễn ra --</option>';
+      resetAuditoriumView();
       return;
     }
 
-    globalConferences.forEach((conf, idx) => {
+    if (!activeConfId) {
+      activeConfId = availableConferences[0].id;
+    }
+
+    availableConferences.forEach((conf) => {
       const opt = document.createElement("option");
       opt.value = conf.id;
-      opt.textContent = conf.name;
-      if (activeConfId === "" && idx === 0) {
-        activeConfId = conf.id;
-        opt.selected = true;
-      } else if (conf.id === activeConfId) opt.selected = true;
+      const roomText = conf.roomName || "Chưa có phòng";
+      const dateText = formatConferenceDate(conf.conferenceDate);
+      opt.textContent = `${dateText} — ${roomText} — ${conf.name}`;
+      opt.selected = conf.id === activeConfId;
       viewConfSelect.appendChild(opt);
     });
+
     renderActiveConference();
+  }
+
+  onSnapshot(collection(db, "conferences"), (snapshot) => {
+    globalConferences = [];
+    snapshot.forEach((docSnap) => {
+      globalConferences.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    populatePublicConferenceSelect();
   });
 
   viewConfSelect.addEventListener("change", (e) => {
     activeConfId = e.target.value;
-    renderActiveConference();
+    if (activeConfId) renderActiveConference();
   });
+
+  let lastConferenceFilterDate = getLocalDateString();
+  setInterval(() => {
+    const today = getLocalDateString();
+    if (today !== lastConferenceFilterDate) {
+      lastConferenceFilterDate = today;
+      populatePublicConferenceSelect();
+    }
+  }, 60_000);
 
   function renderActiveConference() {
     const conf = globalConferences.find((c) => c.id === activeConfId);
@@ -168,7 +288,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Đổi tiêu đề Banner đầu trang theo Hội nghị đang chọn
     headerTitle.textContent = conf.name.toUpperCase();
-    headerSubtitle.textContent = `Hội trường Tỉnh ủy`;
+    const subtitleParts = [];
+    if (conf.roomName) subtitleParts.push(conf.roomName);
+    const formattedDate = formatConferenceDate(conf.conferenceDate);
+    if (formattedDate) subtitleParts.push(formattedDate);
+    headerSubtitle.textContent =
+      subtitleParts.length > 0 ? subtitleParts.join(" • ") : "Hội trường Tỉnh ủy";
     // Reset tất cả ghế khán phòng về trạng thái trống ban đầu
     document.querySelectorAll(".a-seat").forEach((seat) => {
       seat.classList.remove(

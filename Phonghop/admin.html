@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Quản trị Hệ thống Hội trường</title>
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin.css?v=20260924-2">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-
 <body>
   <div class="admin-container">
-    <h1>BẢNG QUẢN TRỊ HỆ THỐNG</h1>
-    <div class="nav-links"><a href="index.html">🔙 Quay lại Sơ đồ</a></div>
+    <div class="admin-header">
+      <h1>BẢNG QUẢN TRỊ HỆ THỐNG</h1>
+      <div class="nav-links">
+        <a href="index.html">🔙 Quay lại Sơ đồ</a>
+        <button type="button" id="logout-btn" class="btn-logout">🚪 Đăng xuất</button>
+      </div>
+    </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="tab-danhsach">1. Danh sách Tổng</button>
-      <button class="tab-btn" data-tab="tab-hoignhi">2. Quản lý Hội nghị</button>
-      <button class="tab-btn" data-tab="tab-vitri">3. Xếp chỗ Hội nghị</button>
+    <div class="tabs" role="tablist" aria-label="Các chức năng quản trị">
+      <button class="tab-btn active" data-tab="tab-danhsach" type="button">1. Danh sách Tổng</button>
+      <button class="tab-btn" data-tab="tab-phonghop" type="button">2. Danh sách Phòng họp</button>
+      <button class="tab-btn" data-tab="tab-hoignhi" type="button">3. Quản lý Hội nghị</button>
+      <button class="tab-btn" data-tab="tab-vitri" type="button">4. Xếp chỗ Hội nghị</button>
     </div>
 
     <div id="tab-danhsach" class="tab-content active">
@@ -24,127 +29,194 @@
         <h3 id="form-title">Thêm Đại biểu vào Danh sách tổng</h3>
         <form id="delegate-form">
           <input type="hidden" id="delegate-id">
-          <div class="form-group" style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="number" id="delegate-rank" required placeholder="Rank (VD: 1, 2...)" style="width: 120px;"
-              min="1">
-            <input type="text" id="fullname" required placeholder="Nhập Họ và Tên đại biểu..." style="flex: 1;">
+
+          <div class="delegate-main-fields">
+            <div class="field-group rank-field">
+              <label for="delegate-rank">Rank</label>
+              <input type="number" id="delegate-rank" required placeholder="VD: 1, 2..." min="1" class="form-control">
+            </div>
+            <div class="field-group">
+              <label for="fullname">Họ và Tên đại biểu</label>
+              <input type="text" id="fullname" required placeholder="Nhập Họ và Tên đại biểu..." class="form-control">
+            </div>
+            <div class="field-group category-field">
+              <label for="delegate-category">Phân loại đối tượng</label>
+              <select id="delegate-category" required class="form-select">
+                <option value="">-- Chọn nhóm đối tượng --</option>
+                <option value="Trung ương">Đại biểu Trung ương</option>
+                <option value="Thường trực">Thường trực Tỉnh ủy</option>
+                <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
+                <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group" style="margin-bottom: 15px;">
-            <label style="font-weight: bold; margin-right: 10px;">Phân loại đối tượng:</label>
-            <select id="delegate-category" required
-              style="padding: 8px; width: 250px; border-radius: 4px; border: 1px solid #ccc;">
-              <option value="">-- Chọn nhóm đối tượng --</option>
-              <option value="Trung ương">Đại biểu Trung ương</option>
-              <option value="Thường trực">Thường trực Tỉnh ủy</option>
-              <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
-              <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
-            </select>
+
+          <div class="form-actions">
+            <button type="submit" id="save-btn" class="btn-primary">Lưu vào Danh sách tổng</button>
+            <button type="button" id="cancel-btn" class="btn-secondary is-hidden">Hủy</button>
           </div>
-          <button type="submit" id="save-btn" class="btn-primary">Lưu vào Danh sách tổng</button>
-          <button type="button" id="cancel-btn" style="display:none;" class="btn-secondary">Hủy</button>
         </form>
       </div>
 
-      <div class="filter-section"
-        style="margin-bottom: 15px; padding: 10px; background: #f9f9f9; border-radius: 4px; border-left: 4px solid #2980b9;">
-        <label style="font-weight: bold; margin-right: 10px;">🔍 Xem theo đối tượng:</label>
-        <select id="filter-category"
-          style="padding: 6px 12px; border-radius: 4px; border: 1px solid #ccc; font-weight: bold; color: #2c3e50;">
-          <option value="ALL">-- Hiển thị tất cả --</option>
-          <option value="Trung ương">Đại biểu Trung ương</option>
-          <option value="Thường trực">Thường trực Tỉnh ủy</option>
-          <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
-          <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
-        </select>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Rank</th>
-            <th>Phân loại</th>
-            <th>Họ và Tên</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="table-danhsach"></tbody>
-      </table>
-    </div>
-
-    <div id="tab-hoignhi" class="tab-content">
-      <div class="form-section">
-        <h3>Tạo phiên Hội nghị mới</h3>
-        <form id="conf-form" style="display: flex; gap: 10px;">
-          <input type="text" id="conf-name" required placeholder="Nhập tên Hội nghị..."
-            style="flex:1; padding:10px; border:1px solid #ccc; border-radius:4px;">
-          <button type="submit" class="btn-primary">Tạo Hội nghị</button>
-        </form>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>STT</th>
-            <th>Tên phiên Hội nghị / Cuộc họp</th>
-            <th>Thao tác</th>
-          </tr>
-        </thead>
-        <tbody id="table-hoignhi"></tbody>
-      </table>
-    </div>
-
-    <div id="tab-vitri" class="tab-content">
-      <div class="form-section" style="background: #eef5f9; border-color: #3498db;">
-        <label style="font-weight: bold; color: #2c3e50; margin-right: 10px;">Chọn Hội nghị cần xếp chỗ:</label>
-        <select id="select-conference"
-          style="padding: 10px; width: 70%; border-radius: 4px; font-weight: bold; color: #2980b9;">
-          <option value="">-- Vui lòng chọn một Hội nghị --</option>
-        </select>
-      </div>
-
-      <div id="action-vitri-container" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
-          <p style="color:#555; margin: 0;"><i>* Nhập mã ghế (V1, A1...) để mời và xếp chỗ. Bỏ trống nếu đại biểu không
-              dự phiên này.</i></p>
-          <button id="clear-all-seats"
-            style="background:#e74c3c; color:white; border:none; padding:8px 15px; border-radius:4px; font-weight:bold; cursor:pointer;">🗑️
-            Làm trống sơ đồ hội nghị này</button>
-        </div>
-        <div class="filter-container"
-          style="margin-bottom: 15px; padding: 10px; background: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0;">
-          <label for="delegate-filter"
-            style="font-weight: bold; font-size: 13px; color: #1e457e; display: block; margin-bottom: 5px;">
-            🎯 Lọc nhanh theo đối tượng:
-          </label>
-          <select id="delegate-filter"
-            style="width: 100%; padding: 8px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1; outline: none; font-weight: 500;">
-            <option value="ALL">-- Hiển thị tất cả đại biểu --</option>
+      <div class="filter-section">
+        <div class="field-group filter-field">
+          <label for="filter-category">🔍 Xem theo đối tượng</label>
+          <select id="filter-category" class="form-select">
+            <option value="ALL">-- Hiển thị tất cả --</option>
             <option value="Trung ương">Đại biểu Trung ương</option>
             <option value="Thường trực">Thường trực Tỉnh ủy</option>
             <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
             <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
           </select>
         </div>
+      </div>
 
-        <div id="external-delegates" class="delegate-list-box">
-        </div>
+      <div class="table-scroll">
         <table>
           <thead>
             <tr>
-              <th>STT</th>
-              <th>Rank</th>
-              <th>Phân loại</th>
+              <th class="col-stt">STT</th>
+              <th class="col-rank">Rank</th>
+              <th class="col-category">Phân loại</th>
               <th>Họ và Tên</th>
-              <th>Mã ghế phiên này</th>
-              <th>Thao tác</th>
+              <th class="col-actions">Thao tác</th>
             </tr>
           </thead>
-          <tbody id="table-vitri"></tbody>
+          <tbody id="table-danhsach"></tbody>
         </table>
       </div>
     </div>
-  </div>
-  <script type="module" src="admin.js"></script>
-</body>
 
+    <div id="tab-phonghop" class="tab-content">
+      <div class="form-section">
+        <h3 id="room-form-title">Thêm Phòng họp / Hội trường</h3>
+        <form id="room-form">
+          <input type="hidden" id="room-id">
+          <div class="room-form-row">
+            <div class="field-group room-name-field">
+              <label for="room-name">Tên Phòng họp / Hội trường</label>
+              <input type="text" id="room-name" required placeholder="Ví dụ: Hội trường Tỉnh ủy, Phòng họp số 1..." class="form-control">
+            </div>
+            <div class="form-actions room-actions">
+              <button type="submit" id="room-save-btn" class="btn-primary">Thêm Phòng họp</button>
+              <button type="button" id="room-cancel-btn" class="btn-secondary is-hidden">Hủy</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-stt">STT</th>
+              <th>Tên Phòng họp / Hội trường</th>
+              <th class="col-actions">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="table-phonghop"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-hoignhi" class="tab-content">
+      <div class="form-section">
+        <h3 id="conf-form-title">Tạo phiên Hội nghị mới</h3>
+        <form id="conf-form">
+          <input type="hidden" id="conf-id">
+
+          <div class="conference-form-grid">
+            <div class="field-group field-name">
+              <label for="conf-name">Tên Hội nghị / Cuộc họp</label>
+              <input type="text" id="conf-name" required placeholder="Nhập tên Hội nghị..." class="form-control">
+            </div>
+            <div class="field-group">
+              <label for="conf-room">Phòng họp / Hội trường</label>
+              <select id="conf-room" required class="form-select">
+                <option value="">-- Chọn Phòng họp / Hội trường --</option>
+              </select>
+            </div>
+            <div class="field-group date-field">
+              <label for="conf-date">Ngày Hội nghị</label>
+              <input type="date" id="conf-date" required class="form-control">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="conf-save-btn" class="btn-primary">Tạo Hội nghị</button>
+            <button type="button" id="conf-cancel-btn" class="btn-secondary is-hidden">Hủy</button>
+          </div>
+          <p class="form-note">Danh sách phòng họp được lấy từ tab “Danh sách Phòng họp”.</p>
+        </form>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th class="col-stt">STT</th>
+              <th>Tên phiên Hội nghị / Cuộc họp</th>
+              <th class="col-room">Phòng họp / Hội trường</th>
+              <th class="col-date">Ngày</th>
+              <th class="col-status">Trạng thái</th>
+              <th class="col-actions">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="table-hoignhi"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-vitri" class="tab-content">
+      <div class="form-section seat-conference-selector">
+        <div class="field-group">
+          <label for="select-conference">Chọn Hội nghị cần xếp chỗ</label>
+          <select id="select-conference" class="form-select conference-select">
+            <option value="">-- Vui lòng chọn một Hội nghị --</option>
+          </select>
+        </div>
+        <div class="form-note">Chỉ hiển thị các hội nghị diễn ra hôm nay hoặc trong tương lai.</div>
+      </div>
+
+      <div id="action-vitri-container" class="is-hidden">
+        <div class="seat-actions-header">
+          <p><i>* Nhập mã ghế (V1, A1...) để mời và xếp chỗ. Bỏ trống nếu đại biểu không dự phiên này.</i></p>
+          <button id="clear-all-seats" class="btn-danger-strong" type="button">🗑️ Làm trống sơ đồ hội nghị này</button>
+        </div>
+
+        <div class="filter-section compact-filter">
+          <div class="field-group filter-field">
+            <label for="delegate-filter">🎯 Lọc nhanh theo đối tượng</label>
+            <select id="delegate-filter" class="form-select">
+              <option value="ALL">-- Hiển thị tất cả đại biểu --</option>
+              <option value="Trung ương">Đại biểu Trung ương</option>
+              <option value="Thường trực">Thường trực Tỉnh ủy</option>
+              <option value="BTV">Ủy viên BTV Tỉnh ủy</option>
+              <option value="BCH">Ủy viên BCH Đảng bộ tỉnh</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="external-delegates" class="delegate-list-box"></div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th class="col-stt">STT</th>
+                <th class="col-rank">Rank</th>
+                <th class="col-category">Phân loại</th>
+                <th>Họ và Tên</th>
+                <th class="col-seat">Mã ghế phiên này</th>
+                <th class="col-actions">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="table-vitri"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js?v=20260924-2"></script>
+</body>
 </html>
