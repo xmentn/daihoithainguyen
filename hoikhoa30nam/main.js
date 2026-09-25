@@ -5,9 +5,12 @@ import {
   watchAuth,
 } from "./firebase/auth.js";
 
-/* ========================================
-   MENU MOBILE
-======================================== */
+import {
+  addMember,
+  updateMember,
+  deleteMember,
+  subscribeMembersByClass,
+} from "./firebase/firestore.js";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -16,10 +19,6 @@ menuToggle.addEventListener("click", () => {
   const isOpen = navMenu.classList.toggle("show");
   menuToggle.setAttribute("aria-expanded", String(isOpen));
 });
-
-/* ========================================
-   TAB NAVIGATION
-======================================== */
 
 const tabLinks = document.querySelectorAll(".tab-link");
 const tabContents = document.querySelectorAll(".tab-content");
@@ -56,10 +55,15 @@ function openTab(tabId) {
   menuToggle.setAttribute("aria-expanded", "false");
 
   if (window.location.hash) {
-    history.replaceState(null, "", window.location.pathname);
+    history.replaceState(
+      null,
+      "",
+      window.location.pathname,
+    );
   }
 
-  const mainNav = document.querySelector(".main-nav");
+  const mainNav =
+    document.querySelector(".main-nav");
 
   if (mainNav) {
     window.scrollTo({
@@ -77,37 +81,94 @@ tabLinks.forEach((link) => {
 
 document.addEventListener("click", (event) => {
   const clickedInsideMenu =
-    navMenu.contains(event.target) || menuToggle.contains(event.target);
+    navMenu.contains(event.target) ||
+    menuToggle.contains(event.target);
 
   if (!clickedInsideMenu) {
     navMenu.classList.remove("show");
-    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute(
+      "aria-expanded",
+      "false",
+    );
   }
 });
 
-/* ========================================
-   DOM AUTH / MANAGEMENT
-======================================== */
+const emailInput =
+  document.getElementById("email");
+const passwordInput =
+  document.getElementById("password");
+const loginButton =
+  document.getElementById("loginButton");
+const loginMessage =
+  document.getElementById("loginMessage");
 
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
-const loginButton = document.getElementById("loginButton");
-const loginMessage = document.getElementById("loginMessage");
+const loginMenuItem =
+  document.getElementById("loginMenuItem");
+const managementMenuItem =
+  document.getElementById("managementMenuItem");
+const managementTabButton =
+  document.getElementById("managementTabButton");
 
-const loginMenuItem = document.getElementById("loginMenuItem");
-const managementMenuItem = document.getElementById("managementMenuItem");
-const managementTabButton = document.getElementById("managementTabButton");
+const managementTitle =
+  document.getElementById("managementTitle");
+const managementSubtitle =
+  document.getElementById("managementSubtitle");
+const currentUserName =
+  document.getElementById("currentUserName");
+const currentUserEmail =
+  document.getElementById("currentUserEmail");
+const currentUserRole =
+  document.getElementById("currentUserRole");
+const logoutButton =
+  document.getElementById("logoutButton");
 
-const managementTitle = document.getElementById("managementTitle");
-const managementSubtitle = document.getElementById("managementSubtitle");
-const currentUserName = document.getElementById("currentUserName");
-const currentUserEmail = document.getElementById("currentUserEmail");
-const currentUserRole = document.getElementById("currentUserRole");
-const logoutButton = document.getElementById("logoutButton");
+const memberSectionTitle =
+  document.getElementById("memberSectionTitle");
+const memberCount =
+  document.getElementById("memberCount");
+const memberForm =
+  document.getElementById("memberForm");
+const memberFormTitle =
+  document.getElementById("memberFormTitle");
+const memberIdInput =
+  document.getElementById("memberId");
+const memberFullNameInput =
+  document.getElementById("memberFullName");
+const memberPhoneInput =
+  document.getElementById("memberPhone");
+const memberNoteInput =
+  document.getElementById("memberNote");
+const saveMemberButton =
+  document.getElementById("saveMemberButton");
+const cancelEditButton =
+  document.getElementById("cancelEditButton");
+const memberFormMessage =
+  document.getElementById("memberFormMessage");
+const memberSearch =
+  document.getElementById("memberSearch");
+const memberTableBody =
+  document.getElementById("memberTableBody");
+
+const comingSoonCards =
+  document.querySelectorAll(".coming-soon-card");
 
 let currentSession = null;
+let unsubscribeMembers = null;
+let classMembers = [];
 
-function setLoginMessage(message = "", type = "") {
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function setLoginMessage(
+  message = "",
+  type = "",
+) {
   if (!loginMessage) return;
 
   loginMessage.textContent = message;
@@ -118,13 +179,155 @@ function setLoginMessage(message = "", type = "") {
   }
 }
 
+function setMemberMessage(
+  message = "",
+  type = "",
+) {
+  if (!memberFormMessage) return;
+
+  memberFormMessage.textContent = message;
+  memberFormMessage.className = "form-message";
+
+  if (type) {
+    memberFormMessage.classList.add(type);
+  }
+}
+
+function resetMemberForm() {
+  memberIdInput.value = "";
+  memberFullNameInput.value = "";
+  memberPhoneInput.value = "";
+  memberNoteInput.value = "";
+
+  memberFormTitle.textContent =
+    "Thêm thành viên";
+  saveMemberButton.textContent =
+    "Lưu thành viên";
+
+  cancelEditButton.classList.add("hidden");
+
+  setMemberMessage("");
+}
+
+function renderMembers() {
+  const keyword = (memberSearch.value || "")
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const filtered = classMembers.filter(
+    (member) => {
+      const fullName = (
+        member.fullName || ""
+      ).toLocaleLowerCase("vi");
+
+      const phone = (
+        member.phone || ""
+      ).toLocaleLowerCase("vi");
+
+      return (
+        !keyword ||
+        fullName.includes(keyword) ||
+        phone.includes(keyword)
+      );
+    },
+  );
+
+  memberCount.textContent = classMembers.length;
+
+  if (filtered.length === 0) {
+    memberTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-row">
+          ${
+            classMembers.length === 0
+              ? "Chưa có dữ liệu"
+              : "Không tìm thấy thành viên phù hợp"
+          }
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  memberTableBody.innerHTML = filtered
+    .map(
+      (member, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td>
+            <strong>
+              ${escapeHtml(member.fullName || "")}
+            </strong>
+          </td>
+          <td>${escapeHtml(member.phone || "")}</td>
+          <td>${escapeHtml(member.note || "")}</td>
+          <td>
+            <button
+              type="button"
+              class="table-action-button edit-member-button"
+              data-member-id="${member.id}"
+            >
+              Sửa
+            </button>
+
+            <button
+              type="button"
+              class="table-action-button delete-member-button"
+              data-member-id="${member.id}"
+            >
+              Xóa
+            </button>
+          </td>
+        </tr>
+      `,
+    )
+    .join("");
+}
+
+function stopMemberSubscription() {
+  if (unsubscribeMembers) {
+    unsubscribeMembers();
+    unsubscribeMembers = null;
+  }
+
+  classMembers = [];
+  renderMembers();
+}
+
+function startMemberSubscription(classId) {
+  stopMemberSubscription();
+
+  memberSectionTitle.textContent =
+    `Danh sách thành viên lớp ${classId}`;
+
+  unsubscribeMembers =
+    subscribeMembersByClass(
+      classId,
+      (members) => {
+        classMembers = members;
+        renderMembers();
+      },
+      () => {
+        setMemberMessage(
+          "Không đọc được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
+      },
+    );
+}
+
 function showLoggedOutUI() {
   currentSession = null;
+
+  stopMemberSubscription();
+  resetMemberForm();
 
   loginMenuItem.classList.remove("hidden");
   managementMenuItem.classList.add("hidden");
 
-  managementTabButton.textContent = "Quản lý";
+  managementTabButton.textContent =
+    "Quản lý";
 
   currentUserName.textContent = "-";
   currentUserEmail.textContent = "-";
@@ -139,118 +342,142 @@ function showLoggedInUI(session) {
   loginMenuItem.classList.add("hidden");
   managementMenuItem.classList.remove("hidden");
 
-  currentUserName.textContent = profile.name || "Người dùng";
+  currentUserName.textContent =
+    profile.name || "Người dùng";
+
   currentUserEmail.textContent =
     profile.email || authUser.email || "-";
 
   if (profile.role === "class_editor") {
     const classId = profile.classId || "";
 
-    managementTabButton.textContent = classId
-      ? `Quản lý lớp ${classId}`
-      : "Quản lý lớp";
+    managementTabButton.textContent =
+      classId
+        ? `Quản lý lớp ${classId}`
+        : "Quản lý lớp";
 
-    managementTitle.textContent = classId
-      ? `Quản lý lớp ${classId}`
-      : "Quản lý lớp";
+    managementTitle.textContent =
+      classId
+        ? `Quản lý lớp ${classId}`
+        : "Quản lý lớp";
 
-    managementSubtitle.textContent = classId
-      ? `Nhập và cập nhật dữ liệu của lớp ${classId}`
-      : "Nhập và cập nhật dữ liệu lớp phụ trách";
+    managementSubtitle.textContent =
+      classId
+        ? `Nhập và cập nhật dữ liệu của lớp ${classId}`
+        : "Nhập và cập nhật dữ liệu lớp phụ trách";
 
-    currentUserRole.textContent = classId
-      ? `Đại diện lớp ${classId}`
-      : "Đại diện lớp";
+    currentUserRole.textContent =
+      classId
+        ? `Đại diện lớp ${classId}`
+        : "Đại diện lớp";
+
+    if (classId) {
+      startMemberSubscription(classId);
+    }
   } else if (profile.role === "admin") {
-    managementTabButton.textContent = "Quản trị";
-    managementTitle.textContent = "Quản trị Hội khóa";
-    managementSubtitle.textContent = "Quản lý dữ liệu của toàn khóa";
-    currentUserRole.textContent = "Ban Tổ chức / Admin";
-  } else {
-    managementTabButton.textContent = "Quản lý";
-    managementTitle.textContent = "Quản lý dữ liệu";
-    managementSubtitle.textContent = "Tài khoản đã đăng nhập";
-    currentUserRole.textContent = profile.role || "Người dùng";
+    managementTabButton.textContent =
+      "Quản trị";
+
+    managementTitle.textContent =
+      "Quản trị Hội khóa";
+
+    managementSubtitle.textContent =
+      "Quản lý dữ liệu của toàn khóa";
+
+    currentUserRole.textContent =
+      "Ban Tổ chức / Admin";
+
+    memberSectionTitle.textContent =
+      "Danh sách thành viên - phần Admin sẽ hoàn thiện sau";
   }
 
   openTab("management");
 }
 
-/* ========================================
-   ĐĂNG NHẬP
-======================================== */
-
 if (loginButton) {
-  loginButton.addEventListener("click", async () => {
-    const email = emailInput.value.trim();
-    const password = passwordInput.value;
+  loginButton.addEventListener(
+    "click",
+    async () => {
+      const email =
+        emailInput.value.trim();
 
-    if (!email || !password) {
-      setLoginMessage(
-        "Vui lòng nhập đầy đủ email và mật khẩu.",
-        "error",
-      );
-      return;
-    }
+      const password =
+        passwordInput.value;
 
-    try {
-      loginButton.disabled = true;
-      loginButton.textContent = "Đang đăng nhập...";
-      setLoginMessage("");
-
-      /*
-       * Quan trọng:
-       * Không chỉ chờ onAuthStateChanged.
-       * Nếu trình duyệt đã giữ phiên đăng nhập của đúng tài khoản,
-       * signInWithEmailAndPassword có thể không tạo ra một lần đổi trạng thái
-       * mới đủ để điều hướng lại giao diện.
-       *
-       * Vì vậy sau login ta lấy profile ngay và chuyển màn hình trực tiếp.
-       */
-      const authUser = await login(email, password);
-      const profile = await getUserProfile(authUser.uid);
-
-      if (!profile) {
-        throw new Error("Không tìm thấy hồ sơ người dùng trong Firestore/users.");
+      if (!email || !password) {
+        setLoginMessage(
+          "Vui lòng nhập đầy đủ email và mật khẩu.",
+          "error",
+        );
+        return;
       }
 
-      if (profile.active === false) {
-        await logout();
-        throw new Error("Tài khoản đang bị khóa.");
+      try {
+        loginButton.disabled = true;
+        loginButton.textContent =
+          "Đang đăng nhập...";
+
+        setLoginMessage("");
+
+        const authUser =
+          await login(email, password);
+
+        const profile =
+          await getUserProfile(authUser.uid);
+
+        if (!profile) {
+          throw new Error(
+            "Không tìm thấy hồ sơ người dùng trong Firestore/users.",
+          );
+        }
+
+        if (profile.active === false) {
+          await logout();
+
+          throw new Error(
+            "Tài khoản đang bị khóa.",
+          );
+        }
+
+        showLoggedInUI({
+          authUser,
+          profile,
+        });
+
+        setLoginMessage(
+          "Đăng nhập thành công.",
+          "success",
+        );
+      } catch (error) {
+        console.error(
+          "Lỗi đăng nhập:",
+          error,
+        );
+
+        setLoginMessage(
+          error.message ||
+            "Đăng nhập không thành công.",
+          "error",
+        );
+      } finally {
+        loginButton.disabled = false;
+        loginButton.textContent =
+          "Đăng nhập";
       }
-
-      showLoggedInUI({
-        authUser,
-        profile,
-      });
-
-      setLoginMessage("Đăng nhập thành công.", "success");
-    } catch (error) {
-      console.error("Lỗi đăng nhập:", error);
-
-      setLoginMessage(
-        error.message ||
-          "Đăng nhập không thành công. Vui lòng kiểm tra lại tài khoản và mật khẩu.",
-        "error",
-      );
-    } finally {
-      loginButton.disabled = false;
-      loginButton.textContent = "Đăng nhập";
-    }
-  });
+    },
+  );
 }
 
 if (passwordInput) {
-  passwordInput.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
-      loginButton.click();
-    }
-  });
+  passwordInput.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key === "Enter") {
+        loginButton.click();
+      }
+    },
+  );
 }
-
-/* ========================================
-   THEO DÕI PHIÊN FIREBASE
-======================================== */
 
 watchAuth((session) => {
   if (!session) {
@@ -262,48 +489,274 @@ watchAuth((session) => {
   const profile = session.profile;
 
   if (!profile) {
-    console.warn("Tài khoản chưa có hồ sơ trong Firestore/users.");
+    console.warn(
+      "Tài khoản chưa có hồ sơ trong Firestore/users.",
+    );
     showLoggedOutUI();
     return;
   }
 
   if (profile.active === false) {
-    console.warn("Tài khoản đang bị khóa.");
+    console.warn(
+      "Tài khoản đang bị khóa.",
+    );
     logout();
     showLoggedOutUI();
     return;
   }
 
-  console.log("Đã đăng nhập:", profile);
+  console.log(
+    "Đã đăng nhập:",
+    profile,
+  );
 
-  if (profile.role === "class_editor") {
-    console.log("Lớp phụ trách:", profile.classId);
-  }
-
-  /*
-   * Khi tải lại trang mà Firebase còn giữ phiên đăng nhập,
-   * tự động đưa người dùng về màn hình quản lý.
-   */
   showLoggedInUI(session);
 });
 
-/* ========================================
-   ĐĂNG XUẤT
-======================================== */
+if (memberForm) {
+  memberForm.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+
+      if (!currentSession?.profile) {
+        setMemberMessage(
+          "Phiên đăng nhập không hợp lệ.",
+          "error",
+        );
+        return;
+      }
+
+      const profile =
+        currentSession.profile;
+
+      const authUser =
+        currentSession.authUser;
+
+      if (
+        profile.role !== "class_editor"
+      ) {
+        setMemberMessage(
+          "Chức năng này hiện dành cho tài khoản đại diện lớp.",
+          "error",
+        );
+        return;
+      }
+
+      const fullName =
+        memberFullNameInput.value.trim();
+
+      const phone =
+        memberPhoneInput.value.trim();
+
+      const note =
+        memberNoteInput.value.trim();
+
+      if (!fullName) {
+        setMemberMessage(
+          "Vui lòng nhập họ và tên.",
+          "error",
+        );
+        memberFullNameInput.focus();
+        return;
+      }
+
+      try {
+        saveMemberButton.disabled = true;
+
+        const memberId =
+          memberIdInput.value;
+
+        if (memberId) {
+          await updateMember(
+            memberId,
+            {
+              fullName,
+              phone,
+              note,
+            },
+          );
+
+          resetMemberForm();
+
+          setMemberMessage(
+            "Đã cập nhật thành viên.",
+            "success",
+          );
+        } else {
+          await addMember({
+            fullName,
+            phone,
+            note,
+            classId: profile.classId,
+            createdBy: authUser.uid,
+          });
+
+          resetMemberForm();
+
+          setMemberMessage(
+            "Đã thêm thành viên.",
+            "success",
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Lỗi lưu thành viên:",
+          error,
+        );
+
+        setMemberMessage(
+          "Không lưu được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
+      } finally {
+        saveMemberButton.disabled = false;
+      }
+    },
+  );
+}
+
+if (memberTableBody) {
+  memberTableBody.addEventListener(
+    "click",
+    async (event) => {
+      const editButton =
+        event.target.closest(
+          ".edit-member-button",
+        );
+
+      const deleteButton =
+        event.target.closest(
+          ".delete-member-button",
+        );
+
+      if (editButton) {
+        const memberId =
+          editButton.dataset.memberId;
+
+        const member =
+          classMembers.find(
+            (item) =>
+              item.id === memberId,
+          );
+
+        if (!member) return;
+
+        memberIdInput.value =
+          member.id;
+
+        memberFullNameInput.value =
+          member.fullName || "";
+
+        memberPhoneInput.value =
+          member.phone || "";
+
+        memberNoteInput.value =
+          member.note || "";
+
+        memberFormTitle.textContent =
+          "Sửa thành viên";
+
+        saveMemberButton.textContent =
+          "Cập nhật";
+
+        cancelEditButton.classList.remove(
+          "hidden",
+        );
+
+        memberFullNameInput.focus();
+        return;
+      }
+
+      if (deleteButton) {
+        const memberId =
+          deleteButton.dataset.memberId;
+
+        const member =
+          classMembers.find(
+            (item) =>
+              item.id === memberId,
+          );
+
+        if (!member) return;
+
+        const confirmed =
+          confirm(
+            `Bạn có chắc muốn xóa "${member.fullName}" khỏi danh sách không?`,
+          );
+
+        if (!confirmed) return;
+
+        try {
+          await deleteMember(memberId);
+
+          if (
+            memberIdInput.value ===
+            memberId
+          ) {
+            resetMemberForm();
+          }
+        } catch (error) {
+          console.error(
+            "Lỗi xóa thành viên:",
+            error,
+          );
+
+          setMemberMessage(
+            "Không xóa được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+            "error",
+          );
+        }
+      }
+    },
+  );
+}
+
+if (cancelEditButton) {
+  cancelEditButton.addEventListener(
+    "click",
+    () => {
+      resetMemberForm();
+    },
+  );
+}
+
+if (memberSearch) {
+  memberSearch.addEventListener(
+    "input",
+    () => {
+      renderMembers();
+    },
+  );
+}
+
+comingSoonCards.forEach((card) => {
+  card.addEventListener("click", () => {
+    alert(
+      `${card.dataset.soon} sẽ được xây dựng ở bước tiếp theo.`,
+    );
+  });
+});
 
 if (logoutButton) {
-  logoutButton.addEventListener("click", async () => {
-    try {
-      await logout();
+  logoutButton.addEventListener(
+    "click",
+    async () => {
+      try {
+        await logout();
 
-      emailInput.value = "";
-      passwordInput.value = "";
+        emailInput.value = "";
+        passwordInput.value = "";
 
-      setLoginMessage("");
-      showLoggedOutUI();
-      openTab("home");
-    } catch (error) {
-      console.error("Lỗi đăng xuất:", error);
-    }
-  });
+        setLoginMessage("");
+        showLoggedOutUI();
+        openTab("home");
+      } catch (error) {
+        console.error(
+          "Lỗi đăng xuất:",
+          error,
+        );
+      }
+    },
+  );
 }

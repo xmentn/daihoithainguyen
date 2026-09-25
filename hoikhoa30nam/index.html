@@ -401,35 +401,156 @@
           </div>
 
           <div class="management-grid">
-            <button class="management-card" type="button">
+            <button
+              class="management-card active-management-card"
+              id="manageMembersButton"
+              type="button"
+            >
               <div class="management-icon">👥</div>
               <h3>Danh sách lớp</h3>
               <p>Nhập và cập nhật danh sách thành viên của lớp.</p>
             </button>
 
-            <button class="management-card" type="button">
+            <button
+              class="management-card coming-soon-card"
+              data-soon="Danh sách tham gia"
+              type="button"
+            >
               <div class="management-icon">✅</div>
               <h3>Danh sách tham gia</h3>
               <p>Đánh dấu các thành viên tham dự Hội khóa.</p>
             </button>
 
-            <button class="management-card" type="button">
+            <button
+              class="management-card coming-soon-card"
+              data-soon="Đóng góp"
+              type="button"
+            >
               <div class="management-icon">💰</div>
               <h3>Đóng góp</h3>
               <p>Quản lý số tiền đóng góp của các thành viên.</p>
             </button>
 
-            <button class="management-card" type="button">
+            <button
+              class="management-card coming-soon-card"
+              data-soon="Tài trợ"
+              type="button"
+            >
               <div class="management-icon">💝</div>
               <h3>Tài trợ</h3>
               <p>Quản lý các khoản tài trợ của lớp.</p>
             </button>
           </div>
 
-          <div class="management-note">
-            Đây là màn hình quản lý nền. Ở bước tiếp theo, các nút trên sẽ được
-            kết nối với Firestore để nhập, sửa và xóa dữ liệu đúng lớp được phân
-            quyền.
+          <div class="member-management" id="memberManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">DỮ LIỆU LỚP</span>
+                <h3 id="memberSectionTitle">Danh sách thành viên</h3>
+                <p>
+                  Đại diện lớp chỉ được thêm, sửa và xóa thành viên thuộc lớp mình.
+                </p>
+              </div>
+
+              <div class="member-count-box">
+                <span>Tổng số</span>
+                <strong id="memberCount">0</strong>
+                <small>thành viên</small>
+              </div>
+            </div>
+
+            <div class="member-layout">
+              <div class="member-form-card">
+                <h4 id="memberFormTitle">Thêm thành viên</h4>
+
+                <form id="memberForm">
+                  <input type="hidden" id="memberId">
+
+                  <div class="form-group">
+                    <label for="memberFullName">
+                      Họ và tên <span class="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="memberFullName"
+                      placeholder="Nhập họ và tên"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="memberPhone">Số điện thoại</label>
+                    <input
+                      type="text"
+                      id="memberPhone"
+                      placeholder="Có thể để trống"
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="memberNote">Ghi chú</label>
+                    <textarea
+                      id="memberNote"
+                      rows="3"
+                      placeholder="Thông tin cần lưu ý (nếu có)"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      class="primary-action-button"
+                      id="saveMemberButton"
+                      type="submit"
+                    >
+                      Lưu thành viên
+                    </button>
+
+                    <button
+                      class="secondary-action-button hidden"
+                      id="cancelEditButton"
+                      type="button"
+                    >
+                      Hủy sửa
+                    </button>
+                  </div>
+
+                  <p class="form-message" id="memberFormMessage"></p>
+                </form>
+              </div>
+
+              <div class="member-list-card">
+                <div class="member-list-toolbar">
+                  <input
+                    type="text"
+                    id="memberSearch"
+                    placeholder="Tìm theo họ tên hoặc số điện thoại..."
+                  >
+                </div>
+
+                <div class="table-responsive">
+                  <table class="member-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Họ và tên</th>
+                        <th>Số điện thoại</th>
+                        <th>Ghi chú</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+
+                    <tbody id="memberTableBody">
+                      <tr>
+                        <td colspan="5" class="empty-row">
+                          Chưa có dữ liệu
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
           </div>
         </div>
       </section>

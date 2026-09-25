@@ -4,20 +4,103 @@ import { db } from "./firebase-config.js";
 
 import {
   collection,
-  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-/* =========================================
-   LẤY DANH SÁCH LỚP
-========================================= */
-
-async function getClasses() {
-  const snapshot = await getDocs(collection(db, "classes"));
-
-  return snapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+async function addMember({
+  fullName,
+  phone = "",
+  note = "",
+  classId,
+  createdBy,
+}) {
+  return await addDoc(collection(db, "members"), {
+    fullName: fullName.trim(),
+    phone: phone.trim(),
+    note: note.trim(),
+    classId,
+    attending: false,
+    contributionAmount: 0,
+    createdBy,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
 }
 
-export { getClasses };
+async function updateMember(
+  memberId,
+  {
+    fullName,
+    phone = "",
+    note = "",
+  },
+) {
+  const memberRef = doc(db, "members", memberId);
+
+  await updateDoc(memberRef, {
+    fullName: fullName.trim(),
+    phone: phone.trim(),
+    note: note.trim(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function deleteMember(memberId) {
+  const memberRef = doc(db, "members", memberId);
+  await deleteDoc(memberRef);
+}
+
+function subscribeMembersByClass(
+  classId,
+  callback,
+  errorCallback,
+) {
+  const q = query(
+    collection(db, "members"),
+    where("classId", "==", classId),
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const members = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      members.sort((a, b) =>
+        (a.fullName || "").localeCompare(
+          b.fullName || "",
+          "vi",
+          { sensitivity: "base" },
+        ),
+      );
+
+      callback(members);
+    },
+    (error) => {
+      console.error(
+        "Lỗi đọc danh sách thành viên:",
+        error,
+      );
+
+      if (errorCallback) {
+        errorCallback(error);
+      }
+    },
+  );
+}
+
+export {
+  addMember,
+  updateMember,
+  deleteMember,
+  subscribeMembersByClass,
+};
