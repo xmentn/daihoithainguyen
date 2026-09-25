@@ -10,7 +10,12 @@ import {
   updateMember,
   deleteMember,
   updateMemberAttendance,
+  updateMemberContribution,
   subscribeMembersByClass,
+  addSponsor,
+  updateSponsor,
+  deleteSponsor,
+  subscribeSponsorsByClass,
 } from "./firebase/firestore.js";
 
 const menuToggle = document.getElementById("menuToggle");
@@ -172,10 +177,71 @@ const participantStatusFilter =
   document.getElementById("participantStatusFilter");
 const participantManageTableBody =
   document.getElementById("participantManageTableBody");
+const manageContributionsButton =
+  document.getElementById("manageContributionsButton");
+const contributionManagement =
+  document.getElementById("contributionManagement");
+const contributionSectionTitle =
+  document.getElementById("contributionSectionTitle");
+const contributorCount =
+  document.getElementById("contributorCount");
+const contributionTotal =
+  document.getElementById("contributionTotal");
+const contributionSearch =
+  document.getElementById("contributionSearch");
+const contributionFilter =
+  document.getElementById("contributionFilter");
+const contributionTableBody =
+  document.getElementById("contributionTableBody");
+const manageSponsorsButton =
+  document.getElementById("manageSponsorsButton");
+const sponsorManagement =
+  document.getElementById("sponsorManagement");
+const sponsorSectionTitle =
+  document.getElementById("sponsorSectionTitle");
+const sponsorCount =
+  document.getElementById("sponsorCount");
+const sponsorClassTotal =
+  document.getElementById("sponsorClassTotal");
+
+const sponsorForm =
+  document.getElementById("sponsorForm");
+const sponsorFormTitle =
+  document.getElementById("sponsorFormTitle");
+const sponsorIdInput =
+  document.getElementById("sponsorId");
+const sponsorNameInput =
+  document.getElementById("sponsorName");
+const sponsorTypeSelect =
+  document.getElementById("sponsorType");
+const sponsorAmountGroup =
+  document.getElementById("sponsorAmountGroup");
+const sponsorAmountInput =
+  document.getElementById("sponsorAmount");
+const sponsorContentInput =
+  document.getElementById("sponsorContent");
+const sponsorNoteInput =
+  document.getElementById("sponsorNote");
+const saveSponsorButton =
+  document.getElementById("saveSponsorButton");
+const cancelSponsorEditButton =
+  document.getElementById("cancelSponsorEditButton");
+const sponsorFormMessage =
+  document.getElementById("sponsorFormMessage");
+
+const sponsorSearch =
+  document.getElementById("sponsorSearch");
+const sponsorTypeFilter =
+  document.getElementById("sponsorTypeFilter");
+const sponsorTableBody =
+  document.getElementById("sponsorTableBody");
 
 let currentSession = null;
 let unsubscribeMembers = null;
 let classMembers = [];
+
+let unsubscribeSponsors = null;
+let classSponsors = [];
 
 function escapeHtml(value = "") {
   return String(value)
@@ -255,6 +321,7 @@ function renderMembers() {
 
   memberCount.textContent = classMembers.length;
   renderParticipantManagement();
+  renderContributionManagement();
 
   if (filtered.length === 0) {
     memberTableBody.innerHTML = `
@@ -326,6 +393,9 @@ function startMemberSubscription(classId) {
   participantSectionTitle.textContent =
     `Danh sách tham gia lớp ${classId}`;
 
+  contributionSectionTitle.textContent =
+    `Đóng góp của lớp ${classId}`;
+
   unsubscribeMembers =
     subscribeMembersByClass(
       classId,
@@ -356,10 +426,18 @@ function setActiveManagementCard(activeButton) {
 function showManagementPanel(panelName) {
   memberManagement.classList.add("hidden");
   participantManagement.classList.add("hidden");
+  contributionManagement.classList.add("hidden");
+  sponsorManagement.classList.add("hidden");
 
   if (panelName === "participants") {
     participantManagement.classList.remove("hidden");
     setActiveManagementCard(manageParticipantsButton);
+  } else if (panelName === "contributions") {
+    contributionManagement.classList.remove("hidden");
+    setActiveManagementCard(manageContributionsButton);
+  } else if (panelName === "sponsors") {
+    sponsorManagement.classList.remove("hidden");
+    setActiveManagementCard(manageSponsorsButton);
   } else {
     memberManagement.classList.remove("hidden");
     setActiveManagementCard(manageMembersButton);
@@ -434,11 +512,309 @@ function renderParticipantManagement() {
     .join("");
 }
 
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("vi-VN").format(
+    Number(amount) || 0,
+  ) + " đ";
+}
+
+function renderContributionManagement() {
+  const keyword = (contributionSearch.value || "")
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const filter = contributionFilter.value;
+
+  const filtered = classMembers.filter((member) => {
+    const fullName = (member.fullName || "")
+      .toLocaleLowerCase("vi");
+    const phone = (member.phone || "")
+      .toLocaleLowerCase("vi");
+
+    const matchesKeyword =
+      !keyword ||
+      fullName.includes(keyword) ||
+      phone.includes(keyword);
+
+    const amount = Number(member.contributionAmount) || 0;
+
+    let matchesFilter = true;
+
+    if (filter === "has") {
+      matchesFilter = amount > 0;
+    } else if (filter === "none") {
+      matchesFilter = amount <= 0;
+    }
+
+    return matchesKeyword && matchesFilter;
+  });
+
+  const contributors = classMembers.filter(
+    (member) => (Number(member.contributionAmount) || 0) > 0,
+  );
+
+  const total = classMembers.reduce(
+    (sum, member) =>
+      sum + (Number(member.contributionAmount) || 0),
+    0,
+  );
+
+  contributorCount.textContent = contributors.length;
+  contributionTotal.textContent = formatCurrency(total);
+
+  if (filtered.length === 0) {
+    contributionTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-row">
+          ${
+            classMembers.length === 0
+              ? "Chưa có dữ liệu thành viên"
+              : "Không tìm thấy thành viên phù hợp"
+          }
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  contributionTableBody.innerHTML = filtered
+    .map((member, index) => {
+      const amount = Number(member.contributionAmount) || 0;
+
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td><strong>${escapeHtml(member.fullName || "")}</strong></td>
+          <td>${escapeHtml(member.phone || "")}</td>
+          <td>
+            <div class="contribution-input-wrap">
+              <input
+                type="number"
+                min="0"
+                step="1000"
+                class="contribution-input"
+                data-member-id="${member.id}"
+                value="${amount}"
+              >
+              <span class="currency-label">đ</span>
+            </div>
+            <span class="contribution-current">
+              Hiện tại: ${formatCurrency(amount)}
+            </span>
+          </td>
+          <td>
+            <button
+              type="button"
+              class="save-contribution-button"
+              data-member-id="${member.id}"
+            >
+              Lưu
+            </button>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+
+function setSponsorMessage(message = "", type = "") {
+  if (!sponsorFormMessage) return;
+
+  sponsorFormMessage.textContent = message;
+  sponsorFormMessage.className = "form-message";
+
+  if (type) {
+    sponsorFormMessage.classList.add(type);
+  }
+}
+
+function toggleSponsorAmountField() {
+  const isMoney = sponsorTypeSelect.value === "money";
+
+  sponsorAmountGroup.classList.toggle(
+    "hidden",
+    !isMoney,
+  );
+
+  if (!isMoney) {
+    sponsorAmountInput.value = "";
+  }
+}
+
+function resetSponsorForm() {
+  sponsorIdInput.value = "";
+  sponsorNameInput.value = "";
+  sponsorTypeSelect.value = "money";
+  sponsorAmountInput.value = "";
+  sponsorContentInput.value = "";
+  sponsorNoteInput.value = "";
+
+  sponsorFormTitle.textContent =
+    "Thêm khoản tài trợ";
+
+  saveSponsorButton.textContent =
+    "Lưu tài trợ";
+
+  cancelSponsorEditButton.classList.add(
+    "hidden",
+  );
+
+  toggleSponsorAmountField();
+  setSponsorMessage("");
+}
+
+function renderSponsors() {
+  const keyword = (sponsorSearch.value || "")
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const typeFilter = sponsorTypeFilter.value;
+
+  const filtered = classSponsors.filter((item) => {
+    const sponsorName = (item.sponsorName || "")
+      .toLocaleLowerCase("vi");
+    const content = (item.content || "")
+      .toLocaleLowerCase("vi");
+
+    const matchesKeyword =
+      !keyword ||
+      sponsorName.includes(keyword) ||
+      content.includes(keyword);
+
+    const matchesType =
+      typeFilter === "all" ||
+      item.type === typeFilter;
+
+    return matchesKeyword && matchesType;
+  });
+
+  sponsorCount.textContent = classSponsors.length;
+
+  const totalMoney = classSponsors.reduce(
+    (sum, item) =>
+      sum +
+      (item.type === "money"
+        ? Number(item.amount) || 0
+        : 0),
+    0,
+  );
+
+  sponsorClassTotal.textContent =
+    formatCurrency(totalMoney);
+
+  if (filtered.length === 0) {
+    sponsorTableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="empty-row">
+          ${
+            classSponsors.length === 0
+              ? "Chưa có dữ liệu tài trợ"
+              : "Không tìm thấy khoản tài trợ phù hợp"
+          }
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  sponsorTableBody.innerHTML = filtered
+    .map((item, index) => {
+      const isMoney = item.type === "money";
+
+      return `
+        <tr>
+          <td>${index + 1}</td>
+          <td>
+            <strong>
+              ${escapeHtml(item.sponsorName || "")}
+            </strong>
+          </td>
+          <td>
+            <span class="sponsor-kind-badge ${
+              isMoney ? "money" : "in-kind"
+            }">
+              ${
+                isMoney
+                  ? "Tiền"
+                  : "Hiện vật/dịch vụ"
+              }
+            </span>
+          </td>
+          <td>
+            <span class="sponsor-value">
+              ${
+                isMoney
+                  ? formatCurrency(item.amount)
+                  : "—"
+              }
+            </span>
+          </td>
+          <td>${escapeHtml(item.content || "")}</td>
+          <td>
+            <button
+              type="button"
+              class="table-action-button edit-sponsor-button"
+              data-sponsor-id="${item.id}"
+            >
+              Sửa
+            </button>
+
+            <button
+              type="button"
+              class="table-action-button delete-sponsor-button"
+              data-sponsor-id="${item.id}"
+            >
+              Xóa
+            </button>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
+}
+
+function stopSponsorSubscription() {
+  if (unsubscribeSponsors) {
+    unsubscribeSponsors();
+    unsubscribeSponsors = null;
+  }
+
+  classSponsors = [];
+  renderSponsors();
+}
+
+function startSponsorSubscription(classId) {
+  stopSponsorSubscription();
+
+  sponsorSectionTitle.textContent =
+    `Tài trợ của lớp ${classId}`;
+
+  unsubscribeSponsors =
+    subscribeSponsorsByClass(
+      classId,
+      (items) => {
+        classSponsors = items;
+        renderSponsors();
+      },
+      () => {
+        setSponsorMessage(
+          "Không đọc được dữ liệu tài trợ. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
+      },
+    );
+}
+
 function showLoggedOutUI() {
   currentSession = null;
 
   stopMemberSubscription();
+  stopSponsorSubscription();
+
   resetMemberForm();
+  resetSponsorForm();
 
   loginMenuItem.classList.remove("hidden");
   managementMenuItem.classList.add("hidden");
@@ -490,6 +866,7 @@ function showLoggedInUI(session) {
 
     if (classId) {
       startMemberSubscription(classId);
+      startSponsorSubscription(classId);
     }
   } else if (profile.role === "admin") {
     managementTabButton.textContent =
@@ -901,6 +1278,347 @@ if (participantManageTableBody) {
       checkbox.disabled = false;
     }
   });
+}
+
+
+if (manageContributionsButton) {
+  manageContributionsButton.addEventListener(
+    "click",
+    () => {
+      showManagementPanel("contributions");
+      renderContributionManagement();
+    },
+  );
+}
+
+if (contributionSearch) {
+  contributionSearch.addEventListener(
+    "input",
+    () => {
+      renderContributionManagement();
+    },
+  );
+}
+
+if (contributionFilter) {
+  contributionFilter.addEventListener(
+    "change",
+    () => {
+      renderContributionManagement();
+    },
+  );
+}
+
+if (contributionTableBody) {
+  contributionTableBody.addEventListener(
+    "click",
+    async (event) => {
+      const button =
+        event.target.closest(".save-contribution-button");
+
+      if (!button) return;
+
+      const memberId = button.dataset.memberId;
+
+      const input = contributionTableBody.querySelector(
+        `.contribution-input[data-member-id="${memberId}"]`,
+      );
+
+      if (!input) return;
+
+      let amount = Number(input.value);
+
+      if (!Number.isFinite(amount) || amount < 0) {
+        alert("Số tiền đóng góp không hợp lệ.");
+        input.focus();
+        return;
+      }
+
+      amount = Math.round(amount);
+
+      button.disabled = true;
+      button.textContent = "Đang lưu...";
+
+      try {
+        await updateMemberContribution(
+          memberId,
+          amount,
+        );
+      } catch (error) {
+        console.error(
+          "Lỗi cập nhật đóng góp:",
+          error,
+        );
+
+        alert(
+          "Không cập nhật được số tiền đóng góp. Vui lòng kiểm tra Firestore Rules.",
+        );
+      } finally {
+        button.disabled = false;
+        button.textContent = "Lưu";
+      }
+    },
+  );
+}
+
+
+if (manageSponsorsButton) {
+  manageSponsorsButton.addEventListener(
+    "click",
+    () => {
+      showManagementPanel("sponsors");
+      renderSponsors();
+    },
+  );
+}
+
+if (sponsorTypeSelect) {
+  sponsorTypeSelect.addEventListener(
+    "change",
+    () => {
+      toggleSponsorAmountField();
+    },
+  );
+}
+
+if (sponsorSearch) {
+  sponsorSearch.addEventListener(
+    "input",
+    () => {
+      renderSponsors();
+    },
+  );
+}
+
+if (sponsorTypeFilter) {
+  sponsorTypeFilter.addEventListener(
+    "change",
+    () => {
+      renderSponsors();
+    },
+  );
+}
+
+if (sponsorForm) {
+  sponsorForm.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+
+      if (!currentSession?.profile) {
+        setSponsorMessage(
+          "Phiên đăng nhập không hợp lệ.",
+          "error",
+        );
+        return;
+      }
+
+      const profile = currentSession.profile;
+      const authUser = currentSession.authUser;
+
+      if (profile.role !== "class_editor") {
+        setSponsorMessage(
+          "Chức năng này hiện dành cho tài khoản đại diện lớp.",
+          "error",
+        );
+        return;
+      }
+
+      const sponsorName =
+        sponsorNameInput.value.trim();
+
+      const type =
+        sponsorTypeSelect.value;
+
+      const amount =
+        type === "money"
+          ? Number(sponsorAmountInput.value) || 0
+          : 0;
+
+      const content =
+        sponsorContentInput.value.trim();
+
+      const note =
+        sponsorNoteInput.value.trim();
+
+      if (!sponsorName) {
+        setSponsorMessage(
+          "Vui lòng nhập người/đơn vị tài trợ.",
+          "error",
+        );
+        sponsorNameInput.focus();
+        return;
+      }
+
+      if (type === "money" && amount < 0) {
+        setSponsorMessage(
+          "Số tiền tài trợ không hợp lệ.",
+          "error",
+        );
+        sponsorAmountInput.focus();
+        return;
+      }
+
+      try {
+        saveSponsorButton.disabled = true;
+
+        const sponsorId =
+          sponsorIdInput.value;
+
+        if (sponsorId) {
+          await updateSponsor(
+            sponsorId,
+            {
+              sponsorName,
+              type,
+              amount,
+              content,
+              note,
+            },
+          );
+
+          resetSponsorForm();
+          setSponsorMessage(
+            "Đã cập nhật khoản tài trợ.",
+            "success",
+          );
+        } else {
+          await addSponsor({
+            sponsorName,
+            type,
+            amount,
+            content,
+            note,
+            classId: profile.classId,
+            createdBy: authUser.uid,
+          });
+
+          resetSponsorForm();
+          setSponsorMessage(
+            "Đã thêm khoản tài trợ.",
+            "success",
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Lỗi lưu tài trợ:",
+          error,
+        );
+
+        setSponsorMessage(
+          "Không lưu được tài trợ. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
+      } finally {
+        saveSponsorButton.disabled = false;
+      }
+    },
+  );
+}
+
+if (sponsorTableBody) {
+  sponsorTableBody.addEventListener(
+    "click",
+    async (event) => {
+      const editButton =
+        event.target.closest(
+          ".edit-sponsor-button",
+        );
+
+      const deleteButton =
+        event.target.closest(
+          ".delete-sponsor-button",
+        );
+
+      if (editButton) {
+        const sponsorId =
+          editButton.dataset.sponsorId;
+
+        const item =
+          classSponsors.find(
+            (row) =>
+              row.id === sponsorId,
+          );
+
+        if (!item) return;
+
+        sponsorIdInput.value = item.id;
+        sponsorNameInput.value =
+          item.sponsorName || "";
+        sponsorTypeSelect.value =
+          item.type || "money";
+        sponsorAmountInput.value =
+          Number(item.amount) || 0;
+        sponsorContentInput.value =
+          item.content || "";
+        sponsorNoteInput.value =
+          item.note || "";
+
+        sponsorFormTitle.textContent =
+          "Sửa khoản tài trợ";
+
+        saveSponsorButton.textContent =
+          "Cập nhật";
+
+        cancelSponsorEditButton.classList.remove(
+          "hidden",
+        );
+
+        toggleSponsorAmountField();
+        sponsorNameInput.focus();
+        return;
+      }
+
+      if (deleteButton) {
+        const sponsorId =
+          deleteButton.dataset.sponsorId;
+
+        const item =
+          classSponsors.find(
+            (row) =>
+              row.id === sponsorId,
+          );
+
+        if (!item) return;
+
+        const confirmed = confirm(
+          `Bạn có chắc muốn xóa khoản tài trợ của "${item.sponsorName}" không?`,
+        );
+
+        if (!confirmed) return;
+
+        try {
+          await deleteSponsor(sponsorId);
+
+          if (
+            sponsorIdInput.value ===
+            sponsorId
+          ) {
+            resetSponsorForm();
+          }
+        } catch (error) {
+          console.error(
+            "Lỗi xóa tài trợ:",
+            error,
+          );
+
+          setSponsorMessage(
+            "Không xóa được tài trợ. Vui lòng kiểm tra Firestore Rules.",
+            "error",
+          );
+        }
+      }
+    },
+  );
+}
+
+if (cancelSponsorEditButton) {
+  cancelSponsorEditButton.addEventListener(
+    "click",
+    () => {
+      resetSponsorForm();
+    },
+  );
 }
 
 comingSoonCards.forEach((card) => {

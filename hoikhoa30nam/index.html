@@ -218,7 +218,6 @@
                 </button>
               </div>
             </article>
-
             <article class="class-card">
               <div class="class-badge">12B</div>
               <div class="class-content">
@@ -229,11 +228,70 @@
                 </button>
               </div>
             </article>
-
             <article class="class-card">
               <div class="class-badge">12C</div>
               <div class="class-content">
                 <h3>Lớp 12C</h3>
+                <p>Danh sách thành viên</p>
+                <button class="text-button" type="button">
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12D</div>
+              <div class="class-content">
+                <h3>Lớp 12D</h3>
+                <p>Danh sách thành viên</p>
+                <button class="text-button" type="button">
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12E</div>
+              <div class="class-content">
+                <h3>Lớp 12E</h3>
+                <p>Danh sách thành viên</p>
+                <button class="text-button" type="button">
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12G</div>
+              <div class="class-content">
+                <h3>Lớp 12G</h3>
+                <p>Danh sách thành viên</p>
+                <button class="text-button" type="button">
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12H</div>
+              <div class="class-content">
+                <h3>Lớp 12H</h3>
+                <p>Danh sách thành viên</p>
+                <button class="text-button" type="button">
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12K</div>
+              <div class="class-content">
+                <h3>Lớp 12K</h3>
+                <p>Danh sách thành viên</p>
+                <button class="text-button" type="button">
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12M</div>
+              <div class="class-content">
+                <h3>Lớp 12M</h3>
                 <p>Danh sách thành viên</p>
                 <button class="text-button" type="button">
                   Xem chi tiết →
@@ -268,6 +326,12 @@
                 <option value="12A">12A</option>
                 <option value="12B">12B</option>
                 <option value="12C">12C</option>
+                <option value="12D">12D</option>
+                <option value="12E">12E</option>
+                <option value="12G">12G</option>
+                <option value="12H">12H</option>
+                <option value="12K">12K</option>
+                <option value="12M">12M</option>
               </select>
             </div>
 
@@ -422,8 +486,8 @@
             </button>
 
             <button
-              class="management-card coming-soon-card"
-              data-soon="Đóng góp"
+              class="management-card"
+              id="manageContributionsButton"
               type="button"
             >
               <div class="management-icon">💰</div>
@@ -432,8 +496,8 @@
             </button>
 
             <button
-              class="management-card coming-soon-card"
-              data-soon="Tài trợ"
+              class="management-card"
+              id="manageSponsorsButton"
               type="button"
             >
               <div class="management-icon">💝</div>
@@ -608,6 +672,222 @@
                   </tbody>
                 </table>
               </div>
+            </div>
+          </div>
+
+
+          <div class="contribution-management hidden" id="contributionManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">ĐÓNG GÓP HỘI KHÓA</span>
+                <h3 id="contributionSectionTitle">
+                  Đóng góp của thành viên
+                </h3>
+                <p>
+                  Nhập số tiền đóng góp của từng thành viên; hệ thống tự tính tổng của lớp.
+                </p>
+              </div>
+
+              <div class="contribution-summary">
+                <div class="member-count-box">
+                  <span>Số người có đóng góp</span>
+                  <strong id="contributorCount">0</strong>
+                  <small>thành viên</small>
+                </div>
+
+                <div class="member-count-box contribution-total-box">
+                  <span>Tổng đóng góp</span>
+                  <strong id="contributionTotal">0 đ</strong>
+                  <small>của lớp</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="contribution-card">
+              <div class="participant-toolbar">
+                <input
+                  type="text"
+                  id="contributionSearch"
+                  placeholder="Tìm theo họ tên hoặc số điện thoại..."
+                >
+
+                <select id="contributionFilter">
+                  <option value="all">Tất cả</option>
+                  <option value="has">Đã đóng góp</option>
+                  <option value="none">Chưa đóng góp</option>
+                </select>
+              </div>
+
+              <div class="table-responsive">
+                <table class="contribution-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Họ và tên</th>
+                      <th>Số điện thoại</th>
+                      <th>Số tiền đóng góp</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="contributionTableBody">
+                    <tr>
+                      <td colspan="5" class="empty-row">
+                        Chưa có dữ liệu
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="sponsor-management hidden" id="sponsorManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">TÀI TRỢ HỘI KHÓA</span>
+                <h3 id="sponsorSectionTitle">
+                  Tài trợ của lớp
+                </h3>
+                <p>
+                  Ghi nhận các khoản tài trợ bằng tiền hoặc hiện vật của lớp.
+                </p>
+              </div>
+
+              <div class="sponsor-summary-group">
+                <div class="member-count-box">
+                  <span>Số lượt tài trợ</span>
+                  <strong id="sponsorCount">0</strong>
+                  <small>lượt</small>
+                </div>
+
+                <div class="member-count-box sponsor-total-box">
+                  <span>Tổng tài trợ tiền</span>
+                  <strong id="sponsorClassTotal">0 đ</strong>
+                  <small>của lớp</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="sponsor-layout">
+
+              <div class="sponsor-form-card">
+                <h4 id="sponsorFormTitle">Thêm khoản tài trợ</h4>
+
+                <form id="sponsorForm">
+                  <input type="hidden" id="sponsorId">
+
+                  <div class="form-group">
+                    <label for="sponsorName">
+                      Người/đơn vị tài trợ <span class="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="sponsorName"
+                      placeholder="Nhập họ tên hoặc tên đơn vị"
+                      required
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sponsorType">Hình thức tài trợ</label>
+                    <select id="sponsorType">
+                      <option value="money">Tiền mặt/chuyển khoản</option>
+                      <option value="in_kind">Hiện vật/dịch vụ</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group" id="sponsorAmountGroup">
+                    <label for="sponsorAmount">Số tiền</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      id="sponsorAmount"
+                      placeholder="Ví dụ: 2000000"
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sponsorContent">Nội dung tài trợ</label>
+                    <input
+                      type="text"
+                      id="sponsorContent"
+                      placeholder="Ví dụ: Tài trợ chương trình Hội khóa"
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sponsorNote">Ghi chú</label>
+                    <textarea
+                      id="sponsorNote"
+                      rows="3"
+                      placeholder="Thông tin bổ sung (nếu có)"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      class="primary-action-button"
+                      id="saveSponsorButton"
+                      type="submit"
+                    >
+                      Lưu tài trợ
+                    </button>
+
+                    <button
+                      class="secondary-action-button hidden"
+                      id="cancelSponsorEditButton"
+                      type="button"
+                    >
+                      Hủy sửa
+                    </button>
+                  </div>
+
+                  <p class="form-message" id="sponsorFormMessage"></p>
+                </form>
+              </div>
+
+              <div class="sponsor-list-card">
+                <div class="participant-toolbar">
+                  <input
+                    type="text"
+                    id="sponsorSearch"
+                    placeholder="Tìm theo tên hoặc nội dung tài trợ..."
+                  >
+
+                  <select id="sponsorTypeFilter">
+                    <option value="all">Tất cả hình thức</option>
+                    <option value="money">Tiền</option>
+                    <option value="in_kind">Hiện vật/dịch vụ</option>
+                  </select>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="sponsor-management-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Người/đơn vị tài trợ</th>
+                        <th>Hình thức</th>
+                        <th>Giá trị</th>
+                        <th>Nội dung</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+
+                    <tbody id="sponsorTableBody">
+                      <tr>
+                        <td colspan="6" class="empty-row">
+                          Chưa có dữ liệu
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
             </div>
           </div>
 

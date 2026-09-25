@@ -66,6 +66,18 @@ async function updateMemberAttendance(memberId, attending) {
   });
 }
 
+
+async function updateMemberContribution(memberId, contributionAmount) {
+  const memberRef = doc(db, "members", memberId);
+
+  const amount = Number(contributionAmount) || 0;
+
+  await updateDoc(memberRef, {
+    contributionAmount: amount < 0 ? 0 : amount,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 function subscribeMembersByClass(
   classId,
   callback,
@@ -107,10 +119,118 @@ function subscribeMembersByClass(
   );
 }
 
+
+
+/* =========================================
+   TÀI TRỢ
+========================================= */
+
+async function addSponsor({
+  sponsorName,
+  type = "money",
+  amount = 0,
+  content = "",
+  note = "",
+  classId,
+  createdBy,
+}) {
+  const normalizedAmount =
+    type === "money"
+      ? Math.max(0, Number(amount) || 0)
+      : 0;
+
+  return await addDoc(collection(db, "sponsors"), {
+    sponsorName: sponsorName.trim(),
+    type,
+    amount: normalizedAmount,
+    content: content.trim(),
+    note: note.trim(),
+    classId,
+    createdBy,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function updateSponsor(
+  sponsorId,
+  {
+    sponsorName,
+    type = "money",
+    amount = 0,
+    content = "",
+    note = "",
+  },
+) {
+  const sponsorRef = doc(db, "sponsors", sponsorId);
+
+  const normalizedAmount =
+    type === "money"
+      ? Math.max(0, Number(amount) || 0)
+      : 0;
+
+  await updateDoc(sponsorRef, {
+    sponsorName: sponsorName.trim(),
+    type,
+    amount: normalizedAmount,
+    content: content.trim(),
+    note: note.trim(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function deleteSponsor(sponsorId) {
+  const sponsorRef = doc(db, "sponsors", sponsorId);
+  await deleteDoc(sponsorRef);
+}
+
+function subscribeSponsorsByClass(
+  classId,
+  callback,
+  errorCallback,
+) {
+  const q = query(
+    collection(db, "sponsors"),
+    where("classId", "==", classId),
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const sponsors = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      sponsors.sort((a, b) =>
+        (a.sponsorName || "").localeCompare(
+          b.sponsorName || "",
+          "vi",
+          { sensitivity: "base" },
+        ),
+      );
+
+      callback(sponsors);
+    },
+    (error) => {
+      console.error("Lỗi đọc danh sách tài trợ:", error);
+
+      if (errorCallback) {
+        errorCallback(error);
+      }
+    },
+  );
+}
+
 export {
   addMember,
   updateMember,
   deleteMember,
   updateMemberAttendance,
+  updateMemberContribution,
   subscribeMembersByClass,
+  addSponsor,
+  updateSponsor,
+  deleteSponsor,
+  subscribeSponsorsByClass,
 };

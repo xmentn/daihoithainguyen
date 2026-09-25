@@ -1564,3 +1564,216 @@ td {
         width: 100%;
     }
 }
+
+
+/* =========================================
+   CONTRIBUTION MANAGEMENT
+========================================= */
+
+.contribution-management {
+    margin-top: 28px;
+}
+
+.contribution-summary {
+    display: flex;
+    gap: 12px;
+}
+
+.contribution-total-box {
+    min-width: 170px;
+    background: #fff7e7;
+    border-color: #ead5ad;
+}
+
+.contribution-total-box strong {
+    color: var(--primary-red);
+    font-size: 22px;
+}
+
+.contribution-card {
+    overflow: hidden;
+    border: 1px solid #e8e0d5;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.contribution-table td:nth-child(4) {
+    min-width: 190px;
+}
+
+.contribution-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.contribution-input {
+    width: 150px;
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid #d7d7d7;
+    border-radius: 8px;
+    outline: none;
+    text-align: right;
+}
+
+.contribution-input:focus {
+    border-color: var(--blue);
+}
+
+.currency-label {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.save-contribution-button {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: #eef5fb;
+    color: var(--blue-dark);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.save-contribution-button:hover {
+    background: #dfeef8;
+}
+
+.contribution-current {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+@media (max-width: 760px) {
+    .contribution-summary {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .contribution-summary .member-count-box {
+        width: 100%;
+    }
+
+    .contribution-input {
+        width: 120px;
+    }
+}
+
+
+/* =========================================
+   SPONSOR MANAGEMENT
+========================================= */
+
+.sponsor-management {
+    margin-top: 28px;
+}
+
+.sponsor-summary-group {
+    display: flex;
+    gap: 12px;
+}
+
+.sponsor-total-box {
+    min-width: 180px;
+    background: #fff7e7;
+    border-color: #ead5ad;
+}
+
+.sponsor-total-box strong {
+    color: var(--primary-red);
+    font-size: 22px;
+}
+
+.sponsor-layout {
+    display: grid;
+    grid-template-columns: 350px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+}
+
+.sponsor-form-card,
+.sponsor-list-card {
+    border: 1px solid #e8e0d5;
+    border-radius: 18px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.sponsor-form-card {
+    padding: 22px;
+}
+
+.sponsor-form-card h4 {
+    margin-bottom: 18px;
+    color: var(--blue-dark);
+    font-size: 19px;
+}
+
+.sponsor-form-card select,
+.sponsor-form-card textarea {
+    width: 100%;
+    padding: 10px 13px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    outline: none;
+    background: #ffffff;
+}
+
+.sponsor-form-card textarea {
+    resize: vertical;
+}
+
+.sponsor-form-card select:focus,
+.sponsor-form-card textarea:focus {
+    border-color: var(--blue);
+}
+
+.sponsor-list-card {
+    overflow: hidden;
+}
+
+.sponsor-kind-badge {
+    display: inline-block;
+    padding: 5px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.sponsor-kind-badge.money {
+    background: #eef9f1;
+    color: #23723a;
+}
+
+.sponsor-kind-badge.in-kind {
+    background: #fff4e7;
+    color: #9b5d12;
+}
+
+.sponsor-value {
+    font-weight: 800;
+    color: var(--primary-red);
+    white-space: nowrap;
+}
+
+@media (max-width: 1050px) {
+    .sponsor-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .sponsor-summary-group {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .sponsor-summary-group .member-count-box {
+        width: 100%;
+    }
+}
