@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js";
+} from "./firebase/auth.js?v=20260925-1730";
 
 import {
   addMember,
@@ -20,7 +20,7 @@ import {
   updateSponsor,
   deleteSponsor,
   subscribeSponsorsByClass,
-} from "./firebase/firestore.js";
+} from "./firebase/firestore.js?v=20260925-1730";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
