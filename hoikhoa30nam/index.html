@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20260925-1730" />
+    <link rel="stylesheet" href="style.css?v=20260925-2200" />
   </head>
 
   <body>
@@ -103,14 +103,14 @@
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-icon">🏫</div>
-              <div class="stat-number" id="totalClasses">0</div>
+              <div class="stat-number" id="totalClasses">8</div>
               <div class="stat-label">Lớp</div>
             </div>
 
             <div class="stat-card">
               <div class="stat-icon">👥</div>
-              <div class="stat-number" id="totalParticipants">0</div>
-              <div class="stat-label">Thành viên tham dự</div>
+              <div class="stat-number stat-ratio" id="totalParticipants">0 / 0</div>
+              <div class="stat-label">Tham gia / Tổng thành viên</div>
             </div>
 
             <div class="stat-card">
@@ -543,6 +543,12 @@
             <p>Danh sách cựu học sinh tham dự Hội khóa</p>
           </div>
 
+          <div class="participant-public-summary">
+            <span>Đã xác nhận tham gia</span>
+            <strong id="publicParticipantCount">0</strong>
+            <small>người</small>
+          </div>
+
           <div class="table-card">
             <div class="table-toolbar">
               <input
@@ -566,20 +572,19 @@
             </div>
 
             <div class="table-responsive">
-              <table>
+              <table class="public-participant-table">
                 <thead>
                   <tr>
                     <th>STT</th>
                     <th>Họ và tên</th>
                     <th>Lớp</th>
-                    <th>Tham dự</th>
-                    <th>Đóng góp</th>
+                    <th>Trạng thái</th>
                   </tr>
                 </thead>
 
                 <tbody id="participantsTableBody">
                   <tr>
-                    <td colspan="5" class="empty-row">Chưa có dữ liệu</td>
+                    <td colspan="4" class="empty-row">Đang tải dữ liệu...</td>
                   </tr>
                 </tbody>
               </table>
@@ -1146,6 +1151,50 @@
       <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
     </footer>
 
-    <script type="module" src="main.js?v=20260925-1730"></script>
+    <script type="module" src="main.js?v=20260925-2200"></script>
+  
+    <!-- =========================
+         HỘP THOẠI TÙY CHỈNH
+    ========================== -->
+    <div
+      class="app-dialog-backdrop hidden"
+      id="appDialogBackdrop"
+      aria-hidden="true"
+    >
+      <div
+        class="app-dialog"
+        id="appDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="appDialogTitle"
+        aria-describedby="appDialogMessage"
+      >
+        <div class="app-dialog-icon" id="appDialogIcon">!</div>
+
+        <div class="app-dialog-content">
+          <h3 id="appDialogTitle">Thông báo</h3>
+          <p id="appDialogMessage"></p>
+        </div>
+
+        <div class="app-dialog-actions">
+          <button
+            class="app-dialog-button app-dialog-cancel hidden"
+            id="appDialogCancel"
+            type="button"
+          >
+            Hủy
+          </button>
+
+          <button
+            class="app-dialog-button app-dialog-confirm"
+            id="appDialogConfirm"
+            type="button"
+          >
+            Đồng ý
+          </button>
+        </div>
+      </div>
+    </div>
+
   </body>
 </html>

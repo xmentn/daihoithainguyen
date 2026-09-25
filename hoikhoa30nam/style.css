@@ -2212,3 +2212,261 @@ td {
         inset: 12px;
     }
 }
+
+
+/* =========================================
+   PUBLIC PARTICIPANTS + TABLE COLUMN LINES
+========================================= */
+
+.participant-public-summary {
+    width: fit-content;
+    min-width: 180px;
+    margin: 0 0 16px auto;
+    padding: 12px 18px;
+    text-align: center;
+    border: 1px solid #ead9bd;
+    border-radius: 14px;
+    background: #fffaf1;
+}
+
+.participant-public-summary span,
+.participant-public-summary small {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.participant-public-summary strong {
+    display: block;
+    color: var(--primary-red);
+    font-size: 28px;
+    line-height: 1.15;
+}
+
+.public-attending-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #eef9f1;
+    color: #23723a;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* Kẻ dọc giữa các cột cho toàn bộ bảng */
+table th:not(:last-child),
+table td:not(:last-child) {
+    border-right: 1px solid #e7e0d6;
+}
+
+/* Làm đường kẻ bảng rõ hơn */
+table th,
+table td {
+    border-bottom-color: #e7e0d6;
+}
+
+@media (max-width: 650px) {
+    .participant-public-summary {
+        width: 100%;
+        margin-left: 0;
+    }
+}
+
+
+/* =========================================
+   HOME LIVE STATS
+========================================= */
+
+.stat-ratio {
+    font-size: 28px;
+    letter-spacing: 0.3px;
+}
+
+@media (max-width: 520px) {
+    .stat-ratio {
+        font-size: 22px;
+    }
+}
+
+
+/* =========================================
+   CUSTOM APP DIALOG
+========================================= */
+
+.app-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(8, 25, 44, 0.42);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.app-dialog-backdrop.hidden {
+    display: none !important;
+}
+
+.app-dialog {
+    width: min(440px, 100%);
+    overflow: hidden;
+    border: 1px solid #eadfce;
+    border-radius: 20px;
+    background: #ffffff;
+    box-shadow:
+        0 24px 70px rgba(10, 30, 50, 0.22),
+        0 5px 18px rgba(10, 30, 50, 0.10);
+    animation: appDialogIn 0.18s ease-out;
+}
+
+@keyframes appDialogIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.app-dialog-icon {
+    width: 58px;
+    height: 58px;
+    margin: 26px auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff5e7;
+    color: #b21f24;
+    font-size: 28px;
+    font-weight: 900;
+    box-shadow: inset 0 0 0 1px #f0d6b0;
+}
+
+.app-dialog[data-type="danger"] .app-dialog-icon {
+    background: #fff0f0;
+    color: #b21f24;
+    box-shadow: inset 0 0 0 1px #efc7c7;
+}
+
+.app-dialog[data-type="success"] .app-dialog-icon {
+    background: #eef8f1;
+    color: #23723a;
+    box-shadow: inset 0 0 0 1px #c9e2d0;
+}
+
+.app-dialog[data-type="info"] .app-dialog-icon {
+    background: #eef5fb;
+    color: var(--blue-dark);
+    box-shadow: inset 0 0 0 1px #cbddea;
+}
+
+.app-dialog-content {
+    padding: 0 28px 24px;
+    text-align: center;
+}
+
+.app-dialog-content h3 {
+    margin-bottom: 9px;
+    color: var(--blue-dark);
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 23px;
+    line-height: 1.25;
+}
+
+.app-dialog-content p {
+    color: #5f6770;
+    font-size: 14px;
+    line-height: 1.65;
+    white-space: pre-line;
+}
+
+.app-dialog-actions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 17px 22px 22px;
+    border-top: 1px solid #f0ebe4;
+    background: #fffdf9;
+}
+
+.app-dialog-button {
+    min-width: 108px;
+    min-height: 42px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 800;
+    transition:
+        transform 0.15s ease,
+        background 0.15s ease,
+        border-color 0.15s ease;
+}
+
+.app-dialog-button:hover {
+    transform: translateY(-1px);
+}
+
+.app-dialog-confirm {
+    border: 1px solid var(--primary-red);
+    background: linear-gradient(
+        135deg,
+        var(--primary-red),
+        var(--primary-red-dark)
+    );
+    color: #ffffff;
+}
+
+.app-dialog-cancel {
+    border: 1px solid #ddd4c8;
+    background: #ffffff;
+    color: #46515c;
+}
+
+.app-dialog-cancel:hover {
+    background: #f8f5f0;
+}
+
+body.dialog-open {
+    overflow: hidden;
+}
+
+/* Giữ căn giữa tiêu đề cột và STT theo yêu cầu trước */
+table thead th {
+    text-align: center !important;
+    vertical-align: middle;
+}
+
+table th:first-child,
+table td:first-child {
+    width: 70px;
+    min-width: 70px;
+    text-align: center !important;
+    vertical-align: middle;
+}
+
+@media (max-width: 520px) {
+    .app-dialog {
+        border-radius: 16px;
+    }
+
+    .app-dialog-content {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .app-dialog-actions {
+        flex-direction: column-reverse;
+    }
+
+    .app-dialog-button {
+        width: 100%;
+    }
+}

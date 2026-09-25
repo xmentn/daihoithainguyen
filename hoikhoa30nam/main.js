@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260925-1730";
+} from "./firebase/auth.js?v=20260925-2200";
 
 import {
   addMember,
@@ -20,7 +20,7 @@ import {
   updateSponsor,
   deleteSponsor,
   subscribeSponsorsByClass,
-} from "./firebase/firestore.js?v=20260925-1730";
+} from "./firebase/firestore.js?v=20260925-2200";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -131,6 +131,20 @@ const currentUserRole =
   document.getElementById("currentUserRole");
 const logoutButton =
   document.getElementById("logoutButton");
+const appDialogBackdrop =
+  document.getElementById("appDialogBackdrop");
+const appDialog =
+  document.getElementById("appDialog");
+const appDialogIcon =
+  document.getElementById("appDialogIcon");
+const appDialogTitle =
+  document.getElementById("appDialogTitle");
+const appDialogMessage =
+  document.getElementById("appDialogMessage");
+const appDialogCancel =
+  document.getElementById("appDialogCancel");
+const appDialogConfirm =
+  document.getElementById("appDialogConfirm");
 
 const memberSectionTitle =
   document.getElementById("memberSectionTitle");
@@ -279,6 +293,23 @@ const dashboardBreakdownTitle =
   document.getElementById("dashboardBreakdownTitle");
 const dashboardTableBody =
   document.getElementById("dashboardTableBody");
+const totalClassesHome =
+  document.getElementById("totalClasses");
+const totalParticipantsHome =
+  document.getElementById("totalParticipants");
+const totalOrganizersHome =
+  document.getElementById("totalOrganizers");
+const totalSponsorHome =
+  document.getElementById("totalSponsor");
+
+const participantSearch =
+  document.getElementById("participantSearch");
+const participantClassFilter =
+  document.getElementById("participantClassFilter");
+const participantsTableBody =
+  document.getElementById("participantsTableBody");
+const publicParticipantCount =
+  document.getElementById("publicParticipantCount");
 
 let currentSession = null;
 let unsubscribeMembers = null;
@@ -296,6 +327,124 @@ let publicClassMembers = [];
 let publicClassSponsors = [];
 let dashboardMembersData = [];
 let unsubscribeDashboard = null;
+
+
+let activeDialogResolver = null;
+
+function closeAppDialog(result) {
+  if (!appDialogBackdrop) return;
+
+  appDialogBackdrop.classList.add("hidden");
+  appDialogBackdrop.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("dialog-open");
+
+  if (activeDialogResolver) {
+    activeDialogResolver(result);
+    activeDialogResolver = null;
+  }
+}
+
+function openAppDialog({
+  title = "Thông báo",
+  message = "",
+  type = "info",
+  confirmText = "Đồng ý",
+  cancelText = "",
+  icon = "i",
+}) {
+  return new Promise((resolve) => {
+    activeDialogResolver = resolve;
+
+    appDialog.dataset.type = type;
+    appDialogTitle.textContent = title;
+    appDialogMessage.textContent = message;
+    appDialogIcon.textContent = icon;
+    appDialogConfirm.textContent = confirmText;
+
+    if (cancelText) {
+      appDialogCancel.textContent = cancelText;
+      appDialogCancel.classList.remove("hidden");
+    } else {
+      appDialogCancel.classList.add("hidden");
+    }
+
+    appDialogBackdrop.classList.remove("hidden");
+    appDialogBackdrop.setAttribute("aria-hidden", "false");
+    document.body.classList.add("dialog-open");
+
+    setTimeout(() => {
+      appDialogConfirm.focus();
+    }, 20);
+  });
+}
+
+function showConfirmDialog({
+  title = "Xác nhận",
+  message = "",
+  confirmText = "Đồng ý",
+  cancelText = "Hủy",
+  type = "danger",
+}) {
+  return openAppDialog({
+    title,
+    message,
+    type,
+    confirmText,
+    cancelText,
+    icon: type === "danger" ? "!" : "?",
+  });
+}
+
+function showAlertDialog({
+  title = "Thông báo",
+  message = "",
+  type = "info",
+  confirmText = "Đã hiểu",
+}) {
+  return openAppDialog({
+    title,
+    message,
+    type,
+    confirmText,
+    cancelText: "",
+    icon:
+      type === "success"
+        ? "✓"
+        : type === "danger"
+          ? "!"
+          : "i",
+  });
+}
+
+if (appDialogConfirm) {
+  appDialogConfirm.addEventListener("click", () => {
+    closeAppDialog(true);
+  });
+}
+
+if (appDialogCancel) {
+  appDialogCancel.addEventListener("click", () => {
+    closeAppDialog(false);
+  });
+}
+
+if (appDialogBackdrop) {
+  appDialogBackdrop.addEventListener("click", (event) => {
+    if (event.target === appDialogBackdrop) {
+      closeAppDialog(false);
+    }
+  });
+}
+
+document.addEventListener("keydown", (event) => {
+  if (
+    event.key === "Escape" &&
+    appDialogBackdrop &&
+    !appDialogBackdrop.classList.contains("hidden")
+  ) {
+    closeAppDialog(false);
+  }
+});
 
 function escapeHtml(value = "") {
   return String(value)
@@ -899,6 +1048,121 @@ function startSponsorSubscription(classId) {
 
 
 
+
+
+const HOME_TOTAL_CLASSES = 8;
+
+function renderHomeStats() {
+  const totalMembers =
+    dashboardMembersData.length;
+
+  const totalAttending =
+    dashboardMembersData.filter(
+      (item) => item.attending === true,
+    ).length;
+
+  if (totalClassesHome) {
+    totalClassesHome.textContent =
+      HOME_TOTAL_CLASSES;
+  }
+
+  if (totalParticipantsHome) {
+    totalParticipantsHome.textContent =
+      `${totalAttending} / ${totalMembers}`;
+  }
+
+  /*
+   * Ban Tổ chức sẽ làm sau nên tạm giữ 0.
+   */
+  if (totalOrganizersHome) {
+    totalOrganizersHome.textContent = "0";
+  }
+}
+
+function renderPublicParticipants() {
+  if (
+    !participantsTableBody ||
+    !participantSearch ||
+    !participantClassFilter
+  ) {
+    return;
+  }
+
+  const keyword = participantSearch.value
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const selectedClass =
+    participantClassFilter.value;
+
+  const attendees = dashboardMembersData
+    .filter((item) => item.attending === true)
+    .filter((item) => {
+      const matchesClass =
+        !selectedClass ||
+        item.classId === selectedClass;
+
+      const fullName = (item.fullName || "")
+        .toLocaleLowerCase("vi");
+
+      const matchesName =
+        !keyword ||
+        fullName.includes(keyword);
+
+      return matchesClass && matchesName;
+    })
+    .sort((a, b) => {
+      const classCompare = (a.classId || "")
+        .localeCompare(b.classId || "", "vi");
+
+      if (classCompare !== 0) {
+        return classCompare;
+      }
+
+      return (a.fullName || "").localeCompare(
+        b.fullName || "",
+        "vi",
+        { sensitivity: "base" },
+      );
+    });
+
+  publicParticipantCount.textContent =
+    attendees.length;
+
+  if (attendees.length === 0) {
+    participantsTableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-row">
+          Chưa có người xác nhận tham gia phù hợp
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  participantsTableBody.innerHTML =
+    attendees
+      .map(
+        (item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>
+              <strong>
+                ${escapeHtml(item.fullName || "")}
+              </strong>
+            </td>
+            <td>${escapeHtml(item.classId || "")}</td>
+            <td>
+              <span class="public-attending-badge">
+                Đã xác nhận
+              </span>
+            </td>
+          </tr>
+        `,
+      )
+      .join("");
+}
+
 const DASHBOARD_CLASSES = [
   "12A",
   "12B",
@@ -1070,6 +1334,8 @@ function startDashboardSubscription() {
           );
 
         renderDashboard();
+        renderPublicParticipants();
+        renderHomeStats();
       },
       () => {
         dashboardTableBody.innerHTML = `
@@ -1636,9 +1902,15 @@ if (memberTableBody) {
         if (!member) return;
 
         const confirmed =
-          confirm(
-            `Bạn có chắc muốn xóa "${member.fullName}" khỏi danh sách không?`,
-          );
+          await showConfirmDialog({
+            title: "Xóa thành viên?",
+            message:
+              `Bạn có chắc muốn xóa "${member.fullName}" khỏi danh sách lớp không?
+Hành động này không thể hoàn tác.`,
+            confirmText: "Xóa thành viên",
+            cancelText: "Hủy",
+            type: "danger",
+          });
 
         if (!confirmed) return;
 
@@ -1731,9 +2003,12 @@ if (participantManageTableBody) {
 
       checkbox.checked = member.attending === true;
 
-      alert(
-        "Không cập nhật được trạng thái tham gia. Vui lòng kiểm tra Firestore Rules.",
-      );
+      await showAlertDialog({
+        title: "Không thể cập nhật",
+        message:
+          "Không cập nhật được trạng thái tham gia. Vui lòng kiểm tra Firestore Rules.",
+        type: "danger",
+      });
     } finally {
       checkbox.disabled = false;
     }
@@ -1789,7 +2064,12 @@ if (contributionTableBody) {
       let amount = Number(input.value);
 
       if (!Number.isFinite(amount) || amount < 0) {
-        alert("Số tiền đóng góp không hợp lệ.");
+        await showAlertDialog({
+          title: "Số tiền không hợp lệ",
+          message:
+            "Vui lòng nhập số tiền đóng góp hợp lệ, lớn hơn hoặc bằng 0.",
+          type: "danger",
+        });
         input.focus();
         return;
       }
@@ -1825,9 +2105,12 @@ if (contributionTableBody) {
           error,
         );
 
-        alert(
-          "Không cập nhật được số tiền đóng góp. Vui lòng kiểm tra Firestore Rules.",
-        );
+        await showAlertDialog({
+          title: "Không thể lưu đóng góp",
+          message:
+            "Không cập nhật được số tiền đóng góp. Vui lòng kiểm tra Firestore Rules.",
+          type: "danger",
+        });
       } finally {
         button.disabled = false;
         button.textContent = "Lưu";
@@ -2056,9 +2339,16 @@ if (sponsorTableBody) {
 
         if (!item) return;
 
-        const confirmed = confirm(
-          `Bạn có chắc muốn xóa khoản tài trợ của "${item.sponsorName}" không?`,
-        );
+        const confirmed =
+          await showConfirmDialog({
+            title: "Xóa khoản tài trợ?",
+            message:
+              `Bạn có chắc muốn xóa khoản tài trợ của "${item.sponsorName}" không?
+Hành động này không thể hoàn tác.`,
+            confirmText: "Xóa tài trợ",
+            cancelText: "Hủy",
+            type: "danger",
+          });
 
         if (!confirmed) return;
 
@@ -2098,6 +2388,25 @@ if (cancelSponsorEditButton) {
 
 
 
+
+if (participantSearch) {
+  participantSearch.addEventListener(
+    "input",
+    () => {
+      renderPublicParticipants();
+    },
+  );
+}
+
+if (participantClassFilter) {
+  participantClassFilter.addEventListener(
+    "change",
+    () => {
+      renderPublicParticipants();
+    },
+  );
+}
+
 if (dashboardClassFilter) {
   dashboardClassFilter.addEventListener(
     "change",
@@ -2127,9 +2436,12 @@ if (closePublicClassButton) {
 
 comingSoonCards.forEach((card) => {
   card.addEventListener("click", () => {
-    alert(
-      `${card.dataset.soon} sẽ được xây dựng ở bước tiếp theo.`,
-    );
+    showAlertDialog({
+      title: "Chức năng đang hoàn thiện",
+      message:
+        `${card.dataset.soon} sẽ được xây dựng ở bước tiếp theo.`,
+      type: "info",
+    });
   });
 });
 
