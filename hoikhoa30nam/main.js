@@ -14,6 +14,7 @@ import {
   subscribeContributionsByClass,
   migrateLegacyClassData,
   subscribeMembersByClass,
+  subscribeAllPublicMembers,
   subscribePublicMembersByClass,
   addSponsor,
   updateSponsor,
@@ -256,6 +257,28 @@ const closePublicClassButton =
   document.getElementById("closePublicClassButton");
 const publicClassButtons =
   document.querySelectorAll(".public-class-button");
+const dashboardClassFilter =
+  document.getElementById("dashboardClassFilter");
+const dashboardScopeLabel =
+  document.getElementById("dashboardScopeLabel");
+const dashboardRing =
+  document.getElementById("dashboardRing");
+const dashboardAttending =
+  document.getElementById("dashboardAttending");
+const dashboardMembers =
+  document.getElementById("dashboardMembers");
+const dashboardPercent =
+  document.getElementById("dashboardPercent");
+const dashboardMemberCard =
+  document.getElementById("dashboardMemberCard");
+const dashboardAttendingCard =
+  document.getElementById("dashboardAttendingCard");
+const dashboardPendingCard =
+  document.getElementById("dashboardPendingCard");
+const dashboardBreakdownTitle =
+  document.getElementById("dashboardBreakdownTitle");
+const dashboardTableBody =
+  document.getElementById("dashboardTableBody");
 
 let currentSession = null;
 let unsubscribeMembers = null;
@@ -271,6 +294,8 @@ let unsubscribePublicMembers = null;
 let unsubscribePublicSponsors = null;
 let publicClassMembers = [];
 let publicClassSponsors = [];
+let dashboardMembersData = [];
+let unsubscribeDashboard = null;
 
 function escapeHtml(value = "") {
   return String(value)
@@ -872,6 +897,191 @@ function startSponsorSubscription(classId) {
     );
 }
 
+
+
+const DASHBOARD_CLASSES = [
+  "12A",
+  "12B",
+  "12C",
+  "12D",
+  "12E",
+  "12G",
+  "12H",
+  "12K",
+  "12M",
+];
+
+function getDashboardClassStats(classId) {
+  const members = dashboardMembersData.filter(
+    (item) => item.classId === classId,
+  );
+
+  const total = members.length;
+
+  const attending = members.filter(
+    (item) => item.attending === true,
+  ).length;
+
+  const pending = Math.max(
+    0,
+    total - attending,
+  );
+
+  const percent =
+    total > 0
+      ? Math.round((attending / total) * 100)
+      : 0;
+
+  return {
+    classId,
+    total,
+    attending,
+    pending,
+    percent,
+  };
+}
+
+function renderDashboard() {
+  if (!dashboardClassFilter) return;
+
+  const selectedClass =
+    dashboardClassFilter.value;
+
+  let stats;
+
+  if (selectedClass === "all") {
+    const total =
+      dashboardMembersData.length;
+
+    const attending =
+      dashboardMembersData.filter(
+        (item) => item.attending === true,
+      ).length;
+
+    stats = {
+      total,
+      attending,
+      pending: Math.max(
+        0,
+        total - attending,
+      ),
+      percent:
+        total > 0
+          ? Math.round(
+              (attending / total) * 100,
+            )
+          : 0,
+    };
+
+    dashboardScopeLabel.textContent =
+      "TOÀN KHÓA";
+
+    dashboardBreakdownTitle.textContent =
+      "Tình hình tham gia toàn khóa";
+  } else {
+    stats =
+      getDashboardClassStats(selectedClass);
+
+    dashboardScopeLabel.textContent =
+      `LỚP ${selectedClass}`;
+
+    dashboardBreakdownTitle.textContent =
+      `Tình hình tham gia lớp ${selectedClass}`;
+  }
+
+  dashboardAttending.textContent =
+    stats.attending;
+
+  dashboardMembers.textContent =
+    stats.total;
+
+  dashboardMemberCard.textContent =
+    stats.total;
+
+  dashboardAttendingCard.textContent =
+    stats.attending;
+
+  dashboardPendingCard.textContent =
+    stats.pending;
+
+  dashboardPercent.textContent =
+    `${stats.percent}%`;
+
+  if (dashboardRing) {
+    dashboardRing.style.setProperty(
+      "--dashboard-percent",
+      `${stats.percent}%`,
+    );
+  }
+
+  const rows =
+    selectedClass === "all"
+      ? DASHBOARD_CLASSES.map(
+          getDashboardClassStats,
+        )
+      : [
+          getDashboardClassStats(
+            selectedClass,
+          ),
+        ];
+
+  dashboardTableBody.innerHTML = rows
+    .map(
+      (item) => `
+        <tr>
+          <td>
+            <span class="dashboard-class-name">
+              ${item.classId}
+            </span>
+          </td>
+          <td>${item.total}</td>
+          <td>${item.attending}</td>
+          <td>${item.pending}</td>
+          <td>
+            <span class="dashboard-rate">
+              ${item.percent}%
+            </span>
+            <div class="dashboard-rate-track">
+              <div
+                class="dashboard-rate-bar"
+                style="width: ${item.percent}%"
+              ></div>
+            </div>
+          </td>
+        </tr>
+      `,
+    )
+    .join("");
+}
+
+function startDashboardSubscription() {
+  if (unsubscribeDashboard) {
+    return;
+  }
+
+  unsubscribeDashboard =
+    subscribeAllPublicMembers(
+      (items) => {
+        dashboardMembersData =
+          items.filter((item) =>
+            DASHBOARD_CLASSES.includes(
+              item.classId,
+            ),
+          );
+
+        renderDashboard();
+      },
+      () => {
+        dashboardTableBody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-row">
+              Không đọc được dữ liệu Dashboard
+            </td>
+          </tr>
+        `;
+      },
+    );
+}
 
 function stopPublicClassSubscriptions() {
   if (unsubscribePublicMembers) {
@@ -1886,6 +2096,18 @@ if (cancelSponsorEditButton) {
   );
 }
 
+
+
+if (dashboardClassFilter) {
+  dashboardClassFilter.addEventListener(
+    "change",
+    () => {
+      renderDashboard();
+    },
+  );
+}
+
+startDashboardSubscription();
 
 publicClassButtons.forEach((button) => {
   button.addEventListener("click", () => {

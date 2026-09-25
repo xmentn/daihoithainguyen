@@ -164,15 +164,123 @@
           <div class="page-heading">
             <span class="section-label">TỔNG QUAN HỘI KHÓA</span>
             <h2>Dashboard</h2>
-            <p>Tổng hợp số liệu của toàn khóa</p>
+            <p>Tổng hợp tình hình tham gia Hội khóa của toàn khóa và từng lớp</p>
           </div>
 
-          <div class="placeholder-box">
-            <div class="placeholder-icon">📊</div>
-            <h3>Dashboard tổng quan</h3>
-            <p>
-              Phần Dashboard sẽ được xây dựng sau khi kết nối dữ liệu Firebase.
-            </p>
+          <div class="dashboard-toolbar">
+            <div>
+              <label for="dashboardClassFilter">Phạm vi thống kê</label>
+              <select id="dashboardClassFilter">
+                <option value="all">Toàn khóa 1993 - 1996</option>
+                <option value="12A">Lớp 12A</option>
+                <option value="12B">Lớp 12B</option>
+                <option value="12C">Lớp 12C</option>
+                <option value="12D">Lớp 12D</option>
+                <option value="12E">Lớp 12E</option>
+                <option value="12G">Lớp 12G</option>
+                <option value="12H">Lớp 12H</option>
+                <option value="12K">Lớp 12K</option>
+                <option value="12M">Lớp 12M</option>
+              </select>
+            </div>
+
+            <div class="dashboard-updated">
+              <span>Dữ liệu cập nhật theo thời gian thực</span>
+            </div>
+          </div>
+
+          <div class="dashboard-hero">
+            <div class="dashboard-ratio-card dashboard-ring-card-shell">
+              <span class="dashboard-ratio-label" id="dashboardScopeLabel">
+                TOÀN KHÓA
+              </span>
+
+              <div class="dashboard-ring-layout">
+                <div
+                  class="dashboard-ring"
+                  id="dashboardRing"
+                  style="--dashboard-percent: 0%"
+                >
+                  <div class="dashboard-ring-inner">
+                    <strong id="dashboardPercent">0%</strong>
+                    <span>Tỷ lệ tham gia</span>
+                  </div>
+                </div>
+
+                <div class="dashboard-ring-summary">
+                  <div class="dashboard-ratio">
+                    <strong id="dashboardAttending">0</strong>
+                    <span>/</span>
+                    <strong id="dashboardMembers">0</strong>
+                  </div>
+
+                  <p>Người xác nhận tham gia / Tổng số thành viên</p>
+
+                  <div class="dashboard-legend">
+                    <div class="dashboard-legend-item">
+                      <span class="dashboard-legend-dot attending"></span>
+                      <span>Đã xác nhận tham gia</span>
+                    </div>
+
+                    <div class="dashboard-legend-item">
+                      <span class="dashboard-legend-dot pending"></span>
+                      <span>Chưa xác nhận</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-mini-grid">
+              <div class="dashboard-mini-card">
+                <span>Tổng thành viên</span>
+                <strong id="dashboardMemberCard">0</strong>
+                <small>người</small>
+              </div>
+
+              <div class="dashboard-mini-card">
+                <span>Đã xác nhận</span>
+                <strong id="dashboardAttendingCard">0</strong>
+                <small>người</small>
+              </div>
+
+              <div class="dashboard-mini-card">
+                <span>Chưa xác nhận</span>
+                <strong id="dashboardPendingCard">0</strong>
+                <small>người</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-breakdown-card">
+            <div class="dashboard-breakdown-heading">
+              <div>
+                <span class="section-label">CHI TIẾT THEO LỚP</span>
+                <h3 id="dashboardBreakdownTitle">Tình hình tham gia toàn khóa</h3>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Lớp</th>
+                    <th>Tổng thành viên</th>
+                    <th>Đã xác nhận</th>
+                    <th>Chưa xác nhận</th>
+                    <th>Tỷ lệ tham gia</th>
+                  </tr>
+                </thead>
+
+                <tbody id="dashboardTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-row">
+                      Đang tải dữ liệu...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>

@@ -151,6 +151,34 @@ function subscribeMembersByClass(
    PUBLIC MEMBERS
 ========================================= */
 
+
+function subscribeAllPublicMembers(
+  callback,
+  errorCallback,
+) {
+  return onSnapshot(
+    collection(db, "publicMembers"),
+    (snapshot) => {
+      const members = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      callback(members);
+    },
+    (error) => {
+      console.error(
+        "Lỗi đọc Dashboard công khai:",
+        error,
+      );
+
+      if (errorCallback) {
+        errorCallback(error);
+      }
+    },
+  );
+}
+
 function subscribePublicMembersByClass(
   classId,
   callback,
@@ -415,6 +443,7 @@ export {
   deleteMember,
   updateMemberAttendance,
   subscribeMembersByClass,
+  subscribeAllPublicMembers,
   subscribePublicMembersByClass,
   updateMemberContribution,
   subscribeContributionsByClass,
