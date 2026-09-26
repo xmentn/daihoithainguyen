@@ -1,906 +1,461 @@
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
-    <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20260925-2200" />
-  </head>
 
-  <body>
-    <!-- =========================
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="style.css?v=20260925-2200" />
+</head>
+
+<body>
+  <!-- =========================
          HEADER / BANNER
     ========================== -->
-    <header class="site-header">
-      <div class="banner-wrapper">
-        <img
-          src="assets/images/banner-hoi-khoa.png"
-          alt="Hội khóa 30 năm Trường THPT Phú Bình khóa 1993 - 1996"
-          class="banner-image"
-        />
-      </div>
+  <header class="site-header">
+    <div class="banner-wrapper">
+      <img src="assets/images/banner-hoi-khoa.png" alt="Hội khóa 30 năm Trường THPT Phú Bình khóa 1993 - 1996"
+        class="banner-image" />
+    </div>
 
-      <!-- Thanh menu -->
-      <nav class="main-nav">
-        <div class="nav-container">
-          <button
-            class="menu-toggle"
-            id="menuToggle"
-            aria-label="Mở menu"
-            aria-expanded="false"
-          >
-            ☰
-          </button>
+    <!-- Thanh menu -->
+    <nav class="main-nav">
+      <div class="nav-container">
+        <button class="menu-toggle" id="menuToggle" aria-label="Mở menu" aria-expanded="false">
+          ☰
+        </button>
 
-          <ul class="nav-menu" id="navMenu">
-            <li>
-              <button class="tab-link active" data-tab="home">Trang chủ</button>
-            </li>
+        <ul class="nav-menu" id="navMenu">
+          <li>
+            <button class="tab-link active" data-tab="home">Trang chủ</button>
+          </li>
 
-            <li>
-              <button class="tab-link" data-tab="dashboard">Dashboard</button>
-            </li>
+          <li>
+            <button class="tab-link" data-tab="dashboard">Dashboard</button>
+          </li>
 
-            <li>
-              <button class="tab-link" data-tab="organizers">
-                Ban Tổ chức
-              </button>
-            </li>
+          <li>
+            <button class="tab-link" data-tab="organizers">
+              Ban Tổ chức
+            </button>
+          </li>
 
-            <li>
-              <button class="tab-link" data-tab="classes">Các lớp</button>
-            </li>
+          <li>
+            <button class="tab-link" data-tab="classes">Các lớp</button>
+          </li>
 
-            <li>
-              <button class="tab-link" data-tab="participants">
-                Danh sách tham gia
-              </button>
-            </li>
+          <li>
+            <button class="tab-link" data-tab="participants">
+              Danh sách tham gia
+            </button>
+          </li>
 
-            <li>
-              <button class="tab-link" data-tab="sponsors">Tài trợ</button>
-            </li>
+          <li>
+            <button class="tab-link" data-tab="sponsors">Tài trợ</button>
+          </li>
 
-            <li id="loginMenuItem">
-              <button
-                class="tab-link login-tab"
-                id="loginTabButton"
-                data-tab="login"
-              >
-                Đăng nhập
-              </button>
-            </li>
-
-            <li id="managementMenuItem" class="hidden">
-              <button
-                class="tab-link management-tab"
-                id="managementTabButton"
-                data-tab="management"
-              >
-                Quản lý
-              </button>
-            </li>
-          </ul>
-        </div>
-      </nav>
-    </header>
-
-    <!-- =========================
-         MAIN CONTENT
-    ========================== -->
-    <main class="main-content">
-      <!-- =========================
-             TRANG CHỦ
-        ========================== -->
-      <section class="tab-content active" id="home">
-        <div class="container">
-          <div class="page-heading compact-heading">
-            <h1>Hội khóa 30 năm</h1>
-            <p>Trường THPT Phú Bình · Khóa 1993 - 1996</p>
-          </div>
-
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon">🏫</div>
-              <div class="stat-number" id="totalClasses">8</div>
-              <div class="stat-label">Lớp</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">👥</div>
-              <div class="stat-number stat-ratio" id="totalParticipants">0 / 0</div>
-              <div class="stat-label">Tham gia / Tổng thành viên</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">⭐</div>
-              <div class="stat-number" id="totalOrganizers">0</div>
-              <div class="stat-label">Ban Tổ chức</div>
-            </div>
-
-            <div class="stat-card">
-              <div class="stat-icon">💝</div>
-              <div class="stat-number stat-money" id="totalSponsor">0 đ</div>
-              <div class="stat-label">Tổng tài trợ</div>
-            </div>
-          </div>
-
-          <div class="home-grid">
-            <article class="home-card">
-              <div class="home-card-icon">📅</div>
-              <div>
-                <span>THỜI GIAN</span>
-                <h3>Đang cập nhật</h3>
-                <p>Thời gian tổ chức Hội khóa</p>
-              </div>
-            </article>
-
-            <article class="home-card">
-              <div class="home-card-icon">📍</div>
-              <div>
-                <span>ĐỊA ĐIỂM</span>
-                <h3>Trường THPT Phú Bình</h3>
-                <p>Phú Bình, Thái Nguyên</p>
-              </div>
-            </article>
-
-            <article class="home-card">
-              <div class="home-card-icon">🎓</div>
-              <div>
-                <span>NIÊN KHÓA</span>
-                <h3>1993 - 1996</h3>
-                <p>Hội khóa kỷ niệm 30 năm</p>
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-             DASHBOARD
-        ========================== -->
-      <section class="tab-content" id="dashboard">
-        <div class="container">
-          <div class="page-heading">
-            <span class="section-label">TỔNG QUAN HỘI KHÓA</span>
-            <h2>Dashboard</h2>
-            <p>Tổng hợp tình hình tham gia Hội khóa của toàn khóa và từng lớp</p>
-          </div>
-
-          <div class="dashboard-toolbar">
-            <div>
-              <label for="dashboardClassFilter">Phạm vi thống kê</label>
-              <select id="dashboardClassFilter">
-                <option value="all">Toàn khóa 1993 - 1996</option>
-                <option value="12A">Lớp 12A</option>
-                <option value="12B">Lớp 12B</option>
-                <option value="12C">Lớp 12C</option>
-                <option value="12D">Lớp 12D</option>
-                <option value="12E">Lớp 12E</option>
-                <option value="12G">Lớp 12G</option>
-                <option value="12H">Lớp 12H</option>
-                <option value="12K">Lớp 12K</option>
-                <option value="12M">Lớp 12M</option>
-              </select>
-            </div>
-
-            <div class="dashboard-updated">
-              <span>Dữ liệu cập nhật theo thời gian thực</span>
-            </div>
-          </div>
-
-          <div class="dashboard-hero">
-            <div class="dashboard-ratio-card dashboard-ring-card-shell">
-              <span class="dashboard-ratio-label" id="dashboardScopeLabel">
-                TOÀN KHÓA
-              </span>
-
-              <div class="dashboard-ring-layout">
-                <div
-                  class="dashboard-ring"
-                  id="dashboardRing"
-                  style="--dashboard-percent: 0%"
-                >
-                  <div class="dashboard-ring-inner">
-                    <strong id="dashboardPercent">0%</strong>
-                    <span>Tỷ lệ tham gia</span>
-                  </div>
-                </div>
-
-                <div class="dashboard-ring-summary">
-                  <div class="dashboard-ratio">
-                    <strong id="dashboardAttending">0</strong>
-                    <span>/</span>
-                    <strong id="dashboardMembers">0</strong>
-                  </div>
-
-                  <p>Người xác nhận tham gia / Tổng số thành viên</p>
-
-                  <div class="dashboard-legend">
-                    <div class="dashboard-legend-item">
-                      <span class="dashboard-legend-dot attending"></span>
-                      <span>Đã xác nhận tham gia</span>
-                    </div>
-
-                    <div class="dashboard-legend-item">
-                      <span class="dashboard-legend-dot pending"></span>
-                      <span>Chưa xác nhận</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="dashboard-mini-grid">
-              <div class="dashboard-mini-card">
-                <span>Tổng thành viên</span>
-                <strong id="dashboardMemberCard">0</strong>
-                <small>người</small>
-              </div>
-
-              <div class="dashboard-mini-card">
-                <span>Đã xác nhận</span>
-                <strong id="dashboardAttendingCard">0</strong>
-                <small>người</small>
-              </div>
-
-              <div class="dashboard-mini-card">
-                <span>Chưa xác nhận</span>
-                <strong id="dashboardPendingCard">0</strong>
-                <small>người</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="dashboard-breakdown-card">
-            <div class="dashboard-breakdown-heading">
-              <div>
-                <span class="section-label">CHI TIẾT THEO LỚP</span>
-                <h3 id="dashboardBreakdownTitle">Tình hình tham gia toàn khóa</h3>
-              </div>
-            </div>
-
-            <div class="table-responsive">
-              <table class="dashboard-table">
-                <thead>
-                  <tr>
-                    <th>Lớp</th>
-                    <th>Tổng thành viên</th>
-                    <th>Đã xác nhận</th>
-                    <th>Chưa xác nhận</th>
-                    <th>Tỷ lệ tham gia</th>
-                  </tr>
-                </thead>
-
-                <tbody id="dashboardTableBody">
-                  <tr>
-                    <td colspan="5" class="empty-row">
-                      Đang tải dữ liệu...
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-             BAN TỔ CHỨC
-        ========================== -->
-      <section class="tab-content" id="organizers">
-        <div class="container">
-          <div class="page-heading">
-            <span class="section-label">HỘI KHÓA 30 NĂM</span>
-            <h2>Ban Tổ chức</h2>
-            <p>Danh sách các thành viên Ban Tổ chức Hội khóa</p>
-          </div>
-
-          <div class="placeholder-box">
-            <div class="placeholder-icon">👥</div>
-            <h3>Danh sách Ban Tổ chức</h3>
-            <p>Dữ liệu sẽ được cập nhật từ Firebase.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-             CÁC LỚP
-        ========================== -->
-      <section class="tab-content" id="classes">
-        <div class="container">
-          <div class="page-heading">
-            <span class="section-label">KHÓA 1993 - 1996</span>
-            <h2>Danh sách các lớp</h2>
-            <p>Thông tin và danh sách thành viên của từng lớp</p>
-          </div>
-
-          <div class="classes-grid" id="classesList">
-            <article class="class-card">
-              <div class="class-badge">12A</div>
-              <div class="class-content">
-                <h3>Lớp 12A</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12A"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12B</div>
-              <div class="class-content">
-                <h3>Lớp 12B</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12B"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12C</div>
-              <div class="class-content">
-                <h3>Lớp 12C</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12C"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12D</div>
-              <div class="class-content">
-                <h3>Lớp 12D</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12D"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12E</div>
-              <div class="class-content">
-                <h3>Lớp 12E</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12E"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12G</div>
-              <div class="class-content">
-                <h3>Lớp 12G</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12G"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12H</div>
-              <div class="class-content">
-                <h3>Lớp 12H</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12H"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12K</div>
-              <div class="class-content">
-                <h3>Lớp 12K</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12K"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-            <article class="class-card">
-              <div class="class-badge">12M</div>
-              <div class="class-content">
-                <h3>Lớp 12M</h3>
-                <p>Danh sách thành viên</p>
-                <button
-                  class="text-button public-class-button"
-                  type="button"
-                  data-class-id="12M"
-                >
-                  Xem chi tiết →
-                </button>
-              </div>
-            </article>
-          </div>
-
-          <div class="public-class-detail hidden" id="publicClassDetail">
-            <div class="subsection-heading">
-              <div>
-                <span class="section-label">THÔNG TIN LỚP</span>
-                <h3 id="publicClassTitle">Lớp</h3>
-                <p>
-                  Thông tin công khai: danh sách thành viên, người tham gia và tài trợ.
-                </p>
-              </div>
-
-              <button
-                class="secondary-action-button"
-                id="closePublicClassButton"
-                type="button"
-              >
-                Đóng
-              </button>
-            </div>
-
-            <div class="public-class-stats">
-              <div class="stat-card compact-stat">
-                <div class="stat-number" id="publicClassMemberCount">0</div>
-                <div class="stat-label">Thành viên</div>
-              </div>
-
-              <div class="stat-card compact-stat">
-                <div class="stat-number" id="publicClassAttendingCount">0</div>
-                <div class="stat-label">Tham gia Hội khóa</div>
-              </div>
-
-              <div class="stat-card compact-stat">
-                <div class="stat-number stat-money" id="publicClassSponsorTotal">0 đ</div>
-                <div class="stat-label">Tài trợ bằng tiền</div>
-              </div>
-            </div>
-
-            <div class="public-class-grid">
-              <div class="table-card">
-                <h4>Danh sách thành viên</h4>
-                <div class="table-responsive">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Họ và tên</th>
-                        <th>Tham gia</th>
-                      </tr>
-                    </thead>
-                    <tbody id="publicClassMemberBody">
-                      <tr>
-                        <td colspan="3" class="empty-row">Chưa có dữ liệu</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div class="table-card">
-                <h4>Danh sách tài trợ</h4>
-                <div class="table-responsive">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Người/đơn vị</th>
-                        <th>Hình thức</th>
-                        <th>Giá trị/Nội dung</th>
-                      </tr>
-                    </thead>
-                    <tbody id="publicClassSponsorBody">
-                      <tr>
-                        <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-
-            <div class="privacy-note">
-              Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công khai.
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      <!-- =========================
-             DANH SÁCH THAM GIA
-        ========================== -->
-      <section class="tab-content" id="participants">
-        <div class="container">
-          <div class="page-heading">
-            <span class="section-label">HỘI KHÓA 30 NĂM</span>
-            <h2>Danh sách tham gia</h2>
-            <p>Danh sách cựu học sinh tham dự Hội khóa</p>
-          </div>
-
-          <div class="participant-public-summary">
-            <span>Đã xác nhận tham gia</span>
-            <strong id="publicParticipantCount">0</strong>
-            <small>người</small>
-          </div>
-
-          <div class="table-card">
-            <div class="table-toolbar">
-              <input
-                type="text"
-                id="participantSearch"
-                placeholder="Tìm theo họ tên..."
-              />
-
-              <select id="participantClassFilter">
-                <option value="">Tất cả các lớp</option>
-                <option value="12A">12A</option>
-                <option value="12B">12B</option>
-                <option value="12C">12C</option>
-                <option value="12D">12D</option>
-                <option value="12E">12E</option>
-                <option value="12G">12G</option>
-                <option value="12H">12H</option>
-                <option value="12K">12K</option>
-                <option value="12M">12M</option>
-              </select>
-            </div>
-
-            <div class="table-responsive">
-              <table class="public-participant-table">
-                <thead>
-                  <tr>
-                    <th>STT</th>
-                    <th>Họ và tên</th>
-                    <th>Lớp</th>
-                    <th>Trạng thái</th>
-                  </tr>
-                </thead>
-
-                <tbody id="participantsTableBody">
-                  <tr>
-                    <td colspan="4" class="empty-row">Đang tải dữ liệu...</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-             TÀI TRỢ
-        ========================== -->
-      <section class="tab-content" id="sponsors">
-        <div class="container">
-          <div class="page-heading">
-            <span class="section-label">ĐỒNG HÀNH CÙNG HỘI KHÓA</span>
-            <h2>Tài trợ và đóng góp</h2>
-            <p>Tổng hợp tài trợ của các lớp và các thành viên</p>
-          </div>
-
-          <div class="sponsor-summary">
-            <div class="sponsor-icon">💝</div>
-
-            <div>
-              <p class="sponsor-caption">Tổng số tiền tài trợ</p>
-              <div class="sponsor-total" id="sponsorTotalLarge">0 đ</div>
-            </div>
-          </div>
-
-          <div class="placeholder-box small-placeholder">
-            <h3>Danh sách tài trợ</h3>
-            <p>Danh sách sẽ được tải từ Firebase.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- =========================
-             ĐĂNG NHẬP
-        ========================== -->
-      <section class="tab-content" id="login">
-        <div class="container">
-          <div class="page-heading">
-            <span class="section-label">QUẢN LÝ DỮ LIỆU HỘI KHÓA</span>
-            <h2>Đăng nhập</h2>
-            <p>Dành cho Ban Tổ chức và đại diện các lớp</p>
-          </div>
-
-          <div class="login-card">
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input
-                type="email"
-                id="email"
-                autocomplete="username"
-                placeholder="Ví dụ: nhaplieu12a1@gmail.com"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="password">Mật khẩu</label>
-              <input
-                type="password"
-                id="password"
-                autocomplete="current-password"
-                placeholder="Nhập mật khẩu"
-              />
-            </div>
-
-            <button class="login-button" id="loginButton" type="button">
+          <li id="loginMenuItem">
+            <button class="tab-link login-tab" id="loginTabButton" data-tab="login">
               Đăng nhập
             </button>
+          </li>
 
-            <p class="login-message" id="loginMessage"></p>
+          <li id="managementMenuItem" class="hidden">
+            <button class="tab-link management-tab" id="managementTabButton" data-tab="management">
+              Quản lý
+            </button>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
 
-            <p class="login-note">
-              Tài khoản đại diện lớp chỉ được cập nhật dữ liệu của lớp mình phụ
-              trách.
-            </p>
+  <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+  <main class="main-content">
+    <!-- =========================
+             TRANG CHỦ
+        ========================== -->
+    <section class="tab-content active" id="home">
+      <div class="container">
+        <div class="page-heading compact-heading">
+          <h1>Hội khóa 30 năm</h1>
+          <p>Trường THPT Phú Bình · Khóa 1993 - 1996</p>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon">🏫</div>
+            <div class="stat-number" id="totalClasses">8</div>
+            <div class="stat-label">Lớp</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-number stat-ratio" id="totalParticipants">0 / 0</div>
+            <div class="stat-label">Tham gia / Tổng thành viên</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">⭐</div>
+            <div class="stat-number" id="totalOrganizers">0</div>
+            <div class="stat-label">Ban Tổ chức</div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon">💝</div>
+            <div class="stat-number stat-money" id="totalSponsor">0 đ</div>
+            <div class="stat-label">Tổng tài trợ</div>
           </div>
         </div>
-      </section>
 
-      <!-- =========================
-             QUẢN LÝ SAU ĐĂNG NHẬP
-        ========================== -->
-      <section class="tab-content" id="management">
-        <div class="container">
-          <div class="management-header">
+        <div class="home-grid">
+          <article class="home-card">
+            <div class="home-card-icon">📅</div>
             <div>
-              <span class="section-label">KHU VỰC NHẬP LIỆU</span>
-              <h2 id="managementTitle">Quản lý dữ liệu</h2>
-              <p id="managementSubtitle">
-                Dành cho tài khoản đã được phân quyền
+              <span>THỜI GIAN</span>
+              <h3>Đang cập nhật</h3>
+              <p>Thời gian tổ chức Hội khóa</p>
+            </div>
+          </article>
+
+          <article class="home-card">
+            <div class="home-card-icon">📍</div>
+            <div>
+              <span>ĐỊA ĐIỂM</span>
+              <h3>Trường THPT Phú Bình</h3>
+              <p>Phú Bình, Thái Nguyên</p>
+            </div>
+          </article>
+
+          <article class="home-card">
+            <div class="home-card-icon">🎓</div>
+            <div>
+              <span>NIÊN KHÓA</span>
+              <h3>1993 - 1996</h3>
+              <p>Hội khóa kỷ niệm 30 năm</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+             DASHBOARD
+        ========================== -->
+    <section class="tab-content" id="dashboard">
+      <div class="container">
+        <div class="page-heading">
+          <span class="section-label">TỔNG QUAN HỘI KHÓA</span>
+          <h2>Dashboard</h2>
+          <p>Tổng hợp tình hình tham gia Hội khóa của toàn khóa và từng lớp</p>
+        </div>
+
+        <div class="dashboard-toolbar">
+          <div>
+            <label for="dashboardClassFilter">Phạm vi thống kê</label>
+            <select id="dashboardClassFilter">
+              <option value="all">Toàn khóa 1993 - 1996</option>
+              <option value="12A">Lớp 12A</option>
+              <option value="12B">Lớp 12B</option>
+              <option value="12C">Lớp 12C</option>
+              <option value="12D">Lớp 12D</option>
+              <option value="12E">Lớp 12E</option>
+              <option value="12G">Lớp 12G</option>
+              <option value="12H">Lớp 12H</option>
+              <option value="12K">Lớp 12K</option>
+              <option value="12M">Lớp 12M</option>
+            </select>
+          </div>
+
+          <div class="dashboard-updated">
+            <span>Dữ liệu cập nhật theo thời gian thực</span>
+          </div>
+        </div>
+
+        <div class="dashboard-hero">
+          <div class="dashboard-ratio-card dashboard-ring-card-shell">
+            <span class="dashboard-ratio-label" id="dashboardScopeLabel">
+              TOÀN KHÓA
+            </span>
+
+            <div class="dashboard-ring-layout">
+              <div class="dashboard-ring" id="dashboardRing" style="--dashboard-percent: 0%">
+                <div class="dashboard-ring-inner">
+                  <strong id="dashboardPercent">0%</strong>
+                  <span>Tỷ lệ tham gia</span>
+                </div>
+              </div>
+
+              <div class="dashboard-ring-summary">
+                <div class="dashboard-ratio">
+                  <strong id="dashboardAttending">0</strong>
+                  <span>/</span>
+                  <strong id="dashboardMembers">0</strong>
+                </div>
+
+                <p>Người xác nhận tham gia / Tổng số thành viên</p>
+
+                <div class="dashboard-legend">
+                  <div class="dashboard-legend-item">
+                    <span class="dashboard-legend-dot attending"></span>
+                    <span>Đã xác nhận tham gia</span>
+                  </div>
+
+                  <div class="dashboard-legend-item">
+                    <span class="dashboard-legend-dot pending"></span>
+                    <span>Chưa xác nhận</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-mini-grid">
+            <div class="dashboard-mini-card">
+              <span>Tổng thành viên</span>
+              <strong id="dashboardMemberCard">0</strong>
+              <small>người</small>
+            </div>
+
+            <div class="dashboard-mini-card">
+              <span>Đã xác nhận</span>
+              <strong id="dashboardAttendingCard">0</strong>
+              <small>người</small>
+            </div>
+
+            <div class="dashboard-mini-card">
+              <span>Chưa xác nhận</span>
+              <strong id="dashboardPendingCard">0</strong>
+              <small>người</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="dashboard-breakdown-card">
+          <div class="dashboard-breakdown-heading">
+            <div>
+              <span class="section-label">CHI TIẾT THEO LỚP</span>
+              <h3 id="dashboardBreakdownTitle">Tình hình tham gia toàn khóa</h3>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Lớp</th>
+                  <th>Tổng thành viên</th>
+                  <th>Đã xác nhận</th>
+                  <th>Chưa xác nhận</th>
+                  <th>Tỷ lệ tham gia</th>
+                </tr>
+              </thead>
+
+              <tbody id="dashboardTableBody">
+                <tr>
+                  <td colspan="5" class="empty-row">
+                    Đang tải dữ liệu...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+             BAN TỔ CHỨC
+        ========================== -->
+    <section class="tab-content" id="organizers">
+      <div class="container">
+        <div class="page-heading">
+          <span class="section-label">HỘI KHÓA 30 NĂM</span>
+          <h2>Ban Tổ chức</h2>
+          <p>Danh sách các thành viên Ban Tổ chức Hội khóa</p>
+        </div>
+
+        <div class="placeholder-box">
+          <div class="placeholder-icon">👥</div>
+          <h3>Danh sách Ban Tổ chức</h3>
+          <p>Dữ liệu sẽ được cập nhật sau.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+             CÁC LỚP
+        ========================== -->
+    <section class="tab-content" id="classes">
+      <div class="container">
+        <div class="page-heading">
+          <span class="section-label">KHÓA 1993 - 1996</span>
+          <h2>Danh sách các lớp</h2>
+          <p>Thông tin và danh sách thành viên của từng lớp</p>
+        </div>
+
+        <div class="classes-grid" id="classesList">
+          <article class="class-card">
+            <div class="class-badge">12A</div>
+            <div class="class-content">
+              <h3>Lớp 12A</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12A">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12B</div>
+            <div class="class-content">
+              <h3>Lớp 12B</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12B">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12C</div>
+            <div class="class-content">
+              <h3>Lớp 12C</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12C">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12D</div>
+            <div class="class-content">
+              <h3>Lớp 12D</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12D">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12E</div>
+            <div class="class-content">
+              <h3>Lớp 12E</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12E">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12G</div>
+            <div class="class-content">
+              <h3>Lớp 12G</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12G">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12H</div>
+            <div class="class-content">
+              <h3>Lớp 12H</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12H">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12K</div>
+            <div class="class-content">
+              <h3>Lớp 12K</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12K">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+          <article class="class-card">
+            <div class="class-badge">12M</div>
+            <div class="class-content">
+              <h3>Lớp 12M</h3>
+              <p>Danh sách thành viên</p>
+              <button class="text-button public-class-button" type="button" data-class-id="12M">
+                Xem chi tiết →
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <div class="public-class-detail hidden" id="publicClassDetail">
+          <div class="subsection-heading">
+            <div>
+              <span class="section-label">THÔNG TIN LỚP</span>
+              <h3 id="publicClassTitle">Lớp</h3>
+              <p>
+                Thông tin công khai: danh sách thành viên, người tham gia và tài trợ.
               </p>
             </div>
 
-            <button class="logout-button" id="logoutButton" type="button">
-              Đăng xuất
+            <button class="secondary-action-button" id="closePublicClassButton" type="button">
+              Đóng
             </button>
           </div>
 
-          <div class="user-card">
-            <div class="user-avatar">👤</div>
-
-            <div class="user-info">
-              <span>Tài khoản đang đăng nhập</span>
-              <h3 id="currentUserName">-</h3>
-              <p id="currentUserEmail">-</p>
+          <div class="public-class-stats">
+            <div class="stat-card compact-stat">
+              <div class="stat-number" id="publicClassMemberCount">0</div>
+              <div class="stat-label">Thành viên</div>
             </div>
 
-            <div class="user-role">
-              <span id="currentUserRole">-</span>
-            </div>
-          </div>
-
-          <div class="management-grid">
-            <button
-              class="management-card active-management-card"
-              id="manageMembersButton"
-              type="button"
-            >
-              <div class="management-icon">👥</div>
-              <h3>Danh sách lớp</h3>
-              <p>Nhập và cập nhật danh sách thành viên của lớp.</p>
-            </button>
-
-            <button
-              class="management-card"
-              id="manageParticipantsButton"
-              type="button"
-            >
-              <div class="management-icon">✅</div>
-              <h3>Danh sách tham gia</h3>
-              <p>Đánh dấu các thành viên tham dự Hội khóa.</p>
-            </button>
-
-            <button
-              class="management-card"
-              id="manageContributionsButton"
-              type="button"
-            >
-              <div class="management-icon">💰</div>
-              <h3>Đóng góp</h3>
-              <p>Quản lý số tiền đóng góp của các thành viên.</p>
-            </button>
-
-            <button
-              class="management-card"
-              id="manageSponsorsButton"
-              type="button"
-            >
-              <div class="management-icon">💝</div>
-              <h3>Tài trợ</h3>
-              <p>Quản lý các khoản tài trợ của lớp.</p>
-            </button>
-          </div>
-
-          <div class="member-management" id="memberManagement">
-            <div class="subsection-heading">
-              <div>
-                <span class="section-label">DỮ LIỆU LỚP</span>
-                <h3 id="memberSectionTitle">Danh sách thành viên</h3>
-                <p>
-                  Đại diện lớp chỉ được thêm, sửa và xóa thành viên thuộc lớp mình.
-                </p>
-              </div>
-
-              <div class="member-count-box">
-                <span>Tổng số</span>
-                <strong id="memberCount">0</strong>
-                <small>thành viên</small>
-              </div>
+            <div class="stat-card compact-stat">
+              <div class="stat-number" id="publicClassAttendingCount">0</div>
+              <div class="stat-label">Tham gia Hội khóa</div>
             </div>
 
-            <div class="member-layout">
-              <div class="member-form-card">
-                <h4 id="memberFormTitle">Thêm thành viên</h4>
-
-                <form id="memberForm">
-                  <input type="hidden" id="memberId">
-
-                  <div class="form-group">
-                    <label for="memberFullName">
-                      Họ và tên <span class="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="memberFullName"
-                      placeholder="Nhập họ và tên"
-                      required
-                    >
-                  </div>
-
-                  <div class="form-group">
-                    <label for="memberPhone">Số điện thoại</label>
-                    <input
-                      type="text"
-                      id="memberPhone"
-                      placeholder="Có thể để trống"
-                    >
-                  </div>
-
-                  <div class="form-group">
-                    <label for="memberNote">Ghi chú</label>
-                    <textarea
-                      id="memberNote"
-                      rows="3"
-                      placeholder="Thông tin cần lưu ý (nếu có)"
-                    ></textarea>
-                  </div>
-
-                  <div class="form-actions">
-                    <button
-                      class="primary-action-button"
-                      id="saveMemberButton"
-                      type="submit"
-                    >
-                      Lưu thành viên
-                    </button>
-
-                    <button
-                      class="secondary-action-button hidden"
-                      id="cancelEditButton"
-                      type="button"
-                    >
-                      Hủy sửa
-                    </button>
-                  </div>
-
-                  <p class="form-message" id="memberFormMessage"></p>
-                </form>
-              </div>
-
-              <div class="member-list-card">
-                <div class="member-list-toolbar">
-                  <input
-                    type="text"
-                    id="memberSearch"
-                    placeholder="Tìm theo họ tên hoặc số điện thoại..."
-                  >
-                </div>
-
-                <div class="table-responsive">
-                  <table class="member-table">
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Họ và tên</th>
-                        <th>Số điện thoại</th>
-                        <th>Ghi chú</th>
-                        <th>Thao tác</th>
-                      </tr>
-                    </thead>
-
-                    <tbody id="memberTableBody">
-                      <tr>
-                        <td colspan="5" class="empty-row">
-                          Chưa có dữ liệu
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+            <div class="stat-card compact-stat">
+              <div class="stat-number stat-money" id="publicClassSponsorTotal">0 đ</div>
+              <div class="stat-label">Tài trợ bằng tiền</div>
             </div>
           </div>
 
-          <div class="participant-management hidden" id="participantManagement">
-            <div class="subsection-heading">
-              <div>
-                <span class="section-label">THAM GIA HỘI KHÓA</span>
-                <h3 id="participantSectionTitle">Danh sách tham gia</h3>
-                <p>Đánh dấu những thành viên xác nhận tham dự Hội khóa.</p>
-              </div>
-
-              <div class="participant-count-group">
-                <div class="member-count-box">
-                  <span>Tổng thành viên</span>
-                  <strong id="participantTotalCount">0</strong>
-                  <small>người</small>
-                </div>
-
-                <div class="member-count-box attending-count-box">
-                  <span>Đã xác nhận</span>
-                  <strong id="attendingCount">0</strong>
-                  <small>người tham gia</small>
-                </div>
-              </div>
-            </div>
-
-            <div class="participant-card">
-              <div class="participant-toolbar">
-                <input
-                  type="text"
-                  id="participantManageSearch"
-                  placeholder="Tìm theo họ tên hoặc số điện thoại..."
-                >
-
-                <select id="participantStatusFilter">
-                  <option value="all">Tất cả</option>
-                  <option value="attending">Đã xác nhận</option>
-                  <option value="not-attending">Chưa xác nhận</option>
-                </select>
-              </div>
-
+          <div class="public-class-grid">
+            <div class="table-card">
+              <h4>Danh sách thành viên</h4>
               <div class="table-responsive">
-                <table class="participant-management-table">
+                <table>
                   <thead>
                     <tr>
                       <th>STT</th>
                       <th>Họ và tên</th>
-                      <th>Số điện thoại</th>
-                      <th>Tham gia Hội khóa</th>
+                      <th>Tham gia</th>
                     </tr>
                   </thead>
+                  <tbody id="publicClassMemberBody">
+                    <tr>
+                      <td colspan="3" class="empty-row">Chưa có dữ liệu</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
-                  <tbody id="participantManageTableBody">
+            <div class="table-card">
+              <h4>Danh sách tài trợ</h4>
+              <div class="table-responsive">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Người/đơn vị</th>
+                      <th>Hình thức</th>
+                      <th>Giá trị/Nội dung</th>
+                    </tr>
+                  </thead>
+                  <tbody id="publicClassSponsorBody">
                     <tr>
                       <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
                     </tr>
@@ -910,62 +465,266 @@
             </div>
           </div>
 
+          <div class="privacy-note">
+            Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công khai.
+          </div>
+        </div>
 
-          <div class="contribution-management hidden" id="contributionManagement">
-            <div class="subsection-heading">
-              <div>
-                <span class="section-label">ĐÓNG GÓP HỘI KHÓA</span>
-                <h3 id="contributionSectionTitle">
-                  Đóng góp của thành viên
-                </h3>
-                <p>
-                  Nhập số tiền đóng góp của từng thành viên; hệ thống tự tính tổng của lớp.
-                </p>
-              </div>
+      </div>
+    </section>
 
-              <div class="contribution-summary">
-                <div class="member-count-box">
-                  <span>Số người có đóng góp</span>
-                  <strong id="contributorCount">0</strong>
-                  <small>thành viên</small>
-                </div>
+    <!-- =========================
+             DANH SÁCH THAM GIA
+        ========================== -->
+    <section class="tab-content" id="participants">
+      <div class="container">
+        <div class="page-heading">
+          <span class="section-label">HỘI KHÓA 30 NĂM</span>
+          <h2>Danh sách tham gia</h2>
+          <p>Danh sách cựu học sinh tham dự Hội khóa</p>
+        </div>
 
-                <div class="member-count-box contribution-total-box">
-                  <span>Tổng đóng góp</span>
-                  <strong id="contributionTotal">0 đ</strong>
-                  <small>của lớp</small>
-                </div>
-              </div>
+        <div class="participant-public-summary">
+          <span>Đã xác nhận tham gia</span>
+          <strong id="publicParticipantCount">0</strong>
+          <small>người</small>
+        </div>
+
+        <div class="table-card">
+          <div class="table-toolbar">
+            <input type="text" id="participantSearch" placeholder="Tìm theo họ tên..." />
+
+            <select id="participantClassFilter">
+              <option value="">Tất cả các lớp</option>
+              <option value="12A">12A</option>
+              <option value="12B">12B</option>
+              <option value="12C">12C</option>
+              <option value="12D">12D</option>
+              <option value="12E">12E</option>
+              <option value="12G">12G</option>
+              <option value="12H">12H</option>
+              <option value="12K">12K</option>
+              <option value="12M">12M</option>
+            </select>
+          </div>
+
+          <div class="table-responsive">
+            <table class="public-participant-table">
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Họ và tên</th>
+                  <th>Lớp</th>
+                  <th>Trạng thái</th>
+                </tr>
+              </thead>
+
+              <tbody id="participantsTableBody">
+                <tr>
+                  <td colspan="4" class="empty-row">Đang tải dữ liệu...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+             TÀI TRỢ
+        ========================== -->
+    <section class="tab-content" id="sponsors">
+      <div class="container">
+        <div class="page-heading">
+          <span class="section-label">ĐỒNG HÀNH CÙNG HỘI KHÓA</span>
+          <h2>Tài trợ và đóng góp</h2>
+          <p>Tổng hợp tài trợ của các lớp và các thành viên</p>
+        </div>
+
+        <div class="sponsor-summary">
+          <div class="sponsor-icon">💝</div>
+
+          <div>
+            <p class="sponsor-caption">Tổng số tiền tài trợ</p>
+            <div class="sponsor-total" id="sponsorTotalLarge">0 đ</div>
+          </div>
+        </div>
+
+        <div class="placeholder-box small-placeholder">
+          <h3>Danh sách tài trợ</h3>
+          <p>Danh sách sẽ được tải sau.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+             ĐĂNG NHẬP
+        ========================== -->
+    <section class="tab-content" id="login">
+      <div class="container">
+        <div class="page-heading">
+          <span class="section-label">QUẢN LÝ DỮ LIỆU HỘI KHÓA</span>
+          <h2>Đăng nhập</h2>
+          <p>Dành cho Ban Tổ chức và đại diện các lớp</p>
+        </div>
+
+        <div class="login-card">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" autocomplete="username" placeholder="Ví dụ: nhaplieu12a1@gmail.com" />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Mật khẩu</label>
+            <input type="password" id="password" autocomplete="current-password" placeholder="Nhập mật khẩu" />
+          </div>
+
+          <button class="login-button" id="loginButton" type="button">
+            Đăng nhập
+          </button>
+
+          <p class="login-message" id="loginMessage"></p>
+
+          <p class="login-note">
+            Tài khoản đại diện lớp chỉ được cập nhật dữ liệu của lớp mình phụ
+            trách.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- =========================
+             QUẢN LÝ SAU ĐĂNG NHẬP
+        ========================== -->
+    <section class="tab-content" id="management">
+      <div class="container">
+        <div class="management-header">
+          <div>
+            <span class="section-label">KHU VỰC NHẬP LIỆU</span>
+            <h2 id="managementTitle">Quản lý dữ liệu</h2>
+            <p id="managementSubtitle">
+              Dành cho tài khoản đã được phân quyền
+            </p>
+          </div>
+
+          <button class="logout-button" id="logoutButton" type="button">
+            Đăng xuất
+          </button>
+        </div>
+
+        <div class="user-card">
+          <div class="user-avatar">👤</div>
+
+          <div class="user-info">
+            <span>Tài khoản đang đăng nhập</span>
+            <h3 id="currentUserName">-</h3>
+            <p id="currentUserEmail">-</p>
+          </div>
+
+          <div class="user-role">
+            <span id="currentUserRole">-</span>
+          </div>
+        </div>
+
+        <div class="management-grid">
+          <button class="management-card active-management-card" id="manageMembersButton" type="button">
+            <div class="management-icon">👥</div>
+            <h3>Danh sách lớp</h3>
+            <p>Nhập và cập nhật danh sách thành viên của lớp.</p>
+          </button>
+
+          <button class="management-card" id="manageParticipantsButton" type="button">
+            <div class="management-icon">✅</div>
+            <h3>Danh sách tham gia</h3>
+            <p>Đánh dấu các thành viên tham dự Hội khóa.</p>
+          </button>
+
+          <button class="management-card" id="manageContributionsButton" type="button">
+            <div class="management-icon">💰</div>
+            <h3>Đóng góp</h3>
+            <p>Quản lý số tiền đóng góp của các thành viên.</p>
+          </button>
+
+          <button class="management-card" id="manageSponsorsButton" type="button">
+            <div class="management-icon">💝</div>
+            <h3>Tài trợ</h3>
+            <p>Quản lý các khoản tài trợ của lớp.</p>
+          </button>
+        </div>
+
+        <div class="member-management" id="memberManagement">
+          <div class="subsection-heading">
+            <div>
+              <span class="section-label">DỮ LIỆU LỚP</span>
+              <h3 id="memberSectionTitle">Danh sách thành viên</h3>
+              <p>
+                Đại diện lớp chỉ được thêm, sửa và xóa thành viên thuộc lớp mình.
+              </p>
             </div>
 
-            <div class="contribution-card">
-              <div class="participant-toolbar">
-                <input
-                  type="text"
-                  id="contributionSearch"
-                  placeholder="Tìm theo họ tên hoặc số điện thoại..."
-                >
+            <div class="member-count-box">
+              <span>Tổng số</span>
+              <strong id="memberCount">0</strong>
+              <small>thành viên</small>
+            </div>
+          </div>
 
-                <select id="contributionFilter">
-                  <option value="all">Tất cả</option>
-                  <option value="has">Đã đóng góp</option>
-                  <option value="none">Chưa đóng góp</option>
-                </select>
+          <div class="member-layout">
+            <div class="member-form-card">
+              <h4 id="memberFormTitle">Thêm thành viên</h4>
+
+              <form id="memberForm">
+                <input type="hidden" id="memberId">
+
+                <div class="form-group">
+                  <label for="memberFullName">
+                    Họ và tên <span class="required">*</span>
+                  </label>
+                  <input type="text" id="memberFullName" placeholder="Nhập họ và tên" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="memberPhone">Số điện thoại</label>
+                  <input type="text" id="memberPhone" placeholder="Có thể để trống">
+                </div>
+
+                <div class="form-group">
+                  <label for="memberNote">Ghi chú</label>
+                  <textarea id="memberNote" rows="3" placeholder="Thông tin cần lưu ý (nếu có)"></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button class="primary-action-button" id="saveMemberButton" type="submit">
+                    Lưu thành viên
+                  </button>
+
+                  <button class="secondary-action-button hidden" id="cancelEditButton" type="button">
+                    Hủy sửa
+                  </button>
+                </div>
+
+                <p class="form-message" id="memberFormMessage"></p>
+              </form>
+            </div>
+
+            <div class="member-list-card">
+              <div class="member-list-toolbar">
+                <input type="text" id="memberSearch" placeholder="Tìm theo họ tên hoặc số điện thoại...">
               </div>
 
               <div class="table-responsive">
-                <table class="contribution-table">
+                <table class="member-table">
                   <thead>
                     <tr>
                       <th>STT</th>
                       <th>Họ và tên</th>
                       <th>Số điện thoại</th>
-                      <th>Số tiền đóng góp</th>
+                      <th>Ghi chú</th>
                       <th>Thao tác</th>
                     </tr>
                   </thead>
 
-                  <tbody id="contributionTableBody">
+                  <tbody id="memberTableBody">
                     <tr>
                       <td colspan="5" class="empty-row">
                         Chưa có dữ liệu
@@ -976,225 +735,296 @@
               </div>
             </div>
           </div>
+        </div>
 
-
-          <div class="sponsor-management hidden" id="sponsorManagement">
-            <div class="subsection-heading">
-              <div>
-                <span class="section-label">TÀI TRỢ HỘI KHÓA</span>
-                <h3 id="sponsorSectionTitle">
-                  Tài trợ của lớp
-                </h3>
-                <p>
-                  Ghi nhận các khoản tài trợ bằng tiền hoặc hiện vật của lớp.
-                </p>
-              </div>
-
-              <div class="sponsor-summary-group">
-                <div class="member-count-box">
-                  <span>Số lượt tài trợ</span>
-                  <strong id="sponsorCount">0</strong>
-                  <small>lượt</small>
-                </div>
-
-                <div class="member-count-box sponsor-total-box">
-                  <span>Tổng tài trợ tiền</span>
-                  <strong id="sponsorClassTotal">0 đ</strong>
-                  <small>của lớp</small>
-                </div>
-              </div>
+        <div class="participant-management hidden" id="participantManagement">
+          <div class="subsection-heading">
+            <div>
+              <span class="section-label">THAM GIA HỘI KHÓA</span>
+              <h3 id="participantSectionTitle">Danh sách tham gia</h3>
+              <p>Đánh dấu những thành viên xác nhận tham dự Hội khóa.</p>
             </div>
 
-            <div class="sponsor-layout">
-
-              <div class="sponsor-form-card">
-                <h4 id="sponsorFormTitle">Thêm khoản tài trợ</h4>
-
-                <form id="sponsorForm">
-                  <input type="hidden" id="sponsorId">
-
-                  <div class="form-group">
-                    <label for="sponsorName">
-                      Người/đơn vị tài trợ <span class="required">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="sponsorName"
-                      placeholder="Nhập họ tên hoặc tên đơn vị"
-                      required
-                    >
-                  </div>
-
-                  <div class="form-group">
-                    <label for="sponsorType">Hình thức tài trợ</label>
-                    <select id="sponsorType">
-                      <option value="money">Tiền mặt/chuyển khoản</option>
-                      <option value="in_kind">Hiện vật/dịch vụ</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group" id="sponsorAmountGroup">
-                    <label for="sponsorAmount">Số tiền</label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="1000"
-                      id="sponsorAmount"
-                      placeholder="Ví dụ: 2000000"
-                    >
-                  </div>
-
-                  <div class="form-group">
-                    <label for="sponsorContent">Nội dung tài trợ</label>
-                    <input
-                      type="text"
-                      id="sponsorContent"
-                      placeholder="Ví dụ: Tài trợ chương trình Hội khóa"
-                    >
-                  </div>
-
-                  <div class="form-group">
-                    <label for="sponsorNote">Ghi chú</label>
-                    <textarea
-                      id="sponsorNote"
-                      rows="3"
-                      placeholder="Thông tin bổ sung (nếu có)"
-                    ></textarea>
-                  </div>
-
-                  <div class="form-actions">
-                    <button
-                      class="primary-action-button"
-                      id="saveSponsorButton"
-                      type="submit"
-                    >
-                      Lưu tài trợ
-                    </button>
-
-                    <button
-                      class="secondary-action-button hidden"
-                      id="cancelSponsorEditButton"
-                      type="button"
-                    >
-                      Hủy sửa
-                    </button>
-                  </div>
-
-                  <p class="form-message" id="sponsorFormMessage"></p>
-                </form>
+            <div class="participant-count-group">
+              <div class="member-count-box">
+                <span>Tổng thành viên</span>
+                <strong id="participantTotalCount">0</strong>
+                <small>người</small>
               </div>
 
-              <div class="sponsor-list-card">
-                <div class="participant-toolbar">
-                  <input
-                    type="text"
-                    id="sponsorSearch"
-                    placeholder="Tìm theo tên hoặc nội dung tài trợ..."
-                  >
+              <div class="member-count-box attending-count-box">
+                <span>Đã xác nhận</span>
+                <strong id="attendingCount">0</strong>
+                <small>người tham gia</small>
+              </div>
+            </div>
+          </div>
 
-                  <select id="sponsorTypeFilter">
-                    <option value="all">Tất cả hình thức</option>
-                    <option value="money">Tiền</option>
+          <div class="participant-card">
+            <div class="participant-toolbar">
+              <input type="text" id="participantManageSearch" placeholder="Tìm theo họ tên hoặc số điện thoại...">
+
+              <select id="participantStatusFilter">
+                <option value="all">Tất cả</option>
+                <option value="attending">Đã xác nhận</option>
+                <option value="not-attending">Chưa xác nhận</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="participant-management-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Số điện thoại</th>
+                    <th>Tham gia Hội khóa</th>
+                  </tr>
+                </thead>
+
+                <tbody id="participantManageTableBody">
+                  <tr>
+                    <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="contribution-management hidden" id="contributionManagement">
+          <div class="subsection-heading">
+            <div>
+              <span class="section-label">ĐÓNG GÓP HỘI KHÓA</span>
+              <h3 id="contributionSectionTitle">
+                Đóng góp của thành viên
+              </h3>
+              <p>
+                Nhập số tiền đóng góp của từng thành viên; hệ thống tự tính tổng của lớp.
+              </p>
+            </div>
+
+            <div class="contribution-summary">
+              <div class="member-count-box">
+                <span>Số người có đóng góp</span>
+                <strong id="contributorCount">0</strong>
+                <small>thành viên</small>
+              </div>
+
+              <div class="member-count-box contribution-total-box">
+                <span>Tổng đóng góp</span>
+                <strong id="contributionTotal">0 đ</strong>
+                <small>của lớp</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="contribution-card">
+            <div class="participant-toolbar">
+              <input type="text" id="contributionSearch" placeholder="Tìm theo họ tên hoặc số điện thoại...">
+
+              <select id="contributionFilter">
+                <option value="all">Tất cả</option>
+                <option value="has">Đã đóng góp</option>
+                <option value="none">Chưa đóng góp</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="contribution-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Số điện thoại</th>
+                    <th>Số tiền đóng góp</th>
+                    <th>Thao tác</th>
+                  </tr>
+                </thead>
+
+                <tbody id="contributionTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-row">
+                      Chưa có dữ liệu
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="sponsor-management hidden" id="sponsorManagement">
+          <div class="subsection-heading">
+            <div>
+              <span class="section-label">TÀI TRỢ HỘI KHÓA</span>
+              <h3 id="sponsorSectionTitle">
+                Tài trợ của lớp
+              </h3>
+              <p>
+                Ghi nhận các khoản tài trợ bằng tiền hoặc hiện vật của lớp.
+              </p>
+            </div>
+
+            <div class="sponsor-summary-group">
+              <div class="member-count-box">
+                <span>Số lượt tài trợ</span>
+                <strong id="sponsorCount">0</strong>
+                <small>lượt</small>
+              </div>
+
+              <div class="member-count-box sponsor-total-box">
+                <span>Tổng tài trợ tiền</span>
+                <strong id="sponsorClassTotal">0 đ</strong>
+                <small>của lớp</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="sponsor-layout">
+
+            <div class="sponsor-form-card">
+              <h4 id="sponsorFormTitle">Thêm khoản tài trợ</h4>
+
+              <form id="sponsorForm">
+                <input type="hidden" id="sponsorId">
+
+                <div class="form-group">
+                  <label for="sponsorName">
+                    Người/đơn vị tài trợ <span class="required">*</span>
+                  </label>
+                  <input type="text" id="sponsorName" placeholder="Nhập họ tên hoặc tên đơn vị" required>
+                </div>
+
+                <div class="form-group">
+                  <label for="sponsorType">Hình thức tài trợ</label>
+                  <select id="sponsorType">
+                    <option value="money">Tiền mặt/chuyển khoản</option>
                     <option value="in_kind">Hiện vật/dịch vụ</option>
                   </select>
                 </div>
 
-                <div class="table-responsive">
-                  <table class="sponsor-management-table">
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Người/đơn vị tài trợ</th>
-                        <th>Hình thức</th>
-                        <th>Giá trị</th>
-                        <th>Nội dung</th>
-                        <th>Thao tác</th>
-                      </tr>
-                    </thead>
-
-                    <tbody id="sponsorTableBody">
-                      <tr>
-                        <td colspan="6" class="empty-row">
-                          Chưa có dữ liệu
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div class="form-group" id="sponsorAmountGroup">
+                  <label for="sponsorAmount">Số tiền</label>
+                  <input type="number" min="0" step="1000" id="sponsorAmount" placeholder="Ví dụ: 2000000">
                 </div>
+
+                <div class="form-group">
+                  <label for="sponsorContent">Nội dung tài trợ</label>
+                  <input type="text" id="sponsorContent" placeholder="Ví dụ: Tài trợ chương trình Hội khóa">
+                </div>
+
+                <div class="form-group">
+                  <label for="sponsorNote">Ghi chú</label>
+                  <textarea id="sponsorNote" rows="3" placeholder="Thông tin bổ sung (nếu có)"></textarea>
+                </div>
+
+                <div class="form-actions">
+                  <button class="primary-action-button" id="saveSponsorButton" type="submit">
+                    Lưu tài trợ
+                  </button>
+
+                  <button class="secondary-action-button hidden" id="cancelSponsorEditButton" type="button">
+                    Hủy sửa
+                  </button>
+                </div>
+
+                <p class="form-message" id="sponsorFormMessage"></p>
+              </form>
+            </div>
+
+            <div class="sponsor-list-card">
+              <div class="participant-toolbar">
+                <input type="text" id="sponsorSearch" placeholder="Tìm theo tên hoặc nội dung tài trợ...">
+
+                <select id="sponsorTypeFilter">
+                  <option value="all">Tất cả hình thức</option>
+                  <option value="money">Tiền</option>
+                  <option value="in_kind">Hiện vật/dịch vụ</option>
+                </select>
               </div>
 
+              <div class="table-responsive">
+                <table class="sponsor-management-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Người/đơn vị tài trợ</th>
+                      <th>Hình thức</th>
+                      <th>Giá trị</th>
+                      <th>Nội dung</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="sponsorTableBody">
+                    <tr>
+                      <td colspan="6" class="empty-row">
+                        Chưa có dữ liệu
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
 
           </div>
         </div>
-      </section>
 
-    </main>
+      </div>
+      </div>
+    </section>
 
-    <!-- =========================
+  </main>
+
+  <!-- =========================
          FOOTER
     ========================== -->
-    <footer class="site-footer">
-      <div class="container footer-content">
-        <div>
-          <h3>TRƯỜNG THPT PHÚ BÌNH</h3>
-          <p>Khóa 1993 - 1996</p>
-        </div>
-
-        <div class="footer-message">
-          <strong>HỘI KHÓA 30 NĂM</strong>
-          <span>Trở lại trường xưa</span>
-        </div>
+  <footer class="site-footer">
+    <div class="container footer-content">
+      <div>
+        <h3>TRƯỜNG THPT PHÚ BÌNH</h3>
+        <p>Khóa 1993 - 1996</p>
       </div>
 
-      <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
-    </footer>
-
-    <script type="module" src="main.js?v=20260925-2200"></script>
-  
-    <!-- =========================
-         HỘP THOẠI TÙY CHỈNH
-    ========================== -->
-    <div
-      class="app-dialog-backdrop hidden"
-      id="appDialogBackdrop"
-      aria-hidden="true"
-    >
-      <div
-        class="app-dialog"
-        id="appDialog"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="appDialogTitle"
-        aria-describedby="appDialogMessage"
-      >
-        <div class="app-dialog-icon" id="appDialogIcon">!</div>
-
-        <div class="app-dialog-content">
-          <h3 id="appDialogTitle">Thông báo</h3>
-          <p id="appDialogMessage"></p>
-        </div>
-
-        <div class="app-dialog-actions">
-          <button
-            class="app-dialog-button app-dialog-cancel hidden"
-            id="appDialogCancel"
-            type="button"
-          >
-            Hủy
-          </button>
-
-          <button
-            class="app-dialog-button app-dialog-confirm"
-            id="appDialogConfirm"
-            type="button"
-          >
-            Đồng ý
-          </button>
-        </div>
+      <div class="footer-message">
+        <strong>HỘI KHÓA 30 NĂM</strong>
+        <span>Trở lại trường xưa</span>
       </div>
     </div>
 
-  </body>
+    <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
+  </footer>
+
+  <script type="module" src="main.js?v=20260925-2200"></script>
+
+  <!-- =========================
+         HỘP THOẠI TÙY CHỈNH
+    ========================== -->
+  <div class="app-dialog-backdrop hidden" id="appDialogBackdrop" aria-hidden="true">
+    <div class="app-dialog" id="appDialog" role="dialog" aria-modal="true" aria-labelledby="appDialogTitle"
+      aria-describedby="appDialogMessage">
+      <div class="app-dialog-icon" id="appDialogIcon">!</div>
+
+      <div class="app-dialog-content">
+        <h3 id="appDialogTitle">Thông báo</h3>
+        <p id="appDialogMessage"></p>
+      </div>
+
+      <div class="app-dialog-actions">
+        <button class="app-dialog-button app-dialog-cancel hidden" id="appDialogCancel" type="button">
+          Hủy
+        </button>
+
+        <button class="app-dialog-button app-dialog-confirm" id="appDialogConfirm" type="button">
+          Đồng ý
+        </button>
+      </div>
+    </div>
+  </div>
+
+</body>
+
 </html>
