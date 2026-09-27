@@ -17,6 +17,49 @@ import {
   deleteField,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
+
+/* =========================================
+   SẮP XẾP HỌ TÊN TIẾNG VIỆT
+   Ưu tiên TÊN (từ cuối), sau đó họ và tên đầy đủ.
+========================================= */
+
+const vietnameseNameCollator = new Intl.Collator(
+  "vi",
+  {
+    sensitivity: "base",
+    numeric: true,
+  },
+);
+
+function getVietnameseGivenName(fullName = "") {
+  const normalized = String(fullName)
+    .trim()
+    .replace(/\s+/g, " ");
+
+  if (!normalized) return "";
+
+  const parts = normalized.split(" ");
+
+  return parts[parts.length - 1];
+}
+
+function compareVietnameseNames(aName = "", bName = "") {
+  const givenCompare =
+    vietnameseNameCollator.compare(
+      getVietnameseGivenName(aName),
+      getVietnameseGivenName(bName),
+    );
+
+  if (givenCompare !== 0) {
+    return givenCompare;
+  }
+
+  return vietnameseNameCollator.compare(
+    String(aName).trim(),
+    String(bName).trim(),
+  );
+}
+
 /* =========================================
    MEMBERS - PRIVATE WORKING DATA
 ========================================= */
@@ -131,10 +174,9 @@ function subscribeMembersByClass(
       }));
 
       members.sort((a, b) =>
-        (a.fullName || "").localeCompare(
+        compareVietnameseNames(
+          a.fullName || "",
           b.fullName || "",
-          "vi",
-          { sensitivity: "base" },
         ),
       );
 
@@ -198,10 +240,9 @@ function subscribePublicMembersByClass(
       }));
 
       members.sort((a, b) =>
-        (a.fullName || "").localeCompare(
+        compareVietnameseNames(
+          a.fullName || "",
           b.fullName || "",
-          "vi",
-          { sensitivity: "base" },
         ),
       );
 

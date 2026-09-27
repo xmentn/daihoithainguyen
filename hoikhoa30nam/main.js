@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260927-2215";
+} from "./firebase/auth.js?v=20260927-2245";
 
 import {
   addMember,
@@ -25,7 +25,7 @@ import {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20260927-2215";
+} from "./firebase/firestore.js?v=20260927-2245";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -340,6 +340,8 @@ const totalOrganizersHome =
   document.getElementById("totalOrganizers");
 const totalSponsorHome =
   document.getElementById("totalSponsor");
+const homeSponsorListButton =
+  document.getElementById("homeSponsorListButton");
 const sponsorTotalLarge =
   document.getElementById("sponsorTotalLarge");
 const publicSponsorCount =
@@ -503,6 +505,44 @@ document.addEventListener("keydown", (event) => {
     closeAppDialog(false);
   }
 });
+
+
+const vietnameseNameCollator = new Intl.Collator(
+  "vi",
+  {
+    sensitivity: "base",
+    numeric: true,
+  },
+);
+
+function getVietnameseGivenName(fullName = "") {
+  const normalized = String(fullName)
+    .trim()
+    .replace(/\s+/g, " ");
+
+  if (!normalized) return "";
+
+  const parts = normalized.split(" ");
+
+  return parts[parts.length - 1];
+}
+
+function compareVietnameseNames(aName = "", bName = "") {
+  const givenCompare =
+    vietnameseNameCollator.compare(
+      getVietnameseGivenName(aName),
+      getVietnameseGivenName(bName),
+    );
+
+  if (givenCompare !== 0) {
+    return givenCompare;
+  }
+
+  return vietnameseNameCollator.compare(
+    String(aName).trim(),
+    String(bName).trim(),
+  );
+}
 
 function escapeHtml(value = "") {
   return String(value)
@@ -1284,34 +1324,60 @@ function renderPublicSponsors() {
   const typeFilter =
     publicSponsorTypeFilter?.value || "all";
 
-  const filtered = publicSponsorsData.filter((item) => {
-    const sponsorName =
-      (item.sponsorName || "")
-        .toLocaleLowerCase("vi");
+  const filtered = publicSponsorsData
+    .filter((item) => {
+      const sponsorName =
+        (item.sponsorName || "")
+          .toLocaleLowerCase("vi");
 
-    const content =
-      (item.content || "")
-        .toLocaleLowerCase("vi");
+      const content =
+        (item.content || "")
+          .toLocaleLowerCase("vi");
 
-    const matchesKeyword =
-      !keyword ||
-      sponsorName.includes(keyword) ||
-      content.includes(keyword);
+      const matchesKeyword =
+        !keyword ||
+        sponsorName.includes(keyword) ||
+        content.includes(keyword);
 
-    const matchesClass =
-      !classFilter ||
-      item.classId === classFilter;
+      const matchesClass =
+        !classFilter ||
+        item.classId === classFilter;
 
-    const matchesType =
-      typeFilter === "all" ||
-      item.type === typeFilter;
+      const matchesType =
+        typeFilter === "all" ||
+        item.type === typeFilter;
 
-    return (
-      matchesKeyword &&
-      matchesClass &&
-      matchesType
-    );
-  });
+      return (
+        matchesKeyword &&
+        matchesClass &&
+        matchesType
+      );
+    })
+    .sort((a, b) => {
+      const aAmount =
+        a.type === "money"
+          ? Number(a.amount) || 0
+          : 0;
+
+      const bAmount =
+        b.type === "money"
+          ? Number(b.amount) || 0
+          : 0;
+
+      /*
+       * Ưu tiên số tiền tài trợ cao xuống thấp.
+       * Hiện vật/dịch vụ (không có amount) sẽ xếp sau.
+       */
+      if (bAmount !== aAmount) {
+        return bAmount - aAmount;
+      }
+
+      return (a.sponsorName || "").localeCompare(
+        b.sponsorName || "",
+        "vi",
+        { sensitivity: "base" },
+      );
+    });
 
   if (publicSponsorCount) {
     publicSponsorCount.textContent =
@@ -1488,10 +1554,9 @@ function renderPublicParticipants() {
         return classCompare;
       }
 
-      return (a.fullName || "").localeCompare(
+      return compareVietnameseNames(
+        a.fullName || "",
         b.fullName || "",
-        "vi",
-        { sensitivity: "base" },
       );
     });
 
@@ -2980,6 +3045,29 @@ if (cancelSponsorEditButton) {
 
 
 
+
+
+if (homeSponsorListButton) {
+  homeSponsorListButton.addEventListener(
+    "click",
+    () => {
+      if (publicSponsorSearch) {
+        publicSponsorSearch.value = "";
+      }
+
+      if (publicSponsorClassFilter) {
+        publicSponsorClassFilter.value = "";
+      }
+
+      if (publicSponsorTypeFilter) {
+        publicSponsorTypeFilter.value = "all";
+      }
+
+      renderPublicSponsors();
+      openTab("sponsors");
+    },
+  );
+}
 
 if (publicSponsorSearch) {
   publicSponsorSearch.addEventListener(
