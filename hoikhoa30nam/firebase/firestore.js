@@ -402,6 +402,52 @@ async function deleteSponsor(sponsorId) {
   await deleteDoc(doc(db, "sponsors", sponsorId));
 }
 
+
+function subscribeAllSponsors(
+  callback,
+  errorCallback,
+) {
+  return onSnapshot(
+    collection(db, "sponsors"),
+    (snapshot) => {
+      const sponsors = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      sponsors.sort((a, b) => {
+        const classCompare =
+          (a.classId || "").localeCompare(
+            b.classId || "",
+            "vi",
+          );
+
+        if (classCompare !== 0) {
+          return classCompare;
+        }
+
+        return (a.sponsorName || "").localeCompare(
+          b.sponsorName || "",
+          "vi",
+          { sensitivity: "base" },
+        );
+      });
+
+      callback(sponsors);
+    },
+    (error) => {
+      console.error(
+        "Lỗi đọc toàn bộ dữ liệu tài trợ:",
+        error,
+      );
+
+      if (errorCallback) {
+        errorCallback(error);
+      }
+    },
+  );
+}
+
 function subscribeSponsorsByClass(
   classId,
   callback,
@@ -535,6 +581,7 @@ export {
   addSponsor,
   updateSponsor,
   deleteSponsor,
+  subscribeAllSponsors,
   subscribeSponsorsByClass,
   addTeacher,
   updateTeacher,

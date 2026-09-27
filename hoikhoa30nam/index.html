@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20260927-0950" />
+    <link rel="stylesheet" href="style.css?v=20260927-2215" />
   </head>
 
   <body>
@@ -635,9 +635,68 @@
             </div>
           </div>
 
-          <div class="placeholder-box small-placeholder">
-            <h3>Danh sách tài trợ</h3>
-            <p>Danh sách sẽ được tải từ Firebase.</p>
+          <div class="public-sponsor-card">
+            <div class="public-sponsor-heading">
+              <div>
+                <span class="section-label">DANH SÁCH CÔNG KHAI</span>
+                <h3>Danh sách tài trợ</h3>
+              </div>
+
+              <div class="public-sponsor-count">
+                <span>Số lượt tài trợ</span>
+                <strong id="publicSponsorCount">0</strong>
+                <small>lượt</small>
+              </div>
+            </div>
+
+            <div class="table-toolbar">
+              <input
+                type="text"
+                id="publicSponsorSearch"
+                placeholder="Tìm theo người/đơn vị hoặc nội dung tài trợ..."
+              />
+
+              <select id="publicSponsorClassFilter">
+                <option value="">Tất cả các lớp</option>
+                <option value="12A">12A</option>
+                <option value="12B">12B</option>
+                <option value="12C">12C</option>
+                <option value="12D">12D</option>
+                <option value="12E">12E</option>
+                <option value="12G">12G</option>
+                <option value="12H">12H</option>
+                <option value="12K">12K</option>
+                <option value="12M">12M</option>
+              </select>
+
+              <select id="publicSponsorTypeFilter">
+                <option value="all">Tất cả hình thức</option>
+                <option value="money">Tiền</option>
+                <option value="in_kind">Hiện vật/dịch vụ</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="public-sponsor-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Người/đơn vị tài trợ</th>
+                    <th>Lớp</th>
+                    <th>Hình thức</th>
+                    <th>Giá trị/Nội dung</th>
+                  </tr>
+                </thead>
+
+                <tbody id="publicSponsorTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-row">
+                      Đang tải dữ liệu...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </section>
@@ -1299,7 +1358,7 @@
       <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
     </footer>
 
-    <script type="module" src="main.js?v=20260927-0950"></script>
+    <script type="module" src="main.js?v=20260927-2215"></script>
   
     <!-- =========================
          HỘP THOẠI TÙY CHỈNH

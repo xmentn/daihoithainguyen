@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260927-0950";
+} from "./firebase/auth.js?v=20260927-2215";
 
 import {
   addMember,
@@ -19,12 +19,13 @@ import {
   addSponsor,
   updateSponsor,
   deleteSponsor,
+  subscribeAllSponsors,
   subscribeSponsorsByClass,
   addTeacher,
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20260927-0950";
+} from "./firebase/firestore.js?v=20260927-2215";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -339,6 +340,18 @@ const totalOrganizersHome =
   document.getElementById("totalOrganizers");
 const totalSponsorHome =
   document.getElementById("totalSponsor");
+const sponsorTotalLarge =
+  document.getElementById("sponsorTotalLarge");
+const publicSponsorCount =
+  document.getElementById("publicSponsorCount");
+const publicSponsorSearch =
+  document.getElementById("publicSponsorSearch");
+const publicSponsorClassFilter =
+  document.getElementById("publicSponsorClassFilter");
+const publicSponsorTypeFilter =
+  document.getElementById("publicSponsorTypeFilter");
+const publicSponsorTableBody =
+  document.getElementById("publicSponsorTableBody");
 
 const participantSearch =
   document.getElementById("participantSearch");
@@ -370,6 +383,8 @@ let publicClassSponsors = [];
 let publicClassTeachers = [];
 let dashboardMembersData = [];
 let unsubscribeDashboard = null;
+let publicSponsorsData = [];
+let unsubscribeAllSponsors = null;
 
 
 let activeDialogResolver = null;
@@ -1226,6 +1241,184 @@ function startSponsorSubscription(classId) {
 
 const HOME_TOTAL_CLASSES = 8;
 
+function getTotalSponsorMoney() {
+  return publicSponsorsData.reduce(
+    (sum, item) =>
+      sum +
+      (
+        item.type === "money"
+          ? Number(item.amount) || 0
+          : 0
+      ),
+    0,
+  );
+}
+
+function renderPublicSponsorSummary() {
+  const totalMoney = getTotalSponsorMoney();
+
+  if (totalSponsorHome) {
+    totalSponsorHome.textContent =
+      formatCurrency(totalMoney);
+  }
+
+  if (sponsorTotalLarge) {
+    sponsorTotalLarge.textContent =
+      formatCurrency(totalMoney);
+  }
+}
+
+function renderPublicSponsors() {
+  if (!publicSponsorTableBody) {
+    renderPublicSponsorSummary();
+    return;
+  }
+
+  const keyword = (publicSponsorSearch?.value || "")
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const classFilter =
+    publicSponsorClassFilter?.value || "";
+
+  const typeFilter =
+    publicSponsorTypeFilter?.value || "all";
+
+  const filtered = publicSponsorsData.filter((item) => {
+    const sponsorName =
+      (item.sponsorName || "")
+        .toLocaleLowerCase("vi");
+
+    const content =
+      (item.content || "")
+        .toLocaleLowerCase("vi");
+
+    const matchesKeyword =
+      !keyword ||
+      sponsorName.includes(keyword) ||
+      content.includes(keyword);
+
+    const matchesClass =
+      !classFilter ||
+      item.classId === classFilter;
+
+    const matchesType =
+      typeFilter === "all" ||
+      item.type === typeFilter;
+
+    return (
+      matchesKeyword &&
+      matchesClass &&
+      matchesType
+    );
+  });
+
+  if (publicSponsorCount) {
+    publicSponsorCount.textContent =
+      filtered.length;
+  }
+
+  renderPublicSponsorSummary();
+
+  if (filtered.length === 0) {
+    publicSponsorTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-row">
+          Chưa có dữ liệu tài trợ phù hợp
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  publicSponsorTableBody.innerHTML =
+    filtered
+      .map((item, index) => {
+        const isMoney =
+          item.type === "money";
+
+        const valueOrContent =
+          isMoney
+            ? formatCurrency(item.amount)
+            : escapeHtml(
+                item.content ||
+                item.note ||
+                "Hiện vật/dịch vụ",
+              );
+
+        return `
+          <tr>
+            <td>${index + 1}</td>
+
+            <td>
+              <strong>
+                ${escapeHtml(item.sponsorName || "")}
+              </strong>
+            </td>
+
+            <td>
+              ${escapeHtml(item.classId || "")}
+            </td>
+
+            <td>
+              <span class="sponsor-kind-badge ${
+                isMoney ? "money" : "in-kind"
+              }">
+                ${
+                  isMoney
+                    ? "Tiền"
+                    : "Hiện vật/dịch vụ"
+                }
+              </span>
+            </td>
+
+            <td>
+              <span class="${
+                isMoney
+                  ? "public-sponsor-money"
+                  : ""
+              }">
+                ${valueOrContent}
+              </span>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+}
+
+function startAllSponsorSubscription() {
+  if (unsubscribeAllSponsors) {
+    return;
+  }
+
+  unsubscribeAllSponsors =
+    subscribeAllSponsors(
+      (items) => {
+        publicSponsorsData = items;
+
+        renderPublicSponsors();
+        renderHomeStats();
+      },
+      (error) => {
+        console.error(
+          "Không đọc được dữ liệu tài trợ công khai:",
+          error,
+        );
+
+        if (publicSponsorTableBody) {
+          publicSponsorTableBody.innerHTML = `
+            <tr>
+              <td colspan="5" class="empty-row">
+                Không đọc được dữ liệu tài trợ
+              </td>
+            </tr>
+          `;
+        }
+      },
+    );
+}
+
 function renderHomeStats() {
   const totalMembers =
     dashboardMembersData.length;
@@ -1251,6 +1444,8 @@ function renderHomeStats() {
   if (totalOrganizersHome) {
     totalOrganizersHome.textContent = "0";
   }
+
+  renderPublicSponsorSummary();
 }
 
 function renderPublicParticipants() {
@@ -2785,6 +2980,34 @@ if (cancelSponsorEditButton) {
 
 
 
+
+if (publicSponsorSearch) {
+  publicSponsorSearch.addEventListener(
+    "input",
+    () => {
+      renderPublicSponsors();
+    },
+  );
+}
+
+if (publicSponsorClassFilter) {
+  publicSponsorClassFilter.addEventListener(
+    "change",
+    () => {
+      renderPublicSponsors();
+    },
+  );
+}
+
+if (publicSponsorTypeFilter) {
+  publicSponsorTypeFilter.addEventListener(
+    "change",
+    () => {
+      renderPublicSponsors();
+    },
+  );
+}
+
 if (participantSearch) {
   participantSearch.addEventListener(
     "input",
@@ -2813,6 +3036,8 @@ if (dashboardClassFilter) {
 }
 
 startDashboardSubscription();
+
+startAllSponsorSubscription();
 
 publicClassButtons.forEach((button) => {
   button.addEventListener("click", () => {
