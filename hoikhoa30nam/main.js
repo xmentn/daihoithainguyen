@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260925-2200";
+} from "./firebase/auth.js?v=20260927-0950";
 
 import {
   addMember,
@@ -20,7 +20,11 @@ import {
   updateSponsor,
   deleteSponsor,
   subscribeSponsorsByClass,
-} from "./firebase/firestore.js?v=20260925-2200";
+  addTeacher,
+  updateTeacher,
+  deleteTeacher,
+  subscribeTeachersByClass,
+} from "./firebase/firestore.js?v=20260927-0950";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -253,6 +257,38 @@ const sponsorTypeFilter =
   document.getElementById("sponsorTypeFilter");
 const sponsorTableBody =
   document.getElementById("sponsorTableBody");
+const manageTeachersButton =
+  document.getElementById("manageTeachersButton");
+const teacherManagement =
+  document.getElementById("teacherManagement");
+const teacherSectionTitle =
+  document.getElementById("teacherSectionTitle");
+const teacherCount =
+  document.getElementById("teacherCount");
+const teacherForm =
+  document.getElementById("teacherForm");
+const teacherFormTitle =
+  document.getElementById("teacherFormTitle");
+const teacherIdInput =
+  document.getElementById("teacherId");
+const teacherNameInput =
+  document.getElementById("teacherName");
+const teacherSubjectInput =
+  document.getElementById("teacherSubject");
+const teacherYearLevelSelect =
+  document.getElementById("teacherYearLevel");
+const saveTeacherButton =
+  document.getElementById("saveTeacherButton");
+const cancelTeacherEditButton =
+  document.getElementById("cancelTeacherEditButton");
+const teacherFormMessage =
+  document.getElementById("teacherFormMessage");
+const teacherSearch =
+  document.getElementById("teacherSearch");
+const teacherYearFilter =
+  document.getElementById("teacherYearFilter");
+const teacherTableBody =
+  document.getElementById("teacherTableBody");
 const publicClassDetail =
   document.getElementById("publicClassDetail");
 const publicClassTitle =
@@ -267,6 +303,8 @@ const publicClassMemberBody =
   document.getElementById("publicClassMemberBody");
 const publicClassSponsorBody =
   document.getElementById("publicClassSponsorBody");
+const publicClassTeacherBody =
+  document.getElementById("publicClassTeacherBody");
 const closePublicClassButton =
   document.getElementById("closePublicClassButton");
 const publicClassButtons =
@@ -321,10 +359,15 @@ let classContributions = [];
 let unsubscribeSponsors = null;
 let classSponsors = [];
 
+let unsubscribeTeachers = null;
+let classTeachers = [];
+
 let unsubscribePublicMembers = null;
 let unsubscribePublicSponsors = null;
+let unsubscribePublicTeachers = null;
 let publicClassMembers = [];
 let publicClassSponsors = [];
+let publicClassTeachers = [];
 let dashboardMembersData = [];
 let unsubscribeDashboard = null;
 
@@ -645,6 +688,133 @@ function startMemberSubscription(classId) {
 }
 
 
+
+function setTeacherMessage(message = "", type = "") {
+  if (!teacherFormMessage) return;
+
+  teacherFormMessage.textContent = message;
+  teacherFormMessage.className = "form-message";
+
+  if (type) {
+    teacherFormMessage.classList.add(type);
+  }
+}
+
+function resetTeacherForm() {
+  teacherIdInput.value = "";
+  teacherNameInput.value = "";
+  teacherSubjectInput.value = "";
+  teacherYearLevelSelect.value = "10";
+
+  teacherFormTitle.textContent = "Thêm thầy, cô";
+  saveTeacherButton.textContent = "Lưu thầy, cô";
+  cancelTeacherEditButton.classList.add("hidden");
+  setTeacherMessage("");
+}
+
+function formatTeacherYear(yearLevel) {
+  return `Lớp ${yearLevel || ""}`;
+}
+
+function renderTeachers() {
+  const keyword = (teacherSearch.value || "")
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const yearFilter = teacherYearFilter.value;
+
+  const filtered = classTeachers.filter((item) => {
+    const name = (item.teacherName || "")
+      .toLocaleLowerCase("vi");
+    const subject = (item.subject || "")
+      .toLocaleLowerCase("vi");
+
+    const matchesKeyword =
+      !keyword ||
+      name.includes(keyword) ||
+      subject.includes(keyword);
+
+    const matchesYear =
+      yearFilter === "all" ||
+      String(item.yearLevel) === yearFilter;
+
+    return matchesKeyword && matchesYear;
+  });
+
+  teacherCount.textContent = classTeachers.length;
+
+  if (filtered.length === 0) {
+    teacherTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="empty-row">
+          ${classTeachers.length === 0
+            ? "Chưa có dữ liệu thầy, cô"
+            : "Không tìm thấy thầy, cô phù hợp"}
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  teacherTableBody.innerHTML = filtered
+    .map((item, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${escapeHtml(item.teacherName || "")}</strong></td>
+        <td>${escapeHtml(item.subject || "")}</td>
+        <td>
+          <span class="teacher-year-badge">
+            ${formatTeacherYear(item.yearLevel)}
+          </span>
+        </td>
+        <td>
+          <button
+            type="button"
+            class="table-action-button edit-teacher-button"
+            data-teacher-id="${item.id}"
+          >Sửa</button>
+          <button
+            type="button"
+            class="table-action-button delete-teacher-button"
+            data-teacher-id="${item.id}"
+          >Xóa</button>
+        </td>
+      </tr>
+    `)
+    .join("");
+}
+
+function stopTeacherSubscription() {
+  if (unsubscribeTeachers) {
+    unsubscribeTeachers();
+    unsubscribeTeachers = null;
+  }
+
+  classTeachers = [];
+  renderTeachers();
+}
+
+function startTeacherSubscription(classId) {
+  stopTeacherSubscription();
+
+  teacherSectionTitle.textContent =
+    `Danh sách thầy, cô lớp ${classId}`;
+
+  unsubscribeTeachers = subscribeTeachersByClass(
+    classId,
+    (items) => {
+      classTeachers = items;
+      renderTeachers();
+    },
+    () => {
+      setTeacherMessage(
+        "Không đọc được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
+        "error",
+      );
+    },
+  );
+}
+
 function setActiveManagementCard(activeButton) {
   document.querySelectorAll(".management-card").forEach((card) => {
     card.classList.remove("active-management-card");
@@ -657,11 +827,15 @@ function setActiveManagementCard(activeButton) {
 
 function showManagementPanel(panelName) {
   memberManagement.classList.add("hidden");
+  teacherManagement.classList.add("hidden");
   participantManagement.classList.add("hidden");
   contributionManagement.classList.add("hidden");
   sponsorManagement.classList.add("hidden");
 
-  if (panelName === "participants") {
+  if (panelName === "teachers") {
+    teacherManagement.classList.remove("hidden");
+    setActiveManagementCard(manageTeachersButton);
+  } else if (panelName === "participants") {
     participantManagement.classList.remove("hidden");
     setActiveManagementCard(manageParticipantsButton);
   } else if (panelName === "contributions") {
@@ -1360,8 +1534,14 @@ function stopPublicClassSubscriptions() {
     unsubscribePublicSponsors = null;
   }
 
+  if (unsubscribePublicTeachers) {
+    unsubscribePublicTeachers();
+    unsubscribePublicTeachers = null;
+  }
+
   publicClassMembers = [];
   publicClassSponsors = [];
+  publicClassTeachers = [];
 }
 
 function renderPublicClassDetail() {
@@ -1418,6 +1598,28 @@ function renderPublicClassDetail() {
           `,
         )
         .join("");
+  }
+
+
+  if (publicClassTeachers.length === 0) {
+    publicClassTeacherBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="empty-row">
+          Chưa có dữ liệu thầy, cô
+        </td>
+      </tr>
+    `;
+  } else {
+    publicClassTeacherBody.innerHTML = publicClassTeachers
+      .map((item, index) => `
+        <tr>
+          <td>${index + 1}</td>
+          <td><strong>${escapeHtml(item.teacherName || "")}</strong></td>
+          <td>${escapeHtml(item.subject || "")}</td>
+          <td>${formatTeacherYear(item.yearLevel)}</td>
+        </tr>
+      `)
+      .join("");
   }
 
   if (publicClassSponsors.length === 0) {
@@ -1509,6 +1711,25 @@ function openPublicClass(classId) {
       },
     );
 
+
+  unsubscribePublicTeachers =
+    subscribeTeachersByClass(
+      classId,
+      (items) => {
+        publicClassTeachers = items;
+        renderPublicClassDetail();
+      },
+      () => {
+        publicClassTeacherBody.innerHTML = `
+          <tr>
+            <td colspan="4" class="empty-row">
+              Không đọc được dữ liệu thầy, cô
+            </td>
+          </tr>
+        `;
+      },
+    );
+
   publicClassDetail.scrollIntoView({
     behavior: "smooth",
     block: "start",
@@ -1521,9 +1742,11 @@ function showLoggedOutUI() {
   stopMemberSubscription();
   stopContributionSubscription();
   stopSponsorSubscription();
+  stopTeacherSubscription();
 
   resetMemberForm();
   resetSponsorForm();
+  resetTeacherForm();
 
   loginMenuItem.classList.remove("hidden");
   managementMenuItem.classList.add("hidden");
@@ -1593,6 +1816,7 @@ function showLoggedInUI(session) {
       startMemberSubscription(classId);
       startContributionSubscription(classId);
       startSponsorSubscription(classId);
+      startTeacherSubscription(classId);
     }
   } else if (profile.role === "admin") {
     managementTabButton.textContent =
@@ -1957,6 +2181,178 @@ if (memberSearch) {
   );
 }
 
+
+
+if (manageTeachersButton) {
+  manageTeachersButton.addEventListener(
+    "click",
+    () => {
+      showManagementPanel("teachers");
+      renderTeachers();
+    },
+  );
+}
+
+if (teacherSearch) {
+  teacherSearch.addEventListener("input", renderTeachers);
+}
+
+if (teacherYearFilter) {
+  teacherYearFilter.addEventListener("change", renderTeachers);
+}
+
+if (teacherForm) {
+  teacherForm.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+
+      if (!currentSession?.profile) {
+        setTeacherMessage(
+          "Phiên đăng nhập không hợp lệ.",
+          "error",
+        );
+        return;
+      }
+
+      const profile = currentSession.profile;
+      const authUser = currentSession.authUser;
+
+      if (profile.role !== "class_editor") {
+        setTeacherMessage(
+          "Chức năng này hiện dành cho tài khoản đại diện lớp.",
+          "error",
+        );
+        return;
+      }
+
+      const teacherName = teacherNameInput.value.trim();
+      const subject = teacherSubjectInput.value.trim();
+      const yearLevel = teacherYearLevelSelect.value;
+
+      if (!teacherName) {
+        setTeacherMessage(
+          "Vui lòng nhập tên thầy, cô.",
+          "error",
+        );
+        teacherNameInput.focus();
+        return;
+      }
+
+      try {
+        saveTeacherButton.disabled = true;
+
+        const teacherId = teacherIdInput.value;
+
+        if (teacherId) {
+          await updateTeacher(
+            teacherId,
+            { teacherName, subject, yearLevel },
+          );
+
+          resetTeacherForm();
+          setTeacherMessage(
+            "Đã cập nhật thông tin thầy, cô.",
+            "success",
+          );
+        } else {
+          await addTeacher({
+            teacherName,
+            subject,
+            yearLevel,
+            classId: profile.classId,
+            createdBy: authUser.uid,
+          });
+
+          resetTeacherForm();
+          setTeacherMessage(
+            "Đã thêm thầy, cô.",
+            "success",
+          );
+        }
+      } catch (error) {
+        console.error("Lỗi lưu thầy, cô:", error);
+        setTeacherMessage(
+          "Không lưu được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
+      } finally {
+        saveTeacherButton.disabled = false;
+      }
+    },
+  );
+}
+
+if (teacherTableBody) {
+  teacherTableBody.addEventListener(
+    "click",
+    async (event) => {
+      const editButton = event.target.closest(".edit-teacher-button");
+      const deleteButton = event.target.closest(".delete-teacher-button");
+
+      if (editButton) {
+        const teacherId = editButton.dataset.teacherId;
+        const item = classTeachers.find((row) => row.id === teacherId);
+
+        if (!item) return;
+
+        teacherIdInput.value = item.id;
+        teacherNameInput.value = item.teacherName || "";
+        teacherSubjectInput.value = item.subject || "";
+        teacherYearLevelSelect.value = String(item.yearLevel || "10");
+
+        teacherFormTitle.textContent = "Sửa thầy, cô";
+        saveTeacherButton.textContent = "Cập nhật";
+        cancelTeacherEditButton.classList.remove("hidden");
+        teacherNameInput.focus();
+        return;
+      }
+
+      if (deleteButton) {
+        const teacherId = deleteButton.dataset.teacherId;
+        const item = classTeachers.find((row) => row.id === teacherId);
+
+        if (!item) return;
+
+        const confirmed = await showConfirmDialog({
+          title: "Xóa thầy, cô?",
+          message:
+            `Bạn có chắc muốn xóa "${item.teacherName}" khỏi danh sách thầy, cô không?\nHành động này không thể hoàn tác.`,
+          confirmText: "Xóa",
+          cancelText: "Hủy",
+          type: "danger",
+        });
+
+        if (!confirmed) return;
+
+        try {
+          await deleteTeacher(teacherId);
+
+          if (teacherIdInput.value === teacherId) {
+            resetTeacherForm();
+          }
+        } catch (error) {
+          console.error("Lỗi xóa thầy, cô:", error);
+          await showAlertDialog({
+            title: "Không thể xóa",
+            message:
+              "Không xóa được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
+            type: "danger",
+          });
+        }
+      }
+    },
+  );
+}
+
+if (cancelTeacherEditButton) {
+  cancelTeacherEditButton.addEventListener(
+    "click",
+    () => {
+      resetTeacherForm();
+    },
+  );
+}
 
 if (manageMembersButton) {
   manageMembersButton.addEventListener("click", () => {
@@ -2467,3 +2863,38 @@ if (logoutButton) {
     },
   );
 }
+
+
+/* ========================================
+   ĐẾM NGƯỢC ĐẾN NGÀY HỘI KHÓA 24/11/2026
+======================================== */
+function updateHomeCountdown() {
+  const countdownElement =
+    document.getElementById("homeCountdown");
+
+  if (!countdownElement) return;
+
+  const reunionDate = new Date(2026, 10, 24);
+  reunionDate.setHours(0, 0, 0, 0);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const remainingDays = Math.ceil(
+    (reunionDate.getTime() - today.getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
+
+  if (remainingDays > 0) {
+    countdownElement.textContent =
+      `Còn ${remainingDays} ngày`;
+  } else if (remainingDays === 0) {
+    countdownElement.textContent =
+      "Hôm nay là ngày Hội khóa";
+  } else {
+    countdownElement.textContent =
+      "Hội khóa đã diễn ra";
+  }
+}
+
+updateHomeCountdown();

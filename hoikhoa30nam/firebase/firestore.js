@@ -437,6 +437,90 @@ function subscribeSponsorsByClass(
   );
 }
 
+
+
+/* =========================================
+   TEACHERS - PUBLIC READ, CLASS WRITE
+========================================= */
+
+async function addTeacher({
+  teacherName,
+  subject = "",
+  yearLevel,
+  classId,
+  createdBy,
+}) {
+  return await addDoc(collection(db, "teachers"), {
+    teacherName: teacherName.trim(),
+    subject: subject.trim(),
+    yearLevel: String(yearLevel),
+    classId,
+    createdBy,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function updateTeacher(
+  teacherId,
+  {
+    teacherName,
+    subject = "",
+    yearLevel,
+  },
+) {
+  await updateDoc(doc(db, "teachers", teacherId), {
+    teacherName: teacherName.trim(),
+    subject: subject.trim(),
+    yearLevel: String(yearLevel),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function deleteTeacher(teacherId) {
+  await deleteDoc(doc(db, "teachers", teacherId));
+}
+
+function subscribeTeachersByClass(
+  classId,
+  callback,
+  errorCallback,
+) {
+  const q = query(
+    collection(db, "teachers"),
+    where("classId", "==", classId),
+  );
+
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const teachers = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      teachers.sort((a, b) => {
+        const yearCompare =
+          Number(a.yearLevel || 0) - Number(b.yearLevel || 0);
+
+        if (yearCompare !== 0) return yearCompare;
+
+        return (a.teacherName || "").localeCompare(
+          b.teacherName || "",
+          "vi",
+          { sensitivity: "base" },
+        );
+      });
+
+      callback(teachers);
+    },
+    (error) => {
+      console.error("Lỗi đọc danh sách thầy, cô:", error);
+      if (errorCallback) errorCallback(error);
+    },
+  );
+}
+
 export {
   addMember,
   updateMember,
@@ -452,4 +536,8 @@ export {
   updateSponsor,
   deleteSponsor,
   subscribeSponsorsByClass,
+  addTeacher,
+  updateTeacher,
+  deleteTeacher,
+  subscribeTeachersByClass,
 };
