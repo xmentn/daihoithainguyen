@@ -458,21 +458,39 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- TÌM KIẾM ĐẠI BIỂU ---
   const searchInput = document.getElementById("search-delegate");
   if (searchInput) {
+    let searchScrollTimer = null;
+
     searchInput.addEventListener("input", (e) => {
       const searchTerm = e.target.value.toLowerCase().trim();
+      let firstMatchedSeat = null;
+
       document.querySelectorAll(".seat-3d").forEach((seat) => {
         const tooltipText = seat.getAttribute("data-tooltip");
-        if (
+        const isMatched =
           searchTerm !== "" &&
           tooltipText &&
-          tooltipText.toLowerCase().includes(searchTerm)
-        ) {
+          tooltipText.toLowerCase().includes(searchTerm);
+
+        if (isMatched) {
           seat.classList.add("highlight-seat");
+          if (!firstMatchedSeat) firstMatchedSeat = seat;
         } else {
-          seat.boxShadow = "";
           seat.classList.remove("highlight-seat");
         }
       });
+
+      // Tránh cuộn liên tục theo từng ký tự khi người dùng đang gõ.
+      clearTimeout(searchScrollTimer);
+
+      if (firstMatchedSeat) {
+        searchScrollTimer = setTimeout(() => {
+          firstMatchedSeat.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "center",
+          });
+        }, 280);
+      }
     });
   }
 });

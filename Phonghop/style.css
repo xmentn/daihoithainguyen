@@ -1,8 +1,10 @@
 :root {
   --bg-main: #f0f4f8;
   --panel-bg: #ffffff;
-  --table-color: #d2b48c; /* Màu gỗ nâu sáng rõ ràng */
-  --table-border: #8b5a2b; /* Đường viền màu gỗ sậm đậm nét */
+  --table-color: #d2b48c;
+  /* Màu gỗ nâu sáng rõ ràng */
+  --table-border: #8b5a2b;
+  /* Đường viền màu gỗ sậm đậm nét */
   --seat-empty: #c0392b;
   --seat-shadow: #7b241c;
 }
@@ -27,7 +29,8 @@ body {
   width: 100% !important;
   max-width: 100vw;
   overflow: hidden;
-  display: block; /* Chuyển về block để độ cao phụ thuộc hoàn toàn vào ảnh img bên trong */
+  display: block;
+  /* Chuyển về block để độ cao phụ thuộc hoàn toàn vào ảnh img bên trong */
   border-bottom: 3px solid #f1c40f;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -38,21 +41,43 @@ body {
   display: block;
   width: 100%;
   /* Gọi ảnh trực tiếp thông qua thẻ ảo để dựng độ cao co giãn tự nhiên theo chiều rộng màn hình */
-  background: url("./images/banner-bg.png") no-repeat center center;
+  background: url("./images/banner-bg1.png") no-repeat center center;
   background-size: 100% auto;
-  padding-top: 4.6875%; /* Tỷ lệ ảnh banner-bg.png: 3840 x 180 */
+  padding-top: 9.375%;
+  /* Tỷ lệ ảnh banner-bg.png: 3840 x 180 */
 }
 
 /* ĐỊNH VỊ KHỐI CHỮ VÀ NÚT TRÊN ẢNH NỀN BANNER */
 .main-header .header-left {
   position: absolute !important;
   top: 50% !important;
-  left: 40px !important;
+  left: 55px !important;
   transform: translateY(-50%) !important;
   z-index: 10;
   display: flex;
   align-items: center;
-  max-width: calc(100% - 230px);
+  max-width: calc(100% - 250px);
+}
+
+/* Khối chữ trên banner */
+.header-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+/* Dòng SƠ ĐỒ VỊ TRÍ CHỖ NGỒI */
+.header-kicker {
+  color: #ffffff !important;
+  font-size: clamp(13px, 0.9vw, 16px);
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  margin-bottom: 7px;
+  text-transform: uppercase;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.65),
+    0 0 5px rgba(0, 0, 0, 0.25);
 }
 
 .main-header .header-admin-btn {
@@ -62,8 +87,10 @@ body {
   transform: translateY(-50%) !important;
   z-index: 10;
 }
+
 .header-party-flag {
-  height: 50px; /* Thu nhỏ nhẹ một chút để nằm gọn gàng trang trọng ở góc */
+  height: 50px;
+  /* Thu nhỏ nhẹ một chút để nằm gọn gàng trang trọng ở góc */
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
@@ -78,6 +105,7 @@ body {
 
 .header-left h2 {
   display: block;
+  margin: 0;
   color: #f7d774;
   font-size: clamp(15px, 1.35vw, 24px);
   line-height: 1.15;
@@ -88,17 +116,18 @@ body {
 
 .header-left p {
   display: block;
-  margin-top: 3px;
-  color: rgba(255, 255, 255, 0.92);
+  margin-top: 5px;
+  color: rgba(255, 255, 255, 0.96);
   font-size: clamp(10px, 0.75vw, 14px);
   line-height: 1.1;
-  font-weight: 500;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .header-icon {
   display: none !important;
 }
+
 .header-admin-btn {
   background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.4);
@@ -138,12 +167,16 @@ body {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  justify-content: flex-start; /* Để các card xếp từ trên xuống */
-  height: 100%; /* Kéo chiều cao bằng khối cha */
+  justify-content: flex-start;
+  /* Để các card xếp từ trên xuống */
+  height: 100%;
+  /* Kéo chiều cao bằng khối cha */
 }
+
 .layout-right-sidebar .sidebar-card:last-child {
   margin-top: auto;
 }
+
 /* KHU VỰC CHỨA BIỂU ĐỒ NHẪN */
 .chart-container {
   display: flex;
@@ -151,7 +184,8 @@ body {
   align-items: center;
   margin-top: 25px;
   padding-top: 15px;
-  border-top: 1px dashed #e2e8f0; /* Đường vạch đứt phân cách nhẹ */
+  border-top: 1px dashed #e2e8f0;
+  /* Đường vạch đứt phân cách nhẹ */
 }
 
 /* Dựng hình nhẫn bằng conic-gradient động (Sẽ được JS cập nhật tỉ lệ %) */
@@ -187,6 +221,7 @@ body {
   font-weight: bold;
   color: #1e457e;
 }
+
 .hall-container {
   background-color: var(--panel-bg);
   padding: 30px;
@@ -364,9 +399,10 @@ body {
   border-radius: 6px;
   box-shadow:
     0 4px 0 #d0c9b5,
-    /* Bóng đổ chân ghế màu sậm hơn của trắng ngà */ 0 6px 4px
-      rgba(0, 0, 0, 0.08);
-  border: 1px solid #cbd5e1; /* Viền xám nhẹ chỉn chu */
+    /* Bóng đổ chân ghế màu sậm hơn của trắng ngà */
+    0 6px 4px rgba(0, 0, 0, 0.08);
+  border: 1px solid #cbd5e1;
+  /* Viền xám nhẹ chỉn chu */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -398,7 +434,9 @@ body {
     0 4px 0 #421510,
     0 0 8px rgba(241, 196, 15, 0.4),
     -6px 10px 0 -4px #8b5a2b,
-    /* Tay vịn gỗ bên trái */ 6px 10px 0 -4px #8b5a2b !important; /* Tay vịn gỗ bên phải */
+    /* Tay vịn gỗ bên trái */
+    6px 10px 0 -4px #8b5a2b !important;
+  /* Tay vịn gỗ bên phải */
 }
 
 .c-seat::before,
@@ -415,13 +453,15 @@ body {
   font-weight: bold;
   font-size: 9px;
   opacity: 0.8;
-  color: inherit; /* Tự động kế thừa màu tối khi ghế trống và màu trắng khi có người */
+  color: inherit;
+  /* Tự động kế thừa màu tối khi ghế trống và màu trắng khi có người */
 }
 
 .delegate-name {
   font-size: 8.5px;
   font-weight: bold;
-  color: #fff176; /* Màu chữ vàng chanh nổi bật trên nền đỏ */
+  color: #fff176;
+  /* Màu chữ vàng chanh nổi bật trên nền đỏ */
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -535,9 +575,12 @@ body {
 .seat-bch .delegate-name {
   color: #fff176 !important;
 }
+
 .seat-khac .delegate-name {
-  color: #ffffff !important; /* Ghế đỏ tươi nhóm khác dùng chữ trắng cho dịu mắt, dễ nhìn */
+  color: #ffffff !important;
+  /* Ghế đỏ tươi nhóm khác dùng chữ trắng cho dịu mắt, dễ nhìn */
 }
+
 /* SIDEBAR CỘT PHẢI */
 .sidebar-card {
   background: white;
@@ -590,22 +633,41 @@ body {
 }
 
 /* MODAL & HIGHLIGHT */
-@keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(241, 196, 15, 0.8);
-  }
-  50% {
-    box-shadow: 0 0 15px 10px rgba(241, 196, 15, 0);
-    transform: scale(1.1);
-  }
+/* Ghế tìm thấy dùng xanh lam/cyan để tương phản rõ với hệ đỏ - vàng hiện tại. */
+@keyframes search-seat-pulse {
+
+  0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(241, 196, 15, 0);
+    transform: scale(1.12);
+    box-shadow:
+      0 4px 0 #063f70,
+      0 0 0 3px rgba(0, 229, 255, 0.95),
+      0 0 18px 8px rgba(0, 174, 255, 0.55) !important;
+  }
+
+  50% {
+    transform: scale(1.22);
+    box-shadow:
+      0 4px 0 #063f70,
+      0 0 0 4px rgba(255, 255, 255, 0.95),
+      0 0 26px 12px rgba(0, 229, 255, 0.8) !important;
   }
 }
 
-.highlight-seat {
-  animation: pulse-glow 1.4s infinite;
-  border-color: #f1c40f !important;
+.seat-3d.highlight-seat {
+  background: linear-gradient(to bottom, #18bdf2, #0755b5) !important;
+  border: 3px solid #00e5ff !important;
+  color: #ffffff !important;
+  z-index: 50 !important;
+  animation: search-seat-pulse 1.05s ease-in-out infinite !important;
+}
+
+.seat-3d.highlight-seat .seat-code,
+.seat-3d.highlight-seat .delegate-name,
+.seat-3d.highlight-seat .title-row,
+.seat-3d.highlight-seat .name-row {
+  color: #ffffff !important;
+  opacity: 1 !important;
 }
 
 .modal-overlay {
@@ -627,13 +689,15 @@ body {
   border-radius: 8px;
   width: 300px;
 }
+
 /* ==========================================================================
    BỐ CỤC KHỐI CHÚ THÍCH MÀU GHẾ (LEGEND SIDEBAR)
    ========================================================================== */
 .legend-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 14px; /* Khoảng cách thông thoáng giữa các dòng */
+  gap: 14px;
+  /* Khoảng cách thông thoáng giữa các dòng */
   margin-top: 5px;
 }
 
