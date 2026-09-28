@@ -38,7 +38,7 @@ body {
   display: block;
   width: 100%;
   /* Gọi ảnh trực tiếp thông qua thẻ ảo để dựng độ cao co giãn tự nhiên theo chiều rộng màn hình */
-  background: url("/images/banner-bg.png") no-repeat center center;
+  background: url("./images/banner-bg.png") no-repeat center center;
   background-size: 100% auto;
   padding-top: 4.6875%; /* Tỷ lệ ảnh banner-bg.png: 3840 x 180 */
 }
