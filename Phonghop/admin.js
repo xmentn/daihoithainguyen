@@ -8,16 +8,38 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
 } from "./firebase-config.js";
-
 document.addEventListener("DOMContentLoaded", () => {
   // ============================================================================
   // 1. XÁC THỰC & ĐĂNG XUẤT
   // ============================================================================
-  onAuthStateChanged(auth, (user) => {
+  onAuthStateChanged(auth, async (user) => {
     if (!user) {
       window.location.replace("index.html");
+      return;
+    }
+
+    try {
+      const adminSnap = await getDoc(doc(db, "admins", user.uid));
+
+      const hasAdminAccess =
+        adminSnap.exists() &&
+        adminSnap.data().active === true;
+
+      if (!hasAdminAccess) {
+        await signOut(auth);
+        window.location.replace("index.html");
+      }
+    } catch (error) {
+      console.error("Lỗi kiểm tra quyền quản trị:", error);
+
+      try {
+        await signOut(auth);
+      } finally {
+        window.location.replace("index.html");
+      }
     }
   });
 
@@ -443,7 +465,7 @@ document.addEventListener("DOMContentLoaded", () => {
       (room) =>
         room.id !== roomId &&
         String(room.name || "").trim().toLocaleLowerCase("vi") ===
-          roomName.toLocaleLowerCase("vi"),
+        roomName.toLocaleLowerCase("vi"),
     );
 
     if (duplicate) {

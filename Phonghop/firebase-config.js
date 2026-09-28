@@ -7,6 +7,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import {
@@ -46,6 +47,7 @@ export {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   onSnapshot,
   signInWithEmailAndPassword,
   signOut,

@@ -28,9 +28,14 @@ body {
   position: relative;
   width: 100% !important;
   max-width: 100vw;
-  overflow: hidden;
+
+  /* Cho phép menu tài khoản xổ xuống ngoài chiều cao banner */
+  overflow: visible;
+
+  /* Bảo đảm dropdown nằm trên phần nội dung phía dưới */
+  z-index: 100;
+
   display: block;
-  /* Chuyển về block để độ cao phụ thuộc hoàn toàn vào ảnh img bên trong */
   border-bottom: 3px solid #f1c40f;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -80,12 +85,17 @@ body {
     0 0 5px rgba(0, 0, 0, 0.25);
 }
 
-.main-header .header-admin-btn {
+.main-header .header-right {
   position: absolute !important;
   top: 50% !important;
   right: 30px !important;
   transform: translateY(-50%) !important;
-  z-index: 10;
+  z-index: 20;
+}
+
+.admin-account {
+  position: relative;
+  display: inline-block;
 }
 
 .header-party-flag {
@@ -143,6 +153,80 @@ body {
 .header-admin-btn:hover {
   background: #1e457e;
   border-color: #f1c40f;
+}
+
+/* ==========================================================================
+   TÀI KHOẢN QUẢN TRỊ TRÊN BANNER
+   ========================================================================== */
+
+.admin-dropdown {
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  min-width: 190px;
+
+  background: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 6px;
+
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+
+  padding: 5px;
+  display: none;
+  z-index: 1000;
+}
+
+/* Chỉ mở menu khi tài khoản đã đăng nhập */
+.admin-account.is-logged-in:hover .admin-dropdown,
+.admin-account.is-logged-in:focus-within .admin-dropdown {
+  display: block;
+}
+
+/* Tạo vùng nối để rê chuột từ nút xuống menu không bị đóng */
+.admin-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
+.admin-dropdown button {
+  display: block;
+  width: 100%;
+
+  border: 0;
+  background: transparent;
+
+  padding: 9px 11px;
+  border-radius: 4px;
+
+  text-align: left;
+  white-space: nowrap;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333333;
+
+  cursor: pointer;
+}
+
+.admin-dropdown button:hover {
+  background: #f3f5f8;
+}
+
+.admin-dropdown .logout-item {
+  color: #a52820;
+  border-top: 1px solid #eeeeee;
+  border-radius: 0 0 4px 4px;
+  margin-top: 3px;
+  padding-top: 10px;
+}
+
+.admin-dropdown .logout-item:hover {
+  background: #fff2f1;
 }
 
 /* ==========================================================================
