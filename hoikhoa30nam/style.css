@@ -2834,3 +2834,121 @@ table td:first-child {
         min-height: 88px;
     }
 }
+
+
+/* =========================================
+   THAM GIA HỘI KHÓA - 2 DANH SÁCH + PDF
+========================================= */
+
+.attendance-split-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    align-items: start;
+}
+
+.attendance-list-card {
+    min-width: 0;
+}
+
+.attendance-list-heading {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #eee7dd;
+}
+
+.attendance-list-heading h4 {
+    margin: 2px 0 4px;
+    color: var(--blue-dark);
+    font-size: 19px;
+}
+
+.attendance-list-heading p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.attendance-list-heading p strong {
+    color: var(--primary-red);
+    font-size: 16px;
+}
+
+.attendance-list-kicker {
+    color: #23723a;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.8px;
+}
+
+.attendance-list-kicker.pending {
+    color: #956f39;
+}
+
+.pdf-export-button {
+    flex: 0 0 auto;
+    min-width: 94px;
+    padding: 9px 14px;
+    border: 1px solid var(--primary-red);
+    border-radius: 9px;
+    background: var(--primary-red);
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 800;
+    transition:
+        transform 0.15s ease,
+        opacity 0.15s ease;
+}
+
+.pdf-export-button.secondary {
+    border-color: #c9ad7e;
+    background: #fff8eb;
+    color: #795621;
+}
+
+.pdf-export-button:hover {
+    transform: translateY(-1px);
+    opacity: 0.92;
+}
+
+.pdf-export-button:focus-visible {
+    outline: 2px solid #0b3e68;
+    outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+    .attendance-split-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 520px) {
+    .attendance-list-heading {
+        flex-direction: column;
+    }
+
+    .pdf-export-button {
+        width: 100%;
+    }
+}
+
+
+/* =========================================
+   PDF BUTTONS FOR ALL CLASS LISTS
+========================================= */
+
+.public-class-tab-panels .attendance-list-heading {
+    margin: 0;
+}
+
+.public-class-tab-panels .table-card > .attendance-list-heading {
+    border-bottom: 1px solid #eee7dd;
+}
+
+.public-class-tab-panels .pdf-export-button {
+    white-space: nowrap;
+}

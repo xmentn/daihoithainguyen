@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260928-1005";
+} from "./firebase/auth.js?v=20260928-1045";
 
 import {
   addMember,
@@ -25,7 +25,7 @@ import {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20260928-1005";
+} from "./firebase/firestore.js?v=20260928-1045";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -306,6 +306,22 @@ const publicClassMemberBody =
   document.getElementById("publicClassMemberBody");
 const publicClassAttendingBody =
   document.getElementById("publicClassAttendingBody");
+const publicClassPendingBody =
+  document.getElementById("publicClassPendingBody");
+const publicClassConfirmedCount =
+  document.getElementById("publicClassConfirmedCount");
+const publicClassPendingCount =
+  document.getElementById("publicClassPendingCount");
+const exportConfirmedPdfButton =
+  document.getElementById("exportConfirmedPdfButton");
+const exportPendingPdfButton =
+  document.getElementById("exportPendingPdfButton");
+const exportMembersPdfButton =
+  document.getElementById("exportMembersPdfButton");
+const exportTeachersPdfButton =
+  document.getElementById("exportTeachersPdfButton");
+const exportSponsorsPdfButton =
+  document.getElementById("exportSponsorsPdfButton");
 const publicClassTabButtons =
   document.querySelectorAll("[data-public-class-tab]");
 const publicClassTabPanels =
@@ -391,6 +407,7 @@ let unsubscribePublicTeachers = null;
 let publicClassMembers = [];
 let publicClassSponsors = [];
 let publicClassTeachers = [];
+let currentPublicClassId = "";
 let dashboardMembersData = [];
 let unsubscribeDashboard = null;
 let publicSponsorsData = [];
@@ -1896,10 +1913,25 @@ function renderPublicClassDetail() {
       (item) => item.attending === true,
     );
 
+  const pendingMembers =
+    publicClassMembers.filter(
+      (item) => item.attending !== true,
+    );
+
+  if (publicClassConfirmedCount) {
+    publicClassConfirmedCount.textContent =
+      attendingMembers.length;
+  }
+
+  if (publicClassPendingCount) {
+    publicClassPendingCount.textContent =
+      pendingMembers.length;
+  }
+
   if (attendingMembers.length === 0) {
     publicClassAttendingBody.innerHTML = `
       <tr>
-        <td colspan="3" class="empty-row">
+        <td colspan="2" class="empty-row">
           Chưa có thành viên xác nhận tham gia
         </td>
       </tr>
@@ -1916,10 +1948,31 @@ function renderPublicClassDetail() {
                   ${escapeHtml(item.fullName || "")}
                 </strong>
               </td>
+            </tr>
+          `,
+        )
+        .join("");
+  }
+
+  if (pendingMembers.length === 0) {
+    publicClassPendingBody.innerHTML = `
+      <tr>
+        <td colspan="2" class="empty-row">
+          Tất cả thành viên đã xác nhận
+        </td>
+      </tr>
+    `;
+  } else {
+    publicClassPendingBody.innerHTML =
+      pendingMembers
+        .map(
+          (item, index) => `
+            <tr>
+              <td>${index + 1}</td>
               <td>
-                <span class="attending-status yes">
-                  Đã xác nhận
-                </span>
+                <strong>
+                  ${escapeHtml(item.fullName || "")}
+                </strong>
               </td>
             </tr>
           `,
@@ -2015,8 +2068,527 @@ function renderPublicClassDetail() {
   }
 }
 
+
+function getPdfDateText() {
+  const now = new Date();
+
+  return new Intl.DateTimeFormat(
+    "vi-VN",
+    {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    },
+  ).format(now);
+}
+
+function buildAttendancePdf({
+  title,
+  members,
+  filename,
+}) {
+  if (!window.pdfMake) {
+    showAlertDialog({
+      title: "Chưa tải được công cụ PDF",
+      message:
+        "Không thể tạo PDF lúc này. Vui lòng kiểm tra kết nối Internet rồi thử lại.",
+      type: "danger",
+    });
+    return;
+  }
+
+  if (!members.length) {
+    showAlertDialog({
+      title: "Danh sách trống",
+      message:
+        "Hiện chưa có dữ liệu để xuất PDF.",
+      type: "info",
+    });
+    return;
+  }
+
+  const classText =
+    currentPublicClassId
+      ? `LỚP ${currentPublicClassId}`
+      : "";
+
+  const tableBody = [
+    [
+      {
+        text: "STT",
+        bold: true,
+        alignment: "center",
+      },
+      {
+        text: "HỌ VÀ TÊN",
+        bold: true,
+        alignment: "center",
+      },
+    ],
+    ...members.map(
+      (item, index) => [
+        {
+          text: String(index + 1),
+          alignment: "center",
+        },
+        {
+          text: item.fullName || "",
+        },
+      ],
+    ),
+  ];
+
+  const docDefinition = {
+    pageSize: "A4",
+    pageMargins: [42, 46, 42, 46],
+
+    defaultStyle: {
+      font: "Roboto",
+      fontSize: 11,
+    },
+
+    content: [
+      {
+        text: "TRƯỜNG THPT PHÚ BÌNH",
+        alignment: "center",
+        bold: true,
+        fontSize: 13,
+        color: "#0b3e68",
+        margin: [0, 0, 0, 4],
+      },
+      {
+        text: "HỘI KHÓA 30 NĂM - KHÓA 1993 - 1996",
+        alignment: "center",
+        bold: true,
+        fontSize: 12,
+        color: "#b21f24",
+        margin: [0, 0, 0, 14],
+      },
+      {
+        text: title,
+        alignment: "center",
+        bold: true,
+        fontSize: 16,
+        color: "#0b3e68",
+        margin: [0, 0, 0, 5],
+      },
+      {
+        text: classText,
+        alignment: "center",
+        bold: true,
+        fontSize: 13,
+        margin: [0, 0, 0, 6],
+      },
+      {
+        text: `Tổng số: ${members.length} người`,
+        alignment: "center",
+        italics: true,
+        color: "#666666",
+        margin: [0, 0, 0, 16],
+      },
+      {
+        table: {
+          headerRows: 1,
+          widths: [48, "*"],
+          body: tableBody,
+        },
+        layout: {
+          fillColor: (rowIndex) =>
+            rowIndex === 0
+              ? "#f5f0e8"
+              : null,
+          hLineColor: "#d9d2c8",
+          vLineColor: "#d9d2c8",
+          hLineWidth: () => 0.7,
+          vLineWidth: () => 0.7,
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 7,
+          paddingBottom: () => 7,
+        },
+      },
+      {
+        text:
+          `Ngày xuất: ${getPdfDateText()}`,
+        alignment: "right",
+        fontSize: 9,
+        color: "#777777",
+        margin: [0, 14, 0, 0],
+      },
+    ],
+
+    footer: (currentPage, pageCount) => ({
+      text:
+        `Trang ${currentPage}/${pageCount}`,
+      alignment: "center",
+      fontSize: 9,
+      color: "#888888",
+      margin: [0, 14, 0, 0],
+    }),
+  };
+
+  window.pdfMake
+    .createPdf(docDefinition)
+    .download(filename);
+}
+
+
+function buildGenericClassPdf({
+  title,
+  subtitle = "",
+  headers,
+  rows,
+  widths,
+  filename,
+}) {
+  if (!window.pdfMake) {
+    showAlertDialog({
+      title: "Chưa tải được công cụ PDF",
+      message:
+        "Không thể tạo PDF lúc này. Vui lòng kiểm tra kết nối Internet rồi thử lại.",
+      type: "danger",
+    });
+    return;
+  }
+
+  if (!rows.length) {
+    showAlertDialog({
+      title: "Danh sách trống",
+      message:
+        "Hiện chưa có dữ liệu để xuất PDF.",
+      type: "info",
+    });
+    return;
+  }
+
+  const classText =
+    currentPublicClassId
+      ? `LỚP ${currentPublicClassId}`
+      : "";
+
+  const body = [
+    headers.map((header) => ({
+      text: header,
+      bold: true,
+      alignment: "center",
+    })),
+    ...rows,
+  ];
+
+  const docDefinition = {
+    pageSize: "A4",
+    pageOrientation:
+      headers.length >= 4
+        ? "landscape"
+        : "portrait",
+    pageMargins: [36, 42, 36, 42],
+
+    defaultStyle: {
+      font: "Roboto",
+      fontSize: 10.5,
+    },
+
+    content: [
+      {
+        text: "TRƯỜNG THPT PHÚ BÌNH",
+        alignment: "center",
+        bold: true,
+        fontSize: 13,
+        color: "#0b3e68",
+        margin: [0, 0, 0, 4],
+      },
+      {
+        text: "HỘI KHÓA 30 NĂM - KHÓA 1993 - 1996",
+        alignment: "center",
+        bold: true,
+        fontSize: 12,
+        color: "#b21f24",
+        margin: [0, 0, 0, 14],
+      },
+      {
+        text: title,
+        alignment: "center",
+        bold: true,
+        fontSize: 16,
+        color: "#0b3e68",
+        margin: [0, 0, 0, 5],
+      },
+      {
+        text: classText,
+        alignment: "center",
+        bold: true,
+        fontSize: 13,
+        margin: [0, 0, 0, subtitle ? 4 : 10],
+      },
+      ...(subtitle
+        ? [
+            {
+              text: subtitle,
+              alignment: "center",
+              italics: true,
+              color: "#666666",
+              margin: [0, 0, 0, 12],
+            },
+          ]
+        : []),
+      {
+        text: `Tổng số: ${rows.length}`,
+        alignment: "center",
+        italics: true,
+        color: "#666666",
+        margin: [0, 0, 0, 14],
+      },
+      {
+        table: {
+          headerRows: 1,
+          widths,
+          body,
+        },
+        layout: {
+          fillColor: (rowIndex) =>
+            rowIndex === 0
+              ? "#f5f0e8"
+              : null,
+          hLineColor: "#d9d2c8",
+          vLineColor: "#d9d2c8",
+          hLineWidth: () => 0.7,
+          vLineWidth: () => 0.7,
+          paddingLeft: () => 7,
+          paddingRight: () => 7,
+          paddingTop: () => 6,
+          paddingBottom: () => 6,
+        },
+      },
+      {
+        text:
+          `Ngày xuất: ${getPdfDateText()}`,
+        alignment: "right",
+        fontSize: 9,
+        color: "#777777",
+        margin: [0, 14, 0, 0],
+      },
+    ],
+
+    footer: (currentPage, pageCount) => ({
+      text:
+        `Trang ${currentPage}/${pageCount}`,
+      alignment: "center",
+      fontSize: 9,
+      color: "#888888",
+      margin: [0, 14, 0, 0],
+    }),
+  };
+
+  window.pdfMake
+    .createPdf(docDefinition)
+    .download(filename);
+}
+
+function exportMembersPdf() {
+  const rows = publicClassMembers.map(
+    (item, index) => [
+      {
+        text: String(index + 1),
+        alignment: "center",
+      },
+      item.fullName || "",
+    ],
+  );
+
+  buildGenericClassPdf({
+    title: "DANH SÁCH THÀNH VIÊN LỚP",
+    headers: [
+      "STT",
+      "HỌ VÀ TÊN",
+    ],
+    rows,
+    widths: [48, "*"],
+    filename:
+      `Danh_sach_thanh_vien_${currentPublicClassId || "lop"}.pdf`,
+  });
+}
+
+function exportTeachersPdf() {
+  const rows = publicClassTeachers.map(
+    (item, index) => [
+      {
+        text: String(index + 1),
+        alignment: "center",
+      },
+      item.teacherName || "",
+      item.subject || "",
+      item.yearLevel
+        ? `Lớp ${item.yearLevel}`
+        : "",
+    ],
+  );
+
+  buildGenericClassPdf({
+    title: "DANH SÁCH THẦY, CÔ",
+    headers: [
+      "STT",
+      "TÊN THẦY, CÔ",
+      "BỘ MÔN",
+      "NĂM PHỤ TRÁCH",
+    ],
+    rows,
+    widths: [42, "*", "*", 90],
+    filename:
+      `Danh_sach_thay_co_${currentPublicClassId || "lop"}.pdf`,
+  });
+}
+
+function exportSponsorsPdf() {
+  const sortedSponsors =
+    [...publicClassSponsors]
+      .sort((a, b) => {
+        const aAmount =
+          a.type === "money"
+            ? Number(a.amount) || 0
+            : 0;
+
+        const bAmount =
+          b.type === "money"
+            ? Number(b.amount) || 0
+            : 0;
+
+        if (bAmount !== aAmount) {
+          return bAmount - aAmount;
+        }
+
+        return (a.sponsorName || "").localeCompare(
+          b.sponsorName || "",
+          "vi",
+          { sensitivity: "base" },
+        );
+      });
+
+  const rows = sortedSponsors.map(
+    (item, index) => {
+      const isMoney =
+        item.type === "money";
+
+      const value =
+        isMoney
+          ? formatCurrency(item.amount)
+          : (
+              item.content ||
+              item.note ||
+              "Hiện vật/dịch vụ"
+            );
+
+      return [
+        {
+          text: String(index + 1),
+          alignment: "center",
+        },
+        item.sponsorName || "",
+        isMoney
+          ? "Tiền"
+          : "Hiện vật/dịch vụ",
+        value,
+      ];
+    },
+  );
+
+  const totalMoney =
+    sortedSponsors.reduce(
+      (sum, item) =>
+        sum +
+        (
+          item.type === "money"
+            ? Number(item.amount) || 0
+            : 0
+        ),
+      0,
+    );
+
+  buildGenericClassPdf({
+    title: "DANH SÁCH NGƯỜI TÀI TRỢ",
+    subtitle:
+      `Tổng tài trợ bằng tiền: ${formatCurrency(totalMoney)}`,
+    headers: [
+      "STT",
+      "NGƯỜI/ĐƠN VỊ TÀI TRỢ",
+      "HÌNH THỨC",
+      "GIÁ TRỊ/NỘI DUNG",
+    ],
+    rows,
+    widths: [42, "*", 95, "*"],
+    filename:
+      `Danh_sach_tai_tro_${currentPublicClassId || "lop"}.pdf`,
+  });
+}
+
+if (exportMembersPdfButton) {
+  exportMembersPdfButton.addEventListener(
+    "click",
+    exportMembersPdf,
+  );
+}
+
+if (exportTeachersPdfButton) {
+  exportTeachersPdfButton.addEventListener(
+    "click",
+    exportTeachersPdf,
+  );
+}
+
+if (exportSponsorsPdfButton) {
+  exportSponsorsPdfButton.addEventListener(
+    "click",
+    exportSponsorsPdf,
+  );
+}
+
+function exportConfirmedAttendancePdf() {
+  const members =
+    publicClassMembers.filter(
+      (item) => item.attending === true,
+    );
+
+  buildAttendancePdf({
+    title:
+      "DANH SÁCH XÁC NHẬN THAM GIA HỘI KHÓA",
+    members,
+    filename:
+      `Danh_sach_xac_nhan_tham_gia_${currentPublicClassId || "lop"}.pdf`,
+  });
+}
+
+function exportPendingAttendancePdf() {
+  const members =
+    publicClassMembers.filter(
+      (item) => item.attending !== true,
+    );
+
+  buildAttendancePdf({
+    title:
+      "DANH SÁCH CHƯA XÁC NHẬN THAM GIA HỘI KHÓA",
+    members,
+    filename:
+      `Danh_sach_chua_xac_nhan_${currentPublicClassId || "lop"}.pdf`,
+  });
+}
+
+if (exportConfirmedPdfButton) {
+  exportConfirmedPdfButton.addEventListener(
+    "click",
+    exportConfirmedAttendancePdf,
+  );
+}
+
+if (exportPendingPdfButton) {
+  exportPendingPdfButton.addEventListener(
+    "click",
+    exportPendingAttendancePdf,
+  );
+}
+
 function openPublicClass(classId) {
   stopPublicClassSubscriptions();
+
+  currentPublicClassId = classId;
 
   publicClassTitle.textContent =
     `Lớp ${classId}`;
@@ -2042,8 +2614,16 @@ function openPublicClass(classId) {
 
         publicClassAttendingBody.innerHTML = `
           <tr>
-            <td colspan="3" class="empty-row">
+            <td colspan="2" class="empty-row">
               Không đọc được dữ liệu tham gia
+            </td>
+          </tr>
+        `;
+
+        publicClassPendingBody.innerHTML = `
+          <tr>
+            <td colspan="2" class="empty-row">
+              Không đọc được dữ liệu chưa xác nhận
             </td>
           </tr>
         `;

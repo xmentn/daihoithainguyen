@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20260928-1005" />
+    <link rel="stylesheet" href="style.css?v=20260928-1045" />
   </head>
 
   <body>
@@ -519,7 +519,20 @@
                 data-public-class-panel="members"
               >
                 <div class="table-card">
-                  <h4>Danh sách thành viên</h4>
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker">DỮ LIỆU LỚP</span>
+                      <h4>Danh sách thành viên</h4>
+                    </div>
+
+                    <button
+                      class="pdf-export-button"
+                      id="exportMembersPdfButton"
+                      type="button"
+                    >
+                      Xuất PDF
+                    </button>
+                  </div>
 
                   <div class="table-responsive">
                     <table>
@@ -547,28 +560,90 @@
                 id="publicClassAttendingPanel"
                 data-public-class-panel="attending"
               >
-                <div class="table-card">
-                  <h4>Danh sách tham gia Hội khóa</h4>
+                <div class="attendance-split-grid">
 
-                  <div class="table-responsive">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>STT</th>
-                          <th>Họ và tên</th>
-                          <th>Trạng thái</th>
-                        </tr>
-                      </thead>
+                  <div class="table-card attendance-list-card">
+                    <div class="attendance-list-heading">
+                      <div>
+                        <span class="attendance-list-kicker">ĐÃ PHẢN HỒI</span>
+                        <h4>Xác nhận tham gia</h4>
+                        <p>
+                          <strong id="publicClassConfirmedCount">0</strong>
+                          thành viên
+                        </p>
+                      </div>
 
-                      <tbody id="publicClassAttendingBody">
-                        <tr>
-                          <td colspan="3" class="empty-row">
-                            Chưa có dữ liệu
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                      <button
+                        class="pdf-export-button"
+                        id="exportConfirmedPdfButton"
+                        type="button"
+                      >
+                        Xuất PDF
+                      </button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>STT</th>
+                            <th>Họ và tên</th>
+                          </tr>
+                        </thead>
+
+                        <tbody id="publicClassAttendingBody">
+                          <tr>
+                            <td colspan="2" class="empty-row">
+                              Chưa có dữ liệu
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
+
+                  <div class="table-card attendance-list-card">
+                    <div class="attendance-list-heading">
+                      <div>
+                        <span class="attendance-list-kicker pending">
+                          CHƯA PHẢN HỒI
+                        </span>
+                        <h4>Chưa xác nhận</h4>
+                        <p>
+                          <strong id="publicClassPendingCount">0</strong>
+                          thành viên
+                        </p>
+                      </div>
+
+                      <button
+                        class="pdf-export-button secondary"
+                        id="exportPendingPdfButton"
+                        type="button"
+                      >
+                        Xuất PDF
+                      </button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>STT</th>
+                            <th>Họ và tên</th>
+                          </tr>
+                        </thead>
+
+                        <tbody id="publicClassPendingBody">
+                          <tr>
+                            <td colspan="2" class="empty-row">
+                              Chưa có dữ liệu
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
@@ -578,7 +653,20 @@
                 data-public-class-panel="teachers"
               >
                 <div class="table-card">
-                  <h4>Danh sách thầy, cô</h4>
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker">GIÁO VIÊN</span>
+                      <h4>Danh sách thầy, cô</h4>
+                    </div>
+
+                    <button
+                      class="pdf-export-button"
+                      id="exportTeachersPdfButton"
+                      type="button"
+                    >
+                      Xuất PDF
+                    </button>
+                  </div>
 
                   <div class="table-responsive">
                     <table>
@@ -609,7 +697,20 @@
                 data-public-class-panel="sponsors"
               >
                 <div class="table-card">
-                  <h4>Danh sách người tài trợ</h4>
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker">ĐỒNG HÀNH HỘI KHÓA</span>
+                      <h4>Danh sách người tài trợ</h4>
+                    </div>
+
+                    <button
+                      class="pdf-export-button"
+                      id="exportSponsorsPdfButton"
+                      type="button"
+                    >
+                      Xuất PDF
+                    </button>
+                  </div>
 
                   <div class="table-responsive">
                     <table>
@@ -1448,7 +1549,9 @@
       <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
     </footer>
 
-    <script type="module" src="main.js?v=20260928-1005"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
+    <script type="module" src="main.js?v=20260928-1045"></script>
   
     <!-- =========================
          HỘP THOẠI TÙY CHỈNH
