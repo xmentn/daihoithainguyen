@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20260927-2245" />
+    <link rel="stylesheet" href="style.css?v=20260928-1005" />
   </head>
 
   <body>
@@ -473,85 +473,167 @@
               </button>
             </div>
 
-            <div class="public-class-stats">
-              <div class="stat-card compact-stat">
-                <div class="stat-number" id="publicClassMemberCount">0</div>
-                <div class="stat-label">Thành viên</div>
-              </div>
+            <div class="public-class-tabs" role="tablist">
+              <button
+                class="public-class-tab active"
+                type="button"
+                data-public-class-tab="members"
+              >
+                <span class="public-class-tab-number" id="publicClassMemberCount">0</span>
+                <span class="public-class-tab-label">Thành viên</span>
+              </button>
 
-              <div class="stat-card compact-stat">
-                <div class="stat-number" id="publicClassAttendingCount">0</div>
-                <div class="stat-label">Tham gia Hội khóa</div>
-              </div>
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="attending"
+              >
+                <span class="public-class-tab-number" id="publicClassAttendingCount">0</span>
+                <span class="public-class-tab-label">Tham gia Hội khóa</span>
+              </button>
 
-              <div class="stat-card compact-stat">
-                <div class="stat-number stat-money" id="publicClassSponsorTotal">0 đ</div>
-                <div class="stat-label">Tài trợ bằng tiền</div>
-              </div>
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="teachers"
+              >
+                <span class="public-class-tab-number" id="publicClassTeacherCount">0</span>
+                <span class="public-class-tab-label">Thầy, cô</span>
+              </button>
+
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="sponsors"
+              >
+                <span class="public-class-tab-number stat-money" id="publicClassSponsorTotal">0 đ</span>
+                <span class="public-class-tab-label">Tài trợ</span>
+              </button>
             </div>
 
-            <div class="public-class-grid">
-              <div class="table-card">
-                <h4>Danh sách thành viên</h4>
-                <div class="table-responsive">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Họ và tên</th>
-                        <th>Tham gia</th>
-                      </tr>
-                    </thead>
-                    <tbody id="publicClassMemberBody">
-                      <tr>
-                        <td colspan="3" class="empty-row">Chưa có dữ liệu</td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <div class="public-class-tab-panels">
+
+              <div
+                class="public-class-tab-panel active"
+                id="publicClassMembersPanel"
+                data-public-class-panel="members"
+              >
+                <div class="table-card">
+                  <h4>Danh sách thành viên</h4>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ và tên</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassMemberBody">
+                        <tr>
+                          <td colspan="2" class="empty-row">
+                            Chưa có dữ liệu
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
-              <div class="table-card public-teacher-card">
-                <h4>Thầy, cô</h4>
-                <div class="table-responsive">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Tên thầy, cô</th>
-                        <th>Bộ môn</th>
-                        <th>Năm phụ trách</th>
-                      </tr>
-                    </thead>
-                    <tbody id="publicClassTeacherBody">
-                      <tr>
-                        <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div
+                class="public-class-tab-panel"
+                id="publicClassAttendingPanel"
+                data-public-class-panel="attending"
+              >
+                <div class="table-card">
+                  <h4>Danh sách tham gia Hội khóa</h4>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ và tên</th>
+                          <th>Trạng thái</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassAttendingBody">
+                        <tr>
+                          <td colspan="3" class="empty-row">
+                            Chưa có dữ liệu
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
 
-              <div class="table-card">
-                <h4>Danh sách tài trợ</h4>
-                <div class="table-responsive">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>STT</th>
-                        <th>Người/đơn vị</th>
-                        <th>Hình thức</th>
-                        <th>Giá trị/Nội dung</th>
-                      </tr>
-                    </thead>
-                    <tbody id="publicClassSponsorBody">
-                      <tr>
-                        <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
-                      </tr>
-                    </tbody>
-                  </table>
+              <div
+                class="public-class-tab-panel"
+                id="publicClassTeachersPanel"
+                data-public-class-panel="teachers"
+              >
+                <div class="table-card">
+                  <h4>Danh sách thầy, cô</h4>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Tên thầy, cô</th>
+                          <th>Bộ môn</th>
+                          <th>Năm phụ trách</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassTeacherBody">
+                        <tr>
+                          <td colspan="4" class="empty-row">
+                            Chưa có dữ liệu
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
+
+              <div
+                class="public-class-tab-panel"
+                id="publicClassSponsorsPanel"
+                data-public-class-panel="sponsors"
+              >
+                <div class="table-card">
+                  <h4>Danh sách người tài trợ</h4>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Người/đơn vị</th>
+                          <th>Hình thức</th>
+                          <th>Giá trị/Nội dung</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassSponsorBody">
+                        <tr>
+                          <td colspan="4" class="empty-row">
+                            Chưa có dữ liệu
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             <div class="privacy-note">
@@ -1366,7 +1448,7 @@
       <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
     </footer>
 
-    <script type="module" src="main.js?v=20260927-2245"></script>
+    <script type="module" src="main.js?v=20260928-1005"></script>
   
     <!-- =========================
          HỘP THOẠI TÙY CHỈNH

@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260927-2245";
+} from "./firebase/auth.js?v=20260928-1005";
 
 import {
   addMember,
@@ -25,7 +25,7 @@ import {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20260927-2245";
+} from "./firebase/firestore.js?v=20260928-1005";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -298,10 +298,18 @@ const publicClassMemberCount =
   document.getElementById("publicClassMemberCount");
 const publicClassAttendingCount =
   document.getElementById("publicClassAttendingCount");
+const publicClassTeacherCount =
+  document.getElementById("publicClassTeacherCount");
 const publicClassSponsorTotal =
   document.getElementById("publicClassSponsorTotal");
 const publicClassMemberBody =
   document.getElementById("publicClassMemberBody");
+const publicClassAttendingBody =
+  document.getElementById("publicClassAttendingBody");
+const publicClassTabButtons =
+  document.querySelectorAll("[data-public-class-tab]");
+const publicClassTabPanels =
+  document.querySelectorAll("[data-public-class-panel]");
 const publicClassSponsorBody =
   document.getElementById("publicClassSponsorBody");
 const publicClassTeacherBody =
@@ -1804,6 +1812,31 @@ function stopPublicClassSubscriptions() {
   publicClassTeachers = [];
 }
 
+
+function openPublicClassSubTab(tabName) {
+  publicClassTabButtons.forEach((button) => {
+    button.classList.toggle(
+      "active",
+      button.dataset.publicClassTab === tabName,
+    );
+  });
+
+  publicClassTabPanels.forEach((panel) => {
+    panel.classList.toggle(
+      "active",
+      panel.dataset.publicClassPanel === tabName,
+    );
+  });
+}
+
+publicClassTabButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    openPublicClassSubTab(
+      button.dataset.publicClassTab,
+    );
+  });
+});
+
 function renderPublicClassDetail() {
   publicClassMemberCount.textContent =
     publicClassMembers.length;
@@ -1812,6 +1845,11 @@ function renderPublicClassDetail() {
     publicClassMembers.filter(
       (item) => item.attending === true,
     ).length;
+
+  if (publicClassTeacherCount) {
+    publicClassTeacherCount.textContent =
+      publicClassTeachers.length;
+  }
 
   const sponsorTotal = publicClassSponsors.reduce(
     (sum, item) =>
@@ -1830,7 +1868,7 @@ function renderPublicClassDetail() {
   if (publicClassMembers.length === 0) {
     publicClassMemberBody.innerHTML = `
       <tr>
-        <td colspan="3" class="empty-row">
+        <td colspan="2" class="empty-row">
           Chưa có dữ liệu công khai
         </td>
       </tr>
@@ -1847,12 +1885,41 @@ function renderPublicClassDetail() {
                   ${escapeHtml(item.fullName || "")}
                 </strong>
               </td>
+            </tr>
+          `,
+        )
+        .join("");
+  }
+
+  const attendingMembers =
+    publicClassMembers.filter(
+      (item) => item.attending === true,
+    );
+
+  if (attendingMembers.length === 0) {
+    publicClassAttendingBody.innerHTML = `
+      <tr>
+        <td colspan="3" class="empty-row">
+          Chưa có thành viên xác nhận tham gia
+        </td>
+      </tr>
+    `;
+  } else {
+    publicClassAttendingBody.innerHTML =
+      attendingMembers
+        .map(
+          (item, index) => `
+            <tr>
+              <td>${index + 1}</td>
               <td>
-                ${
-                  item.attending === true
-                    ? '<span class="attending-status yes">Tham gia</span>'
-                    : '<span class="attending-status no">Chưa xác nhận</span>'
-                }
+                <strong>
+                  ${escapeHtml(item.fullName || "")}
+                </strong>
+              </td>
+              <td>
+                <span class="attending-status yes">
+                  Đã xác nhận
+                </span>
               </td>
             </tr>
           `,
@@ -1892,7 +1959,28 @@ function renderPublicClassDetail() {
     `;
   } else {
     publicClassSponsorBody.innerHTML =
-      publicClassSponsors
+      [...publicClassSponsors]
+        .sort((a, b) => {
+          const aAmount =
+            a.type === "money"
+              ? Number(a.amount) || 0
+              : 0;
+
+          const bAmount =
+            b.type === "money"
+              ? Number(b.amount) || 0
+              : 0;
+
+          if (bAmount !== aAmount) {
+            return bAmount - aAmount;
+          }
+
+          return (a.sponsorName || "").localeCompare(
+            b.sponsorName || "",
+            "vi",
+            { sensitivity: "base" },
+          );
+        })
         .map(
           (item, index) => {
             const isMoney = item.type === "money";
@@ -1934,6 +2022,7 @@ function openPublicClass(classId) {
     `Lớp ${classId}`;
 
   publicClassDetail.classList.remove("hidden");
+  openPublicClassSubTab("members");
 
   unsubscribePublicMembers =
     subscribePublicMembersByClass(
@@ -1945,8 +2034,16 @@ function openPublicClass(classId) {
       () => {
         publicClassMemberBody.innerHTML = `
           <tr>
-            <td colspan="3" class="empty-row">
+            <td colspan="2" class="empty-row">
               Không đọc được dữ liệu công khai
+            </td>
+          </tr>
+        `;
+
+        publicClassAttendingBody.innerHTML = `
+          <tr>
+            <td colspan="3" class="empty-row">
+              Không đọc được dữ liệu tham gia
             </td>
           </tr>
         `;
