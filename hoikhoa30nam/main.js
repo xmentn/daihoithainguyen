@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20260928-1045";
+} from "./firebase/auth.js?v=20260929-0745";
 
 import {
   addMember,
@@ -25,7 +25,7 @@ import {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20260928-1045";
+} from "./firebase/firestore.js?v=20260929-0745";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -276,8 +276,10 @@ const teacherNameInput =
   document.getElementById("teacherName");
 const teacherSubjectInput =
   document.getElementById("teacherSubject");
-const teacherYearLevelSelect =
-  document.getElementById("teacherYearLevel");
+const teacherYearLevelCheckboxes =
+  document.querySelectorAll(
+    'input[name="teacherYearLevel"]',
+  );
 const saveTeacherButton =
   document.getElementById("saveTeacherButton");
 const cancelTeacherEditButton =
@@ -330,6 +332,8 @@ const publicClassSponsorBody =
   document.getElementById("publicClassSponsorBody");
 const publicClassTeacherBody =
   document.getElementById("publicClassTeacherBody");
+const publicTeacherYearFilter =
+  document.getElementById("publicTeacherYearFilter");
 const closePublicClassButton =
   document.getElementById("closePublicClassButton");
 const publicClassButtons =
@@ -780,20 +784,95 @@ function setTeacherMessage(message = "", type = "") {
   }
 }
 
+function normalizeTeacherYearLevels(itemOrLevels) {
+  let rawLevels = [];
+
+  if (Array.isArray(itemOrLevels)) {
+    rawLevels = itemOrLevels;
+  } else if (
+    itemOrLevels &&
+    Array.isArray(itemOrLevels.yearLevels)
+  ) {
+    rawLevels = itemOrLevels.yearLevels;
+  } else if (
+    itemOrLevels &&
+    itemOrLevels.yearLevel !== undefined &&
+    itemOrLevels.yearLevel !== null &&
+    itemOrLevels.yearLevel !== ""
+  ) {
+    // Tương thích dữ liệu cũ chỉ có yearLevel.
+    rawLevels = [itemOrLevels.yearLevel];
+  } else if (
+    itemOrLevels !== undefined &&
+    itemOrLevels !== null &&
+    itemOrLevels !== ""
+  ) {
+    rawLevels = [itemOrLevels];
+  }
+
+  return [...new Set(
+    rawLevels
+      .map((value) => String(value))
+      .filter((value) =>
+        ["10", "11", "12"].includes(value),
+      ),
+  )].sort((a, b) => Number(a) - Number(b));
+}
+
+function getSelectedTeacherYearLevels() {
+  return [...teacherYearLevelCheckboxes]
+    .filter((checkbox) => checkbox.checked)
+    .map((checkbox) => checkbox.value)
+    .sort((a, b) => Number(a) - Number(b));
+}
+
+function setSelectedTeacherYearLevels(yearLevels) {
+  const normalized =
+    normalizeTeacherYearLevels(yearLevels);
+
+  teacherYearLevelCheckboxes.forEach(
+    (checkbox) => {
+      checkbox.checked =
+        normalized.includes(checkbox.value);
+    },
+  );
+}
+
+function formatTeacherYears(itemOrLevels) {
+  return normalizeTeacherYearLevels(itemOrLevels)
+    .map((year) => `Lớp ${year}`)
+    .join(", ");
+}
+
+function renderTeacherYearBadges(itemOrLevels) {
+  const yearLevels =
+    normalizeTeacherYearLevels(itemOrLevels);
+
+  return `
+    <div class="teacher-year-badges">
+      ${yearLevels
+        .map(
+          (year) => `
+            <span class="teacher-year-badge">
+              Lớp ${year}
+            </span>
+          `,
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function resetTeacherForm() {
   teacherIdInput.value = "";
   teacherNameInput.value = "";
   teacherSubjectInput.value = "";
-  teacherYearLevelSelect.value = "10";
+  setSelectedTeacherYearLevels([]);
 
   teacherFormTitle.textContent = "Thêm thầy, cô";
   saveTeacherButton.textContent = "Lưu thầy, cô";
   cancelTeacherEditButton.classList.add("hidden");
   setTeacherMessage("");
-}
-
-function formatTeacherYear(yearLevel) {
-  return `Lớp ${yearLevel || ""}`;
 }
 
 function renderTeachers() {
@@ -816,7 +895,8 @@ function renderTeachers() {
 
     const matchesYear =
       yearFilter === "all" ||
-      String(item.yearLevel) === yearFilter;
+      normalizeTeacherYearLevels(item)
+        .includes(yearFilter);
 
     return matchesKeyword && matchesYear;
   });
@@ -843,9 +923,7 @@ function renderTeachers() {
         <td><strong>${escapeHtml(item.teacherName || "")}</strong></td>
         <td>${escapeHtml(item.subject || "")}</td>
         <td>
-          <span class="teacher-year-badge">
-            ${formatTeacherYear(item.yearLevel)}
-          </span>
+          ${renderTeacherYearBadges(item)}
         </td>
         <td>
           <button
@@ -1981,25 +2059,46 @@ function renderPublicClassDetail() {
   }
 
 
-  if (publicClassTeachers.length === 0) {
+  const publicTeacherFilter =
+    publicTeacherYearFilter?.value || "all";
+
+  const visiblePublicTeachers =
+    publicClassTeachers.filter((item) =>
+      publicTeacherFilter === "all" ||
+      normalizeTeacherYearLevels(item)
+        .includes(publicTeacherFilter),
+    );
+
+  if (visiblePublicTeachers.length === 0) {
     publicClassTeacherBody.innerHTML = `
       <tr>
         <td colspan="4" class="empty-row">
-          Chưa có dữ liệu thầy, cô
+          ${
+            publicClassTeachers.length === 0
+              ? "Chưa có dữ liệu thầy, cô"
+              : "Không có thầy, cô phù hợp với năm phụ trách đã chọn"
+          }
         </td>
       </tr>
     `;
   } else {
-    publicClassTeacherBody.innerHTML = publicClassTeachers
-      .map((item, index) => `
-        <tr>
-          <td>${index + 1}</td>
-          <td><strong>${escapeHtml(item.teacherName || "")}</strong></td>
-          <td>${escapeHtml(item.subject || "")}</td>
-          <td>${formatTeacherYear(item.yearLevel)}</td>
-        </tr>
-      `)
-      .join("");
+    publicClassTeacherBody.innerHTML =
+      visiblePublicTeachers
+        .map((item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>
+              <strong>
+                ${escapeHtml(item.teacherName || "")}
+              </strong>
+            </td>
+            <td>${escapeHtml(item.subject || "")}</td>
+            <td>
+              ${renderTeacherYearBadges(item)}
+            </td>
+          </tr>
+        `)
+        .join("");
   }
 
   if (publicClassSponsors.length === 0) {
@@ -2409,7 +2508,17 @@ function exportMembersPdf() {
 }
 
 function exportTeachersPdf() {
-  const rows = publicClassTeachers.map(
+  const yearFilter =
+    publicTeacherYearFilter?.value || "all";
+
+  const visibleTeachers =
+    publicClassTeachers.filter((item) =>
+      yearFilter === "all" ||
+      normalizeTeacherYearLevels(item)
+        .includes(yearFilter),
+    );
+
+  const rows = visibleTeachers.map(
     (item, index) => [
       {
         text: String(index + 1),
@@ -2417,9 +2526,7 @@ function exportTeachersPdf() {
       },
       item.teacherName || "",
       item.subject || "",
-      item.yearLevel
-        ? `Lớp ${item.yearLevel}`
-        : "",
+      formatTeacherYears(item),
     ],
   );
 
@@ -2589,6 +2696,10 @@ function openPublicClass(classId) {
   stopPublicClassSubscriptions();
 
   currentPublicClassId = classId;
+
+  if (publicTeacherYearFilter) {
+    publicTeacherYearFilter.value = "all";
+  }
 
   publicClassTitle.textContent =
     `Lớp ${classId}`;
@@ -3138,6 +3249,13 @@ if (teacherYearFilter) {
   teacherYearFilter.addEventListener("change", renderTeachers);
 }
 
+if (publicTeacherYearFilter) {
+  publicTeacherYearFilter.addEventListener(
+    "change",
+    renderPublicClassDetail,
+  );
+}
+
 if (teacherForm) {
   teacherForm.addEventListener(
     "submit",
@@ -3165,7 +3283,8 @@ if (teacherForm) {
 
       const teacherName = teacherNameInput.value.trim();
       const subject = teacherSubjectInput.value.trim();
-      const yearLevel = teacherYearLevelSelect.value;
+      const yearLevels =
+        getSelectedTeacherYearLevels();
 
       if (!teacherName) {
         setTeacherMessage(
@@ -3173,6 +3292,16 @@ if (teacherForm) {
           "error",
         );
         teacherNameInput.focus();
+        return;
+      }
+
+      if (yearLevels.length === 0) {
+        setTeacherMessage(
+          "Vui lòng chọn ít nhất một năm phụ trách.",
+          "error",
+        );
+
+        teacherYearLevelCheckboxes[0]?.focus();
         return;
       }
 
@@ -3184,7 +3313,7 @@ if (teacherForm) {
         if (teacherId) {
           await updateTeacher(
             teacherId,
-            { teacherName, subject, yearLevel },
+            { teacherName, subject, yearLevels },
           );
 
           resetTeacherForm();
@@ -3196,7 +3325,7 @@ if (teacherForm) {
           await addTeacher({
             teacherName,
             subject,
-            yearLevel,
+            yearLevels,
             classId: profile.classId,
             createdBy: authUser.uid,
           });
@@ -3236,7 +3365,9 @@ if (teacherTableBody) {
         teacherIdInput.value = item.id;
         teacherNameInput.value = item.teacherName || "";
         teacherSubjectInput.value = item.subject || "";
-        teacherYearLevelSelect.value = String(item.yearLevel || "10");
+        setSelectedTeacherYearLevels(
+          normalizeTeacherYearLevels(item),
+        );
 
         teacherFormTitle.textContent = "Sửa thầy, cô";
         saveTeacherButton.textContent = "Cập nhật";
