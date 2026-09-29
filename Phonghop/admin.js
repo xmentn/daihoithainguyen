@@ -129,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "Thường trực": "Thường trực Tỉnh ủy",
     BTV: "Ủy viên BTV Tỉnh ủy",
     BCH: "Ủy viên BCH Đảng bộ tỉnh",
+    "Sở, ban, ngành": "Sở, ban, ngành",
   };
 
   // ============================================================================
@@ -304,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${index + 1}</td>
         <td style="color:#d46b08;font-weight:700;">${escapeHtml(del.rank ?? "-")}</td>
         <td style="color:#2f80c8;font-weight:650;">${escapeHtml(label)}</td>
-        <td style="font-weight:650;">Đ/c ${escapeHtml(del.name)}</td>
+        <td style="font-weight:650;">${del.category === "Sở, ban, ngành" ? escapeHtml(del.name) : `Đ/c ${escapeHtml(del.name)}`}</td>
         <td>
           <div class="action-buttons">
             <button class="btn-edit edit-del" data-id="${del.id}" type="button">Sửa</button>
@@ -831,7 +832,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td>${index + 1}</td>
         <td style="color:#d46b08;font-weight:700;">${escapeHtml(del.rank ?? "-")}</td>
         <td style="color:#2f80c8;font-weight:650;">${escapeHtml(label)}</td>
-        <td style="font-weight:650;">Đ/c ${escapeHtml(del.name)}</td>
+        <td style="font-weight:650;">${del.category === "Sở, ban, ngành" ? escapeHtml(del.name) : `Đ/c ${escapeHtml(del.name)}`}</td>
         <td><input type="text" class="seat-input" id="seat-${del.id}" value="${escapeHtml(currentSeat)}" placeholder="Không đi"></td>
         <td><button class="btn-update update-seat-btn" data-id="${del.id}" type="button">Cập nhật</button></td>
       `;

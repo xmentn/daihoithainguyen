@@ -438,7 +438,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const delInfo = globalDelegates[delId];
       if (delInfo) {
         const seatCode = seatsMap[delId].toUpperCase();
-        const item = { name: delInfo.name, seat: seatCode };
+        const item = {
+          name: delInfo.name,
+          seat: seatCode,
+          category: delInfo.category || "",
+        };
         if (seatCode.startsWith("V")) chairmanDelegates.push(item);
         else audienceDelegates.push(item);
       }
@@ -477,11 +481,18 @@ document.addEventListener("DOMContentLoaded", () => {
         shortName =
           shortName.charAt(0).toUpperCase() + shortName.slice(1).toLowerCase();
 
-        // ĐOẠN CODE MỚI: TÁCH BIỆT "Đ/C" VÀ "TÊN" THÀNH 2 HÀNG TRÊN GHẾ CHỦ TỌA
-        seat.innerHTML = `
+        const isAgency = del.category === "Sở, ban, ngành";
+
+        // Với nhóm Sở, ban, ngành: không dùng tiền tố "Đ/c" / "Đồng chí".
+        seat.innerHTML = isAgency
+          ? `<div class="name-row" style="font-weight: bold; font-size: 12px; line-height: 1.1;">${shortName}</div>`
+          : `
     <div class="title-row" style="font-size: 11px; opacity: 0.9; margin-bottom: 1px;">Đ/c</div>
     <div class="name-row" style="font-weight: bold; font-size: 12px; line-height: 1.1;">${shortName}</div>`;
-        seat.setAttribute("data-tooltip", `Đồng chí\n${del.name}`);
+        seat.setAttribute(
+          "data-tooltip",
+          isAgency ? del.name : `Đồng chí\n${del.name}`,
+        );
         slot.appendChild(seat);
         cChairs.appendChild(slot);
         const panel = document.createElement("div");
@@ -501,11 +512,15 @@ document.addEventListener("DOMContentLoaded", () => {
         let shortName = del.name.trim().split(" ").pop();
         shortName =
           shortName.charAt(0).toUpperCase() + shortName.slice(1).toLowerCase();
-        seatEl.innerHTML = `<span class="seat-code">${del.seat}</span><span class="delegate-name">Đ/c ${shortName}</span>`;
+        const isAgency = del.category === "Sở, ban, ngành";
+        seatEl.innerHTML = `<span class="seat-code">${del.seat}</span><span class="delegate-name">${isAgency ? shortName : `Đ/c ${shortName}`}</span>`;
 
         // Mặc định thêm class có người ngồi
         seatEl.classList.add("has-delegate");
-        seatEl.setAttribute("data-tooltip", `Đồng chí\n${del.name}`);
+        seatEl.setAttribute(
+          "data-tooltip",
+          isAgency ? del.name : `Đồng chí\n${del.name}`,
+        );
 
         // Tìm lại thông tin gốc của đại biểu theo delId trong globalDelegates
         const delId = Object.keys(globalDelegates).find(
