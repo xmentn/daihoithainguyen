@@ -48,7 +48,7 @@ body {
   /* Gọi ảnh trực tiếp thông qua thẻ ảo để dựng độ cao co giãn tự nhiên theo chiều rộng màn hình */
   background: url("./images/banner-bg.png") no-repeat center center;
   background-size: 100% auto;
-  padding-top: 10%;
+  padding-top: 15%;
   /* Tỷ lệ ảnh banner-bg.png: 3840 x 180 */
 }
 
@@ -483,8 +483,8 @@ body {
   border-radius: 6px;
   box-shadow:
     0 4px 0 #d0c9b5,
-    /* Bóng đổ chân ghế màu sậm hơn của trắng ngà */
-    0 6px 4px rgba(0, 0, 0, 0.08);
+    /* Bóng đổ chân ghế màu sậm hơn của trắng ngà */ 0 6px 4px
+      rgba(0, 0, 0, 0.08);
   border: 1px solid #cbd5e1;
   /* Viền xám nhẹ chỉn chu */
   display: flex;
@@ -518,8 +518,7 @@ body {
     0 4px 0 #421510,
     0 0 8px rgba(241, 196, 15, 0.4),
     -6px 10px 0 -4px #8b5a2b,
-    /* Tay vịn gỗ bên trái */
-    6px 10px 0 -4px #8b5a2b !important;
+    /* Tay vịn gỗ bên trái */ 6px 10px 0 -4px #8b5a2b !important;
   /* Tay vịn gỗ bên phải */
 }
 
@@ -719,7 +718,6 @@ body {
 /* MODAL & HIGHLIGHT */
 /* Ghế tìm thấy dùng xanh lam/cyan để tương phản rõ với hệ đỏ - vàng hiện tại. */
 @keyframes search-seat-pulse {
-
   0%,
   100% {
     transform: scale(1.12);
