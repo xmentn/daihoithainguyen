@@ -530,17 +530,27 @@ function subscribeSponsorsByClass(
    TEACHERS - PUBLIC READ, CLASS WRITE
 ========================================= */
 
+function normalizeYearLevels(yearLevels = []) {
+  return [...new Set(
+    (Array.isArray(yearLevels) ? yearLevels : [yearLevels])
+      .map((value) => String(value))
+      .filter((value) =>
+        ["10", "11", "12"].includes(value),
+      ),
+  )].sort((a, b) => Number(a) - Number(b));
+}
+
 async function addTeacher({
   teacherName,
   subject = "",
-  yearLevel,
+  yearLevels = [],
   classId,
   createdBy,
 }) {
   return await addDoc(collection(db, "teachers"), {
     teacherName: teacherName.trim(),
     subject: subject.trim(),
-    yearLevel: String(yearLevel),
+    yearLevels: normalizeYearLevels(yearLevels),
     classId,
     createdBy,
     createdAt: serverTimestamp(),
@@ -553,13 +563,13 @@ async function updateTeacher(
   {
     teacherName,
     subject = "",
-    yearLevel,
+    yearLevels = [],
   },
 ) {
   await updateDoc(doc(db, "teachers", teacherId), {
     teacherName: teacherName.trim(),
     subject: subject.trim(),
-    yearLevel: String(yearLevel),
+    yearLevels: normalizeYearLevels(yearLevels),
     updatedAt: serverTimestamp(),
   });
 }
@@ -587,8 +597,22 @@ function subscribeTeachersByClass(
       }));
 
       teachers.sort((a, b) => {
+        const getFirstYear = (item) => {
+          const years = Array.isArray(item.yearLevels)
+            ? item.yearLevels
+            : (
+                item.yearLevel
+                  ? [String(item.yearLevel)]
+                  : []
+              );
+
+          return years.length
+            ? Number(years[0])
+            : 99;
+        };
+
         const yearCompare =
-          Number(a.yearLevel || 0) - Number(b.yearLevel || 0);
+          getFirstYear(a) - getFirstYear(b);
 
         if (yearCompare !== 0) return yearCompare;
 

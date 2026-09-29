@@ -2952,3 +2952,114 @@ table td:first-child {
 .public-class-tab-panels .pdf-export-button {
     white-space: nowrap;
 }
+
+
+/* =========================================
+   THẦY CÔ - CHỌN NHIỀU NĂM PHỤ TRÁCH
+========================================= */
+
+.teacher-year-checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+}
+
+.teacher-year-checkbox {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    min-height: 42px;
+    padding: 8px 10px;
+    border: 1px solid #ddd6cc;
+    border-radius: 9px;
+    background: #ffffff;
+    cursor: pointer;
+    color: var(--blue-dark);
+    font-size: 13px;
+    font-weight: 700;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
+}
+
+.teacher-year-checkbox:hover {
+    border-color: #d3aa66;
+    background: #fffaf1;
+}
+
+.teacher-year-checkbox:has(input:checked) {
+    border-color: #d39a3f;
+    background: #fff5e4;
+}
+
+.teacher-year-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-red);
+}
+
+.form-hint {
+    margin-top: 7px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.teacher-year-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.teacher-year-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #edf5fb;
+    color: var(--blue-dark);
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.public-teacher-filter {
+    display: flex;
+    justify-content: flex-end;
+    padding: 12px 18px;
+    border-bottom: 1px solid #eee7dd;
+    background: #fffdf9;
+}
+
+.public-teacher-filter select {
+    min-width: 205px;
+    height: 40px;
+    padding: 0 11px;
+    border: 1px solid #d8d8d8;
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--blue-dark);
+    outline: none;
+}
+
+.public-teacher-filter select:focus {
+    border-color: #d39a3f;
+}
+
+@media (max-width: 520px) {
+    .teacher-year-checkbox-group {
+        grid-template-columns: 1fr;
+    }
+
+    .public-teacher-filter {
+        justify-content: stretch;
+    }
+
+    .public-teacher-filter select {
+        width: 100%;
+        min-width: 0;
+    }
+}
