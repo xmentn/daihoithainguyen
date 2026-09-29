@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <link rel="stylesheet" href="admin.css?v=20260924-2">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
   <div class="admin-container">
     <div class="admin-header">
@@ -18,7 +20,7 @@
     </div>
 
     <div class="tabs" role="tablist" aria-label="Các chức năng quản trị">
-      <button class="tab-btn active" data-tab="tab-danhsach" type="button">1. Danh sách Tổng</button>
+      <button class="tab-btn active" data-tab="tab-danhsach" type="button">1. Đại biểu</button>
       <button class="tab-btn" data-tab="tab-phonghop" type="button">2. Danh sách Phòng họp</button>
       <button class="tab-btn" data-tab="tab-hoignhi" type="button">3. Quản lý Hội nghị</button>
       <button class="tab-btn" data-tab="tab-vitri" type="button">4. Xếp chỗ Hội nghị</button>
@@ -95,7 +97,8 @@
           <div class="room-form-row">
             <div class="field-group room-name-field">
               <label for="room-name">Tên Phòng họp / Hội trường</label>
-              <input type="text" id="room-name" required placeholder="Ví dụ: Hội trường Tỉnh ủy, Phòng họp số 1..." class="form-control">
+              <input type="text" id="room-name" required placeholder="Ví dụ: Hội trường Tỉnh ủy, Phòng họp số 1..."
+                class="form-control">
             </div>
             <div class="form-actions room-actions">
               <button type="submit" id="room-save-btn" class="btn-primary">Thêm Phòng họp</button>
@@ -219,4 +222,5 @@
 
   <script type="module" src="admin.js?v=20260924-2"></script>
 </body>
+
 </html>

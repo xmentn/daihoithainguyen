@@ -1,90 +1,212 @@
-import { db, collection, onSnapshot } from "./firebase-config.js";
 import {
+  db,
   auth,
+  collection,
+  doc,
+  getDoc,
+  onSnapshot,
   signInWithEmailAndPassword,
+  signOut,
   onAuthStateChanged,
 } from "./firebase-config.js";
 
+async function getAdminProfile(user) {
+  if (!user) return null;
+
+  try {
+    const adminSnap = await getDoc(doc(db, "admins", user.uid));
+
+    if (!adminSnap.exists()) return null;
+
+    const adminData = adminSnap.data();
+    if (adminData.active !== true) return null;
+
+    return {
+      uid: user.uid,
+      name: String(adminData.name || "").trim() || "Quản trị viên",
+    };
+  } catch (error) {
+    console.error("Lỗi kiểm tra quyền quản trị:", error);
+    return null;
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  // --- ĐĂNG NHẬP QUẢN TRỊ (ĐÃ SỬA ĐẦY ĐỦ BIẾN) ---
+  // --- ĐĂNG NHẬP & HIỂN THỊ TÀI KHOẢN QUẢN TRỊ ---
   const adminBtn = document.getElementById("admin-icon");
+  const adminAccount = document.getElementById("admin-account");
+  const goAdminBtn = document.getElementById("go-admin-btn");
+  const homeLogoutBtn = document.getElementById("home-logout-btn");
   const loginModal = document.getElementById("login-modal");
   const closeLogin = document.getElementById("close-login");
   const submitLogin = document.getElementById("submit-login");
-
-  // BỔ SUNG 3 DÒNG NÀY ĐỂ ĐỊNH VỊ ĐÚNG CÁC Ô NHẬP LIỆU TRÊN GIAO DIỆN MÁY TÍNH
   const userIn = document.getElementById("username");
   const passIn = document.getElementById("password");
   const errorMsg = document.getElementById("login-error");
 
-  // Theo dõi trạng thái đăng nhập hiện tại để không bắt đăng nhập lại
-  // khi quản trị viên quay từ admin.html về trang chủ.
   let currentAdminUser = null;
+  let currentAdminProfile = null;
   let authInitialized = false;
   let resolveAuthReady;
+
   const authReadyPromise = new Promise((resolve) => {
     resolveAuthReady = resolve;
   });
 
-  onAuthStateChanged(auth, (user) => {
-    currentAdminUser = user;
+  function renderAdminAccount() {
+    if (!adminBtn || !adminAccount) return;
+
+    if (currentAdminUser && currentAdminProfile) {
+      adminBtn.textContent = `👤 ${currentAdminProfile.name} ▾`;
+      adminAccount.classList.add("is-logged-in");
+      adminBtn.setAttribute("aria-label", `Tài khoản ${currentAdminProfile.name}`);
+    } else {
+      adminBtn.textContent = "🔐 Đăng nhập";
+      adminAccount.classList.remove("is-logged-in");
+      adminBtn.setAttribute("aria-label", "Đăng nhập quản trị");
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    currentAdminUser = null;
+    currentAdminProfile = null;
+
+    if (user) {
+      const adminProfile = await getAdminProfile(user);
+
+      if (adminProfile) {
+        currentAdminUser = user;
+        currentAdminProfile = adminProfile;
+      } else {
+        try {
+          await signOut(auth);
+        } catch (error) {
+          console.error("Lỗi đăng xuất tài khoản không có quyền:", error);
+        }
+      }
+    }
+
+    renderAdminAccount();
+
     if (!authInitialized) {
       authInitialized = true;
-      resolveAuthReady(user);
+      resolveAuthReady(currentAdminUser);
     }
   });
 
-  adminBtn.addEventListener("click", async () => {
-    // Chờ Firebase khôi phục phiên đăng nhập trước khi quyết định mở form login.
-    if (!authInitialized) {
-      await authReadyPromise;
-    }
+  if (adminBtn) {
+    adminBtn.addEventListener("click", async () => {
+      if (!authInitialized) {
+        await authReadyPromise;
+      }
 
-    if (currentAdminUser) {
-      window.location.href = "admin.html";
-      return;
-    }
+      // Khi đã đăng nhập, dropdown được mở bằng hover/focus từ CSS.
+      if (currentAdminUser && currentAdminProfile) return;
 
-    loginModal.style.display = "flex";
-  });
-  closeLogin.addEventListener("click", () => {
-    loginModal.style.display = "none";
-  });
-  submitLogin.addEventListener("click", () => {
+      if (loginModal) {
+        loginModal.style.display = "flex";
+        errorMsg.style.display = "none";
+        setTimeout(() => userIn?.focus(), 0);
+      }
+    });
+  }
+
+  if (goAdminBtn) {
+    goAdminBtn.addEventListener("click", () => {
+      if (currentAdminUser && currentAdminProfile) {
+        window.location.href = "admin.html";
+      }
+    });
+  }
+
+  if (homeLogoutBtn) {
+    homeLogoutBtn.addEventListener("click", async () => {
+      try {
+        await signOut(auth);
+        currentAdminUser = null;
+        currentAdminProfile = null;
+        renderAdminAccount();
+      } catch (error) {
+        console.error("Lỗi đăng xuất Firebase:", error);
+      }
+    });
+  }
+
+  if (closeLogin) {
+    closeLogin.addEventListener("click", () => {
+      loginModal.style.display = "none";
+      errorMsg.style.display = "none";
+    });
+  }
+
+  async function handleAdminLogin() {
     const email = userIn.value.trim();
     const password = passIn.value;
 
     errorMsg.style.display = "none";
 
-    // Hiển thị trạng thái đang xử lý trên nút
+    if (!email || !password) {
+      errorMsg.textContent = "Vui lòng nhập đầy đủ tài khoản và mật khẩu!";
+      errorMsg.style.display = "block";
+      return;
+    }
+
     submitLogin.textContent = "Đang xác thực...";
     submitLogin.disabled = true;
 
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        // Trạng thái thành công: Đổi màu nút và hiển thị thông báo chào mừng
-        submitLogin.style.backgroundColor = "#2ecc71";
-        submitLogin.textContent = "Thành công!";
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const adminProfile = await getAdminProfile(userCredential.user);
 
-        // Tạo hiệu ứng thông báo mượt mà trước khi chuyển trang
-        setTimeout(() => {
-          loginModal.style.display = "none";
-          // Chuyển hướng sang trang quản trị
-          window.location.href = "admin.html";
-        }, 800); // Đợi 0.8 giây để người dùng kịp nhìn thấy trạng thái thành công
-      })
-      .catch((error) => {
-        console.error("Lỗi đăng nhập Firebase:", error.code, error.message);
+      if (!adminProfile) {
+        await signOut(auth);
+        errorMsg.textContent = "Tài khoản này không có quyền quản trị hệ thống!";
+        errorMsg.style.display = "block";
+        return;
+      }
 
-        // Khôi phục lại trạng thái nút nếu thất bại
+      currentAdminUser = userCredential.user;
+      currentAdminProfile = adminProfile;
+      renderAdminAccount();
+
+      submitLogin.style.backgroundColor = "#2ecc71";
+      submitLogin.textContent = "Thành công!";
+
+      setTimeout(() => {
+        loginModal.style.display = "none";
         submitLogin.style.backgroundColor = "";
         submitLogin.textContent = "Đăng nhập";
         submitLogin.disabled = false;
+        userIn.value = "";
+        passIn.value = "";
+      }, 500);
+    } catch (error) {
+      console.error("Lỗi đăng nhập Firebase:", error.code, error.message);
+      errorMsg.textContent = "Tài khoản hoặc mật khẩu không chính xác!";
+      errorMsg.style.display = "block";
+    } finally {
+      // Trường hợp thất bại hoặc không có quyền phải khôi phục nút ngay.
+      if (submitLogin.textContent !== "Thành công!") {
+        submitLogin.style.backgroundColor = "";
+        submitLogin.textContent = "Đăng nhập";
+        submitLogin.disabled = false;
+      }
+    }
+  }
 
-        errorMsg.textContent = "Tài khoản hoặc mật khẩu không chính xác!";
-        errorMsg.style.display = "block";
-      });
-  });
+  if (submitLogin) {
+    submitLogin.addEventListener("click", handleAdminLogin);
+  }
+
+  // Cho phép nhấn Enter trong ô mật khẩu để đăng nhập.
+  if (passIn) {
+    passIn.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleAdminLogin();
+      }
+    });
+  }
 
   // --- KHÔI PHỤC ĐẦY ĐỦ 11 HÀNG GHẾ HỘI TRƯỜNG (TỪ A ĐẾN K) ---
   const chairmanContainer = document.getElementById("chairman-container");
@@ -458,21 +580,39 @@ document.addEventListener("DOMContentLoaded", () => {
   // --- TÌM KIẾM ĐẠI BIỂU ---
   const searchInput = document.getElementById("search-delegate");
   if (searchInput) {
+    let searchScrollTimer = null;
+
     searchInput.addEventListener("input", (e) => {
       const searchTerm = e.target.value.toLowerCase().trim();
+      let firstMatchedSeat = null;
+
       document.querySelectorAll(".seat-3d").forEach((seat) => {
         const tooltipText = seat.getAttribute("data-tooltip");
-        if (
+        const isMatched =
           searchTerm !== "" &&
           tooltipText &&
-          tooltipText.toLowerCase().includes(searchTerm)
-        ) {
+          tooltipText.toLowerCase().includes(searchTerm);
+
+        if (isMatched) {
           seat.classList.add("highlight-seat");
+          if (!firstMatchedSeat) firstMatchedSeat = seat;
         } else {
-          seat.boxShadow = "";
           seat.classList.remove("highlight-seat");
         }
       });
+
+      // Tránh cuộn liên tục theo từng ký tự khi người dùng đang gõ.
+      clearTimeout(searchScrollTimer);
+
+      if (firstMatchedSeat) {
+        searchScrollTimer = setTimeout(() => {
+          firstMatchedSeat.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+            inline: "center",
+          });
+        }, 280);
+      }
     });
   }
 });
