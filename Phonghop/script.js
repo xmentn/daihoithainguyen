@@ -592,42 +592,107 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // --- TÌM KIẾM ĐẠI BIỂU ---
+  // --- TÌM KIẾM ĐẠI BIỂU: CHỈ TÌM KHI BẤM NÚT / ENTER ---
   const searchInput = document.getElementById("search-delegate");
-  if (searchInput) {
-    let searchScrollTimer = null;
+  const searchButton = document.getElementById("search-delegate-btn");
+  const searchStatus = document.getElementById("search-status");
 
-    searchInput.addEventListener("input", (e) => {
-      const searchTerm = e.target.value.toLowerCase().trim();
-      let firstMatchedSeat = null;
+  function clearSearchHighlight() {
+    document.querySelectorAll(".seat-3d.highlight-seat").forEach((seat) => {
+      seat.classList.remove("highlight-seat");
+    });
+  }
 
-      document.querySelectorAll(".seat-3d").forEach((seat) => {
-        const tooltipText = seat.getAttribute("data-tooltip");
-        const isMatched =
-          searchTerm !== "" &&
-          tooltipText &&
-          tooltipText.toLowerCase().includes(searchTerm);
+  function setSearchStatus(message, type = "") {
+    if (!searchStatus) return;
+    searchStatus.textContent = message;
+    searchStatus.classList.remove("is-found", "is-empty");
+    if (type) searchStatus.classList.add(type);
+  }
 
-        if (isMatched) {
-          seat.classList.add("highlight-seat");
-          if (!firstMatchedSeat) firstMatchedSeat = seat;
-        } else {
-          seat.classList.remove("highlight-seat");
-        }
-      });
+  function findNearestMatchedSeat(matchedSeats) {
+    if (matchedSeats.length === 0) return null;
 
-      // Tránh cuộn liên tục theo từng ký tự khi người dùng đang gõ.
-      clearTimeout(searchScrollTimer);
+    // Chọn ghế có tâm gần tâm vùng nhìn hiện tại nhất để giảm quãng đường cuộn.
+    const viewportCenterX = window.innerWidth / 2;
+    const viewportCenterY = window.innerHeight / 2;
 
-      if (firstMatchedSeat) {
-        searchScrollTimer = setTimeout(() => {
-          firstMatchedSeat.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-            inline: "center",
-          });
-        }, 280);
+    return matchedSeats.reduce((nearest, seat) => {
+      const rect = seat.getBoundingClientRect();
+      const seatCenterX = rect.left + rect.width / 2;
+      const seatCenterY = rect.top + rect.height / 2;
+      const distance = Math.hypot(
+        seatCenterX - viewportCenterX,
+        seatCenterY - viewportCenterY,
+      );
+
+      if (!nearest || distance < nearest.distance) {
+        return { seat, distance };
+      }
+      return nearest;
+    }, null)?.seat;
+  }
+
+  function performSeatSearch() {
+    if (!searchInput) return;
+
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    clearSearchHighlight();
+
+    if (!searchTerm) {
+      setSearchStatus("Vui lòng nhập nội dung cần tìm.", "is-empty");
+      searchInput.focus();
+      return;
+    }
+
+    const matchedSeats = [];
+
+    document.querySelectorAll(".seat-3d").forEach((seat) => {
+      const tooltipText = seat.getAttribute("data-tooltip");
+      const isMatched =
+        tooltipText && tooltipText.toLowerCase().includes(searchTerm);
+
+      if (isMatched) {
+        seat.classList.add("highlight-seat");
+        matchedSeats.push(seat);
+      }
+    });
+
+    if (matchedSeats.length === 0) {
+      setSearchStatus("Không tìm thấy đại biểu/cơ quan phù hợp.", "is-empty");
+      return;
+    }
+
+    const nearestSeat = findNearestMatchedSeat(matchedSeats);
+    setSearchStatus(
+      matchedSeats.length === 1
+        ? "Đã tìm thấy 1 vị trí."
+        : `Đã tìm thấy ${matchedSeats.length} vị trí; đang trỏ đến vị trí gần nhất.`,
+      "is-found",
+    );
+
+    nearestSeat?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+      inline: "center",
+    });
+  }
+
+  if (searchInput && searchButton) {
+    // Khi người dùng gõ/chỉnh lại từ khóa: chỉ xóa kết quả cũ, tuyệt đối không tự tìm hoặc tự cuộn.
+    searchInput.addEventListener("input", () => {
+      clearSearchHighlight();
+      setSearchStatus("");
+    });
+
+    searchButton.addEventListener("click", performSeatSearch);
+
+    searchInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        performSeatSearch();
       }
     });
   }
+
 });
