@@ -2,6 +2,9 @@
 const dangBoRef = database.ref("dang_bo");
 const tasksRefHome = database.ref("tasks");
 
+// PHÂN HỆ 4: SỐ HÓA HỒ SƠ CÁN BỘ - node dữ liệu nghiệp vụ riêng
+const soHoaHoSoCanBoRef = database.ref("so_hoa_ho_so_can_bo");
+
 // Lưu trữ đối tượng các Chart để hủy khi vẽ lại
 let chartChinhLy, chartKySo, chartPhanMem, chartHoAnThanh;
 let ageChartObj, admissionChartObj;
@@ -29,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initTcHomeSubTabs(); // Khởi tạo tab phụ ở Phân hệ 2
   initTabSwitchers(); // Khởi tạo tab chính toàn trang
   initLogoutEvents(); // Khởi tạo sự kiện đăng xuất
+  initSoHoaHoSoCanBoDashboard(); // BƯỚC 2: chỉ đọc/hiển thị phân hệ Số hóa hồ sơ cán bộ
 
   // Xử lý sự kiện thay đổi đơn vị trên dropdown bộ lọc
   const selectDangBo = document.getElementById("select-dangbo");
@@ -2488,3 +2492,310 @@ document.addEventListener("DOMContentLoaded", () => {
     scoringHelpBtn.addEventListener("click", showTaskKpiScoringHelp);
   }
 });
+
+// =================================================================
+// PHÂN HỆ 4: SỐ HÓA HỒ SƠ CÁN BỘ - BƯỚC 2: ĐỌC & HIỂN THỊ DỮ LIỆU
+// Chưa ghi dữ liệu, chưa validation ghi, chưa permission, chưa sửa Rules.
+// =================================================================
+let cbUnitNameMap = {};
+let cbStaffDigitizationData = {};
+let cbUnitsLoaded = false;
+let cbDataLoaded = false;
+let cbProgressChart = null;
+let cbUnitProgressChart = null;
+
+function initSoHoaHoSoCanBoDashboard() {
+  const tab = document.getElementById("tab-so-hoa-can-bo");
+  if (!tab) return;
+
+  const searchInput = document.getElementById("cb-table-search");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      renderSoHoaHoSoCanBoTable(searchInput.value);
+    });
+  }
+
+  // Khi mở tab lần đầu, yêu cầu Chart.js tính lại kích thước vì canvas trước đó nằm trong tab ẩn.
+  const tabButton = document.querySelector('[data-tab="tab-so-hoa-can-bo"]');
+  if (tabButton) {
+    tabButton.addEventListener("click", () => {
+      setTimeout(() => {
+        if (cbProgressChart) cbProgressChart.resize();
+        if (cbUnitProgressChart) cbUnitProgressChart.resize();
+      }, 120);
+    });
+  }
+
+  // Danh mục đơn vị chỉ lấy từ dang_bo/{unitKey}/ten; tuyệt đối loại bản ghi tổng tỉnh.
+  dangBoRef.on(
+    "value",
+    (snapshot) => {
+      const nextMap = {};
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.key === "tinh_thai_nguyen") return;
+        const data = childSnapshot.val() || {};
+        nextMap[childSnapshot.key] = data.ten || childSnapshot.key;
+      });
+
+      cbUnitNameMap = nextMap;
+      cbUnitsLoaded = true;
+      refreshSoHoaHoSoCanBoDashboard();
+    },
+    (error) => {
+      console.error("Lỗi đọc danh mục đơn vị cho Số hóa hồ sơ cán bộ:", error);
+    },
+  );
+
+  soHoaHoSoCanBoRef.on(
+    "value",
+    (snapshot) => {
+      const nextData = {};
+      snapshot.forEach((childSnapshot) => {
+        // Không chấp nhận bản ghi tổng tỉnh trong node nghiệp vụ này.
+        if (childSnapshot.key === "tinh_thai_nguyen") return;
+        nextData[childSnapshot.key] = childSnapshot.val() || {};
+      });
+
+      cbStaffDigitizationData = nextData;
+      cbDataLoaded = true;
+      refreshSoHoaHoSoCanBoDashboard();
+    },
+    (error) => {
+      console.error("Lỗi đọc dữ liệu Số hóa hồ sơ cán bộ:", error);
+    },
+  );
+}
+
+function normalizeCbRecord(raw = {}) {
+  return {
+    tongHoSo: Math.max(Number(raw.tongHoSo || 0), 0),
+    daChuanHoa: Math.max(Number(raw.daChuanHoa || 0), 0),
+    daKySo: Math.max(Number(raw.daKySo || 0), 0),
+    daCapNhat: Math.max(Number(raw.daCapNhat || 0), 0),
+    updatedAt: raw.updatedAt || null,
+    updatedBy: raw.updatedBy || "",
+  };
+}
+
+function calcCbCompletionRate(record) {
+  const total = Number(record?.tongHoSo || 0);
+  const completed = Number(record?.daCapNhat || 0);
+  return total > 0 ? (completed / total) * 100 : 0;
+}
+
+function getCbDashboardRows() {
+  return Object.entries(cbUnitNameMap).map(([unitKey, ten]) => {
+    const record = normalizeCbRecord(cbStaffDigitizationData[unitKey] || {});
+    return {
+      unitKey,
+      ten,
+      ...record,
+      tyLeHoanThanh: calcCbCompletionRate(record),
+    };
+  });
+}
+
+function refreshSoHoaHoSoCanBoDashboard() {
+  if (!cbUnitsLoaded || !cbDataLoaded) return;
+
+  const rows = getCbDashboardRows();
+  updateSoHoaHoSoCanBoKpis(rows);
+  renderSoHoaHoSoCanBoCharts(rows);
+
+  const searchValue = document.getElementById("cb-table-search")?.value || "";
+  renderSoHoaHoSoCanBoTable(searchValue);
+}
+
+function updateSoHoaHoSoCanBoKpis(rows) {
+  const totals = rows.reduce(
+    (sum, item) => {
+      sum.tongHoSo += item.tongHoSo;
+      sum.daChuanHoa += item.daChuanHoa;
+      sum.daKySo += item.daKySo;
+      sum.daCapNhat += item.daCapNhat;
+      return sum;
+    },
+    { tongHoSo: 0, daChuanHoa: 0, daKySo: 0, daCapNhat: 0 },
+  );
+
+  // Toàn tỉnh luôn là tổng cộng động từ các unitKey thực tế, không đọc/lưu tinh_thai_nguyen.
+  const completionRate =
+    totals.tongHoSo > 0 ? (totals.daCapNhat / totals.tongHoSo) * 100 : 0;
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+
+  setText("cb-val-tong-ho-so", totals.tongHoSo.toLocaleString("vi-VN"));
+  setText("cb-val-da-chuan-hoa", totals.daChuanHoa.toLocaleString("vi-VN"));
+  setText("cb-val-da-ky-so", totals.daKySo.toLocaleString("vi-VN"));
+  setText("cb-val-da-cap-nhat", totals.daCapNhat.toLocaleString("vi-VN"));
+  setText("cb-val-ty-le-hoan-thanh", `${completionRate.toFixed(1)}%`);
+}
+
+function renderSoHoaHoSoCanBoCharts(rows) {
+  if (typeof Chart === "undefined") {
+    console.warn("Chart.js chưa được nạp; bỏ qua biểu đồ Số hóa hồ sơ cán bộ.");
+    return;
+  }
+
+  const totals = rows.reduce(
+    (sum, item) => {
+      sum.tongHoSo += item.tongHoSo;
+      sum.daChuanHoa += item.daChuanHoa;
+      sum.daKySo += item.daKySo;
+      sum.daCapNhat += item.daCapNhat;
+      return sum;
+    },
+    { tongHoSo: 0, daChuanHoa: 0, daKySo: 0, daCapNhat: 0 },
+  );
+
+  const progressCanvas = document.getElementById("cb-chart-tien-do");
+  if (progressCanvas) {
+    if (cbProgressChart) cbProgressChart.destroy();
+    cbProgressChart = new Chart(progressCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: [
+          "Cần số hóa",
+          "Đã chuẩn hóa",
+          "Đã ký số",
+          "Đã đưa lên phần mềm",
+        ],
+        datasets: [
+          {
+            label: "Số hồ sơ",
+            data: [
+              totals.tongHoSo,
+              totals.daChuanHoa,
+              totals.daKySo,
+              totals.daCapNhat,
+            ],
+            backgroundColor: ["#0284c7", "#ea580c", "#9333ea", "#16a34a"],
+            borderWidth: 0,
+            borderRadius: 5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => ` ${Number(context.raw || 0).toLocaleString("vi-VN")} hồ sơ`,
+            },
+          },
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { precision: 0 },
+          },
+        },
+      },
+    });
+  }
+
+  const unitCanvas = document.getElementById("cb-chart-don-vi");
+  if (unitCanvas) {
+    if (cbUnitProgressChart) cbUnitProgressChart.destroy();
+
+    cbUnitProgressChart = new Chart(unitCanvas.getContext("2d"), {
+      type: "bar",
+      data: {
+        labels: rows.map((item) => item.ten),
+        datasets: [
+          {
+            label: "Tỷ lệ hoàn thành (%)",
+            data: rows.map((item) => Number(item.tyLeHoanThanh.toFixed(1))),
+            backgroundColor: "#cc0000",
+            borderWidth: 0,
+            borderRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (context) => ` ${Number(context.raw || 0).toFixed(1)}%`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: {
+              autoSkip: true,
+              maxRotation: 55,
+              minRotation: 0,
+            },
+          },
+          y: {
+            beginAtZero: true,
+            suggestedMax: 100,
+            ticks: {
+              callback: (value) => `${value}%`,
+            },
+          },
+        },
+      },
+    });
+  }
+}
+
+function renderSoHoaHoSoCanBoTable(searchTerm = "") {
+  const tbody = document.getElementById("cb-report-tbody");
+  if (!tbody || !cbUnitsLoaded || !cbDataLoaded) return;
+
+  const safeSearch = (searchTerm || "").toString().trim().toLowerCase();
+  const rows = getCbDashboardRows().filter((item) =>
+    item.ten.toString().toLowerCase().includes(safeSearch),
+  );
+
+  tbody.innerHTML = "";
+
+  rows.forEach((item, index) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td class="text-center">${index + 1}</td>
+      <td><b>${escapeCbHtml(item.ten)}</b></td>
+      <td class="text-right">${item.tongHoSo.toLocaleString("vi-VN")}</td>
+      <td class="text-right">${item.daChuanHoa.toLocaleString("vi-VN")}</td>
+      <td class="text-right">${item.daKySo.toLocaleString("vi-VN")}</td>
+      <td class="text-right">${item.daCapNhat.toLocaleString("vi-VN")}</td>
+      <td class="text-center"><b>${item.tyLeHoanThanh.toFixed(1)}%</b></td>
+      <td class="text-center">${formatCbUpdatedAt(item.updatedAt)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function formatCbUpdatedAt(value) {
+  if (!value) return "—";
+  const date = new Date(Number(value));
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function escapeCbHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+

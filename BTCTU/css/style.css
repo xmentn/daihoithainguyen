@@ -677,6 +677,7 @@ body {
 .module-tabs {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .tab-btn {
@@ -812,3 +813,39 @@ body {
 .chart-scroll-wrapper::-webkit-scrollbar-thumb:hover {
   background: #0369a1;
 }
+
+/* ================================================================
+   PHÂN HỆ 4: SỐ HÓA HỒ SƠ CÁN BỘ - BƯỚC 1 (CHỈ GIAO DIỆN)
+   ================================================================ */
+.staff-digitization-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.staff-digitization-chart-placeholder {
+  position: relative;
+  height: 280px;
+  min-height: 220px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  background: #f8fafc;
+}
+
+.staff-digitization-table-wrapper {
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+.staff-digitization-table,
+.staff-digitization-admin-table {
+  min-width: 1050px;
+}
+
+@media (max-width: 1200px) {
+  .staff-digitization-charts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+

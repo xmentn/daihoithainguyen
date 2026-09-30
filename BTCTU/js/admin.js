@@ -3,6 +3,7 @@ const dangBoRef = database.ref("dang_bo");
 const tasksRef = database.ref("tasks");
 const configRef = database.ref("config/time_settings");
 const doiTuongRef = database.ref("danh_muc_doi_tuong"); // Node lưu danh mục Đơn vị/Cá nhân
+const soHoaHoSoCanBoRef = database.ref("so_hoa_ho_so_can_bo"); // Phân hệ 4: node nghiệp vụ riêng
 
 // Khai báo DOM Elements
 const loginSection = document.getElementById("login-section");
@@ -43,6 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initAuthEvents(); // Khởi tạo sự kiện Đăng nhập / Đăng xuất an toàn
   initExcelImportExport(); // Khởi tạo sự kiện Import / Export Excel
   initTimeConfigEvents(); // Lắng nghe & cài đặt khung giờ
+  initSoHoaHoSoCanBoAdminReadOnly(); // BƯỚC 2: chỉ đọc/hiển thị, chưa ghi dữ liệu
 });
 
 // =================================================================
@@ -197,6 +199,7 @@ firebase.auth().onAuthStateChanged((user) => {
 
         applyRolePermissions(role);
         initAdminData();
+        attachCbAdminDataListener(); // Thử/duy trì listener sau khi đã xác thực
       })
       .catch((error) => {
         console.error("Lỗi đọc quyền tài khoản:", error);
@@ -328,6 +331,7 @@ function initAdminData() {
   const selectSoHoa = $("#select-dangbo-sohoa");
   const selectTcDang = $("#select-dangbo-tcdang");
   const selectKetNap = $("#select-dangbo-ketnap");
+  const selectSoHoaCanBo = $("#select-donvi-sohoa-canbo");
 
   if (selectSoHoa.length)
     selectSoHoa.html(
@@ -341,6 +345,8 @@ function initAdminData() {
     selectKetNap.html(
       '<option value="">-- Chọn một Đảng bộ trực thuộc --</option>',
     );
+  if (selectSoHoaCanBo.length)
+    selectSoHoaCanBo.html('<option value="">-- Chọn đơn vị --</option>');
 
   dangBoCache = {};
   dangBoCache["tinh_thai_nguyen"] = "ĐẢNG BỘ TỈNH THÁI NGUYÊN";
@@ -365,10 +371,12 @@ function initAdminData() {
       if (selectSoHoa.length) selectSoHoa.append(optionHtml);
       if (selectTcDang.length) selectTcDang.append(optionHtml);
       if (selectKetNap.length) selectKetNap.append(optionHtml);
+      if (selectSoHoaCanBo.length) selectSoHoaCanBo.append(optionHtml);
     });
 
     enableSelect2Search();
     loadProgressTables();
+    renderCbAdminTable(); // Đồng bộ bảng Phân hệ 4 sau khi dangBoCache đã sẵn sàng
   });
 }
 
@@ -382,6 +390,7 @@ function enableSelect2Search() {
     "#select-dangbo-sohoa",
     "#select-dangbo-tcdang",
     "#select-dangbo-ketnap",
+    "#select-donvi-sohoa-canbo",
   ];
 
   selectIds.forEach((id) => {
@@ -2037,3 +2046,160 @@ async function isImportTimeAllowed() {
 
   return now >= start && now <= end;
 }
+
+// =================================================================
+// PHÂN HỆ 4: SỐ HÓA HỒ SƠ CÁN BỘ - BƯỚC 2: ĐỌC & HIỂN THỊ DỮ LIỆU
+// Chưa ghi/cập nhật, chưa validation ghi, chưa permission, chưa sửa Rules.
+// =================================================================
+let cbAdminDataCache = {};
+let cbAdminListenerAttached = false;
+
+function initSoHoaHoSoCanBoAdminReadOnly() {
+  const select = document.getElementById("select-donvi-sohoa-canbo");
+  const module = document.getElementById("admin-tab-sohoa-canbo");
+  if (!select || !module) return;
+
+  const recalc = () => updateCbAdminCompletionRate();
+  [
+    "cb-admin-tong-ho-so",
+    "cb-admin-da-chuan-hoa",
+    "cb-admin-da-ky-so",
+    "cb-admin-da-cap-nhat",
+  ].forEach((id) => {
+    document.getElementById(id)?.addEventListener("input", recalc);
+  });
+
+  select.addEventListener("change", () => {
+    loadCbAdminRecordToForm(select.value);
+  });
+
+  // BƯỚC 2 chưa cho ghi. Giữ nút hiện hữu nhưng chặn mọi thao tác ghi ngoài ý muốn.
+  const updateButton = document.getElementById("btn-cap-nhat-sohoa-canbo");
+  if (updateButton) {
+    updateButton.addEventListener("click", () => {
+      Swal.fire({
+        icon: "info",
+        title: "Chưa mở chức năng cập nhật",
+        text: "Bước hiện tại chỉ đọc và hiển thị dữ liệu. Chức năng cập nhật sẽ được triển khai ở bước tiếp theo.",
+      });
+    });
+  }
+
+  attachCbAdminDataListener();
+  updateCbAdminCompletionRate();
+}
+
+function attachCbAdminDataListener() {
+  if (cbAdminListenerAttached) return;
+  cbAdminListenerAttached = true;
+
+  soHoaHoSoCanBoRef.on(
+    "value",
+    (snapshot) => {
+      const nextData = {};
+      snapshot.forEach((childSnapshot) => {
+        if (childSnapshot.key === "tinh_thai_nguyen") return;
+        nextData[childSnapshot.key] = childSnapshot.val() || {};
+      });
+
+      cbAdminDataCache = nextData;
+      renderCbAdminTable();
+
+      const selectedKey = document.getElementById("select-donvi-sohoa-canbo")?.value;
+      if (selectedKey) loadCbAdminRecordToForm(selectedKey);
+    },
+    (error) => {
+      cbAdminListenerAttached = false;
+      console.error("Lỗi đọc dữ liệu Số hóa hồ sơ cán bộ tại Admin:", error);
+    },
+  );
+}
+
+function normalizeCbAdminRecord(raw = {}) {
+  return {
+    tongHoSo: Math.max(Number(raw.tongHoSo || 0), 0),
+    daChuanHoa: Math.max(Number(raw.daChuanHoa || 0), 0),
+    daKySo: Math.max(Number(raw.daKySo || 0), 0),
+    daCapNhat: Math.max(Number(raw.daCapNhat || 0), 0),
+    updatedAt: raw.updatedAt || null,
+    updatedBy: raw.updatedBy || "",
+  };
+}
+
+function loadCbAdminRecordToForm(unitKey) {
+  const record = normalizeCbAdminRecord(cbAdminDataCache[unitKey] || {});
+
+  setCbAdminInputValue("cb-admin-tong-ho-so", record.tongHoSo);
+  setCbAdminInputValue("cb-admin-da-chuan-hoa", record.daChuanHoa);
+  setCbAdminInputValue("cb-admin-da-ky-so", record.daKySo);
+  setCbAdminInputValue("cb-admin-da-cap-nhat", record.daCapNhat);
+  updateCbAdminCompletionRate();
+}
+
+function setCbAdminInputValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = Number(value || 0);
+}
+
+function updateCbAdminCompletionRate() {
+  const total = Number(document.getElementById("cb-admin-tong-ho-so")?.value || 0);
+  const completed = Number(document.getElementById("cb-admin-da-cap-nhat")?.value || 0);
+  const rate = total > 0 ? (completed / total) * 100 : 0;
+
+  const rateInput = document.getElementById("cb-admin-ty-le");
+  if (rateInput) rateInput.value = `${rate.toFixed(1)}%`;
+}
+
+function renderCbAdminTable() {
+  const tbody = document.getElementById("table-sohoa-canbo-body");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  const unitEntries = Object.entries(dangBoCache)
+    .filter(([unitKey]) => unitKey !== "tinh_thai_nguyen")
+    .sort((a, b) => String(a[1]).localeCompare(String(b[1]), "vi"));
+
+  unitEntries.forEach(([unitKey, unitName], index) => {
+    const record = normalizeCbAdminRecord(cbAdminDataCache[unitKey] || {});
+    const rate = record.tongHoSo > 0 ? (record.daCapNhat / record.tongHoSo) * 100 : 0;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="text-align:center">${index + 1}</td>
+      <td><b>${escapeCbAdminHtml(unitName)}</b></td>
+      <td>${record.tongHoSo.toLocaleString("vi-VN")}</td>
+      <td>${record.daChuanHoa.toLocaleString("vi-VN")}</td>
+      <td>${record.daKySo.toLocaleString("vi-VN")}</td>
+      <td>${record.daCapNhat.toLocaleString("vi-VN")}</td>
+      <td style="text-align:center"><b>${rate.toFixed(1)}%</b></td>
+      <td style="text-align:center">${formatCbAdminUpdatedAt(record.updatedAt)}</td>
+      <td style="text-align:center; color:#94a3b8">—</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function formatCbAdminUpdatedAt(value) {
+  if (!value) return "—";
+  const date = new Date(Number(value));
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function escapeCbAdminHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+

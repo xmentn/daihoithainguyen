@@ -183,6 +183,9 @@
             >
               <i class="fa-solid fa-list-check"></i> Quản lý nội bộ
             </button>
+            <button class="tab-btn" data-tab="tab-so-hoa-can-bo">
+              <i class="fa-solid fa-address-card"></i> Số hóa hồ sơ cán bộ
+            </button>
           </div>
         </div>
 
@@ -2029,6 +2032,116 @@
               <tbody id="public-task-body">
                 <!-- Dữ liệu render từ app.js -->
               </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- ================================================================= -->
+      <!-- PHÂN HỆ 4: SỐ HÓA HỒ SƠ CÁN BỘ                                  -->
+      <!-- ================================================================= -->
+      <div id="tab-so-hoa-can-bo" class="tab-content">
+        <!-- 5 KPI tổng quan - Bước 1 chỉ dựng giao diện, chưa đọc Firebase -->
+        <section class="metrics-grid">
+          <div class="metric-card card-blue">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-folder-closed"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">SỐ HỒ SƠ CẦN SỐ HÓA</span>
+              <span class="card-number" id="cb-val-tong-ho-so">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card card-orange">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-file-circle-check"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ CHUẨN HÓA</span>
+              <span class="card-number" id="cb-val-da-chuan-hoa">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card card-purple">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-signature"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ KÝ SỐ</span>
+              <span class="card-number" id="cb-val-da-ky-so">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card card-green">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-cloud-arrow-up"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">ĐÃ ĐƯA LÊN PHẦN MỀM</span>
+              <span class="card-number" id="cb-val-da-cap-nhat">0</span>
+            </div>
+          </div>
+
+          <div class="metric-card card-red">
+            <div class="card-header-icon">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div class="card-data">
+              <span class="card-title">TỶ LỆ HOÀN THÀNH</span>
+              <span class="card-number" id="cb-val-ty-le-hoan-thanh">0%</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Khu vực 2 biểu đồ - mới tạo khung/canvas, chưa render dữ liệu -->
+        <section class="staff-digitization-charts-grid">
+          <div class="grid-card">
+            <h3 class="chart-box-title">TIẾN ĐỘ CÁC CÔNG ĐOẠN SỐ HÓA</h3>
+            <div class="staff-digitization-chart-placeholder">
+              <canvas id="cb-chart-tien-do"></canvas>
+            </div>
+          </div>
+
+          <div class="grid-card">
+            <h3 class="chart-box-title">TIẾN ĐỘ SỐ HÓA THEO ĐƠN VỊ</h3>
+            <div class="staff-digitization-chart-placeholder">
+              <canvas id="cb-chart-don-vi"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bảng chi tiết - Bước 1 chỉ tạo tìm kiếm và phần đầu bảng -->
+        <section class="grid-card">
+          <div class="table-header-row">
+            <h3 class="chart-box-title">CHI TIẾT SỐ HÓA HỒ SƠ CÁN BỘ THEO ĐƠN VỊ</h3>
+            <div class="table-actions">
+              <div class="search-box-wrapper">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                  type="text"
+                  id="cb-table-search"
+                  placeholder="Tìm kiếm theo tên đơn vị..."
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="table-scroll-wrapper staff-digitization-table-wrapper">
+            <table class="report-table staff-digitization-table">
+              <thead>
+                <tr>
+                  <th style="width: 55px">STT</th>
+                  <th>Đơn vị</th>
+                  <th>Số hồ sơ cần số hóa</th>
+                  <th>Đã chuẩn hóa</th>
+                  <th>Đã ký số</th>
+                  <th>Đã đưa lên phần mềm</th>
+                  <th>Tỷ lệ hoàn thành</th>
+                  <th>Cập nhật gần nhất</th>
+                </tr>
+              </thead>
+              <tbody id="cb-report-tbody"></tbody>
             </table>
           </div>
         </section>
