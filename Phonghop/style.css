@@ -655,29 +655,60 @@ body {
   z-index: 10;
 }
 
-/* TOOLTIP TỰ CO GIÃN THEO CHỮ */
-.seat-3d[data-tooltip]:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 125%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #0e3b83 !important;
-  color: #fff !important;
-  padding: 12px 16px !important;
-  line-height: 1.4 !important;
+/* ==========================================================================
+   TOOLTIP ĐẠI BIỂU - LỚP NỔI TOÀN MÀN HÌNH, KHÔNG BỊ CẮT Ở MÉP VIEWPORT
+   ========================================================================== */
+.seat-tooltip {
+  position: fixed;
+  z-index: 99999;
+  width: max-content;
+  min-width: 190px;
+  max-width: min(340px, calc(100vw - 20px));
+  padding: 10px 14px;
   border-radius: 6px;
-  font-size: 13px;
-  font-weight: bold;
-  z-index: 99999 !important;
-  pointer-events: none;
+  background: #0e3b83;
+  color: #ffffff;
   text-align: center;
-  white-space: pre-line !important;
-  min-width: 170px !important;
-  display: block !important;
-  height: auto !important;
-  max-height: none !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
+  line-height: 1.35;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(2px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.seat-tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* "Đồng chí" nhỏ hơn một chút theo yêu cầu. */
+.seat-tooltip-prefix {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 1px;
+  opacity: 0.94;
+}
+
+/* Họ và tên giữ đúng cỡ chữ tooltip cũ. */
+.seat-tooltip-name {
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* Chức vụ nhỏ hơn tên, tự xuống dòng đầy đủ khi nội dung dài. */
+.seat-tooltip-position {
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 /* ==========================================================================

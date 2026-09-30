@@ -294,7 +294,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     if (visibleDelegates.length === 0) {
-      renderEmptyRow(tableDanhSach, 5, "Chưa có đại biểu phù hợp với bộ lọc.");
+      renderEmptyRow(tableDanhSach, 6, "Chưa có đại biểu phù hợp với bộ lọc.");
       return;
     }
 
@@ -306,6 +306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td style="color:#d46b08;font-weight:700;">${escapeHtml(del.rank ?? "-")}</td>
         <td style="color:#2f80c8;font-weight:650;">${escapeHtml(label)}</td>
         <td style="font-weight:650;">${del.category === "Sở, ban, ngành" ? escapeHtml(del.name) : `Đ/c ${escapeHtml(del.name)}`}</td>
+        <td>${escapeHtml(del.position || "—")}</td>
         <td>
           <div class="action-buttons">
             <button class="btn-edit edit-del" data-id="${del.id}" type="button">Sửa</button>
@@ -328,6 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const idInput = document.getElementById("delegate-id");
   const nameInput = document.getElementById("fullname");
   const rankInput = document.getElementById("delegate-rank");
+  const positionInput = document.getElementById("delegate-position");
   const categoryInput = document.getElementById("delegate-category");
   const formTitle = document.getElementById("form-title");
   const cancelBtn = document.getElementById("cancel-btn");
@@ -338,6 +340,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const id = idInput.value;
     const name = nameInput.value.trim();
     const rank = parseInt(rankInput.value, 10);
+    const position = positionInput.value.trim().replace(/\s+/g, " ");
     const category = categoryInput.value;
 
     if (!name || !Number.isInteger(rank) || rank < 1 || !category) return;
@@ -355,9 +358,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       if (id) {
-        await updateDoc(doc(db, "delegates", id), { name, rank, category });
+        await updateDoc(doc(db, "delegates", id), { name, rank, position, category });
       } else {
-        await addDoc(delegatesCol, { name, rank, category });
+        await addDoc(delegatesCol, { name, rank, position, category });
       }
       resetDelegateForm();
       await showToast("Đã cập nhật danh sách tổng!");
@@ -374,6 +377,7 @@ document.addEventListener("DOMContentLoaded", () => {
     idInput.value = delegate.id;
     nameInput.value = delegate.name || "";
     rankInput.value = delegate.rank ?? "";
+    positionInput.value = delegate.position || "";
     categoryInput.value = delegate.category || "";
     formTitle.textContent = "Sửa Thông tin Đại biểu";
     cancelBtn.classList.remove("is-hidden");
@@ -820,7 +824,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
 
     if (visibleDelegates.length === 0) {
-      renderEmptyRow(tableVitri, 6, "Chưa có đại biểu phù hợp với bộ lọc.");
+      renderEmptyRow(tableVitri, 7, "Chưa có đại biểu phù hợp với bộ lọc.");
       return;
     }
 
@@ -833,6 +837,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <td style="color:#d46b08;font-weight:700;">${escapeHtml(del.rank ?? "-")}</td>
         <td style="color:#2f80c8;font-weight:650;">${escapeHtml(label)}</td>
         <td style="font-weight:650;">${del.category === "Sở, ban, ngành" ? escapeHtml(del.name) : `Đ/c ${escapeHtml(del.name)}`}</td>
+        <td>${escapeHtml(del.position || "—")}</td>
         <td><input type="text" class="seat-input" id="seat-${del.id}" value="${escapeHtml(currentSeat)}" placeholder="Không đi"></td>
         <td><button class="btn-update update-seat-btn" data-id="${del.id}" type="button">Cập nhật</button></td>
       `;

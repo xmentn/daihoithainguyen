@@ -277,6 +277,100 @@ document.addEventListener("DOMContentLoaded", () => {
   let globalConferences = [];
   let activeConfId = "";
 
+  // Tooltip dùng một lớp nổi gắn trực tiếp vào body để không bị cắt khi ghế nằm gần mép màn hình.
+  const seatTooltip = document.createElement("div");
+  seatTooltip.className = "seat-tooltip";
+  seatTooltip.setAttribute("role", "tooltip");
+  seatTooltip.setAttribute("aria-hidden", "true");
+  document.body.appendChild(seatTooltip);
+
+  function hideSeatTooltip() {
+    seatTooltip.classList.remove("is-visible");
+    seatTooltip.setAttribute("aria-hidden", "true");
+  }
+
+  function positionSeatTooltip(seat) {
+    const seatRect = seat.getBoundingClientRect();
+    const tooltipRect = seatTooltip.getBoundingClientRect();
+    const viewportPadding = 10;
+    const gap = 10;
+
+    let left = seatRect.left + seatRect.width / 2 - tooltipRect.width / 2;
+    left = Math.max(
+      viewportPadding,
+      Math.min(left, window.innerWidth - tooltipRect.width - viewportPadding),
+    );
+
+    let top = seatRect.top - tooltipRect.height - gap;
+
+    // Nếu phía trên không đủ chỗ (thường gặp ở hàng Chủ tọa), tự mở xuống dưới.
+    if (top < viewportPadding) {
+      top = seatRect.bottom + gap;
+    }
+
+    // Phòng trường hợp màn hình thấp: luôn giữ tooltip nằm hoàn toàn trong viewport.
+    top = Math.max(
+      viewportPadding,
+      Math.min(top, window.innerHeight - tooltipRect.height - viewportPadding),
+    );
+
+    seatTooltip.style.left = `${left}px`;
+    seatTooltip.style.top = `${top}px`;
+  }
+
+  function showSeatTooltip(seat) {
+    const name = String(seat.dataset.tooltipName || "").trim();
+    const prefix = String(seat.dataset.tooltipPrefix || "").trim();
+    const position = String(seat.dataset.tooltipPosition || "").trim();
+    if (!name) return;
+
+    seatTooltip.innerHTML = "";
+
+    if (prefix) {
+      const prefixEl = document.createElement("div");
+      prefixEl.className = "seat-tooltip-prefix";
+      prefixEl.textContent = prefix;
+      seatTooltip.appendChild(prefixEl);
+    }
+
+    const nameEl = document.createElement("div");
+    nameEl.className = "seat-tooltip-name";
+    nameEl.textContent = name;
+    seatTooltip.appendChild(nameEl);
+
+    if (position) {
+      const positionEl = document.createElement("div");
+      positionEl.className = "seat-tooltip-position";
+      positionEl.textContent = position;
+      seatTooltip.appendChild(positionEl);
+    }
+
+    seatTooltip.classList.add("is-visible");
+    seatTooltip.setAttribute("aria-hidden", "false");
+    positionSeatTooltip(seat);
+  }
+
+  function setSeatTooltip(seat, delegate, isAgency) {
+    const prefix = isAgency ? "" : "Đồng chí";
+    const name = String(delegate?.name || "").trim();
+    const position = String(delegate?.position || "").trim();
+
+    // Giữ data-tooltip dạng văn bản để chức năng tìm kiếm hiện tại tiếp tục tìm được
+    // theo họ tên, cơ quan/chức vụ mà không phải thay đổi thuật toán tìm kiếm.
+    seat.dataset.tooltip = [prefix, name, position].filter(Boolean).join("\n");
+    seat.dataset.tooltipPrefix = prefix;
+    seat.dataset.tooltipName = name;
+    seat.dataset.tooltipPosition = position;
+
+    seat.addEventListener("mouseenter", () => showSeatTooltip(seat));
+    seat.addEventListener("mouseleave", hideSeatTooltip);
+    seat.addEventListener("focus", () => showSeatTooltip(seat));
+    seat.addEventListener("blur", hideSeatTooltip);
+  }
+
+  window.addEventListener("scroll", hideSeatTooltip, true);
+  window.addEventListener("resize", hideSeatTooltip);
+
   onSnapshot(collection(db, "delegates"), (snapshot) => {
     globalDelegates = {};
     snapshot.forEach((docSnap) => {
@@ -439,9 +533,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (delInfo) {
         const seatCode = seatsMap[delId].toUpperCase();
         const item = {
+          id: delId,
           name: delInfo.name,
           seat: seatCode,
           category: delInfo.category || "",
+          position: delInfo.position || "",
         };
         if (seatCode.startsWith("V")) chairmanDelegates.push(item);
         else audienceDelegates.push(item);
@@ -489,10 +585,7 @@ document.addEventListener("DOMContentLoaded", () => {
           : `
     <div class="title-row" style="font-size: 11px; opacity: 0.9; margin-bottom: 1px;">Đ/c</div>
     <div class="name-row" style="font-weight: bold; font-size: 12px; line-height: 1.1;">${shortName}</div>`;
-        seat.setAttribute(
-          "data-tooltip",
-          isAgency ? del.name : `Đồng chí\n${del.name}`,
-        );
+        setSeatTooltip(seat, del, isAgency);
         slot.appendChild(seat);
         cChairs.appendChild(slot);
         const panel = document.createElement("div");
@@ -517,16 +610,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Mặc định thêm class có người ngồi
         seatEl.classList.add("has-delegate");
-        seatEl.setAttribute(
-          "data-tooltip",
-          isAgency ? del.name : `Đồng chí\n${del.name}`,
-        );
+        setSeatTooltip(seatEl, del, isAgency);
 
-        // Tìm lại thông tin gốc của đại biểu theo delId trong globalDelegates
-        const delId = Object.keys(globalDelegates).find(
-          (id) => globalDelegates[id].name === del.name,
-        );
-        const delRawInfo = delId ? globalDelegates[delId] : null;
+        // Dùng thẳng id đã có thay vì quét lại toàn bộ danh sách theo tên cho từng ghế.
+        // Cách này vừa nhanh hơn vừa tránh nhầm nếu có hai đại biểu trùng họ tên.
+        const delRawInfo = del.id ? globalDelegates[del.id] : null;
 
         if (delRawInfo) {
           // SỬA TẠI ĐÂY: Ưu tiên đọc chính xác trường "category" từ Firestore của bạn, sau đó mới đến các trường dự phòng

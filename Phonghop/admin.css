@@ -281,7 +281,7 @@ button:disabled {
 
 .delegate-main-fields {
   display: grid;
-  grid-template-columns: 130px minmax(260px, 1fr) minmax(240px, 0.8fr);
+  grid-template-columns: 100px minmax(220px, 0.9fr) minmax(280px, 1.15fr) minmax(190px, 0.8fr);
   gap: 14px;
   align-items: end;
 }
@@ -385,7 +385,11 @@ tbody tr:hover {
 }
 
 .col-category {
-  width: 205px;
+  width: 185px;
+}
+
+.col-position {
+  width: 260px;
 }
 
 .col-room {
@@ -499,7 +503,7 @@ tbody tr:hover {
     grid-template-columns: 1fr 1fr;
   }
 
-  .delegate-main-fields .category-field,
+  .delegate-main-fields .position-field,
   .conference-form-grid .field-name {
     grid-column: 1 / -1;
   }
@@ -526,7 +530,7 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 
-  .delegate-main-fields .category-field,
+  .delegate-main-fields .position-field,
   .conference-form-grid .field-name {
     grid-column: auto;
   }
