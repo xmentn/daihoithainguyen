@@ -87,9 +87,10 @@ body {
 
 .main-header .header-right {
   position: absolute !important;
-  top: 50% !important;
-  right: 30px !important;
-  transform: translateY(-50%) !important;
+  right: 24px !important;
+  bottom: 12px !important;
+  top: auto !important;
+  transform: none !important;
   z-index: 20;
 }
 
@@ -675,7 +676,9 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateY(2px);
-  transition: opacity 0.12s ease, transform 0.12s ease;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease;
 }
 
 .seat-tooltip.is-visible {
