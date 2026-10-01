@@ -701,3 +701,244 @@ nav {
   background: #0369a1;
   color: #ffffff;
 }
+/* ==================== BẢN ĐỒ TIẾN ĐỘ 92 XÃ, PHƯỜNG ==================== */
+.subunits-map-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+}
+
+.subunits-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 14px;
+}
+
+.subunits-map-title {
+  margin: 0;
+  color: #0056b3;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subunits-map-subtitle {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.subunits-map-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.subunits-map-filter label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.subunits-map-filter label i {
+  color: #0056b3;
+  margin-right: 3px;
+}
+
+.subunits-map-filter select {
+  height: 32px;
+  min-width: 170px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #0056b3;
+  font-size: 12.5px;
+  font-weight: 700;
+  padding: 0 30px 0 10px;
+  cursor: pointer;
+  outline: none;
+}
+
+.subunits-map-filter select:focus {
+  border-color: #0056b3;
+  box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.12);
+}
+
+#subunits-progress-map {
+  width: 100%;
+  height: 520px;
+  border: 1px solid #dbe4ee;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #eef3f8;
+  z-index: 1;
+}
+
+#subunits-progress-map .leaflet-control-zoom a {
+  color: #334155;
+}
+
+#subunits-progress-map .leaflet-tooltip {
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.13);
+  padding: 8px 10px;
+  color: #1e293b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.subunits-map-tooltip strong {
+  color: #0f172a;
+  font-size: 12.5px;
+}
+
+.subunits-map-popup {
+  min-width: 215px;
+  color: #334155;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.subunits-map-popup-title {
+  font-weight: 700;
+  color: #0056b3;
+  font-size: 13.5px;
+  padding-bottom: 7px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.subunits-map-popup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.subunits-map-popup-detail {
+  color: #64748b;
+  font-size: 11.5px;
+}
+
+.subunits-map-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #edf2f7;
+}
+
+.subunits-map-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subunits-map-legend-title {
+  color: #334155;
+  font-weight: 700;
+}
+
+.subunits-map-legend-title i {
+  color: #0056b3;
+}
+
+.subunits-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.subunits-map-color-box {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.map-color-green {
+  background: #16a34a;
+}
+
+.map-color-yellow {
+  background: #eab308;
+}
+
+.map-color-red {
+  background: #dc2626;
+}
+
+.subunits-map-mode {
+  color: #64748b;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.subunits-map-mode strong {
+  color: #0056b3;
+}
+
+.subunits-map-error {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #b91c1c;
+  background: #fef2f2;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .subunits-map-header,
+  .subunits-map-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .subunits-map-filter {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .subunits-map-filter select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  #subunits-progress-map {
+    height: 430px;
+  }
+
+  .subunits-map-mode {
+    white-space: normal;
+  }
+}

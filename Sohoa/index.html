@@ -7,6 +7,8 @@
   <title>Tiến độ Số hóa - VP Tỉnh ủy Thái Nguyên</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -238,6 +240,13 @@
           btnTinhUy.classList.remove("active-main-tab");
           secTinhUy.style.display = "none";
           secDangBo.style.display = "block";
+
+          // Bản đồ Leaflet cần được khởi tạo khi vùng chứa đã hiển thị
+          setTimeout(() => {
+            if (typeof window.ensureSubUnitsMap === "function") {
+              window.ensureSubUnitsMap();
+            }
+          }, 100);
         }
       };
 
@@ -309,6 +318,248 @@
 
       let globalFirebaseCache = {}; // Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
       let currentOrgUnitsCache = {}; // Lưu trữ bộ đệm động để đối chiếu Mã đơn vị -> Tên đơn vị khi lưu dữ liệu
+
+      // =========================================================================
+      // BẢN ĐỒ THEO DÕI TIẾN ĐỘ 92 ĐẢNG BỘ XÃ, PHƯỜNG
+      // =========================================================================
+      let subUnitsMap = null;
+      let subUnitsGeoLayer = null;
+      let subUnitsGeoJsonData = null;
+      let currentSubUnitsMapMetric = "chinhly";
+
+      // Chuẩn hóa tên để ghép "Đảng ủy xã/phường ..." trong Firestore với ten_xa trong GeoJSON.
+      const normalizeMapUnitName = (value) => {
+        return String(value || "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[đĐ]/g, "d")
+          .toLowerCase()
+          .replace(/^(dang uy|dang bo)\s+/i, "")
+          .replace(/^(xa|phuong)\s+/i, "")
+          .replace(/[^\p{L}\p{N}\s]/gu, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+      };
+
+      const parseMapNumber = (value) => {
+        if (value === null || value === undefined || value === "") return 0;
+        if (typeof value === "number") {
+          return Number.isFinite(value) && value >= 0 ? value : 0;
+        }
+
+        let clean = String(value).trim().replace(/\s/g, "");
+        if (clean.includes(",")) {
+          clean = clean.replace(/\./g, "").replace(",", ".");
+        } else if (/^\d{1,3}(\.\d{3})+$/.test(clean)) {
+          clean = clean.replace(/\./g, "");
+        }
+
+        const parsed = Number.parseFloat(clean);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      };
+
+      const buildSubUnitsMapDataIndex = () => {
+        const dataIndex = new Map();
+        Object.values(globalFirebaseCache).forEach((item) => {
+          const key = normalizeMapUnitName(item.name || item.unitName || "");
+          if (key) dataIndex.set(key, item);
+        });
+        return dataIndex;
+      };
+
+      const getSubUnitProgress = (item, metric) => {
+        if (!item) {
+          return { percent: 0, done: 0, total: 0, hasData: false };
+        }
+
+        const isChinhLy = metric === "chinhly";
+        const total = parseMapNumber(isChinhLy ? item.clTong : item.shTong);
+        const done = parseMapNumber(isChinhLy ? item.clXong : item.shMet);
+        const percent = total > 0 ? Math.min(100, Math.max(0, (done / total) * 100)) : 0;
+
+        return {
+          percent,
+          done,
+          total,
+          hasData: true,
+        };
+      };
+
+      const getSubUnitsMapColor = (percent) => {
+        if (percent >= 90) return "#16a34a";
+        if (percent >= 50) return "#eab308";
+        return "#dc2626";
+      };
+
+      const formatMapValue = (value) => {
+        return Number(value || 0).toLocaleString("vi-VN", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 1,
+        });
+      };
+
+      const refreshSubUnitsMap = () => {
+        if (!subUnitsGeoLayer) return;
+
+        const dataIndex = buildSubUnitsMapDataIndex();
+        const metricLabel =
+          currentSubUnitsMapMetric === "chinhly"
+            ? "Tiến độ chỉnh lý"
+            : "Tiến độ số hóa";
+
+        subUnitsGeoLayer.eachLayer((layer) => {
+          const props = layer.feature?.properties || {};
+          const communeName = props.ten_xa || "Chưa rõ";
+          const unitData = dataIndex.get(normalizeMapUnitName(communeName));
+          const progress = getSubUnitProgress(unitData, currentSubUnitsMapMetric);
+          const fillColor = getSubUnitsMapColor(progress.percent);
+
+          layer.setStyle({
+            fillColor,
+            fillOpacity: 0.82,
+            color: "#ffffff",
+            weight: 1.1,
+            opacity: 1,
+          });
+
+          const administrativeLabel = `${props.loai || "Xã/Phường"} ${communeName}`;
+          const percentText = `${progress.percent.toFixed(1).replace(".", ",")}%`;
+          const detailText = progress.hasData
+            ? `${formatMapValue(progress.done)} / ${formatMapValue(progress.total)} mét`
+            : "Chưa có dữ liệu báo cáo";
+
+          const tooltipHtml = `
+            <div class="subunits-map-tooltip">
+              <strong>${administrativeLabel}</strong><br>
+              <span>${metricLabel}: <b>${percentText}</b></span>
+            </div>
+          `;
+
+          const popupHtml = `
+            <div class="subunits-map-popup">
+              <div class="subunits-map-popup-title">${administrativeLabel}</div>
+              <div class="subunits-map-popup-row">
+                <span>${metricLabel}</span>
+                <strong style="color:${fillColor};">${percentText}</strong>
+              </div>
+              <div class="subunits-map-popup-detail">
+                ${progress.hasData ? `Đã hoàn thành / Tổng khối lượng: <b>${detailText}</b>` : detailText}
+              </div>
+            </div>
+          `;
+
+          if (layer.getTooltip()) {
+            layer.setTooltipContent(tooltipHtml);
+          } else {
+            layer.bindTooltip(tooltipHtml, {
+              sticky: true,
+              direction: "top",
+              opacity: 0.96,
+            });
+          }
+
+          if (layer.getPopup()) {
+            layer.setPopupContent(popupHtml);
+          } else {
+            layer.bindPopup(popupHtml, {
+              maxWidth: 300,
+            });
+          }
+        });
+
+        const metricText = document.getElementById("subunits-map-current-metric");
+        if (metricText) metricText.textContent = metricLabel;
+      };
+
+      window.ensureSubUnitsMap = async function () {
+        const mapElement = document.getElementById("subunits-progress-map");
+        if (!mapElement) return;
+
+        const metricSelect = document.getElementById("subunits-map-metric");
+        if (metricSelect && metricSelect.dataset.mapBound !== "1") {
+          metricSelect.dataset.mapBound = "1";
+          metricSelect.addEventListener("change", (event) => {
+            currentSubUnitsMapMetric =
+              event.target.value === "sohoa" ? "sohoa" : "chinhly";
+            refreshSubUnitsMap();
+          });
+        }
+
+        if (subUnitsMap) {
+          setTimeout(() => {
+            subUnitsMap.invalidateSize();
+            refreshSubUnitsMap();
+          }, 50);
+          return;
+        }
+
+        if (typeof L === "undefined") {
+          mapElement.innerHTML =
+            '<div class="subunits-map-error"><i class="fa-solid fa-triangle-exclamation"></i> Không tải được thư viện bản đồ Leaflet.</div>';
+          return;
+        }
+
+        subUnitsMap = L.map("subunits-progress-map", {
+          zoomControl: true,
+          attributionControl: false,
+          preferCanvas: true,
+          zoomSnap: 0.25,
+        });
+
+        try {
+          const response = await fetch("ThaiNguyen_xaphuong.geojson", {
+            cache: "no-store",
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+          }
+
+          subUnitsGeoJsonData = await response.json();
+
+          subUnitsGeoLayer = L.geoJSON(subUnitsGeoJsonData, {
+            style: {
+              fillColor: "#dc2626",
+              fillOpacity: 0.82,
+              color: "#ffffff",
+              weight: 1.1,
+              opacity: 1,
+            },
+            onEachFeature: (feature, layer) => {
+              layer.on({
+                mouseover: (event) => {
+                  event.target.setStyle({
+                    weight: 2.2,
+                    color: "#334155",
+                    fillOpacity: 0.94,
+                  });
+                  event.target.bringToFront();
+                },
+                mouseout: (event) => {
+                  if (subUnitsGeoLayer) {
+                    subUnitsGeoLayer.resetStyle(event.target);
+                    refreshSubUnitsMap();
+                  }
+                },
+              });
+            },
+          }).addTo(subUnitsMap);
+
+          const bounds = subUnitsGeoLayer.getBounds();
+          if (bounds.isValid()) {
+            subUnitsMap.fitBounds(bounds, {
+              padding: [12, 12],
+            });
+          }
+
+          refreshSubUnitsMap();
+        } catch (error) {
+          console.error("Lỗi tải bản đồ 92 xã, phường:", error);
+          mapElement.innerHTML =
+            '<div class="subunits-map-error"><i class="fa-solid fa-triangle-exclamation"></i> Không thể tải file ThaiNguyen_xaphuong.geojson. Hãy kiểm tra file này nằm cùng thư mục với index.html.</div>';
+        }
+      };
+
+      window.refreshSubUnitsMap = refreshSubUnitsMap;
 
       // Chờ toàn bộ trang và tệp mã nguồn js/dashboard.js nạp xong để có cấu hình Firebase App
       window.addEventListener("load", () => {
@@ -693,6 +944,9 @@
               "#e67e22",
             );
           }, 100);
+
+          // Đồng bộ màu sắc bản đồ theo dữ liệu realtime mới nhất.
+          refreshSubUnitsMap();
 
           // Giữ lại logic xử lý hiển thị khi không có hàng dữ liệu nào
           if (sttCounter === 1) {
@@ -1499,6 +1753,9 @@
             const item = docSnap.data();
             globalFirebaseCache[item.unitKey] = item;
           });
+
+          // Bản đồ sử dụng cùng bộ đệm dữ liệu, vì vậy có thể đổi màu ngay theo đợt lịch sử.
+          refreshSubUnitsMap();
 
           // Kích hoạt vẽ lại Ma trận bảng và Dashboard theo đúng số liệu đợt cũ đã chọn
           alert(`Đã chuyển sang chế độ xem lịch sử số liệu của: ${periodId}`);
@@ -2449,6 +2706,53 @@
 
     <!-- ================= VÙNG CHỨA 2: KHỐI NỘI DUNG CÁC ĐƠN VỊ TRỰC THUỘC (THIẾT KẾ PHÂN KHU TÁCH BIỆT) ================= -->
     <div id="section-dangbo-content" style="display: none; width: 100%">
+      <!-- ================= BẢN ĐỒ TIẾN ĐỘ 92 ĐẢNG BỘ XÃ, PHƯỜNG ================= -->
+      <section class="subunits-map-card">
+        <div class="subunits-map-header">
+          <div>
+            <h3 class="subunits-map-title">
+              <i class="fa-solid fa-map-location-dot"></i>
+              BẢN ĐỒ THEO DÕI TIẾN ĐỘ 92 ĐẢNG BỘ XÃ, PHƯỜNG
+            </h3>
+            <p class="subunits-map-subtitle">
+              Màu sắc được đồng bộ tự động từ số liệu báo cáo hiện có của các xã, phường.
+            </p>
+          </div>
+
+          <div class="subunits-map-filter">
+            <label for="subunits-map-metric">
+              <i class="fa-solid fa-layer-group"></i> Hiển thị:
+            </label>
+            <select id="subunits-map-metric">
+              <option value="chinhly">Tiến độ chỉnh lý</option>
+              <option value="sohoa">Tiến độ số hóa</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="subunits-progress-map" aria-label="Bản đồ tiến độ 92 xã, phường tỉnh Thái Nguyên"></div>
+
+        <div class="subunits-map-footer">
+          <div class="subunits-map-legend" aria-label="Chú giải bản đồ">
+            <span class="subunits-map-legend-title">
+              <i class="fa-solid fa-circle-info"></i> Chú giải:
+            </span>
+            <span class="subunits-map-legend-item">
+              <i class="subunits-map-color-box map-color-green"></i> Đạt ≥ 90%
+            </span>
+            <span class="subunits-map-legend-item">
+              <i class="subunits-map-color-box map-color-yellow"></i> Từ 50% đến &lt; 90%
+            </span>
+            <span class="subunits-map-legend-item">
+              <i class="subunits-map-color-box map-color-red"></i> Dưới 50%
+            </span>
+          </div>
+          <div class="subunits-map-mode">
+            Đang xem: <strong id="subunits-map-current-metric">Tiến độ chỉnh lý</strong>
+          </div>
+        </div>
+      </section>
+
       <!-- Sử dụng Grid CSS chia hai phần: Trái (Dashboard) | Phải (Bảng ma trận) -->
       <div style="
             display: grid;
