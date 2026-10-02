@@ -294,11 +294,26 @@ document.addEventListener("DOMContentLoaded", () => {
   seatTooltip.setAttribute("aria-hidden", "true");
   document.body.appendChild(seatTooltip);
 
+  // Hiệu ứng phản hồi khi ghế được tap trên thiết bị cảm ứng.
+  // Chèn tại đây để bản vá chỉ cần thay script.js, không bắt buộc sửa style.css.
+  const tooltipTouchStyle = document.createElement("style");
+  tooltipTouchStyle.textContent = `
+    .seat-3d.tooltip-active {
+      transform: scale(1.15);
+      z-index: 10;
+    }
+  `;
+  document.head.appendChild(tooltipTouchStyle);
+
   let activeTooltipSeat = null;
 
   function hideSeatTooltip() {
     seatTooltip.classList.remove("is-visible", "is-below");
     seatTooltip.setAttribute("aria-hidden", "true");
+
+    if (activeTooltipSeat) {
+      activeTooltipSeat.classList.remove("tooltip-active");
+    }
     activeTooltipSeat = null;
 
     // Đưa tooltip về body khi ẩn để việc render/reset innerHTML của ghế
@@ -365,8 +380,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Gắn tooltip trực tiếp vào ghế trước khi đo và hiển thị.
     // Nhờ đó khi người dùng pinch-zoom/pan, tooltip luôn dịch chuyển cùng ghế.
+    if (activeTooltipSeat && activeTooltipSeat !== seat) {
+      activeTooltipSeat.classList.remove("tooltip-active");
+    }
+
     seat.appendChild(seatTooltip);
     activeTooltipSeat = seat;
+    seat.classList.add("tooltip-active");
     seatTooltip.classList.add("is-visible");
     seatTooltip.setAttribute("aria-hidden", "false");
     positionSeatTooltip(seat);
@@ -384,47 +404,89 @@ document.addEventListener("DOMContentLoaded", () => {
     seat.dataset.tooltipName = name;
     seat.dataset.tooltipPosition = position;
 
+    // Cho phép điều khiển bằng bàn phím nhưng không phụ thuộc vào focus để xử lý cảm ứng.
     seat.tabIndex = 0;
+    seat.setAttribute("role", "button");
+    seat.setAttribute("aria-label", [prefix, name, position].filter(Boolean).join(" - "));
 
+    // Desktop/laptop có chuột.
     seat.onmouseenter = () => showSeatTooltip(seat);
-
     seat.onmouseleave = () => {
-      // Chỉ tự ẩn khi thiết bị thực sự sử dụng chuột.
-      // Tránh iPhone/iPad phát sinh mouseleave giả sau khi chạm.
       if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
         hideSeatTooltip();
       }
     };
 
+    // Bàn phím/accessibility.
     seat.onfocus = () => showSeatTooltip(seat);
-    seat.onblur = hideSeatTooltip;
-
-    // iPhone/iPad và thiết bị cảm ứng hiện đại
-    seat.onpointerup = (event) => {
-      if (event.pointerType === "touch" || event.pointerType === "pen") {
-        event.stopPropagation();
-        showSeatTooltip(seat);
+    seat.onblur = () => {
+      // Safari iOS có thể focus/blur rất nhanh sau một lần tap.
+      // Không dùng blur để đóng tooltip trên thiết bị cảm ứng.
+      if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        hideSeatTooltip();
       }
     };
-
-    // Fallback cho Safari/iOS
-    seat.ontouchend = (event) => {
-      event.stopPropagation();
-      showSeatTooltip(seat);
-    };
-
-    // Fallback thêm cho Safari
-    seat.onclick = (event) => {
-      event.stopPropagation();
-      showSeatTooltip(seat);
-    };
   }
-  // Chạm/click ra ngoài ghế thì đóng tooltip
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest(".seat-3d[data-tooltip]")) {
+
+  // --------------------------------------------------------------------------
+  // HỖ TRỢ TAP TRÊN iPHONE / iPAD
+  // Dùng event delegation ở document (capture phase) thay vì phụ thuộc vào
+  // mouseenter/click của từng div ghế. Cách này ổn định hơn trên Safari iOS,
+  // kể cả khi trang đang pinch-zoom hoặc phần tử con trong ghế nhận sự kiện.
+  // --------------------------------------------------------------------------
+  function getSeatFromEventTarget(target) {
+    if (!(target instanceof Element)) return null;
+    return target.closest(".seat-3d[data-tooltip]");
+  }
+
+  function activateSeatFromEvent(event) {
+    const seat = getSeatFromEventTarget(event.target);
+    if (!seat) return false;
+
+    showSeatTooltip(seat);
+    return true;
+  }
+
+  if ("PointerEvent" in window) {
+    document.addEventListener(
+      "pointerdown",
+      (event) => {
+        if (event.pointerType === "touch" || event.pointerType === "pen") {
+          activateSeatFromEvent(event);
+        }
+      },
+      true,
+    );
+  } else {
+    // Fallback cho các bản Safari/iOS cũ chưa hỗ trợ PointerEvent đầy đủ.
+    document.addEventListener(
+      "touchstart",
+      (event) => {
+        if (event.touches && event.touches.length === 1) {
+          activateSeatFromEvent(event);
+        }
+      },
+      { capture: true, passive: true },
+    );
+  }
+
+  // Click dùng cho desktop và cũng là lớp fallback cuối cùng trên Safari.
+  document.addEventListener(
+    "click",
+    (event) => {
+      const seat = getSeatFromEventTarget(event.target);
+
+      if (seat) {
+        showSeatTooltip(seat);
+        return;
+      }
+
+      // Click/tap ra ngoài ghế thì đóng tooltip.
       hideSeatTooltip();
-    }
-  });
+    },
+    true,
+  );
+
   // Khi viewport thay đổi do cuộn/zoom, không ẩn tooltip ngay mà chỉ
   // tính lại hướng mở. Vì tooltip đã neo vào ghế nên vị trí vẫn bám chính xác.
   function refreshActiveTooltipPosition() {
