@@ -6,6 +6,8 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  getDocs,
+  where,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
   onAuthStateChanged,
@@ -77,56 +79,180 @@ function checkUserStatus() {
   });
 }
 
-function loadDashboardData() {
-  checkUserStatus();
+function timestampToMillis(value) {
+  if (!value) return 0;
+  if (typeof value.toMillis === "function") return value.toMillis();
+  if (typeof value.toDate === "function") return value.toDate().getTime();
+  const parsed = new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
 
-  const historyQuery = query(
-    collection(db, "progress_history"),
-    orderBy("timestamp", "asc"),
-  );
+let campaignConfigMap = {};
+let historyLoadToken = 0;
+let unsubscribeCurrentState = null;
 
-  onSnapshot(historyQuery, (querySnapshot) => {
+async function loadSelectedCampaignHistory(campaignName) {
+  if (!campaignName) return;
+
+  const token = ++historyLoadToken;
+  try {
+    // Chỉ đọc lịch sử của đúng đợt đang xem, thay vì đọc toàn bộ progress_history.
+    // Không orderBy trên Firestore để tránh phát sinh yêu cầu composite index; sắp xếp ở client.
+    const historyQuery = query(
+      collection(db, "progress_history"),
+      where("campaignName", "==", campaignName),
+    );
+    const querySnapshot = await getDocs(historyQuery);
+    if (token !== historyLoadToken) return;
+
     allLogs = [];
-    const campaignSet = new Set();
-
     querySnapshot.forEach((docSnap) => {
       const log = docSnap.data();
       log.id = docSnap.id;
       allLogs.push(log);
-      if (log.campaignName) campaignSet.add(log.campaignName);
     });
 
-    const selectBox = document.getElementById("select-campaign");
-    if (!selectBox) return;
-    const currentSelection = selectBox.value;
-    selectBox.innerHTML = "";
+    allLogs.sort((a, b) => timestampToMillis(a.timestamp) - timestampToMillis(b.timestamp));
 
-    if (campaignSet.size === 0) {
-      selectBox.innerHTML = "<option value=''>Chưa có đợt dữ liệu nào</option>";
+    if (allLogs.length === 0) {
+      currentFilteredLogs = [];
+      const cfg = campaignConfigMap[campaignName] || {};
+      renderStateData({
+        campaignName,
+        tongChinhLy: Number(cfg.tongChinhLy || 0),
+        tongSoCanScan: Number(cfg.tongSoCanScan || 0),
+        chinhLyDaXong: 0,
+        currentStep: 0,
+        dateLabel: "Chưa có báo cáo",
+      });
+      updateTrendChart([], [], [], [], []);
+
+      const slider = document.getElementById("timelineRange");
+      if (slider) {
+        slider.min = 0;
+        slider.max = 0;
+        slider.value = 0;
+        slider.disabled = true;
+      }
+      const txtStart = document.getElementById("txt-slider-start");
+      const txtEnd = document.getElementById("txt-slider-end");
+      const txtStatus = document.getElementById("txt-slider-date-status");
+      if (txtStart) txtStart.innerText = "Chưa có dữ liệu";
+      if (txtEnd) txtEnd.innerText = "Chưa có dữ liệu";
+      if (txtStatus) txtStatus.innerText = "Đợt này chưa có báo cáo tiến độ";
       return;
     }
 
-    campaignSet.forEach((camp) => {
-      const opt = document.createElement("option");
-      opt.value = camp;
-      opt.innerText = camp;
-      selectBox.appendChild(opt);
+    setupCampaignView(campaignName);
+  } catch (error) {
+    console.error("Lỗi tải lịch sử đợt số hóa:", error);
+  }
+}
+
+function mergeCurrentStateIntoLoadedHistory(data) {
+  if (!data || !data.campaignName) return;
+  const selectBox = document.getElementById("select-campaign");
+  if (!selectBox || selectBox.value !== data.campaignName) return;
+
+  const incomingMillis = timestampToMillis(data.timestamp);
+  let existingIndex = allLogs.findIndex((log) => {
+    const sameTimestamp = incomingMillis > 0 && timestampToMillis(log.timestamp) === incomingMillis;
+    const sameDate = data.dateLabel && log.dateLabel === data.dateLabel;
+    return sameTimestamp || sameDate;
+  });
+
+  if (existingIndex >= 0) {
+    const oldId = allLogs[existingIndex].id;
+    allLogs[existingIndex] = { ...allLogs[existingIndex], ...data, id: oldId };
+  } else {
+    allLogs.push({ ...data, id: "__current_state__" });
+  }
+
+  allLogs.sort((a, b) => timestampToMillis(a.timestamp) - timestampToMillis(b.timestamp));
+  setupCampaignView(data.campaignName);
+}
+
+function startCurrentStateRealtime() {
+  if (unsubscribeCurrentState) return;
+  unsubscribeCurrentState = onSnapshot(
+    doc(db, "progress", "current_state"),
+    (docSnap) => {
+      if (!docSnap.exists()) return;
+      mergeCurrentStateIntoLoadedHistory(docSnap.data());
+    },
+    (error) => {
+      console.error("Lỗi đồng bộ trạng thái hiện tại:", error);
+    },
+  );
+}
+
+window.setTinhUyDashboardActive = function (isActive) {
+  if (isActive) {
+    startCurrentStateRealtime();
+  } else if (unsubscribeCurrentState) {
+    unsubscribeCurrentState();
+    unsubscribeCurrentState = null;
+  }
+};
+
+async function loadDashboardData() {
+  checkUserStatus();
+
+  const selectBox = document.getElementById("select-campaign");
+  if (!selectBox) return;
+
+  try {
+    // Danh sách đợt chỉ là metadata nhỏ: đọc một lần khi mở trang.
+    const campaignSnapshot = await getDocs(collection(db, "campaigns"));
+    const campaigns = [];
+    campaignConfigMap = {};
+
+    campaignSnapshot.forEach((docSnap) => {
+      if (docSnap.id === "lock_config") return;
+      const camp = docSnap.data();
+      if (!camp.campaignName) return;
+      campaignConfigMap[camp.campaignName] = {
+        tongChinhLy: Number(camp.tongChinhLy || 0),
+        tongSoCanScan: Number(camp.tongSoCanScan || 0),
+      };
+      campaigns.push({
+        name: camp.campaignName,
+        timestamp: timestampToMillis(camp.timestamp),
+      });
     });
 
-    if (currentSelection && campaignSet.has(currentSelection)) {
-      selectBox.value = currentSelection;
+    campaigns.sort((a, b) => a.timestamp - b.timestamp);
+    const currentSelection = selectBox.value;
+    selectBox.innerHTML = "";
+
+    if (campaigns.length === 0) {
+      selectBox.innerHTML = "<option value=''>Chưa có đợt dữ liệu nào</option>";
     } else {
-      selectBox.value = Array.from(campaignSet).pop();
+      campaigns.forEach((camp) => {
+        const opt = document.createElement("option");
+        opt.value = camp.name;
+        opt.innerText = camp.name;
+        selectBox.appendChild(opt);
+      });
+
+      const hasCurrentSelection = campaigns.some((camp) => camp.name === currentSelection);
+      selectBox.value = hasCurrentSelection
+        ? currentSelection
+        : campaigns[campaigns.length - 1].name;
+
+      await loadSelectedCampaignHistory(selectBox.value);
     }
+  } catch (error) {
+    console.error("Lỗi tải danh sách đợt số hóa:", error);
+  }
 
-    setupCampaignView(selectBox.value);
+  selectBox.addEventListener("change", async (e) => {
+    await loadSelectedCampaignHistory(e.target.value);
   });
 
-  document.getElementById("select-campaign").addEventListener("change", (e) => {
-    setupCampaignView(e.target.value);
-  });
+  // Chỉ giữ realtime cho 1 document trạng thái hiện tại khi tab Văn phòng Tỉnh ủy đang hoạt động.
+  startCurrentStateRealtime();
 
-  // ĐỒNG BỘ: ĐƯA BỘ LẮNG NGHE KHỞI TẠO RA VÙNG TOÀN CỤC AN TOÀN NHẤT
   const slider = document.getElementById("timelineRange");
   if (slider) {
     slider.addEventListener("input", (e) => {
@@ -136,13 +262,11 @@ function loadDashboardData() {
       const selectedLog = currentFilteredLogs[index];
       const isLatest = index === currentFilteredLogs.length - 1;
 
-      // Cập nhật nhãn thời gian phản hồi tức thì để người dùng biết đang kéo đến ngày nào
       const statusTxt = document.getElementById("txt-slider-date-status");
       if (statusTxt) {
         statusTxt.innerText = `Đang xem ngày: ${selectedLog.dateLabel} ${isLatest ? "(Mới nhất)" : "(Cũ hơn)"}`;
       }
 
-      // Cơ chế hoãn (Debounce) mượt mà: Dừng hẳn kéo sau 400ms mới dựng lại dữ liệu
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         renderStateData(selectedLog);

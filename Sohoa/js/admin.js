@@ -11,7 +11,7 @@ import {
   updateDoc,
   deleteDoc,
   getDocs,
-  where,
+  limit,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
   onAuthStateChanged,
@@ -42,6 +42,7 @@ window.showInstructions = function () {
 };
 
 let campaignsConfigMap = {};
+let latestProgressByCampaignMap = {};
 
 function setupTab4TimeManagement() {
   onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
@@ -109,35 +110,26 @@ window.saveLockConfig = async function (event) {
   }
 };
 
-async function setupAdminData() {
-  const today = new Date();
-  if (document.getElementById("input-date")) {
-    document.getElementById("input-date").value =
-      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  }
-
-  setupTab4TimeManagement();
-
-  // 1. LẮNG NGHE DANH SÁCH ĐỢT SỐ HÓA
+async function loadCampaignsAdminTable() {
   const campQuery = query(collection(db, "campaigns"), orderBy("timestamp", "desc"));
-  onSnapshot(campQuery, (querySnapshot) => {
-    const campTableBody = document.getElementById("campaign-table-body");
-    if (campTableBody) campTableBody.innerHTML = "";
-    campaignsConfigMap = {};
+  const querySnapshot = await getDocs(campQuery);
+  const campTableBody = document.getElementById("campaign-table-body");
+  if (campTableBody) campTableBody.innerHTML = "";
+  campaignsConfigMap = {};
 
-    querySnapshot.forEach((docSnap) => {
-      if (docSnap.id === "lock_config") return; // Bỏ qua bản ghi thời gian
-      const camp = docSnap.data();
-      const campId = docSnap.id;
+  querySnapshot.forEach((docSnap) => {
+    if (docSnap.id === "lock_config") return;
+    const camp = docSnap.data();
+    const campId = docSnap.id;
 
-      campaignsConfigMap[camp.campaignName] = {
-        tongChinhLy: camp.tongChinhLy || 0,
-        tongSoCanScan: camp.tongSoCanScan || 0,
-      };
+    campaignsConfigMap[camp.campaignName] = {
+      tongChinhLy: camp.tongChinhLy || 0,
+      tongSoCanScan: camp.tongSoCanScan || 0,
+    };
 
-      const row = document.createElement("tr");
-      row.style.borderBottom = "1px solid #f1f5f9";
-      row.innerHTML = `
+    const row = document.createElement("tr");
+    row.style.borderBottom = "1px solid #f1f5f9";
+    row.innerHTML = `
         <td style="padding: 10px; font-weight: 600; color: #1e293b;">${camp.campaignName}</td>
         <td style="padding: 10px;">${camp.tongChinhLy} m</td>
         <td style="padding: 10px;">${(camp.tongSoCanScan || 0).toLocaleString()} tr</td>
@@ -146,24 +138,31 @@ async function setupAdminData() {
             <button onclick="deleteCamp('${campId}', '${camp.campaignName}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
         </td>
       `;
-      if (campTableBody) campTableBody.appendChild(row);
-    });
-    updateCampaignSelectOptions();
+    if (campTableBody) campTableBody.appendChild(row);
   });
 
-  // 2. LẮNG NGHE LỊCH SỬ TIẾN ĐỘ
+  updateCampaignSelectOptions();
+}
+
+async function loadProgressHistoryAdminTable() {
   const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "desc"));
-  onSnapshot(historyQuery, (querySnapshot) => {
-    const tableBody = document.getElementById("history-table-body");
-    if (tableBody) tableBody.innerHTML = "";
+  const querySnapshot = await getDocs(historyQuery);
+  const tableBody = document.getElementById("history-table-body");
+  if (tableBody) tableBody.innerHTML = "";
+  latestProgressByCampaignMap = {};
 
-    querySnapshot.forEach((docSnap) => {
-      const log = docSnap.data();
-      const docId = docSnap.id;
+  querySnapshot.forEach((docSnap) => {
+    const log = docSnap.data();
+    const docId = docSnap.id;
 
-      const row = document.createElement("tr");
-      row.style.borderBottom = "1px solid #f1f5f9";
-      row.innerHTML = `
+    // Query đang sắp xếp mới nhất -> cũ nhất nên bản ghi đầu tiên của mỗi đợt là bản mới nhất.
+    if (log.campaignName && !latestProgressByCampaignMap[log.campaignName]) {
+      latestProgressByCampaignMap[log.campaignName] = log;
+    }
+
+    const row = document.createElement("tr");
+    row.style.borderBottom = "1px solid #f1f5f9";
+    row.innerHTML = `
         <td style="padding: 10px; font-weight: 600; color: #1e293b;">${log.campaignName || "Chưa rõ"}<br><small style='color:#64748b;font-weight:500;'>${log.dateLabel}</small></td>
         <td style="padding: 10px; font-size: 12px;">${log.officerInCharge || "--"}</td>
         <td style="padding: 10px;">${log.chinhLyDaXong || 0} m</td>
@@ -172,9 +171,45 @@ async function setupAdminData() {
             <button onclick="deleteProgress('${docId}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
         </td>
       `;
-      if (tableBody) tableBody.appendChild(row);
-    });
+    if (tableBody) tableBody.appendChild(row);
   });
+}
+
+async function syncCurrentStateFromLatestHistory() {
+  try {
+    const latestQuery = query(
+      collection(db, "progress_history"),
+      orderBy("timestamp", "desc"),
+      limit(1),
+    );
+    const latestSnapshot = await getDocs(latestQuery);
+    if (!latestSnapshot.empty) {
+      await setDoc(doc(db, "progress", "current_state"), latestSnapshot.docs[0].data());
+    }
+  } catch (error) {
+    console.error("Lỗi đồng bộ trạng thái hiện tại:", error);
+  }
+}
+
+async function setupAdminData() {
+  const today = new Date();
+  if (document.getElementById("input-date")) {
+    document.getElementById("input-date").value =
+      `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  }
+
+  // Realtime chỉ giữ cho cấu hình đóng/mở cổng vì đây là tín hiệu nhỏ và cần phản ánh tức thời.
+  setupTab4TimeManagement();
+
+  // Hai bảng quản trị chỉ đọc một lần. Sau thao tác tạo/sửa/xóa sẽ chủ động tải lại đúng bảng liên quan.
+  try {
+    await Promise.all([
+      loadCampaignsAdminTable(),
+      loadProgressHistoryAdminTable(),
+    ]);
+  } catch (error) {
+    console.error("Lỗi tải dữ liệu quản trị:", error);
+  }
 }
 
 function updateCampaignSelectOptions() {
@@ -204,7 +239,7 @@ function updateCampaignSelectOptions() {
 }
 
 if (document.getElementById("input-campaign-name")) {
-  document.getElementById("input-campaign-name").addEventListener("change", async (e) => {
+  document.getElementById("input-campaign-name").addEventListener("change", (e) => {
     const campaignName = e.target.value;
     if (!campaignName) return;
 
@@ -214,28 +249,13 @@ if (document.getElementById("input-campaign-name")) {
     if (document.getElementById("input-sh-phanmem")) document.getElementById("input-sh-phanmem").value = "";
 
     try {
-      const campQ = query(collection(db, "campaigns"), where("campaignName", "==", campaignName));
-      const campSnapshot = await getDocs(campQ);
+      // Dùng cache đã tải khi mở trang quản trị, không truy vấn Firestore lại mỗi lần đổi dropdown.
+      const config = campaignsConfigMap[campaignName] || { tongChinhLy: 0, tongSoCanScan: 0 };
+      const chiTieuMet = Number(config.tongChinhLy || 0);
+      const chiTieuTrang = Number(config.tongSoCanScan || 0);
+      const latestLog = latestProgressByCampaignMap[campaignName];
 
-      let chiTieuMet = 0;
-      let chiTieuTrang = 0;
-
-      if (!campSnapshot.empty) {
-        const campData = campSnapshot.docs[0].data();
-        chiTieuMet = Number(campData.tongChinhLy || 0);
-        chiTieuTrang = Number(campData.tongSoCanScan || 0);
-      } else {
-        const fallbackConfig = campaignsConfigMap[campaignName] || { tongChinhLy: 0, tongSoCanScan: 0 };
-        chiTieuMet = Number(fallbackConfig.tongChinhLy);
-        chiTieuTrang = Number(fallbackConfig.tongSoCanScan);
-      }
-
-      const q = query(collection(db, "progress_history"), where("campaignName", "==", campaignName), orderBy("timestamp", "desc"));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const latestLog = querySnapshot.docs[0].data();
-
+      if (latestLog) {
         const dataMap = {
           "input-cl-xong": [Number(latestLog.chinhLyDaXong || 0), chiTieuMet],
           "input-sh-scan": [Number(latestLog.soHoaDaScan || 0), chiTieuTrang],
@@ -246,7 +266,7 @@ if (document.getElementById("input-campaign-name")) {
           "input-sh-kyso": [Number(latestLog.soHoaKySo || 0), chiTieuTrang],
           "input-sh-nendulieu": [Number(latestLog.soHoaNenDuLieu || 0), chiTieuTrang],
           "input-sh-phanmem": [Number(latestLog.soHoaPhanMem || 0), chiTieuTrang],
-          "input-sh-bangiao": [Number(latestLog.soHoaBanGiao || 0), chiTieuTrang]
+          "input-sh-bangiao": [Number(latestLog.soHoaBanGiao || 0), chiTieuTrang],
         };
 
         for (const [elementId, [actualValue, targetValue]] of Object.entries(dataMap)) {
@@ -292,6 +312,7 @@ window.saveCampaignConfig = async function (e) {
       Swal.fire({ title: "Thành công", text: `Đã khởi tạo đợt số hóa mới: "${campaignName}"`, icon: "success", confirmButtonColor: "#0056b3" });
     }
     resetCampForm();
+    await loadCampaignsAdminTable();
   } catch (err) {
     Swal.fire({ title: "Lỗi kết nối", text: err.message, icon: "error", confirmButtonColor: "#dc2626" });
   }
@@ -349,6 +370,7 @@ window.deleteCamp = async (campId, campName) => {
     if (result.isConfirmed) {
       try {
         await deleteDoc(doc(db, "campaigns", campId));
+        await loadCampaignsAdminTable();
         Swal.fire({ title: "Đã xóa", text: `Gỡ bỏ thành công đợt "${campName}".`, icon: "success", confirmButtonColor: "#0056b3" });
       } catch (e) {
         Swal.fire({ title: "Lỗi", text: e.message, icon: "error" });
@@ -415,7 +437,7 @@ window.updateData = async (e) => {
       await addDoc(collection(db, "progress_history"), updatePayload);
       await Swal.fire({ title: "Hoàn tất", text: `Lưu số liệu tiến độ ngày ${dateLabel} thành công.`, icon: "success", confirmButtonColor: "#0056b3" });
     }
-    await setDoc(doc(db, "progress", "current_state"), updatePayload);
+    await syncCurrentStateFromLatestHistory();
     window.location.href = "index.html";
   } catch (error) {
     if (btnSave) { btnSave.innerHTML = originalText; btnSave.disabled = false; }
@@ -496,6 +518,8 @@ window.deleteProgress = async (docId) => {
     if (result.isConfirmed) {
       try {
         await deleteDoc(doc(db, "progress_history", docId));
+        await syncCurrentStateFromLatestHistory();
+        await loadProgressHistoryAdminTable();
         Swal.fire({ title: "Hoàn tất", text: "Đã xóa bản ghi tiến độ.", icon: "success", confirmButtonColor: "#0056b3" });
       } catch (e) {
         Swal.fire({ title: "Lỗi hệ thống", text: e.message, icon: "error" });

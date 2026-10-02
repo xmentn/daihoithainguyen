@@ -235,13 +235,25 @@
           btnDangBo.classList.remove("active-main-tab");
           secTinhUy.style.display = "block";
           secDangBo.style.display = "none";
+          if (typeof window.setTinhUyDashboardActive === "function") {
+            window.setTinhUyDashboardActive(true);
+          }
         } else if (tabName === "dangbo") {
           btnDangBo.classList.add("active-main-tab");
           btnTinhUy.classList.remove("active-main-tab");
           secTinhUy.style.display = "none";
           secDangBo.style.display = "block";
+          if (typeof window.setTinhUyDashboardActive === "function") {
+            window.setTinhUyDashboardActive(false);
+          }
 
-          // Bản đồ Leaflet cần được khởi tạo khi vùng chứa đã hiển thị
+          // Chỉ khởi tạo luồng Firebase của khối đơn vị khi người dùng thực sự mở tab này.
+          // Tránh đọc SubUnitsData/lock_config khi người dùng chỉ xem Văn phòng Tỉnh ủy.
+          if (typeof window.initSubUnitsData === "function") {
+            window.initSubUnitsData();
+          }
+
+          // Bản đồ Leaflet cần được khởi tạo khi vùng chứa đã hiển thị.
           setTimeout(() => {
             if (typeof window.ensureSubUnitsMap === "function") {
               window.ensureSubUnitsMap();
@@ -278,7 +290,11 @@
           : "0";
       };
 
-      window.openSubUnitModal = function () {
+      window.openSubUnitModal = async function () {
+        if (typeof window.ensureOrganizationUnitsLoaded === "function") {
+          await window.ensureOrganizationUnitsLoaded();
+        }
+
         const modalForm = document.querySelector("#subUnitModal form");
         if (modalForm) {
           modalForm.reset();
@@ -307,17 +323,76 @@
     <!-- ĐOẠN 2: SCRIPT MODULE - XỬ LÝ ĐỒNG BỘ FIREBASE ĐỘNG + TỰ ĐỘNG ĐIỀN LẠI SỐ LIỆU CŨ -->
     <script type="module">
       import {
-        getFirestore,
         doc,
-        getDoc,
         setDoc,
         onSnapshot,
         collection,
         getDocs,
+        query,
+        where,
       } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+      import { db } from "./js/firebase-config.js";
 
       let globalFirebaseCache = {}; // Lưu trữ dữ liệu thực tế từ Firebase để phục vụ cơ chế tự động điền (Auto-fill)
-      let currentOrgUnitsCache = {}; // Lưu trữ bộ đệm động để đối chiếu Mã đơn vị -> Tên đơn vị khi lưu dữ liệu
+      let currentOrgUnitsCache = {}; // Bộ đệm Mã đơn vị -> Tên đơn vị
+      let currentOrgUnitsList = []; // Danh mục đơn vị đã đọc một lần, tái sử dụng cho modal/đối soát
+      let organizationUnitsLoaded = false;
+      let organizationUnitsLoadPromise = null;
+      let subUnitsFirebaseStarted = false;
+      let subUnitsInitPromise = null;
+      let currentSubUnitsLockConfig = { startTime: null, endTime: null };
+
+      async function ensureOrganizationUnitsLoaded() {
+        if (organizationUnitsLoaded) return currentOrgUnitsList;
+        if (organizationUnitsLoadPromise) return organizationUnitsLoadPromise;
+
+        organizationUnitsLoadPromise = (async () => {
+          const dynamicUnitSelect = document.getElementById("pop-unit-select");
+          const orgSnapshot = await getDocs(collection(db, "organization_units"));
+          const rawUnits = [];
+          currentOrgUnitsCache = {};
+
+          orgSnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (!data.unitName) return;
+            const unit = {
+              key: docSnap.id,
+              name: data.unitName,
+              stt: data.stt || 999,
+            };
+            rawUnits.push(unit);
+            currentOrgUnitsCache[unit.key] = unit.name;
+          });
+
+          rawUnits.sort((a, b) => a.stt - b.stt);
+          currentOrgUnitsList = rawUnits;
+          organizationUnitsLoaded = true;
+
+          if (dynamicUnitSelect) {
+            dynamicUnitSelect.innerHTML = '<option value="">-- Chọn đơn vị cần cập nhật --</option>';
+            rawUnits.forEach((unit) => {
+              const opt = document.createElement("option");
+              opt.value = unit.key;
+              opt.textContent = unit.name;
+              dynamicUnitSelect.appendChild(opt);
+            });
+          }
+
+          return currentOrgUnitsList;
+        })();
+
+        try {
+          return await organizationUnitsLoadPromise;
+        } catch (error) {
+          organizationUnitsLoaded = false;
+          console.error("Lỗi nạp danh sách cơ quan vào dropdown modal:", error);
+          return [];
+        } finally {
+          organizationUnitsLoadPromise = null;
+        }
+      }
+
+      window.ensureOrganizationUnitsLoaded = ensureOrganizationUnitsLoaded;
 
       // =========================================================================
       // BẢN ĐỒ THEO DÕI TIẾN ĐỘ 92 ĐẢNG BỘ XÃ, PHƯỜNG
@@ -561,70 +636,28 @@
 
       window.refreshSubUnitsMap = refreshSubUnitsMap;
 
-      // Chờ toàn bộ trang và tệp mã nguồn js/dashboard.js nạp xong để có cấu hình Firebase App
-      window.addEventListener("load", () => {
-        try {
-          const db = getFirestore();
-          initFirebaseSync(db);
-        } catch (e) {
-          console.error("Đợi Firebase App khởi tạo thất bại:", e);
-        }
-      });
+      // Khối đơn vị chỉ khởi tạo một lần khi người dùng thực sự mở tab "Các đơn vị trực thuộc".
+      window.initSubUnitsData = function () {
+        if (subUnitsFirebaseStarted) return subUnitsInitPromise;
+        subUnitsFirebaseStarted = true;
+
+        subUnitsInitPromise = Promise.all([
+          initFirebaseSync(db),
+          loadCampaignPeriods(),
+        ]).catch((error) => {
+          subUnitsFirebaseStarted = false;
+          console.error("Lỗi khởi tạo dữ liệu khối đơn vị:", error);
+        });
+
+        return subUnitsInitPromise;
+      };
 
       const currentCampaign = "dot_1_2026";
 
       // BỔ SUNG TỪ KHÓA ASYNC Ở ĐÂY ĐỂ ĐÁNH TAN LỖI UNCAUGHT SYNTAXERROR
       async function initFirebaseSync(db) {
-        // =========================================================================
-        // LOGIC TỰ ĐỘNG NẠP DANH SÁCH ĐƠN VỊ TỪ FIREBASE VÀO DROPDOWN MODAL
-        // =========================================================================
-        const dynamicUnitSelect = document.getElementById("pop-unit-select");
-
-        try {
-          // Lấy dữ liệu động từ collection organization_units
-          const orgSnapshot = await getDocs(
-            collection(db, "organization_units"),
-          );
-          let rawUnits = [];
-
-          // Xóa bỏ trạng thái nhập cứng cũ, chỉ chừa lại dòng tiêu đề mặc định
-          if (dynamicUnitSelect) {
-            dynamicUnitSelect.innerHTML =
-              '<option value="">-- Chọn đơn vị cần cập nhật --</option>';
-          }
-
-          orgSnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data.unitName) {
-              rawUnits.push({
-                key: docSnap.id,
-                name: data.unitName,
-                stt: data.stt || 999,
-              });
-              // Đồng bộ thông tin vào bộ đệm cache toàn cục phục vụ hàm saveSubUnitData
-              currentOrgUnitsCache[docSnap.id] = data.unitName;
-            }
-          });
-
-          // Sắp xếp danh sách đơn vị theo thứ tự STT chuẩn cấu hình
-          rawUnits.sort((a, b) => a.stt - b.stt);
-
-          // Render động các tùy chọn vào thẻ Select Dropdown
-          if (dynamicUnitSelect) {
-            rawUnits.forEach((unit) => {
-              const opt = document.createElement("option");
-              opt.value = unit.key;
-              opt.textContent = unit.name;
-              dynamicUnitSelect.appendChild(opt);
-            });
-          }
-        } catch (error) {
-          console.error(
-            "Lỗi nạp danh sách cơ quan vào dropdown modal:",
-            error,
-          );
-        }
-        // =========================================================================
+        // Danh mục organization_units được tải theo nhu cầu khi mở modal hoặc đối soát,
+        // không đọc ngay khi người dùng chỉ xem bảng/bản đồ.
 
         // Lắng nghe dữ liệu thực tế từ Firebase và tự động tính hàng TỔNG SỐ ở cuối bảng
         onSnapshot(collection(db, "SubUnitsData"), (snapshot) => {
@@ -1042,6 +1075,10 @@
         onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
           if (!docSnap.exists()) return;
           const config = docSnap.data();
+          currentSubUnitsLockConfig = {
+            startTime: config.startTime || null,
+            endTime: config.endTime || null,
+          };
           const startTime = config.startTime
             ? new Date(config.startTime)
             : null;
@@ -1329,31 +1366,14 @@
           modal.style.display = "flex";
 
           try {
-            // 1. Lấy mốc thời gian bắt đầu mở cổng tuần này (startTime)
-            const configSnap = await getDoc(
-              doc(db, "campaigns", "lock_config"),
-            );
-            let campaignStartTime = null;
-            if (configSnap.exists() && configSnap.data().startTime) {
-              campaignStartTime = new Date(configSnap.data().startTime);
-            }
+            // Tái sử dụng cấu hình khóa đã nhận realtime và danh mục đơn vị đã cache.
+            // Không phát sinh thêm getDoc/getDocs mỗi lần bấm "Các đơn vị chưa báo cáo".
+            const campaignStartTime = currentSubUnitsLockConfig.startTime
+              ? new Date(currentSubUnitsLockConfig.startTime)
+              : null;
 
-            // 2. Truy vấn danh sách toàn bộ 108 đơn vị chuẩn
-            const orgSnapshot = await getDocs(
-              collection(db, "organization_units"),
-            );
-            let allUnits = [];
-            orgSnapshot.forEach((docSnap) => {
-              const data = docSnap.data();
-              if (data.unitName) {
-                allUnits.push({
-                  key: docSnap.id,
-                  name: data.unitName,
-                  stt: data.stt || 999,
-                });
-              }
-            });
-            allUnits.sort((a, b) => a.stt - b.stt);
+            await ensureOrganizationUnitsLoaded();
+            const allUnits = currentOrgUnitsList.map((unit) => ({ ...unit }));
 
             // 3. Lọc danh sách các đơn vị CHƯA CẬP NHẬT trong đợt mở tuần này
             const missingUnits = [];
@@ -1443,65 +1463,6 @@
           }
         };
 
-        modal.style.display = "flex";
-
-        try {
-          const orgSnapshot = await getDocs(
-            collection(db, "organization_units"),
-          );
-          let allUnits = [];
-          orgSnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            if (data.unitName) {
-              allUnits.push({
-                key: docSnap.id,
-                name: data.unitName,
-                stt: data.stt || 999,
-              });
-            }
-          });
-
-          allUnits.sort((a, b) => a.stt - b.stt);
-          const reportedNames = Object.values(globalFirebaseCache).map(
-            (item) => (item.name ? item.name.trim() : ""),
-          );
-          const missingUnits = allUnits.filter(
-            (unit) =>
-              !reportedNames.includes(unit.name ? unit.name.trim() : ""),
-          );
-
-          if (missingUnits.length === 0) {
-            modalBody.innerHTML = `
-                      <div style="text-align: center; padding: 15px; background: #e6f4ea; border: 1px solid #10b981; color: #10b981; border-radius: 8px; font-weight: 700; font-size: 13px;">
-                        <i class="fa-solid fa-circle-check" style="font-size: 16px; margin-right: 6px;"></i> 100% các đơn vị trực thuộc đã hoàn thành báo cáo số liệu.
-                      </div>
-                    `;
-          } else {
-            let listHtml = `
-                      <div style="margin-bottom: 12px; font-size: 13px; font-weight: 700; color: #334155;">
-                        Phát hiện <span style="color: #dc2626; font-size: 14px;">${missingUnits.length}</span> đơn vị chưa cập nhật dữ liệu:
-                      </div>
-                      <div style="display: flex; flex-direction: column; gap: 6px;">
-                    `;
-            missingUnits.forEach((unit, idx) => {
-              listHtml += `
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);">
-                          <span style="font-weight: 600; color: #1e293b; font-size: 12.5px;">${idx + 1}. ${unit.name}</span>
-                          <span style="font-size: 10.5px; font-weight: 700; background: #fef2f2; color: #dc2626; padding: 2px 8px; border-radius: 50px; border: 1px solid #fecaca;">Chưa báo cáo</span>
-                        </div>
-                      `;
-            });
-            listHtml += `</div>`;
-            modalBody.innerHTML = listHtml;
-          }
-        } catch (error) {
-          console.error("Lỗi lấy danh sách organization_units:", error);
-          modalBody.innerHTML = `
-                    <div style="text-align: center; padding: 15px; background: #fdf2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 8px; font-weight: 700; font-size: 12.5px;">
-                      <i class="fa-solid fa-triangle-exclamation" style="margin-right: 6px;"></i> Lỗi truy xuất đường truyền dữ liệu Firebase!
-                    </div>
-                  `;
-        }
       }
       const tableSearchInput = document.getElementById("table-unit-search");
       const countBadge = document.getElementById("search-count-badge");
@@ -1724,7 +1685,6 @@
           console.log("Chưa khởi tạo danh sách đợt lịch sử:", e);
         }
       }
-      loadCampaignPeriods();
 
       // 2. Hàm chuyển đổi dữ liệu hiển thị trên Bảng và Dashboard khi Admin chọn đợt cũ
       window.switchCampaignPeriod = async function (periodId) {
