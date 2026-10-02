@@ -59,7 +59,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentAdminUser && currentAdminProfile) {
       adminBtn.textContent = `👤 ${currentAdminProfile.name} ▾`;
       adminAccount.classList.add("is-logged-in");
-      adminBtn.setAttribute("aria-label", `Tài khoản ${currentAdminProfile.name}`);
+      adminBtn.setAttribute(
+        "aria-label",
+        `Tài khoản ${currentAdminProfile.name}`,
+      );
     } else {
       adminBtn.textContent = "🔐 Đăng nhập";
       adminAccount.classList.remove("is-logged-in");
@@ -155,12 +158,17 @@ document.addEventListener("DOMContentLoaded", () => {
     submitLogin.disabled = true;
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      );
       const adminProfile = await getAdminProfile(userCredential.user);
 
       if (!adminProfile) {
         await signOut(auth);
-        errorMsg.textContent = "Tài khoản này không có quyền quản trị hệ thống!";
+        errorMsg.textContent =
+          "Tài khoản này không có quyền quản trị hệ thống!";
         errorMsg.style.display = "block";
         return;
       }
@@ -310,7 +318,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const tooltipRect = seatTooltip.getBoundingClientRect();
     const visualViewport = window.visualViewport;
     const viewportTop = visualViewport ? visualViewport.offsetTop : 0;
-    const viewportHeight = visualViewport ? visualViewport.height : window.innerHeight;
+    const viewportHeight = visualViewport
+      ? visualViewport.height
+      : window.innerHeight;
     const viewportBottom = viewportTop + viewportHeight;
     const gap = 10;
     const padding = 10;
@@ -374,12 +384,47 @@ document.addEventListener("DOMContentLoaded", () => {
     seat.dataset.tooltipName = name;
     seat.dataset.tooltipPosition = position;
 
-    seat.addEventListener("mouseenter", () => showSeatTooltip(seat));
-    seat.addEventListener("mouseleave", hideSeatTooltip);
-    seat.addEventListener("focus", () => showSeatTooltip(seat));
-    seat.addEventListener("blur", hideSeatTooltip);
-  }
+    seat.tabIndex = 0;
 
+    seat.onmouseenter = () => showSeatTooltip(seat);
+
+    seat.onmouseleave = () => {
+      // Chỉ tự ẩn khi thiết bị thực sự sử dụng chuột.
+      // Tránh iPhone/iPad phát sinh mouseleave giả sau khi chạm.
+      if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+        hideSeatTooltip();
+      }
+    };
+
+    seat.onfocus = () => showSeatTooltip(seat);
+    seat.onblur = hideSeatTooltip;
+
+    // iPhone/iPad và thiết bị cảm ứng hiện đại
+    seat.onpointerup = (event) => {
+      if (event.pointerType === "touch" || event.pointerType === "pen") {
+        event.stopPropagation();
+        showSeatTooltip(seat);
+      }
+    };
+
+    // Fallback cho Safari/iOS
+    seat.ontouchend = (event) => {
+      event.stopPropagation();
+      showSeatTooltip(seat);
+    };
+
+    // Fallback thêm cho Safari
+    seat.onclick = (event) => {
+      event.stopPropagation();
+      showSeatTooltip(seat);
+    };
+  }
+  // Chạm/click ra ngoài ghế thì đóng tooltip
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".seat-3d[data-tooltip]")) {
+      hideSeatTooltip();
+    }
+  });
   // Khi viewport thay đổi do cuộn/zoom, không ẩn tooltip ngay mà chỉ
   // tính lại hướng mở. Vì tooltip đã neo vào ghế nên vị trí vẫn bám chính xác.
   function refreshActiveTooltipPosition() {
@@ -391,8 +436,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("scroll", refreshActiveTooltipPosition, true);
   window.addEventListener("resize", refreshActiveTooltipPosition);
   if (window.visualViewport) {
-    window.visualViewport.addEventListener("scroll", refreshActiveTooltipPosition);
-    window.visualViewport.addEventListener("resize", refreshActiveTooltipPosition);
+    window.visualViewport.addEventListener(
+      "scroll",
+      refreshActiveTooltipPosition,
+    );
+    window.visualViewport.addEventListener(
+      "resize",
+      refreshActiveTooltipPosition,
+    );
   }
 
   onSnapshot(collection(db, "delegates"), (snapshot) => {
@@ -533,7 +584,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const formattedDate = formatConferenceDate(conf.conferenceDate);
     if (formattedDate) subtitleParts.push(formattedDate);
     headerSubtitle.textContent =
-      subtitleParts.length > 0 ? subtitleParts.join(" • ") : "Hội trường Tỉnh ủy";
+      subtitleParts.length > 0
+        ? subtitleParts.join(" • ")
+        : "Hội trường Tỉnh ủy";
     // Reset tất cả ghế khán phòng về trạng thái trống ban đầu
     document.querySelectorAll(".a-seat").forEach((seat) => {
       seat.classList.remove(
@@ -806,5 +859,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
 });
