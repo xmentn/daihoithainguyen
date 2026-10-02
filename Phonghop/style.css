@@ -657,11 +657,15 @@ body {
 }
 
 /* ==========================================================================
-   TOOLTIP ĐẠI BIỂU - LỚP NỔI TOÀN MÀN HÌNH, KHÔNG BỊ CẮT Ở MÉP VIEWPORT
+   TOOLTIP ĐẠI BIỂU - NEO TRỰC TIẾP VÀO GHẾ
+   Giữ tooltip bám đúng ghế kể cả khi pinch-zoom/pan trên mobile/tablet.
    ========================================================================== */
 .seat-tooltip {
-  position: fixed;
+  position: absolute;
   z-index: 99999;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  top: auto;
   width: max-content;
   min-width: 190px;
   max-width: min(340px, calc(100vw - 20px));
@@ -675,7 +679,8 @@ body {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(2px);
+  transform: translate(-50%, 2px);
+  transform-origin: center bottom;
   transition:
     opacity 0.12s ease,
     transform 0.12s ease;
@@ -684,7 +689,14 @@ body {
 .seat-tooltip.is-visible {
   opacity: 1;
   visibility: visible;
-  transform: translateY(0);
+  transform: translate(-50%, 0);
+}
+
+/* Khi ghế sát mép trên vùng nhìn, tooltip tự mở xuống dưới nhưng vẫn neo vào ghế. */
+.seat-tooltip.is-below {
+  top: calc(100% + 10px);
+  bottom: auto;
+  transform-origin: center top;
 }
 
 /* "Đồng chí" nhỏ hơn một chút theo yêu cầu. */

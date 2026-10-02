@@ -277,45 +277,53 @@ document.addEventListener("DOMContentLoaded", () => {
   let globalConferences = [];
   let activeConfId = "";
 
-  // Tooltip dùng một lớp nổi gắn trực tiếp vào body để không bị cắt khi ghế nằm gần mép màn hình.
+  // Tooltip dùng một lớp nổi duy nhất nhưng khi hiển thị sẽ được neo trực tiếp
+  // vào chính phần tử ghế. Cách này giữ tooltip đi cùng ghế khi pinch-zoom
+  // trên điện thoại/máy tính bảng, tránh sai lệch giữa layout viewport và visual viewport.
   const seatTooltip = document.createElement("div");
   seatTooltip.className = "seat-tooltip";
   seatTooltip.setAttribute("role", "tooltip");
   seatTooltip.setAttribute("aria-hidden", "true");
   document.body.appendChild(seatTooltip);
 
+  let activeTooltipSeat = null;
+
   function hideSeatTooltip() {
-    seatTooltip.classList.remove("is-visible");
+    seatTooltip.classList.remove("is-visible", "is-below");
     seatTooltip.setAttribute("aria-hidden", "true");
+    activeTooltipSeat = null;
+
+    // Đưa tooltip về body khi ẩn để việc render/reset innerHTML của ghế
+    // không vô tình xóa phần tử tooltip dùng chung.
+    if (seatTooltip.parentElement !== document.body) {
+      document.body.appendChild(seatTooltip);
+    }
   }
 
   function positionSeatTooltip(seat) {
+    // Tọa độ tooltip không còn được gán bằng left/top theo viewport.
+    // CSS sẽ neo tooltip tuyệt đối theo chính ghế; JS chỉ quyết định
+    // mở lên trên hay xuống dưới nếu ghế đang sát mép trên vùng nhìn.
+    seatTooltip.classList.remove("is-below");
+
     const seatRect = seat.getBoundingClientRect();
     const tooltipRect = seatTooltip.getBoundingClientRect();
-    const viewportPadding = 10;
+    const visualViewport = window.visualViewport;
+    const viewportTop = visualViewport ? visualViewport.offsetTop : 0;
+    const viewportHeight = visualViewport ? visualViewport.height : window.innerHeight;
+    const viewportBottom = viewportTop + viewportHeight;
     const gap = 10;
+    const padding = 10;
 
-    let left = seatRect.left + seatRect.width / 2 - tooltipRect.width / 2;
-    left = Math.max(
-      viewportPadding,
-      Math.min(left, window.innerWidth - tooltipRect.width - viewportPadding),
-    );
+    const roomAbove = seatRect.top - viewportTop;
+    const roomBelow = viewportBottom - seatRect.bottom;
 
-    let top = seatRect.top - tooltipRect.height - gap;
-
-    // Nếu phía trên không đủ chỗ (thường gặp ở hàng Chủ tọa), tự mở xuống dưới.
-    if (top < viewportPadding) {
-      top = seatRect.bottom + gap;
+    if (
+      roomAbove < tooltipRect.height + gap + padding &&
+      roomBelow > roomAbove
+    ) {
+      seatTooltip.classList.add("is-below");
     }
-
-    // Phòng trường hợp màn hình thấp: luôn giữ tooltip nằm hoàn toàn trong viewport.
-    top = Math.max(
-      viewportPadding,
-      Math.min(top, window.innerHeight - tooltipRect.height - viewportPadding),
-    );
-
-    seatTooltip.style.left = `${left}px`;
-    seatTooltip.style.top = `${top}px`;
   }
 
   function showSeatTooltip(seat) {
@@ -345,6 +353,10 @@ document.addEventListener("DOMContentLoaded", () => {
       seatTooltip.appendChild(positionEl);
     }
 
+    // Gắn tooltip trực tiếp vào ghế trước khi đo và hiển thị.
+    // Nhờ đó khi người dùng pinch-zoom/pan, tooltip luôn dịch chuyển cùng ghế.
+    seat.appendChild(seatTooltip);
+    activeTooltipSeat = seat;
     seatTooltip.classList.add("is-visible");
     seatTooltip.setAttribute("aria-hidden", "false");
     positionSeatTooltip(seat);
@@ -368,8 +380,20 @@ document.addEventListener("DOMContentLoaded", () => {
     seat.addEventListener("blur", hideSeatTooltip);
   }
 
-  window.addEventListener("scroll", hideSeatTooltip, true);
-  window.addEventListener("resize", hideSeatTooltip);
+  // Khi viewport thay đổi do cuộn/zoom, không ẩn tooltip ngay mà chỉ
+  // tính lại hướng mở. Vì tooltip đã neo vào ghế nên vị trí vẫn bám chính xác.
+  function refreshActiveTooltipPosition() {
+    if (activeTooltipSeat && seatTooltip.classList.contains("is-visible")) {
+      positionSeatTooltip(activeTooltipSeat);
+    }
+  }
+
+  window.addEventListener("scroll", refreshActiveTooltipPosition, true);
+  window.addEventListener("resize", refreshActiveTooltipPosition);
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("scroll", refreshActiveTooltipPosition);
+    window.visualViewport.addEventListener("resize", refreshActiveTooltipPosition);
+  }
 
   onSnapshot(collection(db, "delegates"), (snapshot) => {
     globalDelegates = {};
