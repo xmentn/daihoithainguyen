@@ -58,9 +58,7 @@ function openTab(tabId) {
   selectedTab.classList.add("active");
   selectedTab.style.display = "block";
 
-  const selectedLink = document.querySelector(
-    `.tab-link[data-tab="${tabId}"]`,
-  );
+  const selectedLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
 
   if (selectedLink) {
     selectedLink.classList.add("active");
@@ -70,15 +68,10 @@ function openTab(tabId) {
   menuToggle.setAttribute("aria-expanded", "false");
 
   if (window.location.hash) {
-    history.replaceState(
-      null,
-      "",
-      window.location.pathname,
-    );
+    history.replaceState(null, "", window.location.pathname);
   }
 
-  const mainNav =
-    document.querySelector(".main-nav");
+  const mainNav = document.querySelector(".main-nav");
 
   if (mainNav) {
     window.scrollTo({
@@ -96,301 +89,232 @@ tabLinks.forEach((link) => {
 
 document.addEventListener("click", (event) => {
   const clickedInsideMenu =
-    navMenu.contains(event.target) ||
-    menuToggle.contains(event.target);
+    navMenu.contains(event.target) || menuToggle.contains(event.target);
 
   if (!clickedInsideMenu) {
     navMenu.classList.remove("show");
-    menuToggle.setAttribute(
-      "aria-expanded",
-      "false",
-    );
+    menuToggle.setAttribute("aria-expanded", "false");
   }
 });
 
-const emailInput =
-  document.getElementById("email");
-const passwordInput =
-  document.getElementById("password");
-const loginButton =
-  document.getElementById("loginButton");
-const loginMessage =
-  document.getElementById("loginMessage");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
+const loginButton = document.getElementById("loginButton");
+const loginMessage = document.getElementById("loginMessage");
 
-const loginMenuItem =
-  document.getElementById("loginMenuItem");
-const managementMenuItem =
-  document.getElementById("managementMenuItem");
-const managementTabButton =
-  document.getElementById("managementTabButton");
+const loginMenuItem = document.getElementById("loginMenuItem");
+const managementMenuItem = document.getElementById("managementMenuItem");
+const managementTabButton = document.getElementById("managementTabButton");
 
-const managementTitle =
-  document.getElementById("managementTitle");
-const managementSubtitle =
-  document.getElementById("managementSubtitle");
-const currentUserName =
-  document.getElementById("currentUserName");
-const currentUserEmail =
-  document.getElementById("currentUserEmail");
-const currentUserRole =
-  document.getElementById("currentUserRole");
-const logoutButton =
-  document.getElementById("logoutButton");
-const appDialogBackdrop =
-  document.getElementById("appDialogBackdrop");
-const appDialog =
-  document.getElementById("appDialog");
-const appDialogIcon =
-  document.getElementById("appDialogIcon");
-const appDialogTitle =
-  document.getElementById("appDialogTitle");
-const appDialogMessage =
-  document.getElementById("appDialogMessage");
-const appDialogCancel =
-  document.getElementById("appDialogCancel");
-const appDialogConfirm =
-  document.getElementById("appDialogConfirm");
+const managementTitle = document.getElementById("managementTitle");
+const managementSubtitle = document.getElementById("managementSubtitle");
+const currentUserName = document.getElementById("currentUserName");
+const currentUserEmail = document.getElementById("currentUserEmail");
+const currentUserRole = document.getElementById("currentUserRole");
+const logoutButton = document.getElementById("logoutButton");
+const appDialogBackdrop = document.getElementById("appDialogBackdrop");
+const appDialog = document.getElementById("appDialog");
+const appDialogIcon = document.getElementById("appDialogIcon");
+const appDialogTitle = document.getElementById("appDialogTitle");
+const appDialogMessage = document.getElementById("appDialogMessage");
+const appDialogCancel = document.getElementById("appDialogCancel");
+const appDialogConfirm = document.getElementById("appDialogConfirm");
 
-const memberSectionTitle =
-  document.getElementById("memberSectionTitle");
-const memberCount =
-  document.getElementById("memberCount");
-const memberForm =
-  document.getElementById("memberForm");
-const memberFormTitle =
-  document.getElementById("memberFormTitle");
-const memberIdInput =
-  document.getElementById("memberId");
-const memberFullNameInput =
-  document.getElementById("memberFullName");
-const memberPhoneInput =
-  document.getElementById("memberPhone");
-const memberNoteInput =
-  document.getElementById("memberNote");
-const saveMemberButton =
-  document.getElementById("saveMemberButton");
-const cancelEditButton =
-  document.getElementById("cancelEditButton");
-const memberFormMessage =
-  document.getElementById("memberFormMessage");
-const memberSearch =
-  document.getElementById("memberSearch");
-const memberTableBody =
-  document.getElementById("memberTableBody");
+const memberSectionTitle = document.getElementById("memberSectionTitle");
+const memberCount = document.getElementById("memberCount");
+const memberForm = document.getElementById("memberForm");
+const memberFormTitle = document.getElementById("memberFormTitle");
+const memberIdInput = document.getElementById("memberId");
+const memberFullNameInput = document.getElementById("memberFullName");
+const memberPhoneInput = document.getElementById("memberPhone");
+const memberNoteInput = document.getElementById("memberNote");
+const saveMemberButton = document.getElementById("saveMemberButton");
+const cancelEditButton = document.getElementById("cancelEditButton");
+const memberFormMessage = document.getElementById("memberFormMessage");
+const memberSearch = document.getElementById("memberSearch");
+const memberTableBody = document.getElementById("memberTableBody");
 
-const comingSoonCards =
-  document.querySelectorAll(".coming-soon-card");
-const manageMembersButton =
-  document.getElementById("manageMembersButton");
-const manageParticipantsButton =
-  document.getElementById("manageParticipantsButton");
-const memberManagement =
-  document.getElementById("memberManagement");
-const participantManagement =
-  document.getElementById("participantManagement");
-const participantSectionTitle =
-  document.getElementById("participantSectionTitle");
-const participantTotalCount =
-  document.getElementById("participantTotalCount");
-const attendingCount =
-  document.getElementById("attendingCount");
-const participantManageSearch =
-  document.getElementById("participantManageSearch");
-const participantStatusFilter =
-  document.getElementById("participantStatusFilter");
-const participantManageTableBody =
-  document.getElementById("participantManageTableBody");
-const manageContributionsButton =
-  document.getElementById("manageContributionsButton");
-const contributionManagement =
-  document.getElementById("contributionManagement");
-const contributionSectionTitle =
-  document.getElementById("contributionSectionTitle");
-const contributorCount =
-  document.getElementById("contributorCount");
-const contributionTotal =
-  document.getElementById("contributionTotal");
-const contributionSearch =
-  document.getElementById("contributionSearch");
-const contributionFilter =
-  document.getElementById("contributionFilter");
-const contributionTableBody =
-  document.getElementById("contributionTableBody");
-const manageSponsorsButton =
-  document.getElementById("manageSponsorsButton");
-const sponsorManagement =
-  document.getElementById("sponsorManagement");
-const sponsorSectionTitle =
-  document.getElementById("sponsorSectionTitle");
-const sponsorCount =
-  document.getElementById("sponsorCount");
-const sponsorClassTotal =
-  document.getElementById("sponsorClassTotal");
+const comingSoonCards = document.querySelectorAll(".coming-soon-card");
+const manageMembersButton = document.getElementById("manageMembersButton");
+const manageParticipantsButton = document.getElementById(
+  "manageParticipantsButton",
+);
+const memberManagement = document.getElementById("memberManagement");
+const participantManagement = document.getElementById("participantManagement");
+const participantSectionTitle = document.getElementById(
+  "participantSectionTitle",
+);
+const participantTotalCount = document.getElementById("participantTotalCount");
+const attendingCount = document.getElementById("attendingCount");
+const participantManageSearch = document.getElementById(
+  "participantManageSearch",
+);
+const participantStatusFilter = document.getElementById(
+  "participantStatusFilter",
+);
+const participantManageTableBody = document.getElementById(
+  "participantManageTableBody",
+);
+const manageContributionsButton = document.getElementById(
+  "manageContributionsButton",
+);
+const contributionManagement = document.getElementById(
+  "contributionManagement",
+);
+const contributionSectionTitle = document.getElementById(
+  "contributionSectionTitle",
+);
+const contributorCount = document.getElementById("contributorCount");
+const contributionTotal = document.getElementById("contributionTotal");
+const contributionSearch = document.getElementById("contributionSearch");
+const contributionFilter = document.getElementById("contributionFilter");
+const contributionTableBody = document.getElementById("contributionTableBody");
+const manageSponsorsButton = document.getElementById("manageSponsorsButton");
+const sponsorManagement = document.getElementById("sponsorManagement");
+const sponsorSectionTitle = document.getElementById("sponsorSectionTitle");
+const sponsorCount = document.getElementById("sponsorCount");
+const sponsorClassTotal = document.getElementById("sponsorClassTotal");
 
-const sponsorForm =
-  document.getElementById("sponsorForm");
-const sponsorFormTitle =
-  document.getElementById("sponsorFormTitle");
-const sponsorIdInput =
-  document.getElementById("sponsorId");
-const sponsorNameInput =
-  document.getElementById("sponsorName");
-const sponsorTypeSelect =
-  document.getElementById("sponsorType");
-const sponsorAmountGroup =
-  document.getElementById("sponsorAmountGroup");
-const sponsorAmountInput =
-  document.getElementById("sponsorAmount");
-const sponsorContentInput =
-  document.getElementById("sponsorContent");
-const sponsorNoteInput =
-  document.getElementById("sponsorNote");
-const saveSponsorButton =
-  document.getElementById("saveSponsorButton");
-const cancelSponsorEditButton =
-  document.getElementById("cancelSponsorEditButton");
-const sponsorFormMessage =
-  document.getElementById("sponsorFormMessage");
+const sponsorForm = document.getElementById("sponsorForm");
+const sponsorFormTitle = document.getElementById("sponsorFormTitle");
+const sponsorIdInput = document.getElementById("sponsorId");
+const sponsorNameInput = document.getElementById("sponsorName");
+const sponsorTypeSelect = document.getElementById("sponsorType");
+const sponsorAmountGroup = document.getElementById("sponsorAmountGroup");
+const sponsorAmountInput = document.getElementById("sponsorAmount");
+const sponsorContentInput = document.getElementById("sponsorContent");
+const sponsorNoteInput = document.getElementById("sponsorNote");
+const saveSponsorButton = document.getElementById("saveSponsorButton");
+const cancelSponsorEditButton = document.getElementById(
+  "cancelSponsorEditButton",
+);
+const sponsorFormMessage = document.getElementById("sponsorFormMessage");
 
-const sponsorSearch =
-  document.getElementById("sponsorSearch");
-const sponsorTypeFilter =
-  document.getElementById("sponsorTypeFilter");
-const sponsorTableBody =
-  document.getElementById("sponsorTableBody");
-const manageTeachersButton =
-  document.getElementById("manageTeachersButton");
-const teacherManagement =
-  document.getElementById("teacherManagement");
-const teacherSectionTitle =
-  document.getElementById("teacherSectionTitle");
-const teacherCount =
-  document.getElementById("teacherCount");
-const teacherForm =
-  document.getElementById("teacherForm");
-const teacherFormTitle =
-  document.getElementById("teacherFormTitle");
-const teacherIdInput =
-  document.getElementById("teacherId");
-const teacherNameInput =
-  document.getElementById("teacherName");
-const teacherSubjectInput =
-  document.getElementById("teacherSubject");
-const teacherYearLevelCheckboxes =
-  document.querySelectorAll(
-    'input[name="teacherYearLevel"]',
-  );
-const saveTeacherButton =
-  document.getElementById("saveTeacherButton");
-const cancelTeacherEditButton =
-  document.getElementById("cancelTeacherEditButton");
-const teacherFormMessage =
-  document.getElementById("teacherFormMessage");
-const teacherSearch =
-  document.getElementById("teacherSearch");
-const teacherYearFilter =
-  document.getElementById("teacherYearFilter");
-const teacherTableBody =
-  document.getElementById("teacherTableBody");
-const publicClassDetail =
-  document.getElementById("publicClassDetail");
-const publicClassTitle =
-  document.getElementById("publicClassTitle");
-const publicClassMemberCount =
-  document.getElementById("publicClassMemberCount");
-const publicClassAttendingCount =
-  document.getElementById("publicClassAttendingCount");
-const publicClassTeacherCount =
-  document.getElementById("publicClassTeacherCount");
-const publicClassSponsorTotal =
-  document.getElementById("publicClassSponsorTotal");
-const publicClassMemberBody =
-  document.getElementById("publicClassMemberBody");
-const publicClassAttendingBody =
-  document.getElementById("publicClassAttendingBody");
-const publicClassPendingBody =
-  document.getElementById("publicClassPendingBody");
-const publicClassConfirmedCount =
-  document.getElementById("publicClassConfirmedCount");
-const publicClassPendingCount =
-  document.getElementById("publicClassPendingCount");
-const exportConfirmedPdfButton =
-  document.getElementById("exportConfirmedPdfButton");
-const exportPendingPdfButton =
-  document.getElementById("exportPendingPdfButton");
-const exportMembersPdfButton =
-  document.getElementById("exportMembersPdfButton");
-const exportTeachersPdfButton =
-  document.getElementById("exportTeachersPdfButton");
-const exportSponsorsPdfButton =
-  document.getElementById("exportSponsorsPdfButton");
-const publicClassTabButtons =
-  document.querySelectorAll("[data-public-class-tab]");
-const publicClassTabPanels =
-  document.querySelectorAll("[data-public-class-panel]");
-const publicClassSponsorBody =
-  document.getElementById("publicClassSponsorBody");
-const publicClassTeacherBody =
-  document.getElementById("publicClassTeacherBody");
-const publicTeacherYearFilter =
-  document.getElementById("publicTeacherYearFilter");
-const closePublicClassButton =
-  document.getElementById("closePublicClassButton");
-const publicClassButtons =
-  document.querySelectorAll(".public-class-button");
-const dashboardClassFilter =
-  document.getElementById("dashboardClassFilter");
-const dashboardScopeLabel =
-  document.getElementById("dashboardScopeLabel");
-const dashboardRing =
-  document.getElementById("dashboardRing");
-const dashboardAttending =
-  document.getElementById("dashboardAttending");
-const dashboardMembers =
-  document.getElementById("dashboardMembers");
-const dashboardPercent =
-  document.getElementById("dashboardPercent");
-const dashboardMemberCard =
-  document.getElementById("dashboardMemberCard");
-const dashboardAttendingCard =
-  document.getElementById("dashboardAttendingCard");
-const dashboardPendingCard =
-  document.getElementById("dashboardPendingCard");
-const dashboardBreakdownTitle =
-  document.getElementById("dashboardBreakdownTitle");
-const dashboardTableBody =
-  document.getElementById("dashboardTableBody");
-const totalClassesHome =
-  document.getElementById("totalClasses");
-const totalParticipantsHome =
-  document.getElementById("totalParticipants");
-const totalOrganizersHome =
-  document.getElementById("totalOrganizers");
-const totalSponsorHome =
-  document.getElementById("totalSponsor");
-const homeSponsorListButton =
-  document.getElementById("homeSponsorListButton");
-const sponsorTotalLarge =
-  document.getElementById("sponsorTotalLarge");
-const publicSponsorCount =
-  document.getElementById("publicSponsorCount");
-const publicSponsorSearch =
-  document.getElementById("publicSponsorSearch");
-const publicSponsorClassFilter =
-  document.getElementById("publicSponsorClassFilter");
-const publicSponsorTypeFilter =
-  document.getElementById("publicSponsorTypeFilter");
-const publicSponsorTableBody =
-  document.getElementById("publicSponsorTableBody");
+const sponsorSearch = document.getElementById("sponsorSearch");
+const sponsorTypeFilter = document.getElementById("sponsorTypeFilter");
+const sponsorTableBody = document.getElementById("sponsorTableBody");
+const manageTeachersButton = document.getElementById("manageTeachersButton");
+const teacherManagement = document.getElementById("teacherManagement");
+const teacherSectionTitle = document.getElementById("teacherSectionTitle");
+const teacherCount = document.getElementById("teacherCount");
+const teacherForm = document.getElementById("teacherForm");
+const teacherFormTitle = document.getElementById("teacherFormTitle");
+const teacherIdInput = document.getElementById("teacherId");
+const teacherNameInput = document.getElementById("teacherName");
+const teacherSubjectInput = document.getElementById("teacherSubject");
+const teacherYearLevelCheckboxes = document.querySelectorAll(
+  'input[name="teacherYearLevel"]',
+);
+const saveTeacherButton = document.getElementById("saveTeacherButton");
+const cancelTeacherEditButton = document.getElementById(
+  "cancelTeacherEditButton",
+);
+const teacherFormMessage = document.getElementById("teacherFormMessage");
+const teacherSearch = document.getElementById("teacherSearch");
+const teacherYearFilter = document.getElementById("teacherYearFilter");
+const teacherTableBody = document.getElementById("teacherTableBody");
+const publicClassDetail = document.getElementById("publicClassDetail");
+const publicClassTitle = document.getElementById("publicClassTitle");
+const publicClassMemberCount = document.getElementById(
+  "publicClassMemberCount",
+);
+const publicClassAttendingCount = document.getElementById(
+  "publicClassAttendingCount",
+);
+const publicClassTeacherCount = document.getElementById(
+  "publicClassTeacherCount",
+);
+const publicClassSponsorTotal = document.getElementById(
+  "publicClassSponsorTotal",
+);
+const publicClassMemberBody = document.getElementById("publicClassMemberBody");
+const publicClassAttendingBody = document.getElementById(
+  "publicClassAttendingBody",
+);
+const publicClassPendingBody = document.getElementById(
+  "publicClassPendingBody",
+);
+const publicClassConfirmedCount = document.getElementById(
+  "publicClassConfirmedCount",
+);
+const publicClassPendingCount = document.getElementById(
+  "publicClassPendingCount",
+);
+const exportConfirmedPdfButton = document.getElementById(
+  "exportConfirmedPdfButton",
+);
+const exportPendingPdfButton = document.getElementById(
+  "exportPendingPdfButton",
+);
+const exportMembersPdfButton = document.getElementById(
+  "exportMembersPdfButton",
+);
+const exportTeachersPdfButton = document.getElementById(
+  "exportTeachersPdfButton",
+);
+const exportSponsorsPdfButton = document.getElementById(
+  "exportSponsorsPdfButton",
+);
+const publicClassTabButtons = document.querySelectorAll(
+  "[data-public-class-tab]",
+);
+const publicClassTabPanels = document.querySelectorAll(
+  "[data-public-class-panel]",
+);
+const publicClassSponsorBody = document.getElementById(
+  "publicClassSponsorBody",
+);
+const publicClassTeacherBody = document.getElementById(
+  "publicClassTeacherBody",
+);
+const publicTeacherYearFilter = document.getElementById(
+  "publicTeacherYearFilter",
+);
+const closePublicClassButton = document.getElementById(
+  "closePublicClassButton",
+);
+const publicClassButtons = document.querySelectorAll(".public-class-button");
+const dashboardClassFilter = document.getElementById("dashboardClassFilter");
+const dashboardScopeLabel = document.getElementById("dashboardScopeLabel");
+const dashboardRing = document.getElementById("dashboardRing");
+const dashboardAttending = document.getElementById("dashboardAttending");
+const dashboardMembers = document.getElementById("dashboardMembers");
+const dashboardPercent = document.getElementById("dashboardPercent");
+const dashboardMemberCard = document.getElementById("dashboardMemberCard");
+const dashboardAttendingCard = document.getElementById(
+  "dashboardAttendingCard",
+);
+const dashboardPendingCard = document.getElementById("dashboardPendingCard");
+const dashboardBreakdownTitle = document.getElementById(
+  "dashboardBreakdownTitle",
+);
+const dashboardTableBody = document.getElementById("dashboardTableBody");
+const totalClassesHome = document.getElementById("totalClasses");
+const totalParticipantsHome = document.getElementById("totalParticipants");
+const totalOrganizersHome = document.getElementById("totalOrganizers");
+const totalSponsorHome = document.getElementById("totalSponsor");
+const homeSponsorListButton = document.getElementById("homeSponsorListButton");
+const sponsorTotalLarge = document.getElementById("sponsorTotalLarge");
+const publicSponsorCount = document.getElementById("publicSponsorCount");
+const publicSponsorSearch = document.getElementById("publicSponsorSearch");
+const publicSponsorClassFilter = document.getElementById(
+  "publicSponsorClassFilter",
+);
+const publicSponsorTypeFilter = document.getElementById(
+  "publicSponsorTypeFilter",
+);
+const publicSponsorTableBody = document.getElementById(
+  "publicSponsorTableBody",
+);
 
-const participantSearch =
-  document.getElementById("participantSearch");
-const participantClassFilter =
-  document.getElementById("participantClassFilter");
-const participantsTableBody =
-  document.getElementById("participantsTableBody");
-const publicParticipantCount =
-  document.getElementById("publicParticipantCount");
+const participantSearch = document.getElementById("participantSearch");
+const participantClassFilter = document.getElementById(
+  "participantClassFilter",
+);
+const participantsTableBody = document.getElementById("participantsTableBody");
+const publicParticipantCount = document.getElementById(
+  "publicParticipantCount",
+);
 
 let currentSession = null;
 let unsubscribeMembers = null;
@@ -416,7 +340,6 @@ let dashboardMembersData = [];
 let unsubscribeDashboard = null;
 let publicSponsorsData = [];
 let unsubscribeAllSponsors = null;
-
 
 let activeDialogResolver = null;
 
@@ -496,12 +419,7 @@ function showAlertDialog({
     type,
     confirmText,
     cancelText: "",
-    icon:
-      type === "success"
-        ? "✓"
-        : type === "danger"
-          ? "!"
-          : "i",
+    icon: type === "success" ? "✓" : type === "danger" ? "!" : "i",
   });
 }
 
@@ -535,19 +453,13 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-
-const vietnameseNameCollator = new Intl.Collator(
-  "vi",
-  {
-    sensitivity: "base",
-    numeric: true,
-  },
-);
+const vietnameseNameCollator = new Intl.Collator("vi", {
+  sensitivity: "base",
+  numeric: true,
+});
 
 function getVietnameseGivenName(fullName = "") {
-  const normalized = String(fullName)
-    .trim()
-    .replace(/\s+/g, " ");
+  const normalized = String(fullName).trim().replace(/\s+/g, " ");
 
   if (!normalized) return "";
 
@@ -557,11 +469,10 @@ function getVietnameseGivenName(fullName = "") {
 }
 
 function compareVietnameseNames(aName = "", bName = "") {
-  const givenCompare =
-    vietnameseNameCollator.compare(
-      getVietnameseGivenName(aName),
-      getVietnameseGivenName(bName),
-    );
+  const givenCompare = vietnameseNameCollator.compare(
+    getVietnameseGivenName(aName),
+    getVietnameseGivenName(bName),
+  );
 
   if (givenCompare !== 0) {
     return givenCompare;
@@ -582,10 +493,7 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#039;");
 }
 
-function setLoginMessage(
-  message = "",
-  type = "",
-) {
+function setLoginMessage(message = "", type = "") {
   if (!loginMessage) return;
 
   loginMessage.textContent = message;
@@ -596,10 +504,7 @@ function setLoginMessage(
   }
 }
 
-function setMemberMessage(
-  message = "",
-  type = "",
-) {
+function setMemberMessage(message = "", type = "") {
   if (!memberFormMessage) return;
 
   memberFormMessage.textContent = message;
@@ -616,10 +521,8 @@ function resetMemberForm() {
   memberPhoneInput.value = "";
   memberNoteInput.value = "";
 
-  memberFormTitle.textContent =
-    "Thêm thành viên";
-  saveMemberButton.textContent =
-    "Lưu thành viên";
+  memberFormTitle.textContent = "Thêm thành viên";
+  saveMemberButton.textContent = "Lưu thành viên";
 
   cancelEditButton.classList.add("hidden");
 
@@ -627,27 +530,15 @@ function resetMemberForm() {
 }
 
 function renderMembers() {
-  const keyword = (memberSearch.value || "")
-    .trim()
-    .toLocaleLowerCase("vi");
+  const keyword = (memberSearch.value || "").trim().toLocaleLowerCase("vi");
 
-  const filtered = classMembers.filter(
-    (member) => {
-      const fullName = (
-        member.fullName || ""
-      ).toLocaleLowerCase("vi");
+  const filtered = classMembers.filter((member) => {
+    const fullName = (member.fullName || "").toLocaleLowerCase("vi");
 
-      const phone = (
-        member.phone || ""
-      ).toLocaleLowerCase("vi");
+    const phone = (member.phone || "").toLocaleLowerCase("vi");
 
-      return (
-        !keyword ||
-        fullName.includes(keyword) ||
-        phone.includes(keyword)
-      );
-    },
-  );
+    return !keyword || fullName.includes(keyword) || phone.includes(keyword);
+  });
 
   memberCount.textContent = classMembers.length;
   renderParticipantManagement();
@@ -714,7 +605,6 @@ function stopMemberSubscription() {
   renderMembers();
 }
 
-
 function stopContributionSubscription() {
   if (unsubscribeContributions) {
     unsubscribeContributions();
@@ -728,50 +618,41 @@ function stopContributionSubscription() {
 function startContributionSubscription(classId) {
   stopContributionSubscription();
 
-  unsubscribeContributions =
-    subscribeContributionsByClass(
-      classId,
-      (items) => {
-        classContributions = items;
-        renderContributionManagement();
-      },
-      () => {
-        console.error(
-          "Không đọc được dữ liệu đóng góp riêng tư.",
-        );
-      },
-    );
+  unsubscribeContributions = subscribeContributionsByClass(
+    classId,
+    (items) => {
+      classContributions = items;
+      renderContributionManagement();
+    },
+    () => {
+      console.error("Không đọc được dữ liệu đóng góp riêng tư.");
+    },
+  );
 }
 
 function startMemberSubscription(classId) {
   stopMemberSubscription();
 
-  memberSectionTitle.textContent =
-    `Danh sách thành viên lớp ${classId}`;
+  memberSectionTitle.textContent = `Danh sách thành viên lớp ${classId}`;
 
-  participantSectionTitle.textContent =
-    `Danh sách tham gia lớp ${classId}`;
+  participantSectionTitle.textContent = `Danh sách tham gia lớp ${classId}`;
 
-  contributionSectionTitle.textContent =
-    `Đóng góp của lớp ${classId}`;
+  contributionSectionTitle.textContent = `Đóng góp của lớp ${classId}`;
 
-  unsubscribeMembers =
-    subscribeMembersByClass(
-      classId,
-      (members) => {
-        classMembers = members;
-        renderMembers();
-      },
-      () => {
-        setMemberMessage(
-          "Không đọc được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
-          "error",
-        );
-      },
-    );
+  unsubscribeMembers = subscribeMembersByClass(
+    classId,
+    (members) => {
+      classMembers = members;
+      renderMembers();
+    },
+    () => {
+      setMemberMessage(
+        "Không đọc được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+        "error",
+      );
+    },
+  );
 }
-
-
 
 function setTeacherMessage(message = "", type = "") {
   if (!teacherFormMessage) return;
@@ -789,10 +670,7 @@ function normalizeTeacherYearLevels(itemOrLevels) {
 
   if (Array.isArray(itemOrLevels)) {
     rawLevels = itemOrLevels;
-  } else if (
-    itemOrLevels &&
-    Array.isArray(itemOrLevels.yearLevels)
-  ) {
+  } else if (itemOrLevels && Array.isArray(itemOrLevels.yearLevels)) {
     rawLevels = itemOrLevels.yearLevels;
   } else if (
     itemOrLevels &&
@@ -810,13 +688,13 @@ function normalizeTeacherYearLevels(itemOrLevels) {
     rawLevels = [itemOrLevels];
   }
 
-  return [...new Set(
-    rawLevels
-      .map((value) => String(value))
-      .filter((value) =>
-        ["10", "11", "12"].includes(value),
-      ),
-  )].sort((a, b) => Number(a) - Number(b));
+  return [
+    ...new Set(
+      rawLevels
+        .map((value) => String(value))
+        .filter((value) => ["10", "11", "12"].includes(value)),
+    ),
+  ].sort((a, b) => Number(a) - Number(b));
 }
 
 function getSelectedTeacherYearLevels() {
@@ -827,15 +705,11 @@ function getSelectedTeacherYearLevels() {
 }
 
 function setSelectedTeacherYearLevels(yearLevels) {
-  const normalized =
-    normalizeTeacherYearLevels(yearLevels);
+  const normalized = normalizeTeacherYearLevels(yearLevels);
 
-  teacherYearLevelCheckboxes.forEach(
-    (checkbox) => {
-      checkbox.checked =
-        normalized.includes(checkbox.value);
-    },
-  );
+  teacherYearLevelCheckboxes.forEach((checkbox) => {
+    checkbox.checked = normalized.includes(checkbox.value);
+  });
 }
 
 function formatTeacherYears(itemOrLevels) {
@@ -845,8 +719,7 @@ function formatTeacherYears(itemOrLevels) {
 }
 
 function renderTeacherYearBadges(itemOrLevels) {
-  const yearLevels =
-    normalizeTeacherYearLevels(itemOrLevels);
+  const yearLevels = normalizeTeacherYearLevels(itemOrLevels);
 
   return `
     <div class="teacher-year-badges">
@@ -876,27 +749,20 @@ function resetTeacherForm() {
 }
 
 function renderTeachers() {
-  const keyword = (teacherSearch.value || "")
-    .trim()
-    .toLocaleLowerCase("vi");
+  const keyword = (teacherSearch.value || "").trim().toLocaleLowerCase("vi");
 
   const yearFilter = teacherYearFilter.value;
 
   const filtered = classTeachers.filter((item) => {
-    const name = (item.teacherName || "")
-      .toLocaleLowerCase("vi");
-    const subject = (item.subject || "")
-      .toLocaleLowerCase("vi");
+    const name = (item.teacherName || "").toLocaleLowerCase("vi");
+    const subject = (item.subject || "").toLocaleLowerCase("vi");
 
     const matchesKeyword =
-      !keyword ||
-      name.includes(keyword) ||
-      subject.includes(keyword);
+      !keyword || name.includes(keyword) || subject.includes(keyword);
 
     const matchesYear =
       yearFilter === "all" ||
-      normalizeTeacherYearLevels(item)
-        .includes(yearFilter);
+      normalizeTeacherYearLevels(item).includes(yearFilter);
 
     return matchesKeyword && matchesYear;
   });
@@ -907,9 +773,11 @@ function renderTeachers() {
     teacherTableBody.innerHTML = `
       <tr>
         <td colspan="5" class="empty-row">
-          ${classTeachers.length === 0
-            ? "Chưa có dữ liệu thầy, cô"
-            : "Không tìm thấy thầy, cô phù hợp"}
+          ${
+            classTeachers.length === 0
+              ? "Chưa có dữ liệu thầy, cô"
+              : "Không tìm thấy thầy, cô phù hợp"
+          }
         </td>
       </tr>
     `;
@@ -917,7 +785,8 @@ function renderTeachers() {
   }
 
   teacherTableBody.innerHTML = filtered
-    .map((item, index) => `
+    .map(
+      (item, index) => `
       <tr>
         <td>${index + 1}</td>
         <td><strong>${escapeHtml(item.teacherName || "")}</strong></td>
@@ -938,7 +807,8 @@ function renderTeachers() {
           >Xóa</button>
         </td>
       </tr>
-    `)
+    `,
+    )
     .join("");
 }
 
@@ -955,8 +825,7 @@ function stopTeacherSubscription() {
 function startTeacherSubscription(classId) {
   stopTeacherSubscription();
 
-  teacherSectionTitle.textContent =
-    `Danh sách thầy, cô lớp ${classId}`;
+  teacherSectionTitle.textContent = `Danh sách thầy, cô lớp ${classId}`;
 
   unsubscribeTeachers = subscribeTeachersByClass(
     classId,
@@ -1020,9 +889,7 @@ function renderParticipantManagement() {
     const phone = (member.phone || "").toLocaleLowerCase("vi");
 
     const matchesKeyword =
-      !keyword ||
-      fullName.includes(keyword) ||
-      phone.includes(keyword);
+      !keyword || fullName.includes(keyword) || phone.includes(keyword);
 
     let matchesStatus = true;
 
@@ -1036,16 +903,19 @@ function renderParticipantManagement() {
   });
 
   participantTotalCount.textContent = classMembers.length;
-  attendingCount.textContent =
-    classMembers.filter((member) => member.attending === true).length;
+  attendingCount.textContent = classMembers.filter(
+    (member) => member.attending === true,
+  ).length;
 
   if (filtered.length === 0) {
     participantManageTableBody.innerHTML = `
       <tr>
         <td colspan="4" class="empty-row">
-          ${classMembers.length === 0
-            ? "Chưa có dữ liệu thành viên"
-            : "Không tìm thấy thành viên phù hợp"}
+          ${
+            classMembers.length === 0
+              ? "Chưa có dữ liệu thành viên"
+              : "Không tìm thấy thành viên phù hợp"
+          }
         </td>
       </tr>
     `;
@@ -1053,7 +923,8 @@ function renderParticipantManagement() {
   }
 
   participantManageTableBody.innerHTML = filtered
-    .map((member, index) => `
+    .map(
+      (member, index) => `
       <tr>
         <td>${index + 1}</td>
         <td><strong>${escapeHtml(member.fullName || "")}</strong></td>
@@ -1072,15 +943,13 @@ function renderParticipantManagement() {
           </label>
         </td>
       </tr>
-    `)
+    `,
+    )
     .join("");
 }
 
-
 function formatCurrency(amount) {
-  return new Intl.NumberFormat("vi-VN").format(
-    Number(amount) || 0,
-  ) + " đ";
+  return new Intl.NumberFormat("vi-VN").format(Number(amount) || 0) + " đ";
 }
 
 function getContributionAmount(memberId) {
@@ -1099,15 +968,11 @@ function renderContributionManagement() {
   const filter = contributionFilter.value;
 
   const filtered = classMembers.filter((member) => {
-    const fullName = (member.fullName || "")
-      .toLocaleLowerCase("vi");
-    const phone = (member.phone || "")
-      .toLocaleLowerCase("vi");
+    const fullName = (member.fullName || "").toLocaleLowerCase("vi");
+    const phone = (member.phone || "").toLocaleLowerCase("vi");
 
     const matchesKeyword =
-      !keyword ||
-      fullName.includes(keyword) ||
-      phone.includes(keyword);
+      !keyword || fullName.includes(keyword) || phone.includes(keyword);
 
     const amount = getContributionAmount(member.id);
 
@@ -1189,7 +1054,6 @@ function renderContributionManagement() {
     .join("");
 }
 
-
 function setSponsorMessage(message = "", type = "") {
   if (!sponsorFormMessage) return;
 
@@ -1204,10 +1068,7 @@ function setSponsorMessage(message = "", type = "") {
 function toggleSponsorAmountField() {
   const isMoney = sponsorTypeSelect.value === "money";
 
-  sponsorAmountGroup.classList.toggle(
-    "hidden",
-    !isMoney,
-  );
+  sponsorAmountGroup.classList.toggle("hidden", !isMoney);
 
   if (!isMoney) {
     sponsorAmountInput.value = "";
@@ -1222,41 +1083,29 @@ function resetSponsorForm() {
   sponsorContentInput.value = "";
   sponsorNoteInput.value = "";
 
-  sponsorFormTitle.textContent =
-    "Thêm khoản tài trợ";
+  sponsorFormTitle.textContent = "Thêm khoản tài trợ";
 
-  saveSponsorButton.textContent =
-    "Lưu tài trợ";
+  saveSponsorButton.textContent = "Lưu tài trợ";
 
-  cancelSponsorEditButton.classList.add(
-    "hidden",
-  );
+  cancelSponsorEditButton.classList.add("hidden");
 
   toggleSponsorAmountField();
   setSponsorMessage("");
 }
 
 function renderSponsors() {
-  const keyword = (sponsorSearch.value || "")
-    .trim()
-    .toLocaleLowerCase("vi");
+  const keyword = (sponsorSearch.value || "").trim().toLocaleLowerCase("vi");
 
   const typeFilter = sponsorTypeFilter.value;
 
   const filtered = classSponsors.filter((item) => {
-    const sponsorName = (item.sponsorName || "")
-      .toLocaleLowerCase("vi");
-    const content = (item.content || "")
-      .toLocaleLowerCase("vi");
+    const sponsorName = (item.sponsorName || "").toLocaleLowerCase("vi");
+    const content = (item.content || "").toLocaleLowerCase("vi");
 
     const matchesKeyword =
-      !keyword ||
-      sponsorName.includes(keyword) ||
-      content.includes(keyword);
+      !keyword || sponsorName.includes(keyword) || content.includes(keyword);
 
-    const matchesType =
-      typeFilter === "all" ||
-      item.type === typeFilter;
+    const matchesType = typeFilter === "all" || item.type === typeFilter;
 
     return matchesKeyword && matchesType;
   });
@@ -1264,16 +1113,11 @@ function renderSponsors() {
   sponsorCount.textContent = classSponsors.length;
 
   const totalMoney = classSponsors.reduce(
-    (sum, item) =>
-      sum +
-      (item.type === "money"
-        ? Number(item.amount) || 0
-        : 0),
+    (sum, item) => sum + (item.type === "money" ? Number(item.amount) || 0 : 0),
     0,
   );
 
-  sponsorClassTotal.textContent =
-    formatCurrency(totalMoney);
+  sponsorClassTotal.textContent = formatCurrency(totalMoney);
 
   if (filtered.length === 0) {
     sponsorTableBody.innerHTML = `
@@ -1303,23 +1147,13 @@ function renderSponsors() {
             </strong>
           </td>
           <td>
-            <span class="sponsor-kind-badge ${
-              isMoney ? "money" : "in-kind"
-            }">
-              ${
-                isMoney
-                  ? "Tiền"
-                  : "Hiện vật/dịch vụ"
-              }
+            <span class="sponsor-kind-badge ${isMoney ? "money" : "in-kind"}">
+              ${isMoney ? "Tiền" : "Hiện vật/dịch vụ"}
             </span>
           </td>
           <td>
             <span class="sponsor-value">
-              ${
-                isMoney
-                  ? formatCurrency(item.amount)
-                  : "—"
-              }
+              ${isMoney ? formatCurrency(item.amount) : "—"}
             </span>
           </td>
           <td>${escapeHtml(item.content || "")}</td>
@@ -1359,40 +1193,28 @@ function stopSponsorSubscription() {
 function startSponsorSubscription(classId) {
   stopSponsorSubscription();
 
-  sponsorSectionTitle.textContent =
-    `Tài trợ của lớp ${classId}`;
+  sponsorSectionTitle.textContent = `Tài trợ của lớp ${classId}`;
 
-  unsubscribeSponsors =
-    subscribeSponsorsByClass(
-      classId,
-      (items) => {
-        classSponsors = items;
-        renderSponsors();
-      },
-      () => {
-        setSponsorMessage(
-          "Không đọc được dữ liệu tài trợ. Vui lòng kiểm tra Firestore Rules.",
-          "error",
-        );
-      },
-    );
+  unsubscribeSponsors = subscribeSponsorsByClass(
+    classId,
+    (items) => {
+      classSponsors = items;
+      renderSponsors();
+    },
+    () => {
+      setSponsorMessage(
+        "Không đọc được dữ liệu tài trợ. Vui lòng kiểm tra Firestore Rules.",
+        "error",
+      );
+    },
+  );
 }
-
-
-
-
 
 const HOME_TOTAL_CLASSES = 8;
 
 function getTotalSponsorMoney() {
   return publicSponsorsData.reduce(
-    (sum, item) =>
-      sum +
-      (
-        item.type === "money"
-          ? Number(item.amount) || 0
-          : 0
-      ),
+    (sum, item) => sum + (item.type === "money" ? Number(item.amount) || 0 : 0),
     0,
   );
 }
@@ -1401,13 +1223,11 @@ function renderPublicSponsorSummary() {
   const totalMoney = getTotalSponsorMoney();
 
   if (totalSponsorHome) {
-    totalSponsorHome.textContent =
-      formatCurrency(totalMoney);
+    totalSponsorHome.textContent = formatCurrency(totalMoney);
   }
 
   if (sponsorTotalLarge) {
-    sponsorTotalLarge.textContent =
-      formatCurrency(totalMoney);
+    sponsorTotalLarge.textContent = formatCurrency(totalMoney);
   }
 }
 
@@ -1421,51 +1241,29 @@ function renderPublicSponsors() {
     .trim()
     .toLocaleLowerCase("vi");
 
-  const classFilter =
-    publicSponsorClassFilter?.value || "";
+  const classFilter = publicSponsorClassFilter?.value || "";
 
-  const typeFilter =
-    publicSponsorTypeFilter?.value || "all";
+  const typeFilter = publicSponsorTypeFilter?.value || "all";
 
   const filtered = publicSponsorsData
     .filter((item) => {
-      const sponsorName =
-        (item.sponsorName || "")
-          .toLocaleLowerCase("vi");
+      const sponsorName = (item.sponsorName || "").toLocaleLowerCase("vi");
 
-      const content =
-        (item.content || "")
-          .toLocaleLowerCase("vi");
+      const content = (item.content || "").toLocaleLowerCase("vi");
 
       const matchesKeyword =
-        !keyword ||
-        sponsorName.includes(keyword) ||
-        content.includes(keyword);
+        !keyword || sponsorName.includes(keyword) || content.includes(keyword);
 
-      const matchesClass =
-        !classFilter ||
-        item.classId === classFilter;
+      const matchesClass = !classFilter || item.classId === classFilter;
 
-      const matchesType =
-        typeFilter === "all" ||
-        item.type === typeFilter;
+      const matchesType = typeFilter === "all" || item.type === typeFilter;
 
-      return (
-        matchesKeyword &&
-        matchesClass &&
-        matchesType
-      );
+      return matchesKeyword && matchesClass && matchesType;
     })
     .sort((a, b) => {
-      const aAmount =
-        a.type === "money"
-          ? Number(a.amount) || 0
-          : 0;
+      const aAmount = a.type === "money" ? Number(a.amount) || 0 : 0;
 
-      const bAmount =
-        b.type === "money"
-          ? Number(b.amount) || 0
-          : 0;
+      const bAmount = b.type === "money" ? Number(b.amount) || 0 : 0;
 
       /*
        * Ưu tiên số tiền tài trợ cao xuống thấp.
@@ -1475,16 +1273,13 @@ function renderPublicSponsors() {
         return bAmount - aAmount;
       }
 
-      return (a.sponsorName || "").localeCompare(
-        b.sponsorName || "",
-        "vi",
-        { sensitivity: "base" },
-      );
+      return (a.sponsorName || "").localeCompare(b.sponsorName || "", "vi", {
+        sensitivity: "base",
+      });
     });
 
   if (publicSponsorCount) {
-    publicSponsorCount.textContent =
-      filtered.length;
+    publicSponsorCount.textContent = filtered.length;
   }
 
   renderPublicSponsorSummary();
@@ -1500,22 +1295,15 @@ function renderPublicSponsors() {
     return;
   }
 
-  publicSponsorTableBody.innerHTML =
-    filtered
-      .map((item, index) => {
-        const isMoney =
-          item.type === "money";
+  publicSponsorTableBody.innerHTML = filtered
+    .map((item, index) => {
+      const isMoney = item.type === "money";
 
-        const valueOrContent =
-          isMoney
-            ? formatCurrency(item.amount)
-            : escapeHtml(
-                item.content ||
-                item.note ||
-                "Hiện vật/dịch vụ",
-              );
+      const valueOrContent = isMoney
+        ? formatCurrency(item.amount)
+        : escapeHtml(item.content || item.note || "Hiện vật/dịch vụ");
 
-        return `
+      return `
           <tr>
             <td>${index + 1}</td>
 
@@ -1530,30 +1318,20 @@ function renderPublicSponsors() {
             </td>
 
             <td>
-              <span class="sponsor-kind-badge ${
-                isMoney ? "money" : "in-kind"
-              }">
-                ${
-                  isMoney
-                    ? "Tiền"
-                    : "Hiện vật/dịch vụ"
-                }
+              <span class="sponsor-kind-badge ${isMoney ? "money" : "in-kind"}">
+                ${isMoney ? "Tiền" : "Hiện vật/dịch vụ"}
               </span>
             </td>
 
             <td>
-              <span class="${
-                isMoney
-                  ? "public-sponsor-money"
-                  : ""
-              }">
+              <span class="${isMoney ? "public-sponsor-money" : ""}">
                 ${valueOrContent}
               </span>
             </td>
           </tr>
         `;
-      })
-      .join("");
+    })
+    .join("");
 }
 
 function startAllSponsorSubscription() {
@@ -1561,50 +1339,42 @@ function startAllSponsorSubscription() {
     return;
   }
 
-  unsubscribeAllSponsors =
-    subscribeAllSponsors(
-      (items) => {
-        publicSponsorsData = items;
+  unsubscribeAllSponsors = subscribeAllSponsors(
+    (items) => {
+      publicSponsorsData = items;
 
-        renderPublicSponsors();
-        renderHomeStats();
-      },
-      (error) => {
-        console.error(
-          "Không đọc được dữ liệu tài trợ công khai:",
-          error,
-        );
+      renderPublicSponsors();
+      renderHomeStats();
+    },
+    (error) => {
+      console.error("Không đọc được dữ liệu tài trợ công khai:", error);
 
-        if (publicSponsorTableBody) {
-          publicSponsorTableBody.innerHTML = `
+      if (publicSponsorTableBody) {
+        publicSponsorTableBody.innerHTML = `
             <tr>
               <td colspan="5" class="empty-row">
                 Không đọc được dữ liệu tài trợ
               </td>
             </tr>
           `;
-        }
-      },
-    );
+      }
+    },
+  );
 }
 
 function renderHomeStats() {
-  const totalMembers =
-    dashboardMembersData.length;
+  const totalMembers = dashboardMembersData.length;
 
-  const totalAttending =
-    dashboardMembersData.filter(
-      (item) => item.attending === true,
-    ).length;
+  const totalAttending = dashboardMembersData.filter(
+    (item) => item.attending === true,
+  ).length;
 
   if (totalClassesHome) {
-    totalClassesHome.textContent =
-      HOME_TOTAL_CLASSES;
+    totalClassesHome.textContent = HOME_TOTAL_CLASSES;
   }
 
   if (totalParticipantsHome) {
-    totalParticipantsHome.textContent =
-      `${totalAttending} / ${totalMembers}`;
+    totalParticipantsHome.textContent = `${totalAttending} / ${totalMembers}`;
   }
 
   /*
@@ -1618,53 +1388,39 @@ function renderHomeStats() {
 }
 
 function renderPublicParticipants() {
-  if (
-    !participantsTableBody ||
-    !participantSearch ||
-    !participantClassFilter
-  ) {
+  if (!participantsTableBody || !participantSearch || !participantClassFilter) {
     return;
   }
 
-  const keyword = participantSearch.value
-    .trim()
-    .toLocaleLowerCase("vi");
+  const keyword = participantSearch.value.trim().toLocaleLowerCase("vi");
 
-  const selectedClass =
-    participantClassFilter.value;
+  const selectedClass = participantClassFilter.value;
 
   const attendees = dashboardMembersData
     .filter((item) => item.attending === true)
     .filter((item) => {
-      const matchesClass =
-        !selectedClass ||
-        item.classId === selectedClass;
+      const matchesClass = !selectedClass || item.classId === selectedClass;
 
-      const fullName = (item.fullName || "")
-        .toLocaleLowerCase("vi");
+      const fullName = (item.fullName || "").toLocaleLowerCase("vi");
 
-      const matchesName =
-        !keyword ||
-        fullName.includes(keyword);
+      const matchesName = !keyword || fullName.includes(keyword);
 
       return matchesClass && matchesName;
     })
     .sort((a, b) => {
-      const classCompare = (a.classId || "")
-        .localeCompare(b.classId || "", "vi");
+      const classCompare = (a.classId || "").localeCompare(
+        b.classId || "",
+        "vi",
+      );
 
       if (classCompare !== 0) {
         return classCompare;
       }
 
-      return compareVietnameseNames(
-        a.fullName || "",
-        b.fullName || "",
-      );
+      return compareVietnameseNames(a.fullName || "", b.fullName || "");
     });
 
-  publicParticipantCount.textContent =
-    attendees.length;
+  publicParticipantCount.textContent = attendees.length;
 
   if (attendees.length === 0) {
     participantsTableBody.innerHTML = `
@@ -1677,10 +1433,9 @@ function renderPublicParticipants() {
     return;
   }
 
-  participantsTableBody.innerHTML =
-    attendees
-      .map(
-        (item, index) => `
+  participantsTableBody.innerHTML = attendees
+    .map(
+      (item, index) => `
           <tr>
             <td>${index + 1}</td>
             <td>
@@ -1696,8 +1451,8 @@ function renderPublicParticipants() {
             </td>
           </tr>
         `,
-      )
-      .join("");
+    )
+    .join("");
 }
 
 const DASHBOARD_CLASSES = [
@@ -1719,19 +1474,11 @@ function getDashboardClassStats(classId) {
 
   const total = members.length;
 
-  const attending = members.filter(
-    (item) => item.attending === true,
-  ).length;
+  const attending = members.filter((item) => item.attending === true).length;
 
-  const pending = Math.max(
-    0,
-    total - attending,
-  );
+  const pending = Math.max(0, total - attending);
 
-  const percent =
-    total > 0
-      ? Math.round((attending / total) * 100)
-      : 0;
+  const percent = total > 0 ? Math.round((attending / total) * 100) : 0;
 
   return {
     classId,
@@ -1745,86 +1492,55 @@ function getDashboardClassStats(classId) {
 function renderDashboard() {
   if (!dashboardClassFilter) return;
 
-  const selectedClass =
-    dashboardClassFilter.value;
+  const selectedClass = dashboardClassFilter.value;
 
   let stats;
 
   if (selectedClass === "all") {
-    const total =
-      dashboardMembersData.length;
+    const total = dashboardMembersData.length;
 
-    const attending =
-      dashboardMembersData.filter(
-        (item) => item.attending === true,
-      ).length;
+    const attending = dashboardMembersData.filter(
+      (item) => item.attending === true,
+    ).length;
 
     stats = {
       total,
       attending,
-      pending: Math.max(
-        0,
-        total - attending,
-      ),
-      percent:
-        total > 0
-          ? Math.round(
-              (attending / total) * 100,
-            )
-          : 0,
+      pending: Math.max(0, total - attending),
+      percent: total > 0 ? Math.round((attending / total) * 100) : 0,
     };
 
-    dashboardScopeLabel.textContent =
-      "TOÀN KHÓA";
+    dashboardScopeLabel.textContent = "TOÀN KHÓA";
 
-    dashboardBreakdownTitle.textContent =
-      "Tình hình tham gia toàn khóa";
+    dashboardBreakdownTitle.textContent = "Tình hình tham gia toàn khóa";
   } else {
-    stats =
-      getDashboardClassStats(selectedClass);
+    stats = getDashboardClassStats(selectedClass);
 
-    dashboardScopeLabel.textContent =
-      `LỚP ${selectedClass}`;
+    dashboardScopeLabel.textContent = `LỚP ${selectedClass}`;
 
-    dashboardBreakdownTitle.textContent =
-      `Tình hình tham gia lớp ${selectedClass}`;
+    dashboardBreakdownTitle.textContent = `Tình hình tham gia lớp ${selectedClass}`;
   }
 
-  dashboardAttending.textContent =
-    stats.attending;
+  dashboardAttending.textContent = stats.attending;
 
-  dashboardMembers.textContent =
-    stats.total;
+  dashboardMembers.textContent = stats.total;
 
-  dashboardMemberCard.textContent =
-    stats.total;
+  dashboardMemberCard.textContent = stats.total;
 
-  dashboardAttendingCard.textContent =
-    stats.attending;
+  dashboardAttendingCard.textContent = stats.attending;
 
-  dashboardPendingCard.textContent =
-    stats.pending;
+  dashboardPendingCard.textContent = stats.pending;
 
-  dashboardPercent.textContent =
-    `${stats.percent}%`;
+  dashboardPercent.textContent = `${stats.percent}%`;
 
   if (dashboardRing) {
-    dashboardRing.style.setProperty(
-      "--dashboard-percent",
-      `${stats.percent}%`,
-    );
+    dashboardRing.style.setProperty("--dashboard-percent", `${stats.percent}%`);
   }
 
   const rows =
     selectedClass === "all"
-      ? DASHBOARD_CLASSES.map(
-          getDashboardClassStats,
-        )
-      : [
-          getDashboardClassStats(
-            selectedClass,
-          ),
-        ];
+      ? DASHBOARD_CLASSES.map(getDashboardClassStats)
+      : [getDashboardClassStats(selectedClass)];
 
   dashboardTableBody.innerHTML = rows
     .map(
@@ -1860,30 +1576,26 @@ function startDashboardSubscription() {
     return;
   }
 
-  unsubscribeDashboard =
-    subscribeAllPublicMembers(
-      (items) => {
-        dashboardMembersData =
-          items.filter((item) =>
-            DASHBOARD_CLASSES.includes(
-              item.classId,
-            ),
-          );
+  unsubscribeDashboard = subscribeAllPublicMembers(
+    (items) => {
+      dashboardMembersData = items.filter((item) =>
+        DASHBOARD_CLASSES.includes(item.classId),
+      );
 
-        renderDashboard();
-        renderPublicParticipants();
-        renderHomeStats();
-      },
-      () => {
-        dashboardTableBody.innerHTML = `
+      renderDashboard();
+      renderPublicParticipants();
+      renderHomeStats();
+    },
+    () => {
+      dashboardTableBody.innerHTML = `
           <tr>
             <td colspan="5" class="empty-row">
               Không đọc được dữ liệu Dashboard
             </td>
           </tr>
         `;
-      },
-    );
+    },
+  );
 }
 
 function stopPublicClassSubscriptions() {
@@ -1907,7 +1619,6 @@ function stopPublicClassSubscriptions() {
   publicClassTeachers = [];
 }
 
-
 function openPublicClassSubTab(tabName) {
   publicClassTabButtons.forEach((button) => {
     button.classList.toggle(
@@ -1926,39 +1637,27 @@ function openPublicClassSubTab(tabName) {
 
 publicClassTabButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    openPublicClassSubTab(
-      button.dataset.publicClassTab,
-    );
+    openPublicClassSubTab(button.dataset.publicClassTab);
   });
 });
 
 function renderPublicClassDetail() {
-  publicClassMemberCount.textContent =
-    publicClassMembers.length;
+  publicClassMemberCount.textContent = publicClassMembers.length;
 
-  publicClassAttendingCount.textContent =
-    publicClassMembers.filter(
-      (item) => item.attending === true,
-    ).length;
+  publicClassAttendingCount.textContent = publicClassMembers.filter(
+    (item) => item.attending === true,
+  ).length;
 
   if (publicClassTeacherCount) {
-    publicClassTeacherCount.textContent =
-      publicClassTeachers.length;
+    publicClassTeacherCount.textContent = publicClassTeachers.length;
   }
 
   const sponsorTotal = publicClassSponsors.reduce(
-    (sum, item) =>
-      sum +
-      (
-        item.type === "money"
-          ? Number(item.amount) || 0
-          : 0
-      ),
+    (sum, item) => sum + (item.type === "money" ? Number(item.amount) || 0 : 0),
     0,
   );
 
-  publicClassSponsorTotal.textContent =
-    formatCurrency(sponsorTotal);
+  publicClassSponsorTotal.textContent = formatCurrency(sponsorTotal);
 
   if (publicClassMembers.length === 0) {
     publicClassMemberBody.innerHTML = `
@@ -1969,10 +1668,9 @@ function renderPublicClassDetail() {
       </tr>
     `;
   } else {
-    publicClassMemberBody.innerHTML =
-      publicClassMembers
-        .map(
-          (item, index) => `
+    publicClassMemberBody.innerHTML = publicClassMembers
+      .map(
+        (item, index) => `
             <tr>
               <td>${index + 1}</td>
               <td>
@@ -1982,28 +1680,24 @@ function renderPublicClassDetail() {
               </td>
             </tr>
           `,
-        )
-        .join("");
+      )
+      .join("");
   }
 
-  const attendingMembers =
-    publicClassMembers.filter(
-      (item) => item.attending === true,
-    );
+  const attendingMembers = publicClassMembers.filter(
+    (item) => item.attending === true,
+  );
 
-  const pendingMembers =
-    publicClassMembers.filter(
-      (item) => item.attending !== true,
-    );
+  const pendingMembers = publicClassMembers.filter(
+    (item) => item.attending !== true,
+  );
 
   if (publicClassConfirmedCount) {
-    publicClassConfirmedCount.textContent =
-      attendingMembers.length;
+    publicClassConfirmedCount.textContent = attendingMembers.length;
   }
 
   if (publicClassPendingCount) {
-    publicClassPendingCount.textContent =
-      pendingMembers.length;
+    publicClassPendingCount.textContent = pendingMembers.length;
   }
 
   if (attendingMembers.length === 0) {
@@ -2015,10 +1709,9 @@ function renderPublicClassDetail() {
       </tr>
     `;
   } else {
-    publicClassAttendingBody.innerHTML =
-      attendingMembers
-        .map(
-          (item, index) => `
+    publicClassAttendingBody.innerHTML = attendingMembers
+      .map(
+        (item, index) => `
             <tr>
               <td>${index + 1}</td>
               <td>
@@ -2028,8 +1721,8 @@ function renderPublicClassDetail() {
               </td>
             </tr>
           `,
-        )
-        .join("");
+      )
+      .join("");
   }
 
   if (pendingMembers.length === 0) {
@@ -2041,10 +1734,9 @@ function renderPublicClassDetail() {
       </tr>
     `;
   } else {
-    publicClassPendingBody.innerHTML =
-      pendingMembers
-        .map(
-          (item, index) => `
+    publicClassPendingBody.innerHTML = pendingMembers
+      .map(
+        (item, index) => `
             <tr>
               <td>${index + 1}</td>
               <td>
@@ -2054,20 +1746,17 @@ function renderPublicClassDetail() {
               </td>
             </tr>
           `,
-        )
-        .join("");
+      )
+      .join("");
   }
 
+  const publicTeacherFilter = publicTeacherYearFilter?.value || "all";
 
-  const publicTeacherFilter =
-    publicTeacherYearFilter?.value || "all";
-
-  const visiblePublicTeachers =
-    publicClassTeachers.filter((item) =>
+  const visiblePublicTeachers = publicClassTeachers.filter(
+    (item) =>
       publicTeacherFilter === "all" ||
-      normalizeTeacherYearLevels(item)
-        .includes(publicTeacherFilter),
-    );
+      normalizeTeacherYearLevels(item).includes(publicTeacherFilter),
+  );
 
   if (visiblePublicTeachers.length === 0) {
     publicClassTeacherBody.innerHTML = `
@@ -2082,9 +1771,9 @@ function renderPublicClassDetail() {
       </tr>
     `;
   } else {
-    publicClassTeacherBody.innerHTML =
-      visiblePublicTeachers
-        .map((item, index) => `
+    publicClassTeacherBody.innerHTML = visiblePublicTeachers
+      .map(
+        (item, index) => `
           <tr>
             <td>${index + 1}</td>
             <td>
@@ -2097,8 +1786,9 @@ function renderPublicClassDetail() {
               ${renderTeacherYearBadges(item)}
             </td>
           </tr>
-        `)
-        .join("");
+        `,
+      )
+      .join("");
   }
 
   if (publicClassSponsors.length === 0) {
@@ -2110,34 +1800,24 @@ function renderPublicClassDetail() {
       </tr>
     `;
   } else {
-    publicClassSponsorBody.innerHTML =
-      [...publicClassSponsors]
-        .sort((a, b) => {
-          const aAmount =
-            a.type === "money"
-              ? Number(a.amount) || 0
-              : 0;
+    publicClassSponsorBody.innerHTML = [...publicClassSponsors]
+      .sort((a, b) => {
+        const aAmount = a.type === "money" ? Number(a.amount) || 0 : 0;
 
-          const bAmount =
-            b.type === "money"
-              ? Number(b.amount) || 0
-              : 0;
+        const bAmount = b.type === "money" ? Number(b.amount) || 0 : 0;
 
-          if (bAmount !== aAmount) {
-            return bAmount - aAmount;
-          }
+        if (bAmount !== aAmount) {
+          return bAmount - aAmount;
+        }
 
-          return (a.sponsorName || "").localeCompare(
-            b.sponsorName || "",
-            "vi",
-            { sensitivity: "base" },
-          );
-        })
-        .map(
-          (item, index) => {
-            const isMoney = item.type === "money";
+        return (a.sponsorName || "").localeCompare(b.sponsorName || "", "vi", {
+          sensitivity: "base",
+        });
+      })
+      .map((item, index) => {
+        const isMoney = item.type === "money";
 
-            return `
+        return `
               <tr>
                 <td>${index + 1}</td>
                 <td>
@@ -2146,11 +1826,7 @@ function renderPublicClassDetail() {
                   </strong>
                 </td>
                 <td>
-                  ${
-                    isMoney
-                      ? "Tiền"
-                      : "Hiện vật/dịch vụ"
-                  }
+                  ${isMoney ? "Tiền" : "Hiện vật/dịch vụ"}
                 </td>
                 <td>
                   ${
@@ -2161,31 +1837,22 @@ function renderPublicClassDetail() {
                 </td>
               </tr>
             `;
-          },
-        )
-        .join("");
+      })
+      .join("");
   }
 }
-
 
 function getPdfDateText() {
   const now = new Date();
 
-  return new Intl.DateTimeFormat(
-    "vi-VN",
-    {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    },
-  ).format(now);
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(now);
 }
 
-function buildAttendancePdf({
-  title,
-  members,
-  filename,
-}) {
+function buildAttendancePdf({ title, members, filename }) {
   if (!window.pdfMake) {
     showAlertDialog({
       title: "Chưa tải được công cụ PDF",
@@ -2199,17 +1866,13 @@ function buildAttendancePdf({
   if (!members.length) {
     showAlertDialog({
       title: "Danh sách trống",
-      message:
-        "Hiện chưa có dữ liệu để xuất PDF.",
+      message: "Hiện chưa có dữ liệu để xuất PDF.",
       type: "info",
     });
     return;
   }
 
-  const classText =
-    currentPublicClassId
-      ? `LỚP ${currentPublicClassId}`
-      : "";
+  const classText = currentPublicClassId ? `LỚP ${currentPublicClassId}` : "";
 
   const tableBody = [
     [
@@ -2224,17 +1887,15 @@ function buildAttendancePdf({
         alignment: "center",
       },
     ],
-    ...members.map(
-      (item, index) => [
-        {
-          text: String(index + 1),
-          alignment: "center",
-        },
-        {
-          text: item.fullName || "",
-        },
-      ],
-    ),
+    ...members.map((item, index) => [
+      {
+        text: String(index + 1),
+        alignment: "center",
+      },
+      {
+        text: item.fullName || "",
+      },
+    ]),
   ];
 
   const docDefinition = {
@@ -2292,10 +1953,7 @@ function buildAttendancePdf({
           body: tableBody,
         },
         layout: {
-          fillColor: (rowIndex) =>
-            rowIndex === 0
-              ? "#f5f0e8"
-              : null,
+          fillColor: (rowIndex) => (rowIndex === 0 ? "#f5f0e8" : null),
           hLineColor: "#d9d2c8",
           vLineColor: "#d9d2c8",
           hLineWidth: () => 0.7,
@@ -2307,8 +1965,7 @@ function buildAttendancePdf({
         },
       },
       {
-        text:
-          `Ngày xuất: ${getPdfDateText()}`,
+        text: `Ngày xuất: ${getPdfDateText()}`,
         alignment: "right",
         fontSize: 9,
         color: "#777777",
@@ -2317,8 +1974,7 @@ function buildAttendancePdf({
     ],
 
     footer: (currentPage, pageCount) => ({
-      text:
-        `Trang ${currentPage}/${pageCount}`,
+      text: `Trang ${currentPage}/${pageCount}`,
       alignment: "center",
       fontSize: 9,
       color: "#888888",
@@ -2326,11 +1982,8 @@ function buildAttendancePdf({
     }),
   };
 
-  window.pdfMake
-    .createPdf(docDefinition)
-    .download(filename);
+  window.pdfMake.createPdf(docDefinition).download(filename);
 }
-
 
 function buildGenericClassPdf({
   title,
@@ -2353,17 +2006,13 @@ function buildGenericClassPdf({
   if (!rows.length) {
     showAlertDialog({
       title: "Danh sách trống",
-      message:
-        "Hiện chưa có dữ liệu để xuất PDF.",
+      message: "Hiện chưa có dữ liệu để xuất PDF.",
       type: "info",
     });
     return;
   }
 
-  const classText =
-    currentPublicClassId
-      ? `LỚP ${currentPublicClassId}`
-      : "";
+  const classText = currentPublicClassId ? `LỚP ${currentPublicClassId}` : "";
 
   const body = [
     headers.map((header) => ({
@@ -2376,10 +2025,7 @@ function buildGenericClassPdf({
 
   const docDefinition = {
     pageSize: "A4",
-    pageOrientation:
-      headers.length >= 4
-        ? "landscape"
-        : "portrait",
+    pageOrientation: headers.length >= 4 ? "landscape" : "portrait",
     pageMargins: [36, 42, 36, 42],
 
     defaultStyle: {
@@ -2444,10 +2090,7 @@ function buildGenericClassPdf({
           body,
         },
         layout: {
-          fillColor: (rowIndex) =>
-            rowIndex === 0
-              ? "#f5f0e8"
-              : null,
+          fillColor: (rowIndex) => (rowIndex === 0 ? "#f5f0e8" : null),
           hLineColor: "#d9d2c8",
           vLineColor: "#d9d2c8",
           hLineWidth: () => 0.7,
@@ -2459,8 +2102,7 @@ function buildGenericClassPdf({
         },
       },
       {
-        text:
-          `Ngày xuất: ${getPdfDateText()}`,
+        text: `Ngày xuất: ${getPdfDateText()}`,
         alignment: "right",
         fontSize: 9,
         color: "#777777",
@@ -2469,8 +2111,7 @@ function buildGenericClassPdf({
     ],
 
     footer: (currentPage, pageCount) => ({
-      text:
-        `Trang ${currentPage}/${pageCount}`,
+      text: `Trang ${currentPage}/${pageCount}`,
       alignment: "center",
       fontSize: 9,
       color: "#888888",
@@ -2478,203 +2119,132 @@ function buildGenericClassPdf({
     }),
   };
 
-  window.pdfMake
-    .createPdf(docDefinition)
-    .download(filename);
+  window.pdfMake.createPdf(docDefinition).download(filename);
 }
 
 function exportMembersPdf() {
-  const rows = publicClassMembers.map(
-    (item, index) => [
-      {
-        text: String(index + 1),
-        alignment: "center",
-      },
-      item.fullName || "",
-    ],
-  );
+  const rows = publicClassMembers.map((item, index) => [
+    {
+      text: String(index + 1),
+      alignment: "center",
+    },
+    item.fullName || "",
+  ]);
 
   buildGenericClassPdf({
     title: "DANH SÁCH THÀNH VIÊN LỚP",
-    headers: [
-      "STT",
-      "HỌ VÀ TÊN",
-    ],
+    headers: ["STT", "HỌ VÀ TÊN"],
     rows,
     widths: [48, "*"],
-    filename:
-      `Danh_sach_thanh_vien_${currentPublicClassId || "lop"}.pdf`,
+    filename: `Danh_sach_thanh_vien_${currentPublicClassId || "lop"}.pdf`,
   });
 }
 
 function exportTeachersPdf() {
-  const yearFilter =
-    publicTeacherYearFilter?.value || "all";
+  const yearFilter = publicTeacherYearFilter?.value || "all";
 
-  const visibleTeachers =
-    publicClassTeachers.filter((item) =>
+  const visibleTeachers = publicClassTeachers.filter(
+    (item) =>
       yearFilter === "all" ||
-      normalizeTeacherYearLevels(item)
-        .includes(yearFilter),
-    );
-
-  const rows = visibleTeachers.map(
-    (item, index) => [
-      {
-        text: String(index + 1),
-        alignment: "center",
-      },
-      item.teacherName || "",
-      item.subject || "",
-      formatTeacherYears(item),
-    ],
+      normalizeTeacherYearLevels(item).includes(yearFilter),
   );
+
+  const rows = visibleTeachers.map((item, index) => [
+    {
+      text: String(index + 1),
+      alignment: "center",
+    },
+    item.teacherName || "",
+    item.subject || "",
+    formatTeacherYears(item),
+  ]);
 
   buildGenericClassPdf({
     title: "DANH SÁCH THẦY, CÔ",
-    headers: [
-      "STT",
-      "TÊN THẦY, CÔ",
-      "BỘ MÔN",
-      "NĂM PHỤ TRÁCH",
-    ],
+    headers: ["STT", "TÊN THẦY, CÔ", "BỘ MÔN", "NĂM PHỤ TRÁCH"],
     rows,
     widths: [42, "*", "*", 90],
-    filename:
-      `Danh_sach_thay_co_${currentPublicClassId || "lop"}.pdf`,
+    filename: `Danh_sach_thay_co_${currentPublicClassId || "lop"}.pdf`,
   });
 }
 
 function exportSponsorsPdf() {
-  const sortedSponsors =
-    [...publicClassSponsors]
-      .sort((a, b) => {
-        const aAmount =
-          a.type === "money"
-            ? Number(a.amount) || 0
-            : 0;
+  const sortedSponsors = [...publicClassSponsors].sort((a, b) => {
+    const aAmount = a.type === "money" ? Number(a.amount) || 0 : 0;
 
-        const bAmount =
-          b.type === "money"
-            ? Number(b.amount) || 0
-            : 0;
+    const bAmount = b.type === "money" ? Number(b.amount) || 0 : 0;
 
-        if (bAmount !== aAmount) {
-          return bAmount - aAmount;
-        }
+    if (bAmount !== aAmount) {
+      return bAmount - aAmount;
+    }
 
-        return (a.sponsorName || "").localeCompare(
-          b.sponsorName || "",
-          "vi",
-          { sensitivity: "base" },
-        );
-      });
+    return (a.sponsorName || "").localeCompare(b.sponsorName || "", "vi", {
+      sensitivity: "base",
+    });
+  });
 
-  const rows = sortedSponsors.map(
-    (item, index) => {
-      const isMoney =
-        item.type === "money";
+  const rows = sortedSponsors.map((item, index) => {
+    const isMoney = item.type === "money";
 
-      const value =
-        isMoney
-          ? formatCurrency(item.amount)
-          : (
-              item.content ||
-              item.note ||
-              "Hiện vật/dịch vụ"
-            );
+    const value = isMoney
+      ? formatCurrency(item.amount)
+      : item.content || item.note || "Hiện vật/dịch vụ";
 
-      return [
-        {
-          text: String(index + 1),
-          alignment: "center",
-        },
-        item.sponsorName || "",
-        isMoney
-          ? "Tiền"
-          : "Hiện vật/dịch vụ",
-        value,
-      ];
-    },
+    return [
+      {
+        text: String(index + 1),
+        alignment: "center",
+      },
+      item.sponsorName || "",
+      isMoney ? "Tiền" : "Hiện vật/dịch vụ",
+      value,
+    ];
+  });
+
+  const totalMoney = sortedSponsors.reduce(
+    (sum, item) => sum + (item.type === "money" ? Number(item.amount) || 0 : 0),
+    0,
   );
-
-  const totalMoney =
-    sortedSponsors.reduce(
-      (sum, item) =>
-        sum +
-        (
-          item.type === "money"
-            ? Number(item.amount) || 0
-            : 0
-        ),
-      0,
-    );
 
   buildGenericClassPdf({
     title: "DANH SÁCH NGƯỜI TÀI TRỢ",
-    subtitle:
-      `Tổng tài trợ bằng tiền: ${formatCurrency(totalMoney)}`,
-    headers: [
-      "STT",
-      "NGƯỜI/ĐƠN VỊ TÀI TRỢ",
-      "HÌNH THỨC",
-      "GIÁ TRỊ/NỘI DUNG",
-    ],
+    subtitle: `Tổng tài trợ bằng tiền: ${formatCurrency(totalMoney)}`,
+    headers: ["STT", "NGƯỜI/ĐƠN VỊ TÀI TRỢ", "HÌNH THỨC", "GIÁ TRỊ/NỘI DUNG"],
     rows,
     widths: [42, "*", 95, "*"],
-    filename:
-      `Danh_sach_tai_tro_${currentPublicClassId || "lop"}.pdf`,
+    filename: `Danh_sach_tai_tro_${currentPublicClassId || "lop"}.pdf`,
   });
 }
 
 if (exportMembersPdfButton) {
-  exportMembersPdfButton.addEventListener(
-    "click",
-    exportMembersPdf,
-  );
+  exportMembersPdfButton.addEventListener("click", exportMembersPdf);
 }
 
 if (exportTeachersPdfButton) {
-  exportTeachersPdfButton.addEventListener(
-    "click",
-    exportTeachersPdf,
-  );
+  exportTeachersPdfButton.addEventListener("click", exportTeachersPdf);
 }
 
 if (exportSponsorsPdfButton) {
-  exportSponsorsPdfButton.addEventListener(
-    "click",
-    exportSponsorsPdf,
-  );
+  exportSponsorsPdfButton.addEventListener("click", exportSponsorsPdf);
 }
 
 function exportConfirmedAttendancePdf() {
-  const members =
-    publicClassMembers.filter(
-      (item) => item.attending === true,
-    );
+  const members = publicClassMembers.filter((item) => item.attending === true);
 
   buildAttendancePdf({
-    title:
-      "DANH SÁCH XÁC NHẬN THAM GIA HỘI KHÓA",
+    title: "DANH SÁCH XÁC NHẬN THAM GIA HỘI KHÓA",
     members,
-    filename:
-      `Danh_sach_xac_nhan_tham_gia_${currentPublicClassId || "lop"}.pdf`,
+    filename: `Danh_sach_xac_nhan_tham_gia_${currentPublicClassId || "lop"}.pdf`,
   });
 }
 
 function exportPendingAttendancePdf() {
-  const members =
-    publicClassMembers.filter(
-      (item) => item.attending !== true,
-    );
+  const members = publicClassMembers.filter((item) => item.attending !== true);
 
   buildAttendancePdf({
-    title:
-      "DANH SÁCH CHƯA XÁC NHẬN THAM GIA HỘI KHÓA",
+    title: "DANH SÁCH CHƯA XÁC NHẬN THAM GIA HỘI KHÓA",
     members,
-    filename:
-      `Danh_sach_chua_xac_nhan_${currentPublicClassId || "lop"}.pdf`,
+    filename: `Danh_sach_chua_xac_nhan_${currentPublicClassId || "lop"}.pdf`,
   });
 }
 
@@ -2686,10 +2256,7 @@ if (exportConfirmedPdfButton) {
 }
 
 if (exportPendingPdfButton) {
-  exportPendingPdfButton.addEventListener(
-    "click",
-    exportPendingAttendancePdf,
-  );
+  exportPendingPdfButton.addEventListener("click", exportPendingAttendancePdf);
 }
 
 function openPublicClass(classId) {
@@ -2701,21 +2268,19 @@ function openPublicClass(classId) {
     publicTeacherYearFilter.value = "all";
   }
 
-  publicClassTitle.textContent =
-    `Lớp ${classId}`;
+  publicClassTitle.textContent = `Lớp ${classId}`;
 
   publicClassDetail.classList.remove("hidden");
   openPublicClassSubTab("members");
 
-  unsubscribePublicMembers =
-    subscribePublicMembersByClass(
-      classId,
-      (items) => {
-        publicClassMembers = items;
-        renderPublicClassDetail();
-      },
-      () => {
-        publicClassMemberBody.innerHTML = `
+  unsubscribePublicMembers = subscribePublicMembersByClass(
+    classId,
+    (items) => {
+      publicClassMembers = items;
+      renderPublicClassDetail();
+    },
+    () => {
+      publicClassMemberBody.innerHTML = `
           <tr>
             <td colspan="2" class="empty-row">
               Không đọc được dữ liệu công khai
@@ -2723,7 +2288,7 @@ function openPublicClass(classId) {
           </tr>
         `;
 
-        publicClassAttendingBody.innerHTML = `
+      publicClassAttendingBody.innerHTML = `
           <tr>
             <td colspan="2" class="empty-row">
               Không đọc được dữ liệu tham gia
@@ -2731,52 +2296,49 @@ function openPublicClass(classId) {
           </tr>
         `;
 
-        publicClassPendingBody.innerHTML = `
+      publicClassPendingBody.innerHTML = `
           <tr>
             <td colspan="2" class="empty-row">
               Không đọc được dữ liệu chưa xác nhận
             </td>
           </tr>
         `;
-      },
-    );
+    },
+  );
 
-  unsubscribePublicSponsors =
-    subscribeSponsorsByClass(
-      classId,
-      (items) => {
-        publicClassSponsors = items;
-        renderPublicClassDetail();
-      },
-      () => {
-        publicClassSponsorBody.innerHTML = `
+  unsubscribePublicSponsors = subscribeSponsorsByClass(
+    classId,
+    (items) => {
+      publicClassSponsors = items;
+      renderPublicClassDetail();
+    },
+    () => {
+      publicClassSponsorBody.innerHTML = `
           <tr>
             <td colspan="4" class="empty-row">
               Không đọc được dữ liệu tài trợ
             </td>
           </tr>
         `;
-      },
-    );
+    },
+  );
 
-
-  unsubscribePublicTeachers =
-    subscribeTeachersByClass(
-      classId,
-      (items) => {
-        publicClassTeachers = items;
-        renderPublicClassDetail();
-      },
-      () => {
-        publicClassTeacherBody.innerHTML = `
+  unsubscribePublicTeachers = subscribeTeachersByClass(
+    classId,
+    (items) => {
+      publicClassTeachers = items;
+      renderPublicClassDetail();
+    },
+    () => {
+      publicClassTeacherBody.innerHTML = `
           <tr>
             <td colspan="4" class="empty-row">
               Không đọc được dữ liệu thầy, cô
             </td>
           </tr>
         `;
-      },
-    );
+    },
+  );
 
   publicClassDetail.scrollIntoView({
     behavior: "smooth",
@@ -2799,8 +2361,7 @@ function showLoggedOutUI() {
   loginMenuItem.classList.remove("hidden");
   managementMenuItem.classList.add("hidden");
 
-  managementTabButton.textContent =
-    "Quản lý";
+  managementTabButton.textContent = "Quản lý";
 
   currentUserName.textContent = "-";
   currentUserEmail.textContent = "-";
@@ -2815,34 +2376,28 @@ function showLoggedInUI(session) {
   loginMenuItem.classList.add("hidden");
   managementMenuItem.classList.remove("hidden");
 
-  currentUserName.textContent =
-    profile.name || "Người dùng";
+  currentUserName.textContent = profile.name || "Người dùng";
 
-  currentUserEmail.textContent =
-    profile.email || authUser.email || "-";
+  currentUserEmail.textContent = profile.email || authUser.email || "-";
 
   if (profile.role === "class_editor") {
     const classId = profile.classId || "";
 
-    managementTabButton.textContent =
-      classId
-        ? `Quản lý lớp ${classId}`
-        : "Quản lý lớp";
+    managementTabButton.textContent = classId
+      ? `Quản lý lớp ${classId}`
+      : "Quản lý lớp";
 
-    managementTitle.textContent =
-      classId
-        ? `Quản lý lớp ${classId}`
-        : "Quản lý lớp";
+    managementTitle.textContent = classId
+      ? `Quản lý lớp ${classId}`
+      : "Quản lý lớp";
 
-    managementSubtitle.textContent =
-      classId
-        ? `Nhập và cập nhật dữ liệu của lớp ${classId}`
-        : "Nhập và cập nhật dữ liệu lớp phụ trách";
+    managementSubtitle.textContent = classId
+      ? `Nhập và cập nhật dữ liệu của lớp ${classId}`
+      : "Nhập và cập nhật dữ liệu lớp phụ trách";
 
-    currentUserRole.textContent =
-      classId
-        ? `Đại diện lớp ${classId}`
-        : "Đại diện lớp";
+    currentUserRole.textContent = classId
+      ? `Đại diện lớp ${classId}`
+      : "Đại diện lớp";
 
     if (classId) {
       /*
@@ -2851,14 +2406,8 @@ function showLoggedInUI(session) {
        * - move legacy contributionAmount to private contributions
        * - remove contributionAmount from members
        */
-      migrateLegacyClassData(
-        classId,
-        authUser.uid,
-      ).catch((error) => {
-        console.error(
-          "Lỗi chuyển dữ liệu cũ:",
-          error,
-        );
+      migrateLegacyClassData(classId, authUser.uid).catch((error) => {
+        console.error("Lỗi chuyển dữ liệu cũ:", error);
       });
 
       startMemberSubscription(classId);
@@ -2867,17 +2416,13 @@ function showLoggedInUI(session) {
       startTeacherSubscription(classId);
     }
   } else if (profile.role === "admin") {
-    managementTabButton.textContent =
-      "Quản trị";
+    managementTabButton.textContent = "Quản trị";
 
-    managementTitle.textContent =
-      "Quản trị Hội khóa";
+    managementTitle.textContent = "Quản trị Hội khóa";
 
-    managementSubtitle.textContent =
-      "Quản lý dữ liệu của toàn khóa";
+    managementSubtitle.textContent = "Quản lý dữ liệu của toàn khóa";
 
-    currentUserRole.textContent =
-      "Ban Tổ chức / Admin";
+    currentUserRole.textContent = "Ban Tổ chức / Admin";
 
     memberSectionTitle.textContent =
       "Danh sách thành viên - phần Admin sẽ hoàn thiện sau";
@@ -2888,88 +2433,61 @@ function showLoggedInUI(session) {
 }
 
 if (loginButton) {
-  loginButton.addEventListener(
-    "click",
-    async () => {
-      const email =
-        emailInput.value.trim();
+  loginButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim();
 
-      const password =
-        passwordInput.value;
+    const password = passwordInput.value;
 
-      if (!email || !password) {
-        setLoginMessage(
-          "Vui lòng nhập đầy đủ email và mật khẩu.",
-          "error",
+    if (!email || !password) {
+      setLoginMessage("Vui lòng nhập đầy đủ email và mật khẩu.", "error");
+      return;
+    }
+
+    try {
+      loginButton.disabled = true;
+      loginButton.textContent = "Đang đăng nhập...";
+
+      setLoginMessage("");
+
+      const authUser = await login(email, password);
+
+      const profile = await getUserProfile(authUser.uid);
+
+      if (!profile) {
+        throw new Error(
+          "Không tìm thấy hồ sơ người dùng trong Firestore/users.",
         );
-        return;
       }
 
-      try {
-        loginButton.disabled = true;
-        loginButton.textContent =
-          "Đang đăng nhập...";
+      if (profile.active === false) {
+        await logout();
 
-        setLoginMessage("");
-
-        const authUser =
-          await login(email, password);
-
-        const profile =
-          await getUserProfile(authUser.uid);
-
-        if (!profile) {
-          throw new Error(
-            "Không tìm thấy hồ sơ người dùng trong Firestore/users.",
-          );
-        }
-
-        if (profile.active === false) {
-          await logout();
-
-          throw new Error(
-            "Tài khoản đang bị khóa.",
-          );
-        }
-
-        showLoggedInUI({
-          authUser,
-          profile,
-        });
-
-        setLoginMessage(
-          "Đăng nhập thành công.",
-          "success",
-        );
-      } catch (error) {
-        console.error(
-          "Lỗi đăng nhập:",
-          error,
-        );
-
-        setLoginMessage(
-          error.message ||
-            "Đăng nhập không thành công.",
-          "error",
-        );
-      } finally {
-        loginButton.disabled = false;
-        loginButton.textContent =
-          "Đăng nhập";
+        throw new Error("Tài khoản đang bị khóa.");
       }
-    },
-  );
+
+      showLoggedInUI({
+        authUser,
+        profile,
+      });
+
+      setLoginMessage("Đăng nhập thành công.", "success");
+    } catch (error) {
+      console.error("Lỗi đăng nhập:", error);
+
+      setLoginMessage(error.message || "Đăng nhập không thành công.", "error");
+    } finally {
+      loginButton.disabled = false;
+      loginButton.textContent = "Đăng nhập";
+    }
+  });
 }
 
 if (passwordInput) {
-  passwordInput.addEventListener(
-    "keydown",
-    (event) => {
-      if (event.key === "Enter") {
-        loginButton.click();
-      }
-    },
-  );
+  passwordInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      loginButton.click();
+    }
+  });
 }
 
 watchAuth((session) => {
@@ -2982,263 +2500,181 @@ watchAuth((session) => {
   const profile = session.profile;
 
   if (!profile) {
-    console.warn(
-      "Tài khoản chưa có hồ sơ trong Firestore/users.",
-    );
+    console.warn("Tài khoản chưa có hồ sơ trong Firestore/users.");
     showLoggedOutUI();
     return;
   }
 
   if (profile.active === false) {
-    console.warn(
-      "Tài khoản đang bị khóa.",
-    );
+    console.warn("Tài khoản đang bị khóa.");
     logout();
     showLoggedOutUI();
     return;
   }
 
-  console.log(
-    "Đã đăng nhập:",
-    profile,
-  );
+  console.log("Đã đăng nhập:", profile);
 
   showLoggedInUI(session);
 });
 
 if (memberForm) {
-  memberForm.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
+  memberForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-      if (!currentSession?.profile) {
-        setMemberMessage(
-          "Phiên đăng nhập không hợp lệ.",
-          "error",
-        );
-        return;
+    if (!currentSession?.profile) {
+      setMemberMessage("Phiên đăng nhập không hợp lệ.", "error");
+      return;
+    }
+
+    const profile = currentSession.profile;
+
+    const authUser = currentSession.authUser;
+
+    if (profile.role !== "class_editor") {
+      setMemberMessage(
+        "Chức năng này hiện dành cho tài khoản đại diện lớp.",
+        "error",
+      );
+      return;
+    }
+
+    const fullName = memberFullNameInput.value.trim();
+
+    const phone = memberPhoneInput.value.trim();
+
+    const note = memberNoteInput.value.trim();
+
+    if (!fullName) {
+      setMemberMessage("Vui lòng nhập họ và tên.", "error");
+      memberFullNameInput.focus();
+      return;
+    }
+
+    try {
+      saveMemberButton.disabled = true;
+
+      const memberId = memberIdInput.value;
+
+      if (memberId) {
+        await updateMember(memberId, {
+          fullName,
+          phone,
+          note,
+        });
+
+        resetMemberForm();
+
+        setMemberMessage("Đã cập nhật thành viên.", "success");
+      } else {
+        await addMember({
+          fullName,
+          phone,
+          note,
+          classId: profile.classId,
+          createdBy: authUser.uid,
+        });
+
+        resetMemberForm();
+
+        setMemberMessage("Đã thêm thành viên.", "success");
       }
+    } catch (error) {
+      console.error("Lỗi lưu thành viên:", error);
 
-      const profile =
-        currentSession.profile;
-
-      const authUser =
-        currentSession.authUser;
-
-      if (
-        profile.role !== "class_editor"
-      ) {
-        setMemberMessage(
-          "Chức năng này hiện dành cho tài khoản đại diện lớp.",
-          "error",
-        );
-        return;
-      }
-
-      const fullName =
-        memberFullNameInput.value.trim();
-
-      const phone =
-        memberPhoneInput.value.trim();
-
-      const note =
-        memberNoteInput.value.trim();
-
-      if (!fullName) {
-        setMemberMessage(
-          "Vui lòng nhập họ và tên.",
-          "error",
-        );
-        memberFullNameInput.focus();
-        return;
-      }
-
-      try {
-        saveMemberButton.disabled = true;
-
-        const memberId =
-          memberIdInput.value;
-
-        if (memberId) {
-          await updateMember(
-            memberId,
-            {
-              fullName,
-              phone,
-              note,
-            },
-          );
-
-          resetMemberForm();
-
-          setMemberMessage(
-            "Đã cập nhật thành viên.",
-            "success",
-          );
-        } else {
-          await addMember({
-            fullName,
-            phone,
-            note,
-            classId: profile.classId,
-            createdBy: authUser.uid,
-          });
-
-          resetMemberForm();
-
-          setMemberMessage(
-            "Đã thêm thành viên.",
-            "success",
-          );
-        }
-      } catch (error) {
-        console.error(
-          "Lỗi lưu thành viên:",
-          error,
-        );
-
-        setMemberMessage(
-          "Không lưu được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
-          "error",
-        );
-      } finally {
-        saveMemberButton.disabled = false;
-      }
-    },
-  );
+      setMemberMessage(
+        "Không lưu được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+        "error",
+      );
+    } finally {
+      saveMemberButton.disabled = false;
+    }
+  });
 }
 
 if (memberTableBody) {
-  memberTableBody.addEventListener(
-    "click",
-    async (event) => {
-      const editButton =
-        event.target.closest(
-          ".edit-member-button",
-        );
+  memberTableBody.addEventListener("click", async (event) => {
+    const editButton = event.target.closest(".edit-member-button");
 
-      const deleteButton =
-        event.target.closest(
-          ".delete-member-button",
-        );
+    const deleteButton = event.target.closest(".delete-member-button");
 
-      if (editButton) {
-        const memberId =
-          editButton.dataset.memberId;
+    if (editButton) {
+      const memberId = editButton.dataset.memberId;
 
-        const member =
-          classMembers.find(
-            (item) =>
-              item.id === memberId,
-          );
+      const member = classMembers.find((item) => item.id === memberId);
 
-        if (!member) return;
+      if (!member) return;
 
-        memberIdInput.value =
-          member.id;
+      memberIdInput.value = member.id;
 
-        memberFullNameInput.value =
-          member.fullName || "";
+      memberFullNameInput.value = member.fullName || "";
 
-        memberPhoneInput.value =
-          member.phone || "";
+      memberPhoneInput.value = member.phone || "";
 
-        memberNoteInput.value =
-          member.note || "";
+      memberNoteInput.value = member.note || "";
 
-        memberFormTitle.textContent =
-          "Sửa thành viên";
+      memberFormTitle.textContent = "Sửa thành viên";
 
-        saveMemberButton.textContent =
-          "Cập nhật";
+      saveMemberButton.textContent = "Cập nhật";
 
-        cancelEditButton.classList.remove(
-          "hidden",
-        );
+      cancelEditButton.classList.remove("hidden");
 
-        memberFullNameInput.focus();
-        return;
-      }
+      memberFullNameInput.focus();
+      return;
+    }
 
-      if (deleteButton) {
-        const memberId =
-          deleteButton.dataset.memberId;
+    if (deleteButton) {
+      const memberId = deleteButton.dataset.memberId;
 
-        const member =
-          classMembers.find(
-            (item) =>
-              item.id === memberId,
-          );
+      const member = classMembers.find((item) => item.id === memberId);
 
-        if (!member) return;
+      if (!member) return;
 
-        const confirmed =
-          await showConfirmDialog({
-            title: "Xóa thành viên?",
-            message:
-              `Bạn có chắc muốn xóa "${member.fullName}" khỏi danh sách lớp không?
+      const confirmed = await showConfirmDialog({
+        title: "Xóa thành viên?",
+        message: `Bạn có chắc muốn xóa "${member.fullName}" khỏi danh sách lớp không?
 Hành động này không thể hoàn tác.`,
-            confirmText: "Xóa thành viên",
-            cancelText: "Hủy",
-            type: "danger",
-          });
+        confirmText: "Xóa thành viên",
+        cancelText: "Hủy",
+        type: "danger",
+      });
 
-        if (!confirmed) return;
+      if (!confirmed) return;
 
-        try {
-          await deleteMember(memberId);
+      try {
+        await deleteMember(memberId);
 
-          if (
-            memberIdInput.value ===
-            memberId
-          ) {
-            resetMemberForm();
-          }
-        } catch (error) {
-          console.error(
-            "Lỗi xóa thành viên:",
-            error,
-          );
-
-          setMemberMessage(
-            "Không xóa được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
-            "error",
-          );
+        if (memberIdInput.value === memberId) {
+          resetMemberForm();
         }
+      } catch (error) {
+        console.error("Lỗi xóa thành viên:", error);
+
+        setMemberMessage(
+          "Không xóa được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
       }
-    },
-  );
+    }
+  });
 }
 
 if (cancelEditButton) {
-  cancelEditButton.addEventListener(
-    "click",
-    () => {
-      resetMemberForm();
-    },
-  );
+  cancelEditButton.addEventListener("click", () => {
+    resetMemberForm();
+  });
 }
 
 if (memberSearch) {
-  memberSearch.addEventListener(
-    "input",
-    () => {
-      renderMembers();
-    },
-  );
+  memberSearch.addEventListener("input", () => {
+    renderMembers();
+  });
 }
 
-
-
 if (manageTeachersButton) {
-  manageTeachersButton.addEventListener(
-    "click",
-    () => {
-      showManagementPanel("teachers");
-      renderTeachers();
-    },
-  );
+  manageTeachersButton.addEventListener("click", () => {
+    showManagementPanel("teachers");
+    renderTeachers();
+  });
 }
 
 if (teacherSearch) {
@@ -3250,176 +2686,142 @@ if (teacherYearFilter) {
 }
 
 if (publicTeacherYearFilter) {
-  publicTeacherYearFilter.addEventListener(
-    "change",
-    renderPublicClassDetail,
-  );
+  publicTeacherYearFilter.addEventListener("change", renderPublicClassDetail);
 }
 
 if (teacherForm) {
-  teacherForm.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
+  teacherForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-      if (!currentSession?.profile) {
-        setTeacherMessage(
-          "Phiên đăng nhập không hợp lệ.",
-          "error",
-        );
-        return;
+    if (!currentSession?.profile) {
+      setTeacherMessage("Phiên đăng nhập không hợp lệ.", "error");
+      return;
+    }
+
+    const profile = currentSession.profile;
+    const authUser = currentSession.authUser;
+
+    if (profile.role !== "class_editor") {
+      setTeacherMessage(
+        "Chức năng này hiện dành cho tài khoản đại diện lớp.",
+        "error",
+      );
+      return;
+    }
+
+    const teacherName = teacherNameInput.value.trim();
+    const subject = teacherSubjectInput.value.trim();
+    const yearLevels = getSelectedTeacherYearLevels();
+
+    if (!teacherName) {
+      setTeacherMessage("Vui lòng nhập tên thầy, cô.", "error");
+      teacherNameInput.focus();
+      return;
+    }
+
+    if (yearLevels.length === 0) {
+      setTeacherMessage("Vui lòng chọn ít nhất một năm phụ trách.", "error");
+
+      teacherYearLevelCheckboxes[0]?.focus();
+      return;
+    }
+
+    try {
+      saveTeacherButton.disabled = true;
+
+      const teacherId = teacherIdInput.value;
+
+      if (teacherId) {
+        await updateTeacher(teacherId, { teacherName, subject, yearLevels });
+
+        resetTeacherForm();
+        setTeacherMessage("Đã cập nhật thông tin thầy, cô.", "success");
+      } else {
+        await addTeacher({
+          teacherName,
+          subject,
+          yearLevels,
+          classId: profile.classId,
+          createdBy: authUser.uid,
+        });
+
+        resetTeacherForm();
+        setTeacherMessage("Đã thêm thầy, cô.", "success");
       }
-
-      const profile = currentSession.profile;
-      const authUser = currentSession.authUser;
-
-      if (profile.role !== "class_editor") {
-        setTeacherMessage(
-          "Chức năng này hiện dành cho tài khoản đại diện lớp.",
-          "error",
-        );
-        return;
-      }
-
-      const teacherName = teacherNameInput.value.trim();
-      const subject = teacherSubjectInput.value.trim();
-      const yearLevels =
-        getSelectedTeacherYearLevels();
-
-      if (!teacherName) {
-        setTeacherMessage(
-          "Vui lòng nhập tên thầy, cô.",
-          "error",
-        );
-        teacherNameInput.focus();
-        return;
-      }
-
-      if (yearLevels.length === 0) {
-        setTeacherMessage(
-          "Vui lòng chọn ít nhất một năm phụ trách.",
-          "error",
-        );
-
-        teacherYearLevelCheckboxes[0]?.focus();
-        return;
-      }
-
-      try {
-        saveTeacherButton.disabled = true;
-
-        const teacherId = teacherIdInput.value;
-
-        if (teacherId) {
-          await updateTeacher(
-            teacherId,
-            { teacherName, subject, yearLevels },
-          );
-
-          resetTeacherForm();
-          setTeacherMessage(
-            "Đã cập nhật thông tin thầy, cô.",
-            "success",
-          );
-        } else {
-          await addTeacher({
-            teacherName,
-            subject,
-            yearLevels,
-            classId: profile.classId,
-            createdBy: authUser.uid,
-          });
-
-          resetTeacherForm();
-          setTeacherMessage(
-            "Đã thêm thầy, cô.",
-            "success",
-          );
-        }
-      } catch (error) {
-        console.error("Lỗi lưu thầy, cô:", error);
-        setTeacherMessage(
-          "Không lưu được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
-          "error",
-        );
-      } finally {
-        saveTeacherButton.disabled = false;
-      }
-    },
-  );
+    } catch (error) {
+      console.error("Lỗi lưu thầy, cô:", error);
+      setTeacherMessage(
+        "Không lưu được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
+        "error",
+      );
+    } finally {
+      saveTeacherButton.disabled = false;
+    }
+  });
 }
 
 if (teacherTableBody) {
-  teacherTableBody.addEventListener(
-    "click",
-    async (event) => {
-      const editButton = event.target.closest(".edit-teacher-button");
-      const deleteButton = event.target.closest(".delete-teacher-button");
+  teacherTableBody.addEventListener("click", async (event) => {
+    const editButton = event.target.closest(".edit-teacher-button");
+    const deleteButton = event.target.closest(".delete-teacher-button");
 
-      if (editButton) {
-        const teacherId = editButton.dataset.teacherId;
-        const item = classTeachers.find((row) => row.id === teacherId);
+    if (editButton) {
+      const teacherId = editButton.dataset.teacherId;
+      const item = classTeachers.find((row) => row.id === teacherId);
 
-        if (!item) return;
+      if (!item) return;
 
-        teacherIdInput.value = item.id;
-        teacherNameInput.value = item.teacherName || "";
-        teacherSubjectInput.value = item.subject || "";
-        setSelectedTeacherYearLevels(
-          normalizeTeacherYearLevels(item),
-        );
+      teacherIdInput.value = item.id;
+      teacherNameInput.value = item.teacherName || "";
+      teacherSubjectInput.value = item.subject || "";
+      setSelectedTeacherYearLevels(normalizeTeacherYearLevels(item));
 
-        teacherFormTitle.textContent = "Sửa thầy, cô";
-        saveTeacherButton.textContent = "Cập nhật";
-        cancelTeacherEditButton.classList.remove("hidden");
-        teacherNameInput.focus();
-        return;
-      }
+      teacherFormTitle.textContent = "Sửa thầy, cô";
+      saveTeacherButton.textContent = "Cập nhật";
+      cancelTeacherEditButton.classList.remove("hidden");
+      teacherNameInput.focus();
+      return;
+    }
 
-      if (deleteButton) {
-        const teacherId = deleteButton.dataset.teacherId;
-        const item = classTeachers.find((row) => row.id === teacherId);
+    if (deleteButton) {
+      const teacherId = deleteButton.dataset.teacherId;
+      const item = classTeachers.find((row) => row.id === teacherId);
 
-        if (!item) return;
+      if (!item) return;
 
-        const confirmed = await showConfirmDialog({
-          title: "Xóa thầy, cô?",
+      const confirmed = await showConfirmDialog({
+        title: "Xóa thầy, cô?",
+        message: `Bạn có chắc muốn xóa "${item.teacherName}" khỏi danh sách thầy, cô không?\nHành động này không thể hoàn tác.`,
+        confirmText: "Xóa",
+        cancelText: "Hủy",
+        type: "danger",
+      });
+
+      if (!confirmed) return;
+
+      try {
+        await deleteTeacher(teacherId);
+
+        if (teacherIdInput.value === teacherId) {
+          resetTeacherForm();
+        }
+      } catch (error) {
+        console.error("Lỗi xóa thầy, cô:", error);
+        await showAlertDialog({
+          title: "Không thể xóa",
           message:
-            `Bạn có chắc muốn xóa "${item.teacherName}" khỏi danh sách thầy, cô không?\nHành động này không thể hoàn tác.`,
-          confirmText: "Xóa",
-          cancelText: "Hủy",
+            "Không xóa được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
           type: "danger",
         });
-
-        if (!confirmed) return;
-
-        try {
-          await deleteTeacher(teacherId);
-
-          if (teacherIdInput.value === teacherId) {
-            resetTeacherForm();
-          }
-        } catch (error) {
-          console.error("Lỗi xóa thầy, cô:", error);
-          await showAlertDialog({
-            title: "Không thể xóa",
-            message:
-              "Không xóa được dữ liệu thầy, cô. Vui lòng kiểm tra Firestore Rules.",
-            type: "danger",
-          });
-        }
       }
-    },
-  );
+    }
+  });
 }
 
 if (cancelTeacherEditButton) {
-  cancelTeacherEditButton.addEventListener(
-    "click",
-    () => {
-      resetTeacherForm();
-    },
-  );
+  cancelTeacherEditButton.addEventListener("click", () => {
+    resetTeacherForm();
+  });
 }
 
 if (manageMembersButton) {
@@ -3479,456 +2881,321 @@ if (participantManageTableBody) {
   });
 }
 
-
 if (manageContributionsButton) {
-  manageContributionsButton.addEventListener(
-    "click",
-    () => {
-      showManagementPanel("contributions");
-      renderContributionManagement();
-    },
-  );
+  manageContributionsButton.addEventListener("click", () => {
+    showManagementPanel("contributions");
+    renderContributionManagement();
+  });
 }
 
 if (contributionSearch) {
-  contributionSearch.addEventListener(
-    "input",
-    () => {
-      renderContributionManagement();
-    },
-  );
+  contributionSearch.addEventListener("input", () => {
+    renderContributionManagement();
+  });
 }
 
 if (contributionFilter) {
-  contributionFilter.addEventListener(
-    "change",
-    () => {
-      renderContributionManagement();
-    },
-  );
+  contributionFilter.addEventListener("change", () => {
+    renderContributionManagement();
+  });
 }
 
 if (contributionTableBody) {
-  contributionTableBody.addEventListener(
-    "click",
-    async (event) => {
-      const button =
-        event.target.closest(".save-contribution-button");
+  contributionTableBody.addEventListener("click", async (event) => {
+    const button = event.target.closest(".save-contribution-button");
 
-      if (!button) return;
+    if (!button) return;
 
-      const memberId = button.dataset.memberId;
+    const memberId = button.dataset.memberId;
 
-      const input = contributionTableBody.querySelector(
-        `.contribution-input[data-member-id="${memberId}"]`,
-      );
+    const input = contributionTableBody.querySelector(
+      `.contribution-input[data-member-id="${memberId}"]`,
+    );
 
-      if (!input) return;
+    if (!input) return;
 
-      let amount = Number(input.value);
+    let amount = Number(input.value);
 
-      if (!Number.isFinite(amount) || amount < 0) {
-        await showAlertDialog({
-          title: "Số tiền không hợp lệ",
-          message:
-            "Vui lòng nhập số tiền đóng góp hợp lệ, lớn hơn hoặc bằng 0.",
-          type: "danger",
-        });
-        input.focus();
-        return;
+    if (!Number.isFinite(amount) || amount < 0) {
+      await showAlertDialog({
+        title: "Số tiền không hợp lệ",
+        message: "Vui lòng nhập số tiền đóng góp hợp lệ, lớn hơn hoặc bằng 0.",
+        type: "danger",
+      });
+      input.focus();
+      return;
+    }
+
+    amount = Math.round(amount);
+
+    button.disabled = true;
+    button.textContent = "Đang lưu...";
+
+    try {
+      const member = classMembers.find((item) => item.id === memberId);
+
+      if (!member) {
+        throw new Error("Không tìm thấy thành viên.");
       }
 
-      amount = Math.round(amount);
+      await updateMemberContribution(memberId, {
+        classId: currentSession.profile.classId,
+        memberName: member.fullName || "",
+        amount,
+        updatedBy: currentSession.authUser.uid,
+      });
+    } catch (error) {
+      console.error("Lỗi cập nhật đóng góp:", error);
 
-      button.disabled = true;
-      button.textContent = "Đang lưu...";
-
-      try {
-        const member = classMembers.find(
-          (item) => item.id === memberId,
-        );
-
-        if (!member) {
-          throw new Error(
-            "Không tìm thấy thành viên.",
-          );
-        }
-
-        await updateMemberContribution(
-          memberId,
-          {
-            classId: currentSession.profile.classId,
-            memberName: member.fullName || "",
-            amount,
-            updatedBy: currentSession.authUser.uid,
-          },
-        );
-      } catch (error) {
-        console.error(
-          "Lỗi cập nhật đóng góp:",
-          error,
-        );
-
-        await showAlertDialog({
-          title: "Không thể lưu đóng góp",
-          message:
-            "Không cập nhật được số tiền đóng góp. Vui lòng kiểm tra Firestore Rules.",
-          type: "danger",
-        });
-      } finally {
-        button.disabled = false;
-        button.textContent = "Lưu";
-      }
-    },
-  );
+      await showAlertDialog({
+        title: "Không thể lưu đóng góp",
+        message:
+          "Không cập nhật được số tiền đóng góp. Vui lòng kiểm tra Firestore Rules.",
+        type: "danger",
+      });
+    } finally {
+      button.disabled = false;
+      button.textContent = "Lưu";
+    }
+  });
 }
 
-
 if (manageSponsorsButton) {
-  manageSponsorsButton.addEventListener(
-    "click",
-    () => {
-      showManagementPanel("sponsors");
-      renderSponsors();
-    },
-  );
+  manageSponsorsButton.addEventListener("click", () => {
+    showManagementPanel("sponsors");
+    renderSponsors();
+  });
 }
 
 if (sponsorTypeSelect) {
-  sponsorTypeSelect.addEventListener(
-    "change",
-    () => {
-      toggleSponsorAmountField();
-    },
-  );
+  sponsorTypeSelect.addEventListener("change", () => {
+    toggleSponsorAmountField();
+  });
 }
 
 if (sponsorSearch) {
-  sponsorSearch.addEventListener(
-    "input",
-    () => {
-      renderSponsors();
-    },
-  );
+  sponsorSearch.addEventListener("input", () => {
+    renderSponsors();
+  });
 }
 
 if (sponsorTypeFilter) {
-  sponsorTypeFilter.addEventListener(
-    "change",
-    () => {
-      renderSponsors();
-    },
-  );
+  sponsorTypeFilter.addEventListener("change", () => {
+    renderSponsors();
+  });
 }
 
 if (sponsorForm) {
-  sponsorForm.addEventListener(
-    "submit",
-    async (event) => {
-      event.preventDefault();
+  sponsorForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
 
-      if (!currentSession?.profile) {
-        setSponsorMessage(
-          "Phiên đăng nhập không hợp lệ.",
-          "error",
-        );
-        return;
+    if (!currentSession?.profile) {
+      setSponsorMessage("Phiên đăng nhập không hợp lệ.", "error");
+      return;
+    }
+
+    const profile = currentSession.profile;
+    const authUser = currentSession.authUser;
+
+    if (profile.role !== "class_editor") {
+      setSponsorMessage(
+        "Chức năng này hiện dành cho tài khoản đại diện lớp.",
+        "error",
+      );
+      return;
+    }
+
+    const sponsorName = sponsorNameInput.value.trim();
+
+    const type = sponsorTypeSelect.value;
+
+    const amount = type === "money" ? Number(sponsorAmountInput.value) || 0 : 0;
+
+    const content = sponsorContentInput.value.trim();
+
+    const note = sponsorNoteInput.value.trim();
+
+    if (!sponsorName) {
+      setSponsorMessage("Vui lòng nhập người/đơn vị tài trợ.", "error");
+      sponsorNameInput.focus();
+      return;
+    }
+
+    if (type === "money" && amount < 0) {
+      setSponsorMessage("Số tiền tài trợ không hợp lệ.", "error");
+      sponsorAmountInput.focus();
+      return;
+    }
+
+    try {
+      saveSponsorButton.disabled = true;
+
+      const sponsorId = sponsorIdInput.value;
+
+      if (sponsorId) {
+        await updateSponsor(sponsorId, {
+          sponsorName,
+          type,
+          amount,
+          content,
+          note,
+        });
+
+        resetSponsorForm();
+        setSponsorMessage("Đã cập nhật khoản tài trợ.", "success");
+      } else {
+        await addSponsor({
+          sponsorName,
+          type,
+          amount,
+          content,
+          note,
+          classId: profile.classId,
+          createdBy: authUser.uid,
+        });
+
+        resetSponsorForm();
+        setSponsorMessage("Đã thêm khoản tài trợ.", "success");
       }
+    } catch (error) {
+      console.error("Lỗi lưu tài trợ:", error);
 
-      const profile = currentSession.profile;
-      const authUser = currentSession.authUser;
-
-      if (profile.role !== "class_editor") {
-        setSponsorMessage(
-          "Chức năng này hiện dành cho tài khoản đại diện lớp.",
-          "error",
-        );
-        return;
-      }
-
-      const sponsorName =
-        sponsorNameInput.value.trim();
-
-      const type =
-        sponsorTypeSelect.value;
-
-      const amount =
-        type === "money"
-          ? Number(sponsorAmountInput.value) || 0
-          : 0;
-
-      const content =
-        sponsorContentInput.value.trim();
-
-      const note =
-        sponsorNoteInput.value.trim();
-
-      if (!sponsorName) {
-        setSponsorMessage(
-          "Vui lòng nhập người/đơn vị tài trợ.",
-          "error",
-        );
-        sponsorNameInput.focus();
-        return;
-      }
-
-      if (type === "money" && amount < 0) {
-        setSponsorMessage(
-          "Số tiền tài trợ không hợp lệ.",
-          "error",
-        );
-        sponsorAmountInput.focus();
-        return;
-      }
-
-      try {
-        saveSponsorButton.disabled = true;
-
-        const sponsorId =
-          sponsorIdInput.value;
-
-        if (sponsorId) {
-          await updateSponsor(
-            sponsorId,
-            {
-              sponsorName,
-              type,
-              amount,
-              content,
-              note,
-            },
-          );
-
-          resetSponsorForm();
-          setSponsorMessage(
-            "Đã cập nhật khoản tài trợ.",
-            "success",
-          );
-        } else {
-          await addSponsor({
-            sponsorName,
-            type,
-            amount,
-            content,
-            note,
-            classId: profile.classId,
-            createdBy: authUser.uid,
-          });
-
-          resetSponsorForm();
-          setSponsorMessage(
-            "Đã thêm khoản tài trợ.",
-            "success",
-          );
-        }
-      } catch (error) {
-        console.error(
-          "Lỗi lưu tài trợ:",
-          error,
-        );
-
-        setSponsorMessage(
-          "Không lưu được tài trợ. Vui lòng kiểm tra Firestore Rules.",
-          "error",
-        );
-      } finally {
-        saveSponsorButton.disabled = false;
-      }
-    },
-  );
+      setSponsorMessage(
+        "Không lưu được tài trợ. Vui lòng kiểm tra Firestore Rules.",
+        "error",
+      );
+    } finally {
+      saveSponsorButton.disabled = false;
+    }
+  });
 }
 
 if (sponsorTableBody) {
-  sponsorTableBody.addEventListener(
-    "click",
-    async (event) => {
-      const editButton =
-        event.target.closest(
-          ".edit-sponsor-button",
-        );
+  sponsorTableBody.addEventListener("click", async (event) => {
+    const editButton = event.target.closest(".edit-sponsor-button");
 
-      const deleteButton =
-        event.target.closest(
-          ".delete-sponsor-button",
-        );
+    const deleteButton = event.target.closest(".delete-sponsor-button");
 
-      if (editButton) {
-        const sponsorId =
-          editButton.dataset.sponsorId;
+    if (editButton) {
+      const sponsorId = editButton.dataset.sponsorId;
 
-        const item =
-          classSponsors.find(
-            (row) =>
-              row.id === sponsorId,
-          );
+      const item = classSponsors.find((row) => row.id === sponsorId);
 
-        if (!item) return;
+      if (!item) return;
 
-        sponsorIdInput.value = item.id;
-        sponsorNameInput.value =
-          item.sponsorName || "";
-        sponsorTypeSelect.value =
-          item.type || "money";
-        sponsorAmountInput.value =
-          Number(item.amount) || 0;
-        sponsorContentInput.value =
-          item.content || "";
-        sponsorNoteInput.value =
-          item.note || "";
+      sponsorIdInput.value = item.id;
+      sponsorNameInput.value = item.sponsorName || "";
+      sponsorTypeSelect.value = item.type || "money";
+      sponsorAmountInput.value = Number(item.amount) || 0;
+      sponsorContentInput.value = item.content || "";
+      sponsorNoteInput.value = item.note || "";
 
-        sponsorFormTitle.textContent =
-          "Sửa khoản tài trợ";
+      sponsorFormTitle.textContent = "Sửa khoản tài trợ";
 
-        saveSponsorButton.textContent =
-          "Cập nhật";
+      saveSponsorButton.textContent = "Cập nhật";
 
-        cancelSponsorEditButton.classList.remove(
-          "hidden",
-        );
+      cancelSponsorEditButton.classList.remove("hidden");
 
-        toggleSponsorAmountField();
-        sponsorNameInput.focus();
-        return;
-      }
+      toggleSponsorAmountField();
+      sponsorNameInput.focus();
+      return;
+    }
 
-      if (deleteButton) {
-        const sponsorId =
-          deleteButton.dataset.sponsorId;
+    if (deleteButton) {
+      const sponsorId = deleteButton.dataset.sponsorId;
 
-        const item =
-          classSponsors.find(
-            (row) =>
-              row.id === sponsorId,
-          );
+      const item = classSponsors.find((row) => row.id === sponsorId);
 
-        if (!item) return;
+      if (!item) return;
 
-        const confirmed =
-          await showConfirmDialog({
-            title: "Xóa khoản tài trợ?",
-            message:
-              `Bạn có chắc muốn xóa khoản tài trợ của "${item.sponsorName}" không?
+      const confirmed = await showConfirmDialog({
+        title: "Xóa khoản tài trợ?",
+        message: `Bạn có chắc muốn xóa khoản tài trợ của "${item.sponsorName}" không?
 Hành động này không thể hoàn tác.`,
-            confirmText: "Xóa tài trợ",
-            cancelText: "Hủy",
-            type: "danger",
-          });
+        confirmText: "Xóa tài trợ",
+        cancelText: "Hủy",
+        type: "danger",
+      });
 
-        if (!confirmed) return;
+      if (!confirmed) return;
 
-        try {
-          await deleteSponsor(sponsorId);
+      try {
+        await deleteSponsor(sponsorId);
 
-          if (
-            sponsorIdInput.value ===
-            sponsorId
-          ) {
-            resetSponsorForm();
-          }
-        } catch (error) {
-          console.error(
-            "Lỗi xóa tài trợ:",
-            error,
-          );
-
-          setSponsorMessage(
-            "Không xóa được tài trợ. Vui lòng kiểm tra Firestore Rules.",
-            "error",
-          );
+        if (sponsorIdInput.value === sponsorId) {
+          resetSponsorForm();
         }
+      } catch (error) {
+        console.error("Lỗi xóa tài trợ:", error);
+
+        setSponsorMessage(
+          "Không xóa được tài trợ. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
       }
-    },
-  );
+    }
+  });
 }
 
 if (cancelSponsorEditButton) {
-  cancelSponsorEditButton.addEventListener(
-    "click",
-    () => {
-      resetSponsorForm();
-    },
-  );
+  cancelSponsorEditButton.addEventListener("click", () => {
+    resetSponsorForm();
+  });
 }
 
-
-
-
-
-
 if (homeSponsorListButton) {
-  homeSponsorListButton.addEventListener(
-    "click",
-    () => {
-      if (publicSponsorSearch) {
-        publicSponsorSearch.value = "";
-      }
+  homeSponsorListButton.addEventListener("click", () => {
+    if (publicSponsorSearch) {
+      publicSponsorSearch.value = "";
+    }
 
-      if (publicSponsorClassFilter) {
-        publicSponsorClassFilter.value = "";
-      }
+    if (publicSponsorClassFilter) {
+      publicSponsorClassFilter.value = "";
+    }
 
-      if (publicSponsorTypeFilter) {
-        publicSponsorTypeFilter.value = "all";
-      }
+    if (publicSponsorTypeFilter) {
+      publicSponsorTypeFilter.value = "all";
+    }
 
-      renderPublicSponsors();
-      openTab("sponsors");
-    },
-  );
+    renderPublicSponsors();
+    openTab("sponsors");
+  });
 }
 
 if (publicSponsorSearch) {
-  publicSponsorSearch.addEventListener(
-    "input",
-    () => {
-      renderPublicSponsors();
-    },
-  );
+  publicSponsorSearch.addEventListener("input", () => {
+    renderPublicSponsors();
+  });
 }
 
 if (publicSponsorClassFilter) {
-  publicSponsorClassFilter.addEventListener(
-    "change",
-    () => {
-      renderPublicSponsors();
-    },
-  );
+  publicSponsorClassFilter.addEventListener("change", () => {
+    renderPublicSponsors();
+  });
 }
 
 if (publicSponsorTypeFilter) {
-  publicSponsorTypeFilter.addEventListener(
-    "change",
-    () => {
-      renderPublicSponsors();
-    },
-  );
+  publicSponsorTypeFilter.addEventListener("change", () => {
+    renderPublicSponsors();
+  });
 }
 
 if (participantSearch) {
-  participantSearch.addEventListener(
-    "input",
-    () => {
-      renderPublicParticipants();
-    },
-  );
+  participantSearch.addEventListener("input", () => {
+    renderPublicParticipants();
+  });
 }
 
 if (participantClassFilter) {
-  participantClassFilter.addEventListener(
-    "change",
-    () => {
-      renderPublicParticipants();
-    },
-  );
+  participantClassFilter.addEventListener("change", () => {
+    renderPublicParticipants();
+  });
 }
 
 if (dashboardClassFilter) {
-  dashboardClassFilter.addEventListener(
-    "change",
-    () => {
-      renderDashboard();
-    },
-  );
+  dashboardClassFilter.addEventListener("change", () => {
+    renderDashboard();
+  });
 }
 
 startDashboardSubscription();
@@ -3942,79 +3209,63 @@ publicClassButtons.forEach((button) => {
 });
 
 if (closePublicClassButton) {
-  closePublicClassButton.addEventListener(
-    "click",
-    () => {
-      stopPublicClassSubscriptions();
-      publicClassDetail.classList.add("hidden");
-    },
-  );
+  closePublicClassButton.addEventListener("click", () => {
+    stopPublicClassSubscriptions();
+    publicClassDetail.classList.add("hidden");
+  });
 }
 
 comingSoonCards.forEach((card) => {
   card.addEventListener("click", () => {
     showAlertDialog({
       title: "Chức năng đang hoàn thiện",
-      message:
-        `${card.dataset.soon} sẽ được xây dựng ở bước tiếp theo.`,
+      message: `${card.dataset.soon} sẽ được xây dựng ở bước tiếp theo.`,
       type: "info",
     });
   });
 });
 
 if (logoutButton) {
-  logoutButton.addEventListener(
-    "click",
-    async () => {
-      try {
-        await logout();
+  logoutButton.addEventListener("click", async () => {
+    try {
+      await logout();
 
-        emailInput.value = "";
-        passwordInput.value = "";
+      emailInput.value = "";
+      passwordInput.value = "";
 
-        setLoginMessage("");
-        showLoggedOutUI();
-        openTab("home");
-      } catch (error) {
-        console.error(
-          "Lỗi đăng xuất:",
-          error,
-        );
-      }
-    },
-  );
+      setLoginMessage("");
+      showLoggedOutUI();
+      openTab("home");
+    } catch (error) {
+      console.error("Lỗi đăng xuất:", error);
+    }
+  });
 }
-
 
 /* ========================================
    ĐẾM NGƯỢC ĐẾN NGÀY HỘI KHÓA 24/11/2026
 ======================================== */
 function updateHomeCountdown() {
-  const countdownElement =
-    document.getElementById("homeCountdown");
+  const countdownElement = document.getElementById("homeCountdown");
 
   if (!countdownElement) return;
 
-  const reunionDate = new Date(2026, 10, 24);
+  const reunionDate = new Date(2026, 10, 22);
   reunionDate.setHours(0, 0, 0, 0);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   const remainingDays = Math.ceil(
-    (reunionDate.getTime() - today.getTime()) /
-      (1000 * 60 * 60 * 24),
+    (reunionDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
 
   if (remainingDays > 0) {
-    countdownElement.textContent =
-      `Còn ${remainingDays} ngày`;
+    countdownElement.textContent = `Còn ${remainingDays} ngày`;
   } else if (remainingDays === 0) {
-    countdownElement.textContent =
-      "Hôm nay là ngày Hội khóa";
+    countdownElement.textContent = "Hôm nay là ngày Hội khóa";
   } else {
-    countdownElement.textContent =
-      "Hội khóa đã diễn ra";
+    countdownElement.textContent = "Hội khóa đã diễn ra";
   }
 }
 
