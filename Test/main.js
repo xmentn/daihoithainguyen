@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20261006-1605";
+} from "./firebase/auth.js?v=20260929-0745";
 
 import {
   addMember,
@@ -25,44 +25,7 @@ import {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20261006-1605";
-
-/* ========================================
-   GOOGLE DRIVE - THƯ VIỆN ẢNH
-======================================== */
-
-/*
- * API key dưới đây lấy từ trang thư viện ảnh Google Drive mà bạn đã gửi.
- * Nên giới hạn key bằng HTTP referrers và chỉ cho phép Google Drive API.
- */
-const GOOGLE_DRIVE_API_KEY = "AIzaSyCOE_M9VqPrhW-WXLOGSvHT65aI1JRf76Q";
-
-/*
- * DÁN FOLDER ID CỦA TỪNG LỚP VÀO ĐÂY.
- *
- * Ví dụ link:
- * https://drive.google.com/drive/folders/1AbCdEf...
- *
- * thì Folder ID là:
- * 1AbCdEf...
- *
- * Để khách không đăng nhập vẫn xem ảnh:
- * thư mục lớp cần đặt General access = Anyone with the link / Viewer.
- * Tài khoản quản trị lớp được share riêng quyền Editor.
- */
-const CLASS_DRIVE_FOLDERS = {
-  "12A": "1hqoC84vyveCF4iIv8GvVRcAQ89GMxjJD",
-  "12B": "1ptCqo4nklJ4083CQcKAEO2BiFEgY3LPs",
-  "12C": "1fK_TpjT6uJnyW_fmTdWkABY8OFmJ_XKG",
-  "12D": "1P2nCrOLFc6l3sneTBt3UZuSMnSb-KPJ_",
-  "12E": "1ubso8Fpc4k7tvmhX2UDc75B0a9EYjet9",
-  "12G": "1-NH4Jn3kGEX2V5RFcCJCIbEc7udIcncZ",
-  "12H": "1zYtGtW8aFGqofL3Zkuj4wT56qt2BNpby",
-  "12K": "1JOIs2RtZQsXvimn5vodeuDNfCYwMXEpL",
-  "12M": "137H67Kp0sVjIjLG-972S1jMC_ONID6f5",
-};
-
-const MAX_PUBLIC_GALLERY_IMAGES = 50;
+} from "./firebase/firestore.js?v=20260929-0745";
 
 const menuToggle = document.getElementById("menuToggle");
 const navMenu = document.getElementById("navMenu");
@@ -230,7 +193,6 @@ const sponsorFormMessage = document.getElementById("sponsorFormMessage");
 const sponsorSearch = document.getElementById("sponsorSearch");
 const sponsorTypeFilter = document.getElementById("sponsorTypeFilter");
 const sponsorTableBody = document.getElementById("sponsorTableBody");
-
 const manageTeachersButton = document.getElementById("manageTeachersButton");
 const teacherManagement = document.getElementById("teacherManagement");
 const teacherSectionTitle = document.getElementById("teacherSectionTitle");
@@ -265,29 +227,6 @@ const publicClassTeacherCount = document.getElementById(
 const publicClassSponsorTotal = document.getElementById(
   "publicClassSponsorTotal",
 );
-const publicClassGalleryCount = document.getElementById(
-  "publicClassGalleryCount",
-);
-const publicClassGalleryTitle = document.getElementById(
-  "publicClassGalleryTitle",
-);
-const publicClassGalleryStatus = document.getElementById(
-  "publicClassGalleryStatus",
-);
-const publicClassGalleryGrid = document.getElementById(
-  "publicClassGalleryGrid",
-);
-const refreshPublicGalleryButton = document.getElementById(
-  "refreshPublicGalleryButton",
-);
-
-const driveLightbox = document.getElementById("driveLightbox");
-const driveLightboxImage = document.getElementById("driveLightboxImage");
-const driveLightboxCaption = document.getElementById("driveLightboxCaption");
-const driveLightboxClose = document.getElementById("driveLightboxClose");
-const driveLightboxPrev = document.getElementById("driveLightboxPrev");
-const driveLightboxNext = document.getElementById("driveLightboxNext");
-
 const publicClassMemberBody = document.getElementById("publicClassMemberBody");
 const publicClassAttendingBody = document.getElementById(
   "publicClassAttendingBody",
@@ -397,11 +336,6 @@ let publicClassMembers = [];
 let publicClassSponsors = [];
 let publicClassTeachers = [];
 let currentPublicClassId = "";
-
-let publicClassGalleryImages = [];
-let publicGalleryRequestToken = 0;
-let driveLightboxIndex = 0;
-
 let dashboardMembersData = [];
 let unsubscribeDashboard = null;
 let publicSponsorsData = [];
@@ -557,227 +491,6 @@ function escapeHtml(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function getClassDriveFolderId(classId = "") {
-  return String(CLASS_DRIVE_FOLDERS[classId] || "").trim();
-}
-
-function getDriveThumbnailUrl(fileId, size = "w700") {
-  return `https://drive.google.com/thumbnail?id=${encodeURIComponent(
-    fileId,
-  )}&sz=${size}`;
-}
-
-async function fetchDriveImages(folderId) {
-  if (!GOOGLE_DRIVE_API_KEY) {
-    throw new Error("Chưa cấu hình Google Drive API Key.");
-  }
-
-  if (!folderId) {
-    return [];
-  }
-
-  const allFiles = [];
-  let pageToken = "";
-
-  do {
-    const params = new URLSearchParams({
-      q: `'${folderId}' in parents and trashed = false and mimeType contains 'image/'`,
-      key: GOOGLE_DRIVE_API_KEY,
-      fields:
-        "nextPageToken,files(id,name,mimeType,thumbnailLink,modifiedTime)",
-      pageSize: String(Math.min(MAX_PUBLIC_GALLERY_IMAGES, 100)),
-      orderBy: "name",
-    });
-
-    if (pageToken) {
-      params.set("pageToken", pageToken);
-    }
-
-    const response = await fetch(
-      `https://www.googleapis.com/drive/v3/files?${params.toString()}`,
-    );
-
-    if (!response.ok) {
-      let message = `Google Drive API trả về lỗi ${response.status}.`;
-
-      try {
-        const errorData = await response.json();
-
-        const apiMessage = errorData?.error?.message;
-
-        if (apiMessage) {
-          message = apiMessage;
-        }
-      } catch (_) {
-        // Không cần xử lý thêm.
-      }
-
-      throw new Error(message);
-    }
-
-    const data = await response.json();
-
-    allFiles.push(...(Array.isArray(data.files) ? data.files : []));
-
-    pageToken = data.nextPageToken || "";
-
-    if (allFiles.length >= MAX_PUBLIC_GALLERY_IMAGES) {
-      break;
-    }
-  } while (pageToken);
-
-  return allFiles.slice(0, MAX_PUBLIC_GALLERY_IMAGES);
-}
-
-function renderPublicDriveGallery() {
-  if (publicClassGalleryCount) {
-    publicClassGalleryCount.textContent = publicClassGalleryImages.length;
-  }
-
-  if (!publicClassGalleryGrid) {
-    return;
-  }
-
-  if (publicClassGalleryImages.length === 0) {
-    publicClassGalleryGrid.innerHTML = "";
-    return;
-  }
-
-  publicClassGalleryGrid.innerHTML = publicClassGalleryImages
-    .map(
-      (file, index) => `
-          <button
-            class="drive-gallery-item"
-            type="button"
-            data-drive-gallery-index="${index}"
-            title="${escapeHtml(file.name || `Ảnh ${index + 1}`)}"
-          >
-            <span class="drive-gallery-thumb">
-              <img
-                src="${getDriveThumbnailUrl(file.id, "w700")}"
-                alt="${escapeHtml(file.name || `Ảnh ${index + 1}`)}"
-                loading="lazy"
-              >
-            </span>
-
-            <span class="drive-gallery-name">
-              ${escapeHtml(file.name || `Ảnh ${index + 1}`)}
-            </span>
-          </button>
-        `,
-    )
-    .join("");
-}
-
-async function loadPublicClassGallery(classId, { force = false } = {}) {
-  if (!publicClassGalleryGrid) return;
-
-  const folderId = getClassDriveFolderId(classId);
-
-  publicClassGalleryImages = [];
-  renderPublicDriveGallery();
-
-  if (publicClassGalleryTitle) {
-    publicClassGalleryTitle.textContent = `Thư viện ảnh lớp ${classId}`;
-  }
-
-  if (!folderId) {
-    if (publicClassGalleryStatus) {
-      publicClassGalleryStatus.textContent = `Chưa cấu hình Folder ID Google Drive cho lớp ${classId}.`;
-      publicClassGalleryStatus.className = "drive-gallery-status warning";
-    }
-
-    return;
-  }
-
-  const requestToken = ++publicGalleryRequestToken;
-
-  if (publicClassGalleryStatus) {
-    publicClassGalleryStatus.textContent = "Đang tải ảnh từ Google Drive...";
-    publicClassGalleryStatus.className = "drive-gallery-status loading";
-  }
-
-  try {
-    const files = await fetchDriveImages(folderId);
-
-    if (
-      requestToken !== publicGalleryRequestToken ||
-      classId !== currentPublicClassId
-    ) {
-      return;
-    }
-
-    publicClassGalleryImages = files;
-    renderPublicDriveGallery();
-
-    if (publicClassGalleryStatus) {
-      if (files.length === 0) {
-        publicClassGalleryStatus.textContent =
-          "Thư mục hiện chưa có ảnh hoặc ảnh chưa được chia sẻ công khai.";
-        publicClassGalleryStatus.className = "drive-gallery-status";
-      } else {
-        publicClassGalleryStatus.textContent = `Đang hiển thị ${files.length} ảnh của lớp ${classId}.`;
-        publicClassGalleryStatus.className = "drive-gallery-status success";
-      }
-    }
-  } catch (error) {
-    console.error("Lỗi tải ảnh Google Drive:", error);
-
-    publicClassGalleryImages = [];
-    renderPublicDriveGallery();
-
-    if (publicClassGalleryStatus) {
-      publicClassGalleryStatus.textContent =
-        "Không tải được ảnh. Hãy kiểm tra Folder ID, Google Drive API Key và quyền chia sẻ thư mục.";
-      publicClassGalleryStatus.className = "drive-gallery-status error";
-    }
-  }
-}
-
-function openDriveLightbox(index) {
-  if (!driveLightbox || publicClassGalleryImages.length === 0) {
-    return;
-  }
-
-  const total = publicClassGalleryImages.length;
-
-  driveLightboxIndex = (((Number(index) || 0) % total) + total) % total;
-
-  const file = publicClassGalleryImages[driveLightboxIndex];
-
-  driveLightboxImage.src = getDriveThumbnailUrl(file.id, "w2048");
-
-  driveLightboxImage.alt = file.name || `Ảnh ${driveLightboxIndex + 1}`;
-
-  driveLightboxCaption.textContent = `${file.name || `Ảnh ${driveLightboxIndex + 1}`} · ${driveLightboxIndex + 1}/${total}`;
-
-  driveLightbox.classList.remove("hidden");
-  driveLightbox.setAttribute("aria-hidden", "false");
-
-  document.body.classList.add("drive-lightbox-open");
-}
-
-function closeDriveLightbox() {
-  if (!driveLightbox) return;
-
-  driveLightbox.classList.add("hidden");
-  driveLightbox.setAttribute("aria-hidden", "true");
-
-  document.body.classList.remove("drive-lightbox-open");
-
-  if (driveLightboxImage) {
-    driveLightboxImage.src = "";
-  }
-}
-
-function moveDriveLightbox(step) {
-  if (publicClassGalleryImages.length === 0) {
-    return;
-  }
-
-  openDriveLightbox(driveLightboxIndex + step);
 }
 
 function setLoginMessage(message = "", type = "") {
@@ -1904,24 +1617,6 @@ function stopPublicClassSubscriptions() {
   publicClassMembers = [];
   publicClassSponsors = [];
   publicClassTeachers = [];
-
-  publicGalleryRequestToken += 1;
-  publicClassGalleryImages = [];
-
-  if (publicClassGalleryCount) {
-    publicClassGalleryCount.textContent = "0";
-  }
-
-  if (publicClassGalleryGrid) {
-    publicClassGalleryGrid.innerHTML = "";
-  }
-
-  if (publicClassGalleryStatus) {
-    publicClassGalleryStatus.textContent = "Chọn tab Thư viện ảnh để tải ảnh.";
-    publicClassGalleryStatus.className = "drive-gallery-status";
-  }
-
-  closeDriveLightbox();
 }
 
 function openPublicClassSubTab(tabName) {
@@ -1942,13 +1637,7 @@ function openPublicClassSubTab(tabName) {
 
 publicClassTabButtons.forEach((button) => {
   button.addEventListener("click", () => {
-    const tabName = button.dataset.publicClassTab;
-
-    openPublicClassSubTab(tabName);
-
-    if (tabName === "gallery" && currentPublicClassId) {
-      loadPublicClassGallery(currentPublicClassId);
-    }
+    openPublicClassSubTab(button.dataset.publicClassTab);
   });
 });
 
@@ -2583,25 +2272,6 @@ function openPublicClass(classId) {
 
   publicClassDetail.classList.remove("hidden");
   openPublicClassSubTab("members");
-
-  publicClassGalleryImages = [];
-
-  if (publicClassGalleryCount) {
-    publicClassGalleryCount.textContent = "0";
-  }
-
-  if (publicClassGalleryGrid) {
-    publicClassGalleryGrid.innerHTML = "";
-  }
-
-  if (publicClassGalleryStatus) {
-    publicClassGalleryStatus.textContent = "Chọn tab Thư viện ảnh để tải ảnh.";
-    publicClassGalleryStatus.className = "drive-gallery-status";
-  }
-
-  if (publicClassGalleryTitle) {
-    publicClassGalleryTitle.textContent = `Thư viện ảnh lớp ${classId}`;
-  }
 
   unsubscribePublicMembers = subscribePublicMembersByClass(
     classId,
@@ -3296,62 +2966,6 @@ if (manageSponsorsButton) {
     renderSponsors();
   });
 }
-
-if (refreshPublicGalleryButton) {
-  refreshPublicGalleryButton.addEventListener("click", () => {
-    if (!currentPublicClassId) return;
-
-    loadPublicClassGallery(currentPublicClassId, { force: true });
-  });
-}
-
-if (publicClassGalleryGrid) {
-  publicClassGalleryGrid.addEventListener("click", (event) => {
-    const item = event.target.closest("[data-drive-gallery-index]");
-
-    if (!item) return;
-
-    openDriveLightbox(Number(item.dataset.driveGalleryIndex));
-  });
-}
-
-if (driveLightboxClose) {
-  driveLightboxClose.addEventListener("click", closeDriveLightbox);
-}
-
-if (driveLightboxPrev) {
-  driveLightboxPrev.addEventListener("click", () => {
-    moveDriveLightbox(-1);
-  });
-}
-
-if (driveLightboxNext) {
-  driveLightboxNext.addEventListener("click", () => {
-    moveDriveLightbox(1);
-  });
-}
-
-if (driveLightbox) {
-  driveLightbox.addEventListener("click", (event) => {
-    if (event.target === driveLightbox) {
-      closeDriveLightbox();
-    }
-  });
-}
-
-document.addEventListener("keydown", (event) => {
-  if (!driveLightbox || driveLightbox.classList.contains("hidden")) {
-    return;
-  }
-
-  if (event.key === "Escape") {
-    closeDriveLightbox();
-  } else if (event.key === "ArrowLeft") {
-    moveDriveLightbox(-1);
-  } else if (event.key === "ArrowRight") {
-    moveDriveLightbox(1);
-  }
-});
 
 if (sponsorTypeSelect) {
   sponsorTypeSelect.addEventListener("change", () => {

@@ -1,1003 +1,1642 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sơ đồ vị trí chỗ ngồi Hội trường Tỉnh ủy</title>
-    <!-- Chèn font chữ hiện đại tối ưu hiển thị số và tiếng Việt -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
-    <style>
-        :root {
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --text-primary: #1e293b;
-            --text-muted: #64748b;
-            --gold-accent: #d4af37;
-            --burgundy-dark: #660a11;
-            --burgundy-light: #94161f;
-            --seat-empty: #e2e8f0;
-            --seat-occupied: #a61c1c;
-            --seat-text-light: #ffffff;
-            --desk-color: #deb887;
-            --desk-border: #bc9163;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Be Vietnam Pro', sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 1440px;
-            background-color: var(--bg-card);
-            border-radius: 16px;
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-
-        /* --- 1. BANNER & HEADER --- */
-        .banner-header {
-            background: linear-gradient(135deg, var(--burgundy-dark), var(--burgundy-light));
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid var(--gold-accent);
-            position: relative;
-        }
-
-        .brand-zone {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        /* Vẽ Cờ Đảng / Cờ Tổ Quốc bằng SVG */
-        .flag-icon {
-            width: 65px;
-            height: 44px;
-            border-radius: 4px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .title-zone h1 {
-            color: #ffffff;
-            font-size: 18px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            text-transform: uppercase;
-        }
-
-        .title-zone p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 13px;
-            margin-top: 2px;
-            font-style: italic;
-        }
-
-        .admin-btn {
-            background: rgba(255, 255, 255, 0.15);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            backdrop-filter: blur(8px);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .admin-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        /* --- 2. MAIN LAYOUT --- */
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 300px;
-            gap: 25px;
-            padding: 25px;
-        }
-
-        /* Khu vực điều khiển phiên & sơ đồ chính */
-        .workspace {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .session-selector {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            background: #f1f5f9;
-            padding: 12px;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-
-        .session-selector select {
-            padding: 6px 12px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-family: inherit;
-            font-weight: 500;
-            color: var(--text-primary);
-            outline: none;
-            background-color: #fff;
-        }
-
-        /* --- CONTAINER KHU VỰC CHỦ TỌA 3D --- */
-        .rostrum-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 15px auto 25px auto;
-            position: relative;
-            width: 100%;
-            max-width: 550px;
-            height: 115px;
-            /* Cố định chiều cao khối để các lớp chồng khít lên nhau */
-        }
-
-        .rostrum-positions-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 60px;
-            /* Khoảng cách giữa các vị trí chủ tọa */
-            z-index: 10;
-            /* Nổi lên trên lớp bàn gỗ */
-        }
-
-        .rostrum-spot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            width: 100px;
-            height: 100%;
-        }
-
-        .rostrum-spot:hover .desk-nameplate {
-            transform: translateY(-2px) scale(1.03);
-            box-shadow: 0 6px 12px rgba(166, 28, 28, 0.3);
-        }
-
-        .rostrum-spot.leader {
-            transform: scale(1.05);
-        }
-
-        .rostrum-chairs {
-            display: flex;
-            justify-content: center;
-            gap: 75px;
-            margin-bottom: -15px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .boss-chair {
-            width: 52px;
-            height: 50px;
-            background: linear-gradient(135deg, #caa17e, #b38965);
-            border-radius: 12px 12px 6px 6px;
-            box-shadow: inset 0 4px 6px rgba(0, 0, 0, 0.15), 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .boss-chair::before,
-        .boss-chair::after {
-            content: '';
-            position: absolute;
-            bottom: 5px;
-            width: 7px;
-            height: 25px;
-            background: #a27a58;
-            border-radius: 4px;
-        }
-
-        .boss-chair::before {
-            left: -5px;
-        }
-
-        .boss-chair::after {
-            right: -5px;
-        }
-
-        .rostrum-table {
-            width: 100%;
-            position: relative;
-            z-index: 2;
-        }
-
-        .table-surface {
-            height: 70px;
-            background: linear-gradient(to bottom, #deb887, #c79c6e);
-            border-radius: 16px 16px 4px 4px;
-            transform: rotateX(25deg);
-            transform-origin: bottom center;
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #bc9163;
-        }
-
-        .table-front {
-            height: 10px;
-            background: #a47a4e;
-            border-radius: 0 0 10px 10px;
-            margin-top: -1px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Biển chức danh đặt trên bàn */
-        .nameplate-wrapper {
-            display: flex;
-            justify-content: center;
-            gap: 70px;
-            width: 100%;
-            padding: 0 20px;
-            transform: rotateX(-25deg);
-            /* Đảo ngược góc nghiêng để text phẳng dễ đọc */
-        }
-
-        .desk-nameplate {
-            background: linear-gradient(135deg, #a61c1c, #800f0f);
-            color: #f3cd7b;
-            padding: 5px 10px;
-            border-radius: 4px;
-            width: 100%;
-            /* Chiều rộng cố định theo khối cha để cân đối */
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.15);
-            border: 1px solid var(--gold-accent);
-            transition: all 0.2s ease;
-            margin-bottom: 5px;
-            /* Đẩy sát lên mặt bàn */
-        }
-
-        .desk-nameplate:hover {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 6px 12px rgba(166, 28, 28, 0.3);
-        }
-
-        .desk-nameplate.leader {
-            transform: scale(1.05);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .desk-nameplate.leader:hover {
-            transform: translateY(-2px) scale(1.1);
-        }
-
-        .desk-nameplate .title {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            opacity: 0.8;
-        }
-
-        .desk-nameplate .name {
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .rostrum-table-bg {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            z-index: 1;
-            perspective: 1000px;
-        }
-
-        .table-surface-bg {
-            height: 65px;
-            background: linear-gradient(to bottom, #deb887, #c79c6e);
-            border-radius: 16px 16px 4px 4px;
-            transform: rotateX(25deg);
-            transform-origin: bottom center;
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.08);
-            border: 1px solid #bc9163;
-        }
-
-        .table-front-bg {
-            height: 10px;
-            background: #a47a4e;
-            border-radius: 0 0 10px 10px;
-            margin-top: -1px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* --- SEARCH BOX --- */
-        .search-area {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 16px 10px 40px;
-            border-radius: 99px;
-            border: 1px solid #cbd5e1;
-            background-color: #f8fafc;
-            font-family: inherit;
-            font-size: 13px;
-            outline: none;
-            transition: all 0.2s ease;
-        }
-
-        .search-input:focus {
-            background-color: #fff;
-            border-color: var(--burgundy-light);
-            box-shadow: 0 0 0 3px rgba(148, 22, 31, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            fill: var(--text-muted);
-            width: 16px;
-            height: 16px;
-        }
-
-        /* --- SƠ ĐỒ GHẾ ĐẠI BIỂU FLAT 2.0 --- */
-        .hall-seating-plan {
-            background-color: #fafbfc;
-            border: 1px solid #f1f5f9;
-            border-radius: 12px;
-            padding: 30px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .seating-row {
-            display: flex;
-            align-items: center;
-            width: 100%;
-        }
-
-        .row-label {
-            width: 70px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .row-blocks {
-            display: grid;
-            grid-template-columns: 1fr 40px 1fr;
-            width: 100%;
-            align-items: center;
-        }
-
-        .block {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .desk-strip {
-            height: 10px;
-            background-color: #e2e8f0;
-            border-radius: 3px;
-            width: 100%;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .seats-grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 6px;
-        }
-
-        .seat {
-            height: 32px;
-            border-radius: 6px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            font-size: 11px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: transform 0.15s ease, background-color 0.2s ease;
-            user-select: none;
-            position: relative;
-        }
-
-        /* Trạng thái ghế trống */
-        .seat.available {
-            background-color: var(--seat-empty);
-            color: var(--text-primary);
-        }
-
-        .seat.available:hover {
-            background-color: #cbd5e1;
-            transform: translateY(-1px);
-        }
-
-        /* Trạng thái ghế có người */
-        .seat.occupied {
-            background-color: var(--seat-occupied);
-            color: var(--seat-text-light);
-        }
-
-        .seat.occupied .delegate-name {
-            font-size: 8px;
-            font-weight: 400;
-            opacity: 0.9;
-            margin-top: -1px;
-            max-width: 90%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Ghế được chọn đặc biệt (A2) */
-        .seat.vip {
-            background: linear-gradient(135deg, #a61c1c, #700c0c);
-            border: 1px solid var(--gold-accent);
-        }
-
-        /* Lối đi chính giữa hội trường */
-        .aisle {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .aisle-text {
-            font-size: 10px;
-            font-weight: 600;
-            color: #cbd5e1;
-            writing-mode: vertical-rl;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transform: rotate(180deg);
-        }
-
-        /* Hiệu ứng Highlight khi tìm kiếm */
-        .seat.highlighted {
-            animation: pulse-ring 1.5s infinite;
-            transform: scale(1.05);
-            z-index: 10;
-        }
-
-        @keyframes pulse-ring {
-            0% {
-                box-shadow: 0 0 0 0 rgba(148, 22, 31, 0.7);
-            }
-
-            70% {
-                box-shadow: 0 0 0 6px rgba(148, 22, 31, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(148, 22, 31, 0);
-            }
-        }
-
-        /* --- 3. SIDEBAR PANEL --- */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .panel-card {
-            background-color: #fff;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .panel-card h3 {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 8px;
-        }
-
-        .stat-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .stat-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-        }
-
-        .stat-item .label {
-            color: var(--text-muted);
-        }
-
-        .stat-item .value {
-            font-weight: 600;
-        }
-
-        .stat-item .value.danger {
-            color: #ef4444;
-        }
-
-        .stat-item .value.success {
-            color: #10b981;
-        }
-
-        /* Vòng tròn tiến độ trực quan 2026 */
-        .visual-progress {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed #e2e8f0;
-        }
-
-        .progress-text .percentage {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .progress-text .desc {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .progress-circle {
-            width: 50px;
-            height: 50px;
-            transform: rotate(-90deg);
-        }
-
-        .progress-circle circle {
-            fill: none;
-            stroke-width: 4;
-        }
-
-        .progress-circle .bg {
-            stroke: #f1f5f9;
-        }
-
-        .progress-circle .bar {
-            stroke: #10b981;
-            stroke-dasharray: 126;
-            stroke-dashoffset: 123.5;
-            /* Tính toán ứng với tỷ lệ 1.9% */
-        }
-
-        /* Bộ nút hành động độc lập */
-        .action-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .action-btn {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            background-color: #fff;
-            font-family: inherit;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-        }
-
-        .action-btn:hover {
-            background-color: #f8fafc;
-            border-color: #94161f;
-            color: #94161f;
-        }
-
-        .action-btn svg {
-            width: 16px;
-            height: 16px;
-            fill: currentColor;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="app-container">
-        <!-- BANNER KHU VỰC ĐỈNH ĐỒNG BỘ TIÊU CHUẨN ĐẢNG -->
-        <header class="banner-header">
-            <div class="brand-zone">
-                <!-- SVG Quốc kỳ Việt Nam -->
-                <svg class="flag-icon" viewBox="0 0 30 20">
-                    <rect width="30" height="20" fill="#da251d" />
-                    <polygon points="15,4 12.3,12.3 19.4,7.1 10.6,7.1 17.7,12.3" fill="#ffff00" />
-                </svg>
-                <div class="title-zone">
-                    <h1>Hội nghị Ban Thường vụ Tỉnh ủy lần thứ 20, nhiệm kỳ 2025-2030</h1>
-                    <p>Hội trường Tỉnh ủy</p>
-                </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="style.css?v=20260929-0745" />
+  </head>
+
+  <body>
+    <!-- =========================
+         HEADER / BANNER
+    ========================== -->
+    <header class="site-header">
+      <div class="banner-wrapper">
+        <img
+          src="assets/images/banner-hoi-khoa.png"
+          alt="Hội khóa 30 năm Trường THPT Phú Bình khóa 1993 - 1996"
+          class="banner-image"
+        />
+      </div>
+
+      <!-- Thanh menu -->
+      <nav class="main-nav">
+        <div class="nav-container">
+          <button
+            class="menu-toggle"
+            id="menuToggle"
+            aria-label="Mở menu"
+            aria-expanded="false"
+          >
+            ☰
+          </button>
+
+          <ul class="nav-menu" id="navMenu">
+            <li>
+              <button class="tab-link active" data-tab="home">Trang chủ</button>
+            </li>
+
+            <li>
+              <button class="tab-link" data-tab="dashboard">Dashboard</button>
+            </li>
+
+            <li>
+              <button class="tab-link" data-tab="organizers">
+                Ban Tổ chức
+              </button>
+            </li>
+
+            <li>
+              <button class="tab-link" data-tab="classes">Các lớp</button>
+            </li>
+
+            <li>
+              <button class="tab-link" data-tab="participants">
+                Danh sách tham gia
+              </button>
+            </li>
+
+            <li>
+              <button class="tab-link" data-tab="sponsors">Tài trợ</button>
+            </li>
+
+            <li id="loginMenuItem">
+              <button
+                class="tab-link login-tab"
+                id="loginTabButton"
+                data-tab="login"
+              >
+                Đăng nhập
+              </button>
+            </li>
+
+            <li id="managementMenuItem" class="hidden">
+              <button
+                class="tab-link management-tab"
+                id="managementTabButton"
+                data-tab="management"
+              >
+                Quản lý
+              </button>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </header>
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+    <main class="main-content">
+      <!-- =========================
+             TRANG CHỦ
+        ========================== -->
+      <section class="tab-content active" id="home">
+        <div class="container">
+          <div class="page-heading compact-heading">
+            <h1>Hội khóa 30 năm</h1>
+            <p>Trường THPT Phú Bình · Khóa 1993 - 1996</p>
+            <p class="home-countdown" id="homeCountdown">Còn ... ngày</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🏫</div>
+              <div class="stat-number" id="totalClasses">9</div>
+              <div class="stat-label">Lớp</div>
             </div>
-            <button class="admin-btn">
-                <svg style="width:14px;height:14px;fill:currentColor" viewBox="0 0 24 24">
-                    <path
-                        d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.47,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.53,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.95C7.96,18.34 8.53,18.69 8.93,18.93L9.3,21.58C9.34,21.82 9.55,22 9.8,22H13.8C14.05,22 14.26,21.82 14.3,21.58L14.67,18.93C15.27,18.69 15.84,18.34 16.36,17.95L18.85,18.95C19.07,19.03 19.34,18.95 19.46,18.73L21.46,15.27C21.59,15.05 21.53,14.78 21.34,14.63L19.43,12.97Z" />
-                </svg>
-                Quản trị
-            </button>
-        </header>
 
-        <!-- KHU VỰC NỘI DUNG CHÍNH -->
-        <main class="main-content">
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-number stat-ratio" id="totalParticipants">
+                0 / 0
+              </div>
+              <div class="stat-label">Tham gia / Tổng thành viên</div>
+            </div>
 
-            <!-- VÙNG LÀM VIỆC & ĐỒ HỌA SƠ ĐỒ CHỖ NGỒI -->
-            <section class="workspace">
+            <div class="stat-card">
+              <div class="stat-icon">⭐</div>
+              <div class="stat-number" id="totalOrganizers">0</div>
+              <div class="stat-label">Ban Tổ chức</div>
+            </div>
 
-                <!-- Bộ lọc chọn phiên làm việc -->
-                <div class="session-selector">
-                    <label>Chọn phiên làm việc:</label>
-                    <select>
-                        <option>Hội nghị Ban Thường vụ Tỉnh ủy lần thứ 20, nhiệm kỳ 2025-2030</option>
+            <div class="stat-card stat-card-with-action">
+              <div class="stat-icon">💝</div>
+              <div class="stat-number stat-money" id="totalSponsor">0 đ</div>
+              <div class="stat-label">Tổng tài trợ</div>
+
+              <button
+                class="stat-card-link"
+                id="homeSponsorListButton"
+                type="button"
+              >
+                Xem danh sách →
+              </button>
+            </div>
+          </div>
+
+          <div class="home-grid">
+            <article class="home-card">
+              <div class="home-card-icon">📅</div>
+              <div>
+                <span>THỜI GIAN</span>
+                <h3>Ngày 22 tháng 11 năm 2026</h3>
+                <p>Thời gian tổ chức Hội khóa</p>
+              </div>
+            </article>
+
+            <article class="home-card">
+              <div class="home-card-icon">📍</div>
+              <div>
+                <span>ĐỊA ĐIỂM</span>
+                <h3>Trường THPT Phú Bình</h3>
+                <p>Phú Bình, Thái Nguyên</p>
+              </div>
+            </article>
+
+            <article class="home-card">
+              <div class="home-card-icon">🎓</div>
+              <div>
+                <span>NIÊN KHÓA</span>
+                <h3>1993 - 1996</h3>
+                <p>Hội khóa kỷ niệm 30 năm</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             DASHBOARD
+        ========================== -->
+      <section class="tab-content" id="dashboard">
+        <div class="container">
+          <div class="page-heading">
+            <span class="section-label">TỔNG QUAN HỘI KHÓA</span>
+            <h2>Dashboard</h2>
+            <p>
+              Tổng hợp tình hình tham gia Hội khóa của toàn khóa và từng lớp
+            </p>
+          </div>
+
+          <div class="dashboard-toolbar">
+            <div>
+              <label for="dashboardClassFilter">Phạm vi thống kê</label>
+              <select id="dashboardClassFilter">
+                <option value="all">Toàn khóa 1993 - 1996</option>
+                <option value="12A">Lớp 12A</option>
+                <option value="12B">Lớp 12B</option>
+                <option value="12C">Lớp 12C</option>
+                <option value="12D">Lớp 12D</option>
+                <option value="12E">Lớp 12E</option>
+                <option value="12G">Lớp 12G</option>
+                <option value="12H">Lớp 12H</option>
+                <option value="12K">Lớp 12K</option>
+                <option value="12M">Lớp 12M</option>
+              </select>
+            </div>
+
+            <div class="dashboard-updated">
+              <span>Dữ liệu cập nhật theo thời gian thực</span>
+            </div>
+          </div>
+
+          <div class="dashboard-hero">
+            <div class="dashboard-ratio-card dashboard-ring-card-shell">
+              <span class="dashboard-ratio-label" id="dashboardScopeLabel">
+                TOÀN KHÓA
+              </span>
+
+              <div class="dashboard-ring-layout">
+                <div
+                  class="dashboard-ring"
+                  id="dashboardRing"
+                  style="--dashboard-percent: 0%"
+                >
+                  <div class="dashboard-ring-inner">
+                    <strong id="dashboardPercent">0%</strong>
+                    <span>Tỷ lệ tham gia</span>
+                  </div>
+                </div>
+
+                <div class="dashboard-ring-summary">
+                  <div class="dashboard-ratio">
+                    <strong id="dashboardAttending">0</strong>
+                    <span>/</span>
+                    <strong id="dashboardMembers">0</strong>
+                  </div>
+
+                  <p>Người xác nhận tham gia / Tổng số thành viên</p>
+
+                  <div class="dashboard-legend">
+                    <div class="dashboard-legend-item">
+                      <span class="dashboard-legend-dot attending"></span>
+                      <span>Đã xác nhận tham gia</span>
+                    </div>
+
+                    <div class="dashboard-legend-item">
+                      <span class="dashboard-legend-dot pending"></span>
+                      <span>Chưa xác nhận</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-mini-grid">
+              <div class="dashboard-mini-card">
+                <span>Tổng thành viên</span>
+                <strong id="dashboardMemberCard">0</strong>
+                <small>người</small>
+              </div>
+
+              <div class="dashboard-mini-card">
+                <span>Đã xác nhận</span>
+                <strong id="dashboardAttendingCard">0</strong>
+                <small>người</small>
+              </div>
+
+              <div class="dashboard-mini-card">
+                <span>Chưa xác nhận</span>
+                <strong id="dashboardPendingCard">0</strong>
+                <small>người</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="dashboard-breakdown-card">
+            <div class="dashboard-breakdown-heading">
+              <div>
+                <span class="section-label">CHI TIẾT THEO LỚP</span>
+                <h3 id="dashboardBreakdownTitle">
+                  Tình hình tham gia toàn khóa
+                </h3>
+              </div>
+            </div>
+
+            <div class="table-responsive">
+              <table class="dashboard-table">
+                <thead>
+                  <tr>
+                    <th>Lớp</th>
+                    <th>Tổng thành viên</th>
+                    <th>Đã xác nhận</th>
+                    <th>Chưa xác nhận</th>
+                    <th>Tỷ lệ tham gia</th>
+                  </tr>
+                </thead>
+
+                <tbody id="dashboardTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-row">Đang tải dữ liệu...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             BAN TỔ CHỨC
+        ========================== -->
+      <section class="tab-content" id="organizers">
+        <div class="container">
+          <div class="page-heading">
+            <span class="section-label">HỘI KHÓA 30 NĂM</span>
+            <h2>Ban Tổ chức</h2>
+            <p>Danh sách các thành viên Ban Tổ chức Hội khóa</p>
+          </div>
+
+          <div class="placeholder-box">
+            <div class="placeholder-icon">👥</div>
+            <h3>Danh sách Ban Tổ chức</h3>
+            <p>Dữ liệu sẽ được cập nhật từ Firebase.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             CÁC LỚP
+        ========================== -->
+      <section class="tab-content" id="classes">
+        <div class="container">
+          <div class="page-heading">
+            <span class="section-label">KHÓA 1993 - 1996</span>
+            <h2>Danh sách các lớp</h2>
+            <p>Thông tin và danh sách thành viên của từng lớp</p>
+          </div>
+
+          <div class="classes-grid" id="classesList">
+            <article class="class-card">
+              <div class="class-badge">12A</div>
+              <div class="class-content">
+                <h3>Lớp 12A</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12A"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12B</div>
+              <div class="class-content">
+                <h3>Lớp 12B</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12B"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12C</div>
+              <div class="class-content">
+                <h3>Lớp 12C</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12C"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12D</div>
+              <div class="class-content">
+                <h3>Lớp 12D</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12D"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12E</div>
+              <div class="class-content">
+                <h3>Lớp 12E</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12E"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12G</div>
+              <div class="class-content">
+                <h3>Lớp 12G</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12G"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12H</div>
+              <div class="class-content">
+                <h3>Lớp 12H</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12H"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12K</div>
+              <div class="class-content">
+                <h3>Lớp 12K</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12K"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+            <article class="class-card">
+              <div class="class-badge">12M</div>
+              <div class="class-content">
+                <h3>Lớp 12M</h3>
+                <p>Danh sách thành viên</p>
+                <button
+                  class="text-button public-class-button"
+                  type="button"
+                  data-class-id="12M"
+                >
+                  Xem chi tiết →
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <div class="public-class-detail hidden" id="publicClassDetail">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">THÔNG TIN LỚP</span>
+                <h3 id="publicClassTitle">Lớp</h3>
+                <p>
+                  Thông tin công khai: thành viên, thầy cô, người tham gia và
+                  tài trợ.
+                </p>
+              </div>
+
+              <button
+                class="secondary-action-button"
+                id="closePublicClassButton"
+                type="button"
+              >
+                Đóng
+              </button>
+            </div>
+
+            <div class="public-class-tabs" role="tablist">
+              <button
+                class="public-class-tab active"
+                type="button"
+                data-public-class-tab="members"
+              >
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassMemberCount"
+                  >0</span
+                >
+                <span class="public-class-tab-label">Thành viên</span>
+              </button>
+
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="attending"
+              >
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassAttendingCount"
+                  >0</span
+                >
+                <span class="public-class-tab-label">Tham gia Hội khóa</span>
+              </button>
+
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="teachers"
+              >
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassTeacherCount"
+                  >0</span
+                >
+                <span class="public-class-tab-label">Thầy, cô</span>
+              </button>
+
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="sponsors"
+              >
+                <span
+                  class="public-class-tab-number stat-money"
+                  id="publicClassSponsorTotal"
+                  >0 đ</span
+                >
+                <span class="public-class-tab-label">Tài trợ</span>
+              </button>
+            </div>
+
+            <div class="public-class-tab-panels">
+              <div
+                class="public-class-tab-panel active"
+                id="publicClassMembersPanel"
+                data-public-class-panel="members"
+              >
+                <div class="table-card">
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker">DỮ LIỆU LỚP</span>
+                      <h4>Danh sách thành viên</h4>
+                    </div>
+
+                    <button
+                      class="pdf-export-button"
+                      id="exportMembersPdfButton"
+                      type="button"
+                    >
+                      Xuất PDF
+                    </button>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Họ và tên</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassMemberBody">
+                        <tr>
+                          <td colspan="2" class="empty-row">Chưa có dữ liệu</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="public-class-tab-panel"
+                id="publicClassAttendingPanel"
+                data-public-class-panel="attending"
+              >
+                <div class="attendance-split-grid">
+                  <div class="table-card attendance-list-card">
+                    <div class="attendance-list-heading">
+                      <div>
+                        <span class="attendance-list-kicker">ĐÃ PHẢN HỒI</span>
+                        <h4>Xác nhận tham gia</h4>
+                        <p>
+                          <strong id="publicClassConfirmedCount">0</strong>
+                          thành viên
+                        </p>
+                      </div>
+
+                      <button
+                        class="pdf-export-button"
+                        id="exportConfirmedPdfButton"
+                        type="button"
+                      >
+                        Xuất PDF
+                      </button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>STT</th>
+                            <th>Họ và tên</th>
+                          </tr>
+                        </thead>
+
+                        <tbody id="publicClassAttendingBody">
+                          <tr>
+                            <td colspan="2" class="empty-row">
+                              Chưa có dữ liệu
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="table-card attendance-list-card">
+                    <div class="attendance-list-heading">
+                      <div>
+                        <span class="attendance-list-kicker pending">
+                          CHƯA PHẢN HỒI
+                        </span>
+                        <h4>Chưa xác nhận</h4>
+                        <p>
+                          <strong id="publicClassPendingCount">0</strong>
+                          thành viên
+                        </p>
+                      </div>
+
+                      <button
+                        class="pdf-export-button secondary"
+                        id="exportPendingPdfButton"
+                        type="button"
+                      >
+                        Xuất PDF
+                      </button>
+                    </div>
+
+                    <div class="table-responsive">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>STT</th>
+                            <th>Họ và tên</th>
+                          </tr>
+                        </thead>
+
+                        <tbody id="publicClassPendingBody">
+                          <tr>
+                            <td colspan="2" class="empty-row">
+                              Chưa có dữ liệu
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="public-class-tab-panel"
+                id="publicClassTeachersPanel"
+                data-public-class-panel="teachers"
+              >
+                <div class="table-card">
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker">GIÁO VIÊN</span>
+                      <h4>Danh sách thầy, cô</h4>
+                    </div>
+
+                    <button
+                      class="pdf-export-button"
+                      id="exportTeachersPdfButton"
+                      type="button"
+                    >
+                      Xuất PDF
+                    </button>
+                  </div>
+
+                  <div class="public-teacher-filter">
+                    <select id="publicTeacherYearFilter">
+                      <option value="all">Tất cả năm phụ trách</option>
+                      <option value="10">Lớp 10</option>
+                      <option value="11">Lớp 11</option>
+                      <option value="12">Lớp 12</option>
                     </select>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Tên thầy, cô</th>
+                          <th>Bộ môn</th>
+                          <th>Năm phụ trách</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassTeacherBody">
+                        <tr>
+                          <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                class="public-class-tab-panel"
+                id="publicClassSponsorsPanel"
+                data-public-class-panel="sponsors"
+              >
+                <div class="table-card">
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker"
+                        >ĐỒNG HÀNH HỘI KHÓA</span
+                      >
+                      <h4>Danh sách người tài trợ</h4>
+                    </div>
+
+                    <button
+                      class="pdf-export-button"
+                      id="exportSponsorsPdfButton"
+                      type="button"
+                    >
+                      Xuất PDF
+                    </button>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>STT</th>
+                          <th>Người/đơn vị</th>
+                          <th>Hình thức</th>
+                          <th>Giá trị/Nội dung</th>
+                        </tr>
+                      </thead>
+
+                      <tbody id="publicClassSponsorBody">
+                        <tr>
+                          <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="privacy-note">
+              Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công
+              khai.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             DANH SÁCH THAM GIA
+        ========================== -->
+      <section class="tab-content" id="participants">
+        <div class="container">
+          <div class="page-heading">
+            <span class="section-label">HỘI KHÓA 30 NĂM</span>
+            <h2>Danh sách tham gia</h2>
+            <p>Danh sách cựu học sinh tham dự Hội khóa</p>
+          </div>
+
+          <div class="participant-public-summary">
+            <span>Đã xác nhận tham gia</span>
+            <strong id="publicParticipantCount">0</strong>
+            <small>người</small>
+          </div>
+
+          <div class="table-card">
+            <div class="table-toolbar">
+              <input
+                type="text"
+                id="participantSearch"
+                placeholder="Tìm theo họ tên..."
+              />
+
+              <select id="participantClassFilter">
+                <option value="">Tất cả các lớp</option>
+                <option value="12A">12A</option>
+                <option value="12B">12B</option>
+                <option value="12C">12C</option>
+                <option value="12D">12D</option>
+                <option value="12E">12E</option>
+                <option value="12G">12G</option>
+                <option value="12H">12H</option>
+                <option value="12K">12K</option>
+                <option value="12M">12M</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="public-participant-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Họ và tên</th>
+                    <th>Lớp</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+
+                <tbody id="participantsTableBody">
+                  <tr>
+                    <td colspan="4" class="empty-row">Đang tải dữ liệu...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             TÀI TRỢ
+        ========================== -->
+      <section class="tab-content" id="sponsors">
+        <div class="container">
+          <div class="page-heading">
+            <span class="section-label">ĐỒNG HÀNH CÙNG HỘI KHÓA</span>
+            <h2>Tài trợ và đóng góp</h2>
+            <p>Tổng hợp tài trợ của các lớp và các thành viên</p>
+          </div>
+
+          <div class="sponsor-summary">
+            <div class="sponsor-icon">💝</div>
+
+            <div>
+              <p class="sponsor-caption">Tổng số tiền tài trợ</p>
+              <div class="sponsor-total" id="sponsorTotalLarge">0 đ</div>
+            </div>
+          </div>
+
+          <div class="public-sponsor-card">
+            <div class="public-sponsor-heading">
+              <div>
+                <span class="section-label">DANH SÁCH CÔNG KHAI</span>
+                <h3>Danh sách tài trợ</h3>
+              </div>
+
+              <div class="public-sponsor-count">
+                <span>Số lượt tài trợ</span>
+                <strong id="publicSponsorCount">0</strong>
+                <small>lượt</small>
+              </div>
+            </div>
+
+            <div class="table-toolbar">
+              <input
+                type="text"
+                id="publicSponsorSearch"
+                placeholder="Tìm theo người/đơn vị hoặc nội dung tài trợ..."
+              />
+
+              <select id="publicSponsorClassFilter">
+                <option value="">Tất cả các lớp</option>
+                <option value="12A">12A</option>
+                <option value="12B">12B</option>
+                <option value="12C">12C</option>
+                <option value="12D">12D</option>
+                <option value="12E">12E</option>
+                <option value="12G">12G</option>
+                <option value="12H">12H</option>
+                <option value="12K">12K</option>
+                <option value="12M">12M</option>
+              </select>
+
+              <select id="publicSponsorTypeFilter">
+                <option value="all">Tất cả hình thức</option>
+                <option value="money">Tiền</option>
+                <option value="in_kind">Hiện vật/dịch vụ</option>
+              </select>
+            </div>
+
+            <div class="table-responsive">
+              <table class="public-sponsor-table">
+                <thead>
+                  <tr>
+                    <th>STT</th>
+                    <th>Người/đơn vị tài trợ</th>
+                    <th>Lớp</th>
+                    <th>Hình thức</th>
+                    <th>Giá trị/Nội dung</th>
+                  </tr>
+                </thead>
+
+                <tbody id="publicSponsorTableBody">
+                  <tr>
+                    <td colspan="5" class="empty-row">Đang tải dữ liệu...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             ĐĂNG NHẬP
+        ========================== -->
+      <section class="tab-content" id="login">
+        <div class="container">
+          <div class="page-heading">
+            <span class="section-label">QUẢN LÝ DỮ LIỆU HỘI KHÓA</span>
+            <h2>Đăng nhập</h2>
+            <p>Dành cho Ban Tổ chức và đại diện các lớp</p>
+          </div>
+
+          <div class="login-card">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input
+                type="email"
+                id="email"
+                autocomplete="username"
+                placeholder="Ví dụ: nhaplieu12a1@gmail.com"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="password">Mật khẩu</label>
+              <input
+                type="password"
+                id="password"
+                autocomplete="current-password"
+                placeholder="Nhập mật khẩu"
+              />
+            </div>
+
+            <button class="login-button" id="loginButton" type="button">
+              Đăng nhập
+            </button>
+
+            <p class="login-message" id="loginMessage"></p>
+
+            <p class="login-note">
+              Tài khoản đại diện lớp chỉ được cập nhật dữ liệu của lớp mình phụ
+              trách.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             QUẢN LÝ SAU ĐĂNG NHẬP
+        ========================== -->
+      <section class="tab-content" id="management">
+        <div class="container">
+          <div class="management-header">
+            <div>
+              <span class="section-label">KHU VỰC NHẬP LIỆU</span>
+              <h2 id="managementTitle">Quản lý dữ liệu</h2>
+              <p id="managementSubtitle">
+                Dành cho tài khoản đã được phân quyền
+              </p>
+            </div>
+
+            <button class="logout-button" id="logoutButton" type="button">
+              Đăng xuất
+            </button>
+          </div>
+
+          <div class="user-card">
+            <div class="user-avatar">👤</div>
+
+            <div class="user-info">
+              <span>Tài khoản đang đăng nhập</span>
+              <h3 id="currentUserName">-</h3>
+              <p id="currentUserEmail">-</p>
+            </div>
+
+            <div class="user-role">
+              <span id="currentUserRole">-</span>
+            </div>
+          </div>
+
+          <div class="management-grid">
+            <button
+              class="management-card active-management-card"
+              id="manageMembersButton"
+              type="button"
+            >
+              <div class="management-icon">👥</div>
+              <h3>Danh sách lớp</h3>
+              <p>Nhập và cập nhật danh sách thành viên của lớp.</p>
+            </button>
+
+            <button
+              class="management-card"
+              id="manageTeachersButton"
+              type="button"
+            >
+              <div class="management-icon">👩‍🏫</div>
+              <h3>Danh sách thầy, cô</h3>
+              <p>Nhập và cập nhật thầy, cô phụ trách lớp.</p>
+            </button>
+
+            <button
+              class="management-card"
+              id="manageParticipantsButton"
+              type="button"
+            >
+              <div class="management-icon">✅</div>
+              <h3>Danh sách tham gia</h3>
+              <p>Đánh dấu các thành viên tham dự Hội khóa.</p>
+            </button>
+
+            <button
+              class="management-card"
+              id="manageContributionsButton"
+              type="button"
+            >
+              <div class="management-icon">💰</div>
+              <h3>Đóng góp</h3>
+              <p>Quản lý số tiền đóng góp của các thành viên.</p>
+            </button>
+
+            <button
+              class="management-card"
+              id="manageSponsorsButton"
+              type="button"
+            >
+              <div class="management-icon">💝</div>
+              <h3>Tài trợ</h3>
+              <p>Quản lý các khoản tài trợ của lớp.</p>
+            </button>
+          </div>
+
+          <!-- Quản lý thành viên -->
+          <div class="member-management" id="memberManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">DỮ LIỆU LỚP</span>
+                <h3 id="memberSectionTitle">Danh sách thành viên</h3>
+                <p>
+                  Đại diện lớp chỉ được thêm, sửa và xóa thành viên thuộc lớp
+                  mình.
+                </p>
+              </div>
+
+              <div class="member-count-box">
+                <span>Tổng số</span>
+                <strong id="memberCount">0</strong>
+                <small>thành viên</small>
+              </div>
+            </div>
+
+            <div class="member-layout">
+              <div class="member-form-card">
+                <h4 id="memberFormTitle">Thêm thành viên</h4>
+
+                <form id="memberForm">
+                  <input type="hidden" id="memberId" />
+
+                  <div class="form-group">
+                    <label for="memberFullName">
+                      Họ và tên <span class="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="memberFullName"
+                      placeholder="Nhập họ và tên"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="memberPhone">Số điện thoại</label>
+                    <input
+                      type="text"
+                      id="memberPhone"
+                      placeholder="Có thể để trống"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="memberNote">Ghi chú</label>
+                    <textarea
+                      id="memberNote"
+                      rows="3"
+                      placeholder="Thông tin cần lưu ý (nếu có)"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      class="primary-action-button"
+                      id="saveMemberButton"
+                      type="submit"
+                    >
+                      Lưu thành viên
+                    </button>
+
+                    <button
+                      class="secondary-action-button hidden"
+                      id="cancelEditButton"
+                      type="button"
+                    >
+                      Hủy sửa
+                    </button>
+                  </div>
+
+                  <p class="form-message" id="memberFormMessage"></p>
+                </form>
+              </div>
+
+              <div class="member-list-card">
+                <div class="member-list-toolbar">
+                  <input
+                    type="text"
+                    id="memberSearch"
+                    placeholder="Tìm theo họ tên hoặc số điện thoại..."
+                  />
                 </div>
 
-                <!-- ĐỒ HỌA 3D BÀN CHỦ TỌA TÍCH HỢP BIỂN CHỨC DANH -->
-                <!-- KHU VỰC CHỦ TỌA ĐÃ SỬA LỖI LỆCH VỊ TRÍ -->
-                <div class="rostrum-container">
+                <div class="table-responsive">
+                  <table class="member-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Họ và tên</th>
+                        <th>Số điện thoại</th>
+                        <th>Ghi chú</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
 
-                    <!-- Lớp nền chứa 3 vị trí (Ghế + Biển tên đi liền nhau) -->
-                    <div class="rostrum-positions-layer">
+                    <tbody id="memberTableBody">
+                      <tr>
+                        <td colspan="5" class="empty-row">Chưa có dữ liệu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                        <!-- VỊ TRÍ 1 (BÊN TRÁI) -->
-                        <div class="rostrum-spot">
-                            <div class="boss-chair"></div>
-                            <div class="desk-nameplate">
-                                <span class="title">Đ/c</span>
-                                <span class="name">Tuấn</span>
-                            </div>
-                        </div>
+          <!-- Quản lý giáo viên -->
+          <div class="teacher-management hidden" id="teacherManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">THẦY, CÔ PHỤ TRÁCH</span>
+                <h3 id="teacherSectionTitle">Danh sách thầy, cô</h3>
+                <p>Nhập thầy, cô đã phụ trách lớp ở từng năm học THPT.</p>
+              </div>
 
-                        <!-- VỊ TRÍ 2 (CHÍNH GIỮA) -->
-                        <div class="rostrum-spot leader">
-                            <div class="boss-chair"></div>
-                            <div class="desk-nameplate">
-                                <span class="title">Đ/c</span>
-                                <span class="name">Trường</span>
-                            </div>
-                        </div>
+              <div class="member-count-box">
+                <span>Tổng số</span>
+                <strong id="teacherCount">0</strong>
+                <small>thầy, cô</small>
+              </div>
+            </div>
 
-                        <!-- VỊ TRÍ 3 (BÊN PHẢI) -->
-                        <div class="rostrum-spot">
-                            <div class="boss-chair"></div>
-                            <div class="desk-nameplate">
-                                <span class="title">Đ/c</span>
-                                <span class="name">Bình</span>
-                            </div>
-                        </div>
+            <div class="teacher-layout">
+              <div class="teacher-form-card">
+                <h4 id="teacherFormTitle">Thêm thầy, cô</h4>
 
+                <form id="teacherForm">
+                  <input type="hidden" id="teacherId" />
+
+                  <div class="form-group">
+                    <label for="teacherName">
+                      Tên thầy, cô <span class="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="teacherName"
+                      placeholder="Nhập họ tên thầy, cô"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="teacherSubject">Bộ môn</label>
+                    <input
+                      type="text"
+                      id="teacherSubject"
+                      placeholder="Ví dụ: Toán, Ngữ văn, Vật lý..."
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>
+                      Năm phụ trách <span class="required">*</span>
+                    </label>
+
+                    <div
+                      class="teacher-year-checkbox-group"
+                      id="teacherYearLevels"
+                    >
+                      <label class="teacher-year-checkbox">
+                        <input
+                          type="checkbox"
+                          name="teacherYearLevel"
+                          value="10"
+                        />
+                        <span>Lớp 10</span>
+                      </label>
+
+                      <label class="teacher-year-checkbox">
+                        <input
+                          type="checkbox"
+                          name="teacherYearLevel"
+                          value="11"
+                        />
+                        <span>Lớp 11</span>
+                      </label>
+
+                      <label class="teacher-year-checkbox">
+                        <input
+                          type="checkbox"
+                          name="teacherYearLevel"
+                          value="12"
+                        />
+                        <span>Lớp 12</span>
+                      </label>
                     </div>
 
-                    <!-- Khối dựng hình 3D cho Bàn gỗ (Bây giờ chỉ làm nền phía dưới) -->
-                    <div class="rostrum-table-bg">
-                        <div class="table-surface-bg"></div>
-                        <div class="table-front-bg"></div>
-                    </div>
+                    <p class="form-hint">
+                      Có thể chọn một, hai hoặc cả ba năm phụ trách.
+                    </p>
+                  </div>
 
+                  <div class="form-actions">
+                    <button
+                      class="primary-action-button"
+                      id="saveTeacherButton"
+                      type="submit"
+                    >
+                      Lưu thầy, cô
+                    </button>
+
+                    <button
+                      class="secondary-action-button hidden"
+                      id="cancelTeacherEditButton"
+                      type="button"
+                    >
+                      Hủy sửa
+                    </button>
+                  </div>
+
+                  <p class="form-message" id="teacherFormMessage"></p>
+                </form>
+              </div>
+
+              <div class="teacher-list-card">
+                <div class="participant-toolbar">
+                  <input
+                    type="text"
+                    id="teacherSearch"
+                    placeholder="Tìm theo tên hoặc bộ môn..."
+                  />
+
+                  <select id="teacherYearFilter">
+                    <option value="all">Tất cả năm phụ trách</option>
+                    <option value="10">Lớp 10</option>
+                    <option value="11">Lớp 11</option>
+                    <option value="12">Lớp 12</option>
+                  </select>
                 </div>
 
-                <!-- THANH TÌM KIẾM ĐẠI BIỂU THÔNG MINH -->
-                <div class="search-area">
-                    <div class="search-wrapper">
-                        <svg class="search-icon" viewBox="0 0 24 24">
-                            <path
-                                d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z" />
-                        </svg>
-                        <input type="text" id="delegateSearch" class="search-input"
-                            placeholder="Tìm kiếm đại biểu, chức vụ, vị trí ghế...">
-                    </div>
+                <div class="table-responsive">
+                  <table class="teacher-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Tên thầy, cô</th>
+                        <th>Bộ môn</th>
+                        <th>Năm phụ trách</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody id="teacherTableBody">
+                      <tr>
+                        <td colspan="5" class="empty-row">Chưa có dữ liệu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quản lý tham gia -->
+          <div class="participant-management hidden" id="participantManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">THAM GIA HỘI KHÓA</span>
+                <h3 id="participantSectionTitle">Danh sách tham gia</h3>
+                <p>Đánh dấu những thành viên xác nhận tham dự Hội khóa.</p>
+              </div>
+
+              <div class="participant-count-group">
+                <div class="member-count-box">
+                  <span>Tổng thành viên</span>
+                  <strong id="participantTotalCount">0</strong>
+                  <small>người</small>
                 </div>
 
-                <!-- SƠ ĐỒ KHU VỰC GHẾ ĐẠI BIỂU (FLAT 2.0 STYLE) -->
-                <div class="hall-seating-plan">
-
-                    <!-- HÀNG A -->
-                    <div class="seating-row">
-                        <div class="row-label">Hàng A</div>
-                        <div class="row-blocks">
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="A15">A15</div>
-                                    <div class="seat available" data-id="A13">A13</div>
-                                    <div class="seat available" data-id="A11">A11</div>
-                                    <div class="seat available" data-id="A9">A9</div>
-                                    <div class="seat available" data-id="A7">A7</div>
-                                    <div class="seat available" data-id="A5">A5</div>
-                                    <div class="seat available" data-id="A3">A3</div>
-                                    <div class="seat available" data-id="A1">A1</div>
-                                </div>
-                            </div>
-                            <div class="aisle"></div>
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat occupied vip" data-id="A2">A2<span class="delegate-name">Đ/c
-                                            Tiến</span></div>
-                                    <div class="seat available" data-id="A4">A4</div>
-                                    <div class="seat available" data-id="A6">A6</div>
-                                    <div class="seat available" data-id="A8">A8</div>
-                                    <div class="seat available" data-id="A10">A10</div>
-                                    <div class="seat available" data-id="A12">A12</div>
-                                    <div class="seat available" data-id="A14">A14</div>
-                                    <div class="seat available" data-id="A16">A16</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- HÀNG B -->
-                    <div class="seating-row">
-                        <div class="row-label">Hàng B</div>
-                        <div class="row-blocks">
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="B15">B15</div>
-                                    <div class="seat available" data-id="B13">B13</div>
-                                    <div class="seat available" data-id="B11">B11</div>
-                                    <div class="seat available" data-id="B9">B9</div>
-                                    <div class="seat available" data-id="B7">B7</div>
-                                    <div class="seat available" data-id="B5">B5</div>
-                                    <div class="seat available" data-id="B3">B3</div>
-                                    <div class="seat available" data-id="B1">B1</div>
-                                </div>
-                            </div>
-                            <div class="aisle"></div>
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="B2">B2</div>
-                                    <div class="seat available" data-id="B4">B4</div>
-                                    <div class="seat available" data-id="B6">B6</div>
-                                    <div class="seat available" data-id="B8">B8</div>
-                                    <div class="seat available" data-id="B10">B10</div>
-                                    <div class="seat available" data-id="B12">B12</div>
-                                    <div class="seat available" data-id="B14">B14</div>
-                                    <div class="seat available" data-id="B16">B16</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- HÀNG C -->
-                    <div class="seating-row">
-                        <div class="row-label">Hàng C</div>
-                        <div class="row-blocks">
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="C13">C13</div>
-                                    <div class="seat available" data-id="C11">C11</div>
-                                    <div class="seat available" data-id="C9">C9</div>
-                                    <div class="seat available" data-id="C7">C7</div>
-                                    <div class="seat available" data-id="C5">C5</div>
-                                    <div class="seat available" data-id="C3">C3</div>
-                                    <div class="seat available" data-id="C1">C1</div>
-                                    <div style="background:transparent"></div>
-                                </div>
-                            </div>
-                            <div class="aisle"></div>
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="C2">C2</div>
-                                    <div class="seat available" data-id="C4">C4</div>
-                                    <div class="seat available" data-id="C6">C6</div>
-                                    <div class="seat available" data-id="C8">C8</div>
-                                    <div class="seat available" data-id="C10">C10</div>
-                                    <div class="seat available" data-id="C12">C12</div>
-                                    <div class="seat available" data-id="C14">C14</div>
-                                    <div class="seat available" data-id="C16">C16</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- LỐI ĐI CHÍNH GIỮA KHOẢNG TRỐNG HÀNG C VÀ D -->
-                    <div class="seating-row" style="height: 15px;">
-                        <div class="row-label"></div>
-                        <div class="row-blocks">
-                            <div></div>
-                            <div class="aisle" style="transform:none;"><span class="aisle-text"
-                                    style="writing-mode:horizontal-tb; transform:none; letter-spacing:4px;">Lối đi
-                                    chính</span></div>
-                            <div></div>
-                        </div>
-                    </div>
-
-                    <!-- HÀNG D -->
-                    <div class="seating-row">
-                        <div class="row-label">Hàng D</div>
-                        <div class="row-blocks">
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="D19">D19</div>
-                                    <div class="seat available" data-id="D17">D17</div>
-                                    <div class="seat available" data-id="D15">D15</div>
-                                    <div class="seat available" data-id="D13">D13</div>
-                                    <div class="seat available" data-id="D11">D11</div>
-                                    <div class="seat available" data-id="D9">D9</div>
-                                    <div class="seat available" data-id="D7">D7</div>
-                                    <div class="seat available" data-id="D5">D5</div>
-                                </div>
-                            </div>
-                            <div class="aisle"></div>
-                            <div class="block">
-                                <div class="desk-strip"></div>
-                                <div class="seats-grid">
-                                    <div class="seat available" data-id="D2">D2</div>
-                                    <div class="seat available" data-id="D4">D4</div>
-                                    <div class="seat available" data-id="D6">D6</div>
-                                    <div class="seat available" data-id="D8">D8</div>
-                                    <div class="seat available" data-id="D10">D10</div>
-                                    <div class="seat available" data-id="D12">D12</div>
-                                    <div class="seat available" data-id="D14">D14</div>
-                                    <div class="seat available" data-id="D16">D16</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+                <div class="member-count-box attending-count-box">
+                  <span>Đã xác nhận</span>
+                  <strong id="attendingCount">0</strong>
+                  <small>người tham gia</small>
                 </div>
-            </section>
+              </div>
+            </div>
 
-            <!-- THANH ĐIỀU KHIỂN SIDEBAR PHẢI -->
-            <aside class="sidebar">
+            <div class="participant-card">
+              <div class="participant-toolbar">
+                <input
+                  type="text"
+                  id="participantManageSearch"
+                  placeholder="Tìm theo họ tên hoặc số điện thoại..."
+                />
 
-                <!-- PANEL THỐNG KÊ TRỰC QUAN -->
-                <div class="panel-card">
-                    <h3>Thống kê số liệu</h3>
-                    <div class="stat-list">
-                        <div class="stat-item">
-                            <span class="label">Tổng số chỗ:</span>
-                            <span class="value">211</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="label">Đã chọn:</span>
-                            <span class="value danger">4</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="label">Còn trống:</span>
-                            <span class="value">207</span>
-                        </div>
-                    </div>
+                <select id="participantStatusFilter">
+                  <option value="all">Tất cả</option>
+                  <option value="attending">Đã xác nhận</option>
+                  <option value="not-attending">Chưa xác nhận</option>
+                </select>
+              </div>
 
-                    <div class="visual-progress">
-                        <div class="progress-text">
-                            <div class="percentage">1.9%</div>
-                            <div class="desc">Tỷ lệ lấp đầy</div>
-                        </div>
-                        <!-- Vòng tròn cấp tiến dữ liệu SVG -->
-                        <svg class="progress-circle" viewBox="0 0 44 44">
-                            <circle class="bg" cx="22" cy="22" r="20" />
-                            <circle class="bar" cx="22" cy="22" r="20" />
-                        </svg>
-                    </div>
+              <div class="table-responsive">
+                <table class="participant-management-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Họ và tên</th>
+                      <th>Số điện thoại</th>
+                      <th>Tham gia Hội khóa</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="participantManageTableBody">
+                    <tr>
+                      <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quản lý đóng góp -->
+          <div
+            class="contribution-management hidden"
+            id="contributionManagement"
+          >
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">ĐÓNG GÓP HỘI KHÓA</span>
+                <h3 id="contributionSectionTitle">Đóng góp của thành viên</h3>
+                <p>
+                  Nhập số tiền đóng góp của từng thành viên; hệ thống tự tính
+                  tổng của lớp.
+                </p>
+              </div>
+
+              <div class="contribution-summary">
+                <div class="member-count-box">
+                  <span>Số người có đóng góp</span>
+                  <strong id="contributorCount">0</strong>
+                  <small>thành viên</small>
                 </div>
 
-                <!-- PANEL THAO TÁC NHANH VỚI ICON VECTOR ĐỒNG BỘ -->
-                <div class="panel-card">
-                    <h3>Thao tác nhanh</h3>
-                    <div class="action-list">
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24">
-                                <path
-                                    d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,20H18A2,2 0 0,0 20,18V8L14,2M18,18H6V4H13V9H18V18M16,11V13H8V11H16M16,15V17H8V15H16Z" />
-                            </svg>
-                            Xuất sơ đồ (PDF)
-                        </button>
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24">
-                                <path
-                                    d="M18,3H6V7H18M19,12A1,1 0 1,1 18,11A1,1 0 0,1 19,12M16,19H8V14H16M19,8H5A3,3 0 0,0 2,11V17H6V21H18V17H22V11A3,3 0 0,0 19,8Z" />
-                            </svg>
-                            In sơ đồ phòng họp
-                        </button>
-                        <button class="action-btn">
-                            <svg viewBox="0 0 24 24">
-                                <path
-                                    d="M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z" />
-                            </svg>
-                            Làm mới sơ đồ
-                        </button>
-                    </div>
+                <div class="member-count-box contribution-total-box">
+                  <span>Tổng đóng góp</span>
+                  <strong id="contributionTotal">0 đ</strong>
+                  <small>của lớp</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="contribution-card">
+              <div class="participant-toolbar">
+                <input
+                  type="text"
+                  id="contributionSearch"
+                  placeholder="Tìm theo họ tên hoặc số điện thoại..."
+                />
+
+                <select id="contributionFilter">
+                  <option value="all">Tất cả</option>
+                  <option value="has">Đã đóng góp</option>
+                  <option value="none">Chưa đóng góp</option>
+                </select>
+              </div>
+
+              <div class="table-responsive">
+                <table class="contribution-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Họ và tên</th>
+                      <th>Số điện thoại</th>
+                      <th>Số tiền đóng góp</th>
+                      <th>Thao tác</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="contributionTableBody">
+                    <tr>
+                      <td colspan="5" class="empty-row">Chưa có dữ liệu</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quản lý tài trợ -->
+          <div class="sponsor-management hidden" id="sponsorManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">TÀI TRỢ HỘI KHÓA</span>
+                <h3 id="sponsorSectionTitle">Tài trợ của lớp</h3>
+                <p>
+                  Ghi nhận các khoản tài trợ bằng tiền hoặc hiện vật của lớp.
+                </p>
+              </div>
+
+              <div class="sponsor-summary-group">
+                <div class="member-count-box">
+                  <span>Số lượt tài trợ</span>
+                  <strong id="sponsorCount">0</strong>
+                  <small>lượt</small>
                 </div>
 
-            </aside>
+                <div class="member-count-box sponsor-total-box">
+                  <span>Tổng tài trợ tiền</span>
+                  <strong id="sponsorClassTotal">0 đ</strong>
+                  <small>của lớp</small>
+                </div>
+              </div>
+            </div>
 
-        </main>
+            <div class="sponsor-layout">
+              <div class="sponsor-form-card">
+                <h4 id="sponsorFormTitle">Thêm khoản tài trợ</h4>
+
+                <form id="sponsorForm">
+                  <input type="hidden" id="sponsorId" />
+
+                  <div class="form-group">
+                    <label for="sponsorName">
+                      Người/đơn vị tài trợ <span class="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="sponsorName"
+                      placeholder="Nhập họ tên hoặc tên đơn vị"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sponsorType">Hình thức tài trợ</label>
+                    <select id="sponsorType">
+                      <option value="money">Tiền mặt/chuyển khoản</option>
+                      <option value="in_kind">Hiện vật/dịch vụ</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group" id="sponsorAmountGroup">
+                    <label for="sponsorAmount">Số tiền</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1000"
+                      id="sponsorAmount"
+                      placeholder="Ví dụ: 2000000"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sponsorContent">Nội dung tài trợ</label>
+                    <input
+                      type="text"
+                      id="sponsorContent"
+                      placeholder="Ví dụ: Tài trợ chương trình Hội khóa"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="sponsorNote">Ghi chú</label>
+                    <textarea
+                      id="sponsorNote"
+                      rows="3"
+                      placeholder="Thông tin bổ sung (nếu có)"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      class="primary-action-button"
+                      id="saveSponsorButton"
+                      type="submit"
+                    >
+                      Lưu tài trợ
+                    </button>
+
+                    <button
+                      class="secondary-action-button hidden"
+                      id="cancelSponsorEditButton"
+                      type="button"
+                    >
+                      Hủy sửa
+                    </button>
+                  </div>
+
+                  <p class="form-message" id="sponsorFormMessage"></p>
+                </form>
+              </div>
+
+              <div class="sponsor-list-card">
+                <div class="participant-toolbar">
+                  <input
+                    type="text"
+                    id="sponsorSearch"
+                    placeholder="Tìm theo tên hoặc nội dung tài trợ..."
+                  />
+
+                  <select id="sponsorTypeFilter">
+                    <option value="all">Tất cả hình thức</option>
+                    <option value="money">Tiền</option>
+                    <option value="in_kind">Hiện vật/dịch vụ</option>
+                  </select>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="sponsor-management-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Người/đơn vị tài trợ</th>
+                        <th>Hình thức</th>
+                        <th>Giá trị</th>
+                        <th>Nội dung</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+
+                    <tbody id="sponsorTableBody">
+                      <tr>
+                        <td colspan="6" class="empty-row">Chưa có dữ liệu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+    <footer class="site-footer">
+      <div class="container footer-content">
+        <div>
+          <h3>TRƯỜNG THPT PHÚ BÌNH</h3>
+          <p>Khóa 1993 - 1996</p>
+        </div>
+
+        <div class="footer-message">
+          <strong>HỘI KHÓA 30 NĂM</strong>
+          <span>Trở lại trường xưa</span>
+        </div>
+      </div>
+
+      <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
+    </footer>
+
+    <!-- =========================
+         HỘP THOẠI TÙY CHỈNH
+    ========================== -->
+    <div
+      class="app-dialog-backdrop hidden"
+      id="appDialogBackdrop"
+      aria-hidden="true"
+    >
+      <div
+        class="app-dialog"
+        id="appDialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="appDialogTitle"
+        aria-describedby="appDialogMessage"
+      >
+        <div class="app-dialog-icon" id="appDialogIcon">!</div>
+
+        <div class="app-dialog-content">
+          <h3 id="appDialogTitle">Thông báo</h3>
+          <p id="appDialogMessage"></p>
+        </div>
+
+        <div class="app-dialog-actions">
+          <button
+            class="app-dialog-button app-dialog-cancel hidden"
+            id="appDialogCancel"
+            type="button"
+          >
+            Hủy
+          </button>
+
+          <button
+            class="app-dialog-button app-dialog-confirm"
+            id="appDialogConfirm"
+            type="button"
+          >
+            Đồng ý
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- SCRIPT LOGIC XỬ LÝ HIGHLIGHT TÌM KIẾM ĐẠI BIỂU TỰ ĐỘNG -->
-    <script>
-        document.getElementById('delegateSearch').addEventListener('input', function (e) {
-            const query = e.target.value.trim().toLowerCase();
-            const seats = document.querySelectorAll('.seat');
-
-            seats.forEach(seat => {
-                seat.classList.remove('highlighted');
-
-                if (query === '') return;
-
-                // Tìm theo mã số ghế (Ví dụ: A2, A15) hoặc tên đại biểu nằm trong ghế
-                const seatId = seat.getAttribute('data-id').toLowerCase();
-                const delegateName = seat.querySelector('.delegate-name')?.textContent.toLowerCase() || '';
-
-                if (seatId.includes(query) || delegateName.includes(query)) {
-                    seat.classList.add('highlighted');
-                }
-            });
-        });
-    </script>
-
-</body>
-
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
+    <script type="module" src="main.js?v=20260929-0745"></script>
+  </body>
 </html>

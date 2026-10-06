@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20260929-0745" />
+    <link rel="stylesheet" href="style.css?v=20261006-1605" />
   </head>
 
   <body>
@@ -104,13 +104,15 @@
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-icon">🏫</div>
-              <div class="stat-number" id="totalClasses">8</div>
+              <div class="stat-number" id="totalClasses">9</div>
               <div class="stat-label">Lớp</div>
             </div>
 
             <div class="stat-card">
               <div class="stat-icon">👥</div>
-              <div class="stat-number stat-ratio" id="totalParticipants">0 / 0</div>
+              <div class="stat-number stat-ratio" id="totalParticipants">
+                0 / 0
+              </div>
               <div class="stat-label">Tham gia / Tổng thành viên</div>
             </div>
 
@@ -174,7 +176,9 @@
           <div class="page-heading">
             <span class="section-label">TỔNG QUAN HỘI KHÓA</span>
             <h2>Dashboard</h2>
-            <p>Tổng hợp tình hình tham gia Hội khóa của toàn khóa và từng lớp</p>
+            <p>
+              Tổng hợp tình hình tham gia Hội khóa của toàn khóa và từng lớp
+            </p>
           </div>
 
           <div class="dashboard-toolbar">
@@ -266,7 +270,9 @@
             <div class="dashboard-breakdown-heading">
               <div>
                 <span class="section-label">CHI TIẾT THEO LỚP</span>
-                <h3 id="dashboardBreakdownTitle">Tình hình tham gia toàn khóa</h3>
+                <h3 id="dashboardBreakdownTitle">
+                  Tình hình tham gia toàn khóa
+                </h3>
               </div>
             </div>
 
@@ -284,9 +290,7 @@
 
                 <tbody id="dashboardTableBody">
                   <tr>
-                    <td colspan="5" class="empty-row">
-                      Đang tải dữ liệu...
-                    </td>
+                    <td colspan="5" class="empty-row">Đang tải dữ liệu...</td>
                   </tr>
                 </tbody>
               </table>
@@ -460,7 +464,8 @@
                 <span class="section-label">THÔNG TIN LỚP</span>
                 <h3 id="publicClassTitle">Lớp</h3>
                 <p>
-                  Thông tin công khai: thành viên, thầy cô, người tham gia và tài trợ.
+                  Thông tin công khai: thành viên, thầy cô, người tham gia,
+                  tài trợ và thư viện ảnh.
                 </p>
               </div>
 
@@ -479,7 +484,11 @@
                 type="button"
                 data-public-class-tab="members"
               >
-                <span class="public-class-tab-number" id="publicClassMemberCount">0</span>
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassMemberCount"
+                  >0</span
+                >
                 <span class="public-class-tab-label">Thành viên</span>
               </button>
 
@@ -488,7 +497,11 @@
                 type="button"
                 data-public-class-tab="attending"
               >
-                <span class="public-class-tab-number" id="publicClassAttendingCount">0</span>
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassAttendingCount"
+                  >0</span
+                >
                 <span class="public-class-tab-label">Tham gia Hội khóa</span>
               </button>
 
@@ -497,7 +510,11 @@
                 type="button"
                 data-public-class-tab="teachers"
               >
-                <span class="public-class-tab-number" id="publicClassTeacherCount">0</span>
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassTeacherCount"
+                  >0</span
+                >
                 <span class="public-class-tab-label">Thầy, cô</span>
               </button>
 
@@ -506,13 +523,29 @@
                 type="button"
                 data-public-class-tab="sponsors"
               >
-                <span class="public-class-tab-number stat-money" id="publicClassSponsorTotal">0 đ</span>
+                <span
+                  class="public-class-tab-number stat-money"
+                  id="publicClassSponsorTotal"
+                  >0 đ</span
+                >
                 <span class="public-class-tab-label">Tài trợ</span>
+              </button>
+
+              <button
+                class="public-class-tab"
+                type="button"
+                data-public-class-tab="gallery"
+              >
+                <span
+                  class="public-class-tab-number"
+                  id="publicClassGalleryCount"
+                  >0</span
+                >
+                <span class="public-class-tab-label">Thư viện ảnh</span>
               </button>
             </div>
 
             <div class="public-class-tab-panels">
-
               <div
                 class="public-class-tab-panel active"
                 id="publicClassMembersPanel"
@@ -545,9 +578,7 @@
 
                       <tbody id="publicClassMemberBody">
                         <tr>
-                          <td colspan="2" class="empty-row">
-                            Chưa có dữ liệu
-                          </td>
+                          <td colspan="2" class="empty-row">Chưa có dữ liệu</td>
                         </tr>
                       </tbody>
                     </table>
@@ -561,7 +592,6 @@
                 data-public-class-panel="attending"
               >
                 <div class="attendance-split-grid">
-
                   <div class="table-card attendance-list-card">
                     <div class="attendance-list-heading">
                       <div>
@@ -643,7 +673,6 @@
                       </table>
                     </div>
                   </div>
-
                 </div>
               </div>
 
@@ -690,9 +719,7 @@
 
                       <tbody id="publicClassTeacherBody">
                         <tr>
-                          <td colspan="4" class="empty-row">
-                            Chưa có dữ liệu
-                          </td>
+                          <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
                         </tr>
                       </tbody>
                     </table>
@@ -708,7 +735,9 @@
                 <div class="table-card">
                   <div class="attendance-list-heading">
                     <div>
-                      <span class="attendance-list-kicker">ĐỒNG HÀNH HỘI KHÓA</span>
+                      <span class="attendance-list-kicker"
+                        >ĐỒNG HÀNH HỘI KHÓA</span
+                      >
                       <h4>Danh sách người tài trợ</h4>
                     </div>
 
@@ -734,9 +763,7 @@
 
                       <tbody id="publicClassSponsorBody">
                         <tr>
-                          <td colspan="4" class="empty-row">
-                            Chưa có dữ liệu
-                          </td>
+                          <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
                         </tr>
                       </tbody>
                     </table>
@@ -744,13 +771,50 @@
                 </div>
               </div>
 
+              <div
+                class="public-class-tab-panel"
+                id="publicClassGalleryPanel"
+                data-public-class-panel="gallery"
+              >
+                <div class="table-card drive-gallery-card">
+                  <div class="attendance-list-heading">
+                    <div>
+                      <span class="attendance-list-kicker">KHOẢNH KHẮC KỶ NIỆM</span>
+                      <h4 id="publicClassGalleryTitle">Thư viện ảnh</h4>
+                      <p>
+                        Ảnh được tải trực tiếp từ thư mục Google Drive của lớp.
+                      </p>
+                    </div>
+
+                    <button
+                      class="pdf-export-button secondary"
+                      id="refreshPublicGalleryButton"
+                      type="button"
+                    >
+                      Làm mới ảnh
+                    </button>
+                  </div>
+
+                  <div
+                    class="drive-gallery-status"
+                    id="publicClassGalleryStatus"
+                  >
+                    Chọn tab Thư viện ảnh để tải ảnh.
+                  </div>
+
+                  <div
+                    class="drive-gallery-grid"
+                    id="publicClassGalleryGrid"
+                  ></div>
+                </div>
+              </div>
             </div>
 
             <div class="privacy-note">
-              Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công khai.
+              Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công
+              khai.
             </div>
           </div>
-
         </div>
       </section>
 
@@ -890,9 +954,7 @@
 
                 <tbody id="publicSponsorTableBody">
                   <tr>
-                    <td colspan="5" class="empty-row">
-                      Đang tải dữ liệu...
-                    </td>
+                    <td colspan="5" class="empty-row">Đang tải dữ liệu...</td>
                   </tr>
                 </tbody>
               </table>
@@ -1030,15 +1092,18 @@
               <h3>Tài trợ</h3>
               <p>Quản lý các khoản tài trợ của lớp.</p>
             </button>
+
           </div>
 
+          <!-- Quản lý thành viên -->
           <div class="member-management" id="memberManagement">
             <div class="subsection-heading">
               <div>
                 <span class="section-label">DỮ LIỆU LỚP</span>
                 <h3 id="memberSectionTitle">Danh sách thành viên</h3>
                 <p>
-                  Đại diện lớp chỉ được thêm, sửa và xóa thành viên thuộc lớp mình.
+                  Đại diện lớp chỉ được thêm, sửa và xóa thành viên thuộc lớp
+                  mình.
                 </p>
               </div>
 
@@ -1054,7 +1119,7 @@
                 <h4 id="memberFormTitle">Thêm thành viên</h4>
 
                 <form id="memberForm">
-                  <input type="hidden" id="memberId">
+                  <input type="hidden" id="memberId" />
 
                   <div class="form-group">
                     <label for="memberFullName">
@@ -1065,7 +1130,7 @@
                       id="memberFullName"
                       placeholder="Nhập họ và tên"
                       required
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1074,7 +1139,7 @@
                       type="text"
                       id="memberPhone"
                       placeholder="Có thể để trống"
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1114,7 +1179,7 @@
                     type="text"
                     id="memberSearch"
                     placeholder="Tìm theo họ tên hoặc số điện thoại..."
-                  >
+                  />
                 </div>
 
                 <div class="table-responsive">
@@ -1131,9 +1196,7 @@
 
                     <tbody id="memberTableBody">
                       <tr>
-                        <td colspan="5" class="empty-row">
-                          Chưa có dữ liệu
-                        </td>
+                        <td colspan="5" class="empty-row">Chưa có dữ liệu</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1142,14 +1205,13 @@
             </div>
           </div>
 
+          <!-- Quản lý giáo viên -->
           <div class="teacher-management hidden" id="teacherManagement">
             <div class="subsection-heading">
               <div>
                 <span class="section-label">THẦY, CÔ PHỤ TRÁCH</span>
                 <h3 id="teacherSectionTitle">Danh sách thầy, cô</h3>
-                <p>
-                  Nhập thầy, cô đã phụ trách lớp ở từng năm học THPT.
-                </p>
+                <p>Nhập thầy, cô đã phụ trách lớp ở từng năm học THPT.</p>
               </div>
 
               <div class="member-count-box">
@@ -1164,7 +1226,7 @@
                 <h4 id="teacherFormTitle">Thêm thầy, cô</h4>
 
                 <form id="teacherForm">
-                  <input type="hidden" id="teacherId">
+                  <input type="hidden" id="teacherId" />
 
                   <div class="form-group">
                     <label for="teacherName">
@@ -1175,7 +1237,7 @@
                       id="teacherName"
                       placeholder="Nhập họ tên thầy, cô"
                       required
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1184,7 +1246,7 @@
                       type="text"
                       id="teacherSubject"
                       placeholder="Ví dụ: Toán, Ngữ văn, Vật lý..."
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1201,7 +1263,7 @@
                           type="checkbox"
                           name="teacherYearLevel"
                           value="10"
-                        >
+                        />
                         <span>Lớp 10</span>
                       </label>
 
@@ -1210,7 +1272,7 @@
                           type="checkbox"
                           name="teacherYearLevel"
                           value="11"
-                        >
+                        />
                         <span>Lớp 11</span>
                       </label>
 
@@ -1219,7 +1281,7 @@
                           type="checkbox"
                           name="teacherYearLevel"
                           value="12"
-                        >
+                        />
                         <span>Lớp 12</span>
                       </label>
                     </div>
@@ -1257,7 +1319,7 @@
                     type="text"
                     id="teacherSearch"
                     placeholder="Tìm theo tên hoặc bộ môn..."
-                  >
+                  />
 
                   <select id="teacherYearFilter">
                     <option value="all">Tất cả năm phụ trách</option>
@@ -1289,6 +1351,7 @@
             </div>
           </div>
 
+          <!-- Quản lý tham gia -->
           <div class="participant-management hidden" id="participantManagement">
             <div class="subsection-heading">
               <div>
@@ -1318,7 +1381,7 @@
                   type="text"
                   id="participantManageSearch"
                   placeholder="Tìm theo họ tên hoặc số điện thoại..."
-                >
+                />
 
                 <select id="participantStatusFilter">
                   <option value="all">Tất cả</option>
@@ -1348,16 +1411,18 @@
             </div>
           </div>
 
-
-          <div class="contribution-management hidden" id="contributionManagement">
+          <!-- Quản lý đóng góp -->
+          <div
+            class="contribution-management hidden"
+            id="contributionManagement"
+          >
             <div class="subsection-heading">
               <div>
                 <span class="section-label">ĐÓNG GÓP HỘI KHÓA</span>
-                <h3 id="contributionSectionTitle">
-                  Đóng góp của thành viên
-                </h3>
+                <h3 id="contributionSectionTitle">Đóng góp của thành viên</h3>
                 <p>
-                  Nhập số tiền đóng góp của từng thành viên; hệ thống tự tính tổng của lớp.
+                  Nhập số tiền đóng góp của từng thành viên; hệ thống tự tính
+                  tổng của lớp.
                 </p>
               </div>
 
@@ -1382,7 +1447,7 @@
                   type="text"
                   id="contributionSearch"
                   placeholder="Tìm theo họ tên hoặc số điện thoại..."
-                >
+                />
 
                 <select id="contributionFilter">
                   <option value="all">Tất cả</option>
@@ -1405,9 +1470,7 @@
 
                   <tbody id="contributionTableBody">
                     <tr>
-                      <td colspan="5" class="empty-row">
-                        Chưa có dữ liệu
-                      </td>
+                      <td colspan="5" class="empty-row">Chưa có dữ liệu</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1415,14 +1478,12 @@
             </div>
           </div>
 
-
+          <!-- Quản lý tài trợ -->
           <div class="sponsor-management hidden" id="sponsorManagement">
             <div class="subsection-heading">
               <div>
                 <span class="section-label">TÀI TRỢ HỘI KHÓA</span>
-                <h3 id="sponsorSectionTitle">
-                  Tài trợ của lớp
-                </h3>
+                <h3 id="sponsorSectionTitle">Tài trợ của lớp</h3>
                 <p>
                   Ghi nhận các khoản tài trợ bằng tiền hoặc hiện vật của lớp.
                 </p>
@@ -1444,12 +1505,11 @@
             </div>
 
             <div class="sponsor-layout">
-
               <div class="sponsor-form-card">
                 <h4 id="sponsorFormTitle">Thêm khoản tài trợ</h4>
 
                 <form id="sponsorForm">
-                  <input type="hidden" id="sponsorId">
+                  <input type="hidden" id="sponsorId" />
 
                   <div class="form-group">
                     <label for="sponsorName">
@@ -1460,7 +1520,7 @@
                       id="sponsorName"
                       placeholder="Nhập họ tên hoặc tên đơn vị"
                       required
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1479,7 +1539,7 @@
                       step="1000"
                       id="sponsorAmount"
                       placeholder="Ví dụ: 2000000"
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1488,7 +1548,7 @@
                       type="text"
                       id="sponsorContent"
                       placeholder="Ví dụ: Tài trợ chương trình Hội khóa"
-                    >
+                    />
                   </div>
 
                   <div class="form-group">
@@ -1528,7 +1588,7 @@
                     type="text"
                     id="sponsorSearch"
                     placeholder="Tìm theo tên hoặc nội dung tài trợ..."
-                  >
+                  />
 
                   <select id="sponsorTypeFilter">
                     <option value="all">Tất cả hình thức</option>
@@ -1552,22 +1612,16 @@
 
                     <tbody id="sponsorTableBody">
                       <tr>
-                        <td colspan="6" class="empty-row">
-                          Chưa có dữ liệu
-                        </td>
+                        <td colspan="6" class="empty-row">Chưa có dữ liệu</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
-
             </div>
           </div>
-
-          </div>
-        </div>
+</div>
       </section>
-
     </main>
 
     <!-- =========================
@@ -1589,10 +1643,6 @@
       <div class="footer-bottom">© 2026 Hội khóa THPT Phú Bình 1993 - 1996</div>
     </footer>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
-    <script type="module" src="main.js?v=20260929-0745"></script>
-  
     <!-- =========================
          HỘP THOẠI TÙY CHỈNH
     ========================== -->
@@ -1636,5 +1686,51 @@
       </div>
     </div>
 
+
+    <!-- =========================
+         TRÌNH XEM ẢNH GOOGLE DRIVE
+    ========================== -->
+    <div
+      class="drive-lightbox hidden"
+      id="driveLightbox"
+      aria-hidden="true"
+    >
+      <button
+        class="drive-lightbox-close"
+        id="driveLightboxClose"
+        type="button"
+        aria-label="Đóng ảnh"
+      >
+        ×
+      </button>
+
+      <button
+        class="drive-lightbox-nav drive-lightbox-prev"
+        id="driveLightboxPrev"
+        type="button"
+        aria-label="Ảnh trước"
+      >
+        ‹
+      </button>
+
+      <figure class="drive-lightbox-figure">
+        <img id="driveLightboxImage" alt="" />
+        <figcaption id="driveLightboxCaption"></figcaption>
+      </figure>
+
+      <button
+        class="drive-lightbox-nav drive-lightbox-next"
+        id="driveLightboxNext"
+        type="button"
+        aria-label="Ảnh tiếp theo"
+      >
+        ›
+      </button>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
+    <script type="module" src="main.js?v=20261006-1605"></script>
   </body>
 </html>
