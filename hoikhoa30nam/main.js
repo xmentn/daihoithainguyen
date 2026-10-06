@@ -1497,7 +1497,7 @@ function startSponsorSubscription(classId) {
   );
 }
 
-const HOME_TOTAL_CLASSES = 8;
+const HOME_TOTAL_CLASSES = 9;
 
 function getTotalSponsorMoney() {
   return publicSponsorsData.reduce(
