@@ -632,6 +632,91 @@ function subscribeTeachersByClass(
   );
 }
 
+
+/* =========================================
+   ORGANIZERS - PUBLIC READ / ADMIN WRITE
+========================================= */
+
+async function addOrganizer({
+  group,
+  fullName,
+  roleTitle = "",
+  classId = "",
+  phone = "",
+  displayOrder = 999,
+  note = "",
+  createdBy,
+}) {
+  return await addDoc(collection(db, "organizers"), {
+    group,
+    fullName: fullName.trim(),
+    roleTitle: roleTitle.trim(),
+    classId: group === "class_representative" ? classId : "",
+    phone: phone.trim(),
+    displayOrder: Number(displayOrder) || 999,
+    note: note.trim(),
+    createdBy,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function updateOrganizer(
+  organizerId,
+  {
+    group,
+    fullName,
+    roleTitle = "",
+    classId = "",
+    phone = "",
+    displayOrder = 999,
+    note = "",
+  },
+) {
+  await updateDoc(doc(db, "organizers", organizerId), {
+    group,
+    fullName: fullName.trim(),
+    roleTitle: roleTitle.trim(),
+    classId: group === "class_representative" ? classId : "",
+    phone: phone.trim(),
+    displayOrder: Number(displayOrder) || 999,
+    note: note.trim(),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+async function deleteOrganizer(organizerId) {
+  await deleteDoc(doc(db, "organizers", organizerId));
+}
+
+function subscribeAllOrganizers(
+  callback,
+  errorCallback,
+) {
+  return onSnapshot(
+    collection(db, "organizers"),
+    (snapshot) => {
+      const items = snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+
+      callback(items);
+    },
+    (error) => {
+      console.error(
+        "Lỗi đọc Ban Tổ chức/Ban Liên lạc:",
+        error,
+      );
+
+      if (errorCallback) {
+        errorCallback(error);
+      }
+    },
+  );
+}
+
+
 export {
   addMember,
   updateMember,
@@ -652,4 +737,8 @@ export {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
+  addOrganizer,
+  updateOrganizer,
+  deleteOrganizer,
+  subscribeAllOrganizers,
 };

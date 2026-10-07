@@ -3,7 +3,7 @@ import {
   logout,
   getUserProfile,
   watchAuth,
-} from "./firebase/auth.js?v=20261006-1605";
+} from "./firebase/auth.js?v=20261007-1620";
 
 import {
   addMember,
@@ -25,7 +25,11 @@ import {
   updateTeacher,
   deleteTeacher,
   subscribeTeachersByClass,
-} from "./firebase/firestore.js?v=20261006-1605";
+  addOrganizer,
+  updateOrganizer,
+  deleteOrganizer,
+  subscribeAllOrganizers,
+} from "./firebase/firestore.js?v=20261007-1620";
 
 /* ========================================
    GOOGLE DRIVE - THƯ VIỆN ẢNH
@@ -368,6 +372,45 @@ const publicSponsorTableBody = document.getElementById(
   "publicSponsorTableBody",
 );
 
+const publicOrganizerCount = document.getElementById("publicOrganizerCount");
+const publicRepresentativeCount = document.getElementById(
+  "publicRepresentativeCount",
+);
+const publicOrganizerBody = document.getElementById("publicOrganizerBody");
+const publicRepresentativeBody = document.getElementById(
+  "publicRepresentativeBody",
+);
+
+const manageOrganizersButton = document.getElementById(
+  "manageOrganizersButton",
+);
+const organizerManagement = document.getElementById("organizerManagement");
+const adminOrganizerCount = document.getElementById("adminOrganizerCount");
+const adminRepresentativeCount = document.getElementById(
+  "adminRepresentativeCount",
+);
+const organizerForm = document.getElementById("organizerForm");
+const organizerFormTitle = document.getElementById("organizerFormTitle");
+const organizerIdInput = document.getElementById("organizerId");
+const organizerGroupSelect = document.getElementById("organizerGroup");
+const organizerFullNameInput = document.getElementById("organizerFullName");
+const organizerRoleTitleInput = document.getElementById("organizerRoleTitle");
+const organizerClassGroup = document.getElementById("organizerClassGroup");
+const organizerClassIdSelect = document.getElementById("organizerClassId");
+const organizerPhoneInput = document.getElementById("organizerPhone");
+const organizerDisplayOrderInput = document.getElementById(
+  "organizerDisplayOrder",
+);
+const organizerNoteInput = document.getElementById("organizerNote");
+const saveOrganizerButton = document.getElementById("saveOrganizerButton");
+const cancelOrganizerEditButton = document.getElementById(
+  "cancelOrganizerEditButton",
+);
+const organizerFormMessage = document.getElementById("organizerFormMessage");
+const organizerSearch = document.getElementById("organizerSearch");
+const organizerGroupFilter = document.getElementById("organizerGroupFilter");
+const organizerAdminBody = document.getElementById("organizerAdminBody");
+
 const participantSearch = document.getElementById("participantSearch");
 const participantClassFilter = document.getElementById(
   "participantClassFilter",
@@ -406,6 +449,9 @@ let dashboardMembersData = [];
 let unsubscribeDashboard = null;
 let publicSponsorsData = [];
 let unsubscribeAllSponsors = null;
+
+let organizersData = [];
+let unsubscribeOrganizers = null;
 
 let activeDialogResolver = null;
 
@@ -1139,6 +1185,401 @@ function setActiveManagementCard(activeButton) {
   }
 }
 
+
+const ORGANIZER_CLASS_ORDER = [
+  "12A",
+  "12B",
+  "12C",
+  "12D",
+  "12E",
+  "12G",
+  "12H",
+  "12K",
+  "12M",
+];
+
+function getOrganizerClassIndex(classId = "") {
+  const index = ORGANIZER_CLASS_ORDER.indexOf(classId);
+  return index === -1 ? 999 : index;
+}
+
+function getOrganizerGroupLabel(group = "") {
+  return group === "class_representative"
+    ? "Đại diện Ban Liên lạc"
+    : "Ban Tổ chức";
+}
+
+function sortOrganizers(items = []) {
+  return [...items].sort((a, b) => {
+    const groupA =
+      a.group === "class_representative" ? 1 : 0;
+    const groupB =
+      b.group === "class_representative" ? 1 : 0;
+
+    if (groupA !== groupB) {
+      return groupA - groupB;
+    }
+
+    if (
+      a.group === "class_representative" &&
+      b.group === "class_representative"
+    ) {
+      const classCompare =
+        getOrganizerClassIndex(a.classId) -
+        getOrganizerClassIndex(b.classId);
+
+      if (classCompare !== 0) {
+        return classCompare;
+      }
+    }
+
+    const orderA = Number(a.displayOrder) || 999;
+    const orderB = Number(b.displayOrder) || 999;
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    return compareVietnameseNames(
+      a.fullName || "",
+      b.fullName || "",
+    );
+  });
+}
+
+function setOrganizerMessage(message = "", type = "") {
+  if (!organizerFormMessage) return;
+
+  organizerFormMessage.textContent = message;
+  organizerFormMessage.className = "form-message";
+
+  if (type) {
+    organizerFormMessage.classList.add(type);
+  }
+}
+
+function toggleOrganizerClassField() {
+  if (!organizerGroupSelect || !organizerClassGroup) {
+    return;
+  }
+
+  const isRepresentative =
+    organizerGroupSelect.value === "class_representative";
+
+  organizerClassGroup.classList.toggle(
+    "hidden",
+    !isRepresentative,
+  );
+
+  if (organizerClassIdSelect) {
+    organizerClassIdSelect.required = isRepresentative;
+
+    if (!isRepresentative) {
+      organizerClassIdSelect.value = "";
+    }
+  }
+}
+
+function resetOrganizerForm() {
+  if (!organizerForm) return;
+
+  organizerForm.reset();
+
+  if (organizerIdInput) {
+    organizerIdInput.value = "";
+  }
+
+  if (organizerFormTitle) {
+    organizerFormTitle.textContent =
+      "Thêm thành viên";
+  }
+
+  if (saveOrganizerButton) {
+    saveOrganizerButton.textContent =
+      "Lưu thành viên";
+  }
+
+  if (cancelOrganizerEditButton) {
+    cancelOrganizerEditButton.classList.add(
+      "hidden",
+    );
+  }
+
+  if (organizerDisplayOrderInput) {
+    organizerDisplayOrderInput.value = "";
+  }
+
+  toggleOrganizerClassField();
+  setOrganizerMessage("");
+}
+
+function renderPublicOrganizers() {
+  const sorted = sortOrganizers(organizersData);
+
+  const organizers = sorted.filter(
+    (item) => item.group !== "class_representative",
+  );
+
+  const representatives = sorted.filter(
+    (item) => item.group === "class_representative",
+  );
+
+  if (publicOrganizerCount) {
+    publicOrganizerCount.textContent =
+      organizers.length;
+  }
+
+  if (publicRepresentativeCount) {
+    publicRepresentativeCount.textContent =
+      representatives.length;
+  }
+
+  if (totalOrganizersHome) {
+    totalOrganizersHome.textContent =
+      organizers.length;
+  }
+
+  if (publicOrganizerBody) {
+    publicOrganizerBody.innerHTML =
+      organizers.length
+        ? organizers
+            .map(
+              (item, index) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>
+                    <strong>${escapeHtml(
+                      item.fullName || "",
+                    )}</strong>
+                  </td>
+                  <td>${escapeHtml(
+                    item.roleTitle || "",
+                  )}</td>
+                </tr>
+              `,
+            )
+            .join("")
+        : `
+          <tr>
+            <td colspan="3" class="empty-row">
+              Chưa có dữ liệu Ban Tổ chức
+            </td>
+          </tr>
+        `;
+  }
+
+  if (publicRepresentativeBody) {
+    publicRepresentativeBody.innerHTML =
+      representatives.length
+        ? representatives
+            .map(
+              (item, index) => `
+                <tr>
+                  <td>${index + 1}</td>
+                  <td>
+                    <span class="organizer-class-badge">
+                      ${escapeHtml(
+                        item.classId || "-",
+                      )}
+                    </span>
+                  </td>
+                  <td>
+                    <strong>${escapeHtml(
+                      item.fullName || "",
+                    )}</strong>
+                  </td>
+                  <td>${escapeHtml(
+                    item.roleTitle || "",
+                  )}</td>
+                </tr>
+              `,
+            )
+            .join("")
+        : `
+          <tr>
+            <td colspan="4" class="empty-row">
+              Chưa có dữ liệu Đại diện Ban Liên lạc
+            </td>
+          </tr>
+        `;
+  }
+}
+
+function renderOrganizerManagement() {
+  if (!organizerAdminBody) return;
+
+  const organizerCount = organizersData.filter(
+    (item) => item.group !== "class_representative",
+  ).length;
+
+  const representativeCount = organizersData.filter(
+    (item) => item.group === "class_representative",
+  ).length;
+
+  if (adminOrganizerCount) {
+    adminOrganizerCount.textContent =
+      organizerCount;
+  }
+
+  if (adminRepresentativeCount) {
+    adminRepresentativeCount.textContent =
+      representativeCount;
+  }
+
+  const keyword = String(
+    organizerSearch?.value || "",
+  )
+    .trim()
+    .toLocaleLowerCase("vi");
+
+  const groupFilter =
+    organizerGroupFilter?.value || "all";
+
+  const filtered = sortOrganizers(
+    organizersData,
+  ).filter((item) => {
+    const matchesGroup =
+      groupFilter === "all" ||
+      item.group === groupFilter;
+
+    const haystack = [
+      item.fullName,
+      item.roleTitle,
+      item.classId,
+      item.phone,
+    ]
+      .join(" ")
+      .toLocaleLowerCase("vi");
+
+    const matchesKeyword =
+      !keyword || haystack.includes(keyword);
+
+    return matchesGroup && matchesKeyword;
+  });
+
+  if (!filtered.length) {
+    organizerAdminBody.innerHTML = `
+      <tr>
+        <td colspan="8" class="empty-row">
+          ${
+            organizersData.length
+              ? "Không tìm thấy dữ liệu phù hợp"
+              : "Chưa có dữ liệu"
+          }
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  organizerAdminBody.innerHTML =
+    filtered
+      .map(
+        (item, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td>
+              <span class="organizer-group-badge ${
+                item.group ===
+                "class_representative"
+                  ? "representative"
+                  : "organizer"
+              }">
+                ${escapeHtml(
+                  getOrganizerGroupLabel(
+                    item.group,
+                  ),
+                )}
+              </span>
+            </td>
+            <td>
+              ${
+                item.classId
+                  ? `<span class="organizer-class-badge">${escapeHtml(
+                      item.classId,
+                    )}</span>`
+                  : "-"
+              }
+            </td>
+            <td>
+              <strong>${escapeHtml(
+                item.fullName || "",
+              )}</strong>
+            </td>
+            <td>${escapeHtml(
+              item.roleTitle || "",
+            )}</td>
+            <td>${escapeHtml(
+              item.phone || "",
+            )}</td>
+            <td>${Number(
+              item.displayOrder,
+            ) || ""}</td>
+            <td>
+              <button
+                type="button"
+                class="table-action-button edit-organizer-button"
+                data-organizer-id="${item.id}"
+              >
+                Sửa
+              </button>
+
+              <button
+                type="button"
+                class="table-action-button delete-organizer-button"
+                data-organizer-id="${item.id}"
+              >
+                Xóa
+              </button>
+            </td>
+          </tr>
+        `,
+      )
+      .join("");
+}
+
+function startOrganizerSubscription() {
+  if (unsubscribeOrganizers) {
+    unsubscribeOrganizers();
+    unsubscribeOrganizers = null;
+  }
+
+  unsubscribeOrganizers =
+    subscribeAllOrganizers(
+      (items) => {
+        organizersData = items;
+        renderPublicOrganizers();
+        renderOrganizerManagement();
+      },
+      (error) => {
+        console.error(
+          "Không đọc được dữ liệu Ban Tổ chức:",
+          error,
+        );
+
+        if (publicOrganizerBody) {
+          publicOrganizerBody.innerHTML = `
+            <tr>
+              <td colspan="3" class="empty-row">
+                Không đọc được dữ liệu
+              </td>
+            </tr>
+          `;
+        }
+
+        if (publicRepresentativeBody) {
+          publicRepresentativeBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="empty-row">
+                Không đọc được dữ liệu
+              </td>
+            </tr>
+          `;
+        }
+      },
+    );
+}
+
 function showManagementPanel(panelName) {
   memberManagement.classList.add("hidden");
   teacherManagement.classList.add("hidden");
@@ -1146,7 +1587,17 @@ function showManagementPanel(panelName) {
   contributionManagement.classList.add("hidden");
   sponsorManagement.classList.add("hidden");
 
-  if (panelName === "teachers") {
+  if (organizerManagement) {
+    organizerManagement.classList.add("hidden");
+  }
+
+  if (panelName === "organizers") {
+    if (organizerManagement) {
+      organizerManagement.classList.remove("hidden");
+    }
+    setActiveManagementCard(manageOrganizersButton);
+    renderOrganizerManagement();
+  } else if (panelName === "teachers") {
     teacherManagement.classList.remove("hidden");
     setActiveManagementCard(manageTeachersButton);
   } else if (panelName === "participants") {
@@ -1664,11 +2115,13 @@ function renderHomeStats() {
     totalParticipantsHome.textContent = `${totalAttending} / ${totalMembers}`;
   }
 
-  /*
-   * Ban Tổ chức sẽ làm sau nên tạm giữ 0.
-   */
   if (totalOrganizersHome) {
-    totalOrganizersHome.textContent = "0";
+    totalOrganizersHome.textContent =
+      organizersData.filter(
+        (item) =>
+          item.group !==
+          "class_representative",
+      ).length;
   }
 
   renderPublicSponsorSummary();
@@ -2687,6 +3140,13 @@ function showLoggedOutUI() {
   resetMemberForm();
   resetSponsorForm();
   resetTeacherForm();
+  resetOrganizerForm();
+
+  if (manageOrganizersButton) {
+    manageOrganizersButton.classList.add(
+      "hidden",
+    );
+  }
 
   loginMenuItem.classList.remove("hidden");
   managementMenuItem.classList.add("hidden");
@@ -2711,6 +3171,12 @@ function showLoggedInUI(session) {
   currentUserEmail.textContent = profile.email || authUser.email || "-";
 
   if (profile.role === "class_editor") {
+    if (manageOrganizersButton) {
+      manageOrganizersButton.classList.add(
+        "hidden",
+      );
+    }
+
     const classId = profile.classId || "";
 
     managementTabButton.textContent = classId
@@ -2746,6 +3212,12 @@ function showLoggedInUI(session) {
       startTeacherSubscription(classId);
     }
   } else if (profile.role === "admin") {
+    if (manageOrganizersButton) {
+      manageOrganizersButton.classList.remove(
+        "hidden",
+      );
+    }
+
     managementTabButton.textContent = "Quản trị";
 
     managementTitle.textContent = "Quản trị Hội khóa";
@@ -2758,7 +3230,12 @@ function showLoggedInUI(session) {
       "Danh sách thành viên - phần Admin sẽ hoàn thiện sau";
   }
 
-  showManagementPanel("members");
+  if (profile.role === "admin") {
+    showManagementPanel("organizers");
+  } else {
+    showManagementPanel("members");
+  }
+
   openTab("management");
 }
 
@@ -3290,6 +3767,294 @@ if (contributionTableBody) {
   });
 }
 
+if (manageOrganizersButton) {
+  manageOrganizersButton.addEventListener(
+    "click",
+    () => {
+      showManagementPanel("organizers");
+    },
+  );
+}
+
+if (organizerGroupSelect) {
+  organizerGroupSelect.addEventListener(
+    "change",
+    toggleOrganizerClassField,
+  );
+}
+
+if (organizerSearch) {
+  organizerSearch.addEventListener(
+    "input",
+    renderOrganizerManagement,
+  );
+}
+
+if (organizerGroupFilter) {
+  organizerGroupFilter.addEventListener(
+    "change",
+    renderOrganizerManagement,
+  );
+}
+
+if (cancelOrganizerEditButton) {
+  cancelOrganizerEditButton.addEventListener(
+    "click",
+    resetOrganizerForm,
+  );
+}
+
+if (organizerForm) {
+  organizerForm.addEventListener(
+    "submit",
+    async (event) => {
+      event.preventDefault();
+
+      if (
+        currentSession?.profile?.role !==
+        "admin"
+      ) {
+        setOrganizerMessage(
+          "Chỉ tài khoản Admin được cập nhật danh sách này.",
+          "error",
+        );
+        return;
+      }
+
+      const group =
+        organizerGroupSelect.value;
+
+      const fullName =
+        organizerFullNameInput.value.trim();
+
+      const roleTitle =
+        organizerRoleTitleInput.value.trim();
+
+      const classId =
+        group === "class_representative"
+          ? organizerClassIdSelect.value
+          : "";
+
+      const phone =
+        organizerPhoneInput.value.trim();
+
+      const displayOrder =
+        Number(
+          organizerDisplayOrderInput.value,
+        ) || 999;
+
+      const note =
+        organizerNoteInput.value.trim();
+
+      if (!fullName) {
+        setOrganizerMessage(
+          "Vui lòng nhập họ và tên.",
+          "error",
+        );
+        organizerFullNameInput.focus();
+        return;
+      }
+
+      if (
+        group === "class_representative" &&
+        !classId
+      ) {
+        setOrganizerMessage(
+          "Vui lòng chọn lớp.",
+          "error",
+        );
+        organizerClassIdSelect.focus();
+        return;
+      }
+
+      try {
+        saveOrganizerButton.disabled = true;
+
+        const organizerId =
+          organizerIdInput.value;
+
+        const payload = {
+          group,
+          fullName,
+          roleTitle,
+          classId,
+          phone,
+          displayOrder,
+          note,
+        };
+
+        if (organizerId) {
+          await updateOrganizer(
+            organizerId,
+            payload,
+          );
+
+          setOrganizerMessage(
+            "Đã cập nhật thông tin.",
+            "success",
+          );
+        } else {
+          await addOrganizer({
+            ...payload,
+            createdBy:
+              currentSession.authUser.uid,
+          });
+
+          setOrganizerMessage(
+            "Đã thêm thành viên.",
+            "success",
+          );
+        }
+
+        const successMessage =
+          organizerFormMessage.textContent;
+
+        resetOrganizerForm();
+        setOrganizerMessage(
+          successMessage,
+          "success",
+        );
+      } catch (error) {
+        console.error(
+          "Lỗi lưu Ban Tổ chức:",
+          error,
+        );
+
+        setOrganizerMessage(
+          "Không lưu được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+          "error",
+        );
+      } finally {
+        saveOrganizerButton.disabled = false;
+      }
+    },
+  );
+}
+
+if (organizerAdminBody) {
+  organizerAdminBody.addEventListener(
+    "click",
+    async (event) => {
+      const editButton =
+        event.target.closest(
+          ".edit-organizer-button",
+        );
+
+      const deleteButton =
+        event.target.closest(
+          ".delete-organizer-button",
+        );
+
+      if (editButton) {
+        const organizerId =
+          editButton.dataset.organizerId;
+
+        const item = organizersData.find(
+          (row) => row.id === organizerId,
+        );
+
+        if (!item) return;
+
+        organizerIdInput.value = item.id;
+        organizerGroupSelect.value =
+          item.group || "organizer";
+
+        toggleOrganizerClassField();
+
+        organizerFullNameInput.value =
+          item.fullName || "";
+
+        organizerRoleTitleInput.value =
+          item.roleTitle || "";
+
+        organizerClassIdSelect.value =
+          item.classId || "";
+
+        organizerPhoneInput.value =
+          item.phone || "";
+
+        organizerDisplayOrderInput.value =
+          Number(item.displayOrder) === 999
+            ? ""
+            : Number(item.displayOrder) || "";
+
+        organizerNoteInput.value =
+          item.note || "";
+
+        organizerFormTitle.textContent =
+          "Sửa thông tin";
+
+        saveOrganizerButton.textContent =
+          "Cập nhật";
+
+        cancelOrganizerEditButton.classList.remove(
+          "hidden",
+        );
+
+        setOrganizerMessage("");
+
+        organizerFullNameInput.focus();
+        return;
+      }
+
+      if (deleteButton) {
+        if (
+          currentSession?.profile?.role !==
+          "admin"
+        ) {
+          return;
+        }
+
+        const organizerId =
+          deleteButton.dataset.organizerId;
+
+        const item = organizersData.find(
+          (row) => row.id === organizerId,
+        );
+
+        if (!item) return;
+
+        const accepted =
+          await showConfirmDialog({
+            title: "Xóa khỏi danh sách",
+            message:
+              `Bạn có chắc muốn xóa "${item.fullName || ""}" không?`,
+            confirmText: "Xóa",
+            cancelText: "Hủy",
+            type: "danger",
+          });
+
+        if (!accepted) return;
+
+        try {
+          await deleteOrganizer(
+            organizerId,
+          );
+
+          if (
+            organizerIdInput.value ===
+            organizerId
+          ) {
+            resetOrganizerForm();
+          }
+        } catch (error) {
+          console.error(
+            "Lỗi xóa Ban Tổ chức:",
+            error,
+          );
+
+          await showAlertDialog({
+            title: "Không thể xóa",
+            message:
+              "Không xóa được dữ liệu. Vui lòng kiểm tra Firestore Rules.",
+            type: "danger",
+          });
+        }
+      }
+    },
+  );
+}
+
 if (manageSponsorsButton) {
   manageSponsorsButton.addEventListener("click", () => {
     showManagementPanel("sponsors");
@@ -3587,6 +4352,8 @@ if (dashboardClassFilter) {
 startDashboardSubscription();
 
 startAllSponsorSubscription();
+
+startOrganizerSubscription();
 
 publicClassButtons.forEach((button) => {
   button.addEventListener("click", () => {

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20261006-1605" />
+    <link rel="stylesheet" href="style.css?v=20261007-1620" />
   </head>
 
   <body>
@@ -307,14 +307,83 @@
           <div class="page-heading">
             <span class="section-label">HỘI KHÓA 30 NĂM</span>
             <h2>Ban Tổ chức</h2>
-            <p>Danh sách các thành viên Ban Tổ chức Hội khóa</p>
+            <p>Ban Tổ chức Hội khóa và Đại diện Ban Liên lạc các lớp</p>
           </div>
 
-          <div class="placeholder-box">
-            <div class="placeholder-icon">👥</div>
-            <h3>Danh sách Ban Tổ chức</h3>
-            <p>Dữ liệu sẽ được cập nhật từ Firebase.</p>
+          <div class="organizer-summary-grid">
+            <div class="organizer-summary-card">
+              <span>Ban Tổ chức</span>
+              <strong id="publicOrganizerCount">0</strong>
+              <small>thành viên</small>
+            </div>
+
+            <div class="organizer-summary-card">
+              <span>Đại diện Ban Liên lạc</span>
+              <strong id="publicRepresentativeCount">0</strong>
+              <small>người</small>
+            </div>
           </div>
+
+          <div class="organizer-public-grid">
+            <section class="table-card organizer-public-card">
+              <div class="attendance-list-heading">
+                <div>
+                  <span class="attendance-list-kicker">BAN TỔ CHỨC</span>
+                  <h3>Danh sách Ban Tổ chức Hội khóa</h3>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="organizer-public-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Họ và tên</th>
+                      <th>Vai trò/Nhiệm vụ</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="publicOrganizerBody">
+                    <tr>
+                      <td colspan="3" class="empty-row">Chưa có dữ liệu</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="table-card organizer-public-card">
+              <div class="attendance-list-heading">
+                <div>
+                  <span class="attendance-list-kicker">BAN LIÊN LẠC CÁC LỚP</span>
+                  <h3>Đại diện Ban Liên lạc các lớp</h3>
+                </div>
+              </div>
+
+              <div class="table-responsive">
+                <table class="organizer-public-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Lớp</th>
+                      <th>Họ và tên</th>
+                      <th>Vai trò</th>
+                    </tr>
+                  </thead>
+
+                  <tbody id="publicRepresentativeBody">
+                    <tr>
+                      <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+          <p class="organizer-privacy-note">
+            Thông tin liên hệ được quản lý nội bộ và không hiển thị công khai.
+          </p>
         </div>
       </section>
 
@@ -1093,6 +1162,16 @@
               <p>Quản lý các khoản tài trợ của lớp.</p>
             </button>
 
+            <button
+              class="management-card admin-only-card hidden"
+              id="manageOrganizersButton"
+              type="button"
+            >
+              <div class="management-icon">⭐</div>
+              <h3>Ban Tổ chức</h3>
+              <p>Nhập Ban Tổ chức và Đại diện Ban Liên lạc các lớp.</p>
+            </button>
+
           </div>
 
           <!-- Quản lý thành viên -->
@@ -1620,7 +1699,185 @@
               </div>
             </div>
           </div>
-</div>
+
+          <!-- Quản trị Ban Tổ chức - chỉ Admin -->
+          <div class="organizer-management hidden" id="organizerManagement">
+            <div class="subsection-heading">
+              <div>
+                <span class="section-label">QUẢN TRỊ HỘI KHÓA</span>
+                <h3>Ban Tổ chức và Ban Liên lạc các lớp</h3>
+                <p>
+                  Chỉ tài khoản Admin được thêm, sửa và xóa dữ liệu trong danh sách này.
+                </p>
+              </div>
+
+              <div class="organizer-admin-summary">
+                <div class="member-count-box">
+                  <span>Ban Tổ chức</span>
+                  <strong id="adminOrganizerCount">0</strong>
+                  <small>thành viên</small>
+                </div>
+
+                <div class="member-count-box">
+                  <span>Đại diện lớp</span>
+                  <strong id="adminRepresentativeCount">0</strong>
+                  <small>người</small>
+                </div>
+              </div>
+            </div>
+
+            <div class="organizer-admin-layout">
+              <div class="sponsor-form-card organizer-form-card">
+                <h4 id="organizerFormTitle">Thêm thành viên</h4>
+
+                <form id="organizerForm">
+                  <input type="hidden" id="organizerId" />
+
+                  <div class="form-group">
+                    <label for="organizerGroup">
+                      Nhóm <span class="required">*</span>
+                    </label>
+                    <select id="organizerGroup" required>
+                      <option value="organizer">Ban Tổ chức</option>
+                      <option value="class_representative">
+                        Đại diện Ban Liên lạc lớp
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="organizerFullName">
+                      Họ và tên <span class="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="organizerFullName"
+                      placeholder="Nhập họ và tên"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="organizerRoleTitle">Vai trò/Nhiệm vụ</label>
+                    <input
+                      type="text"
+                      id="organizerRoleTitle"
+                      placeholder="Ví dụ: Trưởng ban, Phó ban, Đại diện Ban liên lạc..."
+                    />
+                  </div>
+
+                  <div class="form-group hidden" id="organizerClassGroup">
+                    <label for="organizerClassId">
+                      Lớp <span class="required">*</span>
+                    </label>
+                    <select id="organizerClassId">
+                      <option value="">Chọn lớp</option>
+                      <option value="12A">12A</option>
+                      <option value="12B">12B</option>
+                      <option value="12C">12C</option>
+                      <option value="12D">12D</option>
+                      <option value="12E">12E</option>
+                      <option value="12G">12G</option>
+                      <option value="12H">12H</option>
+                      <option value="12K">12K</option>
+                      <option value="12M">12M</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="organizerPhone">Số điện thoại</label>
+                    <input
+                      type="text"
+                      id="organizerPhone"
+                      placeholder="Chỉ dùng nội bộ, không hiển thị công khai"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="organizerDisplayOrder">Thứ tự hiển thị</label>
+                    <input
+                      type="number"
+                      id="organizerDisplayOrder"
+                      min="1"
+                      step="1"
+                      placeholder="Ví dụ: 1"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="organizerNote">Ghi chú</label>
+                    <textarea
+                      id="organizerNote"
+                      rows="3"
+                      placeholder="Thông tin nội bộ (nếu có)"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-actions">
+                    <button
+                      class="primary-action-button"
+                      id="saveOrganizerButton"
+                      type="submit"
+                    >
+                      Lưu thành viên
+                    </button>
+
+                    <button
+                      class="secondary-action-button hidden"
+                      id="cancelOrganizerEditButton"
+                      type="button"
+                    >
+                      Hủy sửa
+                    </button>
+                  </div>
+
+                  <p class="form-message" id="organizerFormMessage"></p>
+                </form>
+              </div>
+
+              <div class="sponsor-list-card organizer-list-card">
+                <div class="participant-toolbar">
+                  <input
+                    type="text"
+                    id="organizerSearch"
+                    placeholder="Tìm theo họ tên, vai trò hoặc lớp..."
+                  />
+
+                  <select id="organizerGroupFilter">
+                    <option value="all">Tất cả nhóm</option>
+                    <option value="organizer">Ban Tổ chức</option>
+                    <option value="class_representative">
+                      Đại diện Ban Liên lạc
+                    </option>
+                  </select>
+                </div>
+
+                <div class="table-responsive">
+                  <table class="organizer-admin-table">
+                    <thead>
+                      <tr>
+                        <th>STT</th>
+                        <th>Nhóm</th>
+                        <th>Lớp</th>
+                        <th>Họ và tên</th>
+                        <th>Vai trò</th>
+                        <th>Số điện thoại</th>
+                        <th>Thứ tự</th>
+                        <th>Thao tác</th>
+                      </tr>
+                    </thead>
+
+                    <tbody id="organizerAdminBody">
+                      <tr>
+                        <td colspan="8" class="empty-row">Chưa có dữ liệu</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -1731,6 +1988,6 @@
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
-    <script type="module" src="main.js?v=20261006-1605"></script>
+    <script type="module" src="main.js?v=20261007-1620"></script>
   </body>
 </html>
