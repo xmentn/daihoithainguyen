@@ -3470,3 +3470,116 @@ body.drive-lightbox-open {
         min-width: 130px;
     }
 }
+
+
+/* =========================================
+   ADMIN - LUÔN HIỂN THỊ NÚT SỬA / XÓA
+========================================= */
+
+/*
+ * Bảng Ban Tổ chức có nhiều cột nên trên một số màn hình
+ * cột "Thao tác" nằm ngoài vùng nhìn thấy. Giữ cột này cố định
+ * bên phải để Admin luôn thấy nút Sửa / Xóa.
+ */
+.organizer-admin-table th:last-child,
+.organizer-admin-table td:last-child {
+    position: sticky;
+    right: 0;
+    min-width: 132px;
+    width: 132px;
+    white-space: nowrap;
+    background: #ffffff;
+    z-index: 3;
+    box-shadow: -8px 0 14px rgba(15, 52, 82, 0.06);
+}
+
+.organizer-admin-table thead th:last-child {
+    background: #f7f2ea;
+    z-index: 5;
+}
+
+.organizer-admin-table tbody tr:hover td:last-child {
+    background: #fffaf4;
+}
+
+/* Hai nút thao tác phân biệt rõ ràng */
+.edit-organizer-button,
+.delete-organizer-button {
+    min-width: 48px;
+    padding: 7px 9px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+.edit-organizer-button {
+    background: #edf5fc;
+    color: #0e4f82;
+}
+
+.edit-organizer-button:hover {
+    background: #dcecf9;
+}
+
+.delete-organizer-button {
+    margin-left: 5px;
+    background: #fff0f0;
+    color: #b0181e;
+}
+
+.delete-organizer-button:hover {
+    background: #ffe0e0;
+}
+
+/* Giảm nhẹ độ rộng các cột để hạn chế phải cuộn ngang */
+.organizer-admin-table {
+    min-width: 940px;
+}
+
+.organizer-admin-table th:nth-child(2),
+.organizer-admin-table td:nth-child(2) {
+    min-width: 120px;
+}
+
+.organizer-admin-table th:nth-child(3),
+.organizer-admin-table td:nth-child(3) {
+    width: 72px;
+    min-width: 72px;
+    text-align: center;
+}
+
+.organizer-admin-table th:nth-child(4),
+.organizer-admin-table td:nth-child(4) {
+    min-width: 150px;
+}
+
+.organizer-admin-table th:nth-child(5),
+.organizer-admin-table td:nth-child(5) {
+    min-width: 135px;
+}
+
+.organizer-admin-table th:nth-child(6),
+.organizer-admin-table td:nth-child(6) {
+    min-width: 112px;
+}
+
+.organizer-admin-table th:nth-child(7),
+.organizer-admin-table td:nth-child(7) {
+    width: 72px;
+    min-width: 72px;
+    text-align: center;
+}
+
+@media (max-width: 760px) {
+    .organizer-admin-table th:last-child,
+    .organizer-admin-table td:last-child {
+        min-width: 118px;
+        width: 118px;
+    }
+
+    .edit-organizer-button,
+    .delete-organizer-button {
+        min-width: 44px;
+        padding: 6px 7px;
+        font-size: 12px;
+    }
+}
