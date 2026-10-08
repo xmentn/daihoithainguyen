@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20261007-1638" />
+    <link rel="stylesheet" href="style.css?v=20261008-1402" />
   </head>
 
   <body>
@@ -307,7 +307,7 @@
           <div class="page-heading">
             <span class="section-label">HỘI KHÓA 30 NĂM</span>
             <h2>Ban Tổ chức</h2>
-            <p>Ban Tổ chức Hội khóa và Đại diện Ban Liên lạc các lớp</p>
+            <p>Danh sách Ban Tổ chức Hội khóa</p>
           </div>
 
           <div class="organizer-summary-grid">
@@ -316,15 +316,9 @@
               <strong id="publicOrganizerCount">0</strong>
               <small>thành viên</small>
             </div>
-
-            <div class="organizer-summary-card">
-              <span>Đại diện Ban Liên lạc</span>
-              <strong id="publicRepresentativeCount">0</strong>
-              <small>người</small>
-            </div>
           </div>
 
-          <div class="organizer-public-grid">
+          <div class="organizer-public-grid organizer-public-grid-single">
             <section class="table-card organizer-public-card">
               <div class="attendance-list-heading">
                 <div>
@@ -339,39 +333,12 @@
                     <tr>
                       <th>STT</th>
                       <th>Họ và tên</th>
-                      <th>Vai trò/Nhiệm vụ</th>
-                    </tr>
-                  </thead>
-
-                  <tbody id="publicOrganizerBody">
-                    <tr>
-                      <td colspan="3" class="empty-row">Chưa có dữ liệu</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </section>
-
-            <section class="table-card organizer-public-card">
-              <div class="attendance-list-heading">
-                <div>
-                  <span class="attendance-list-kicker">BAN LIÊN LẠC CÁC LỚP</span>
-                  <h3>Đại diện Ban Liên lạc các lớp</h3>
-                </div>
-              </div>
-
-              <div class="table-responsive">
-                <table class="organizer-public-table">
-                  <thead>
-                    <tr>
-                      <th>STT</th>
                       <th>Lớp</th>
-                      <th>Họ và tên</th>
                       <th>Vai trò</th>
                     </tr>
                   </thead>
 
-                  <tbody id="publicRepresentativeBody">
+                  <tbody id="publicOrganizerBody">
                     <tr>
                       <td colspan="4" class="empty-row">Chưa có dữ liệu</td>
                     </tr>
@@ -382,7 +349,7 @@
           </div>
 
           <p class="organizer-privacy-note">
-            Thông tin liên hệ được quản lý nội bộ và không hiển thị công khai.
+            Số điện thoại chỉ được quản lý nội bộ và không hiển thị công khai.
           </p>
         </div>
       </section>
@@ -1169,7 +1136,7 @@
             >
               <div class="management-icon">⭐</div>
               <h3>Ban Tổ chức</h3>
-              <p>Nhập Ban Tổ chức và Đại diện Ban Liên lạc các lớp.</p>
+              <p>Nhập danh sách Ban Tổ chức Hội khóa.</p>
             </button>
 
           </div>
@@ -1705,9 +1672,9 @@
             <div class="subsection-heading">
               <div>
                 <span class="section-label">QUẢN TRỊ HỘI KHÓA</span>
-                <h3>Ban Tổ chức và Ban Liên lạc các lớp</h3>
+                <h3>Ban Tổ chức</h3>
                 <p>
-                  Chỉ tài khoản Admin được thêm, sửa và xóa dữ liệu trong danh sách này.
+                  Chỉ tài khoản Admin được thêm, sửa và xóa danh sách Ban Tổ chức.
                 </p>
               </div>
 
@@ -1717,33 +1684,15 @@
                   <strong id="adminOrganizerCount">0</strong>
                   <small>thành viên</small>
                 </div>
-
-                <div class="member-count-box">
-                  <span>Đại diện lớp</span>
-                  <strong id="adminRepresentativeCount">0</strong>
-                  <small>người</small>
-                </div>
               </div>
             </div>
 
             <div class="organizer-admin-layout">
               <div class="sponsor-form-card organizer-form-card">
-                <h4 id="organizerFormTitle">Thêm thành viên</h4>
+                <h4 id="organizerFormTitle">Thêm thành viên Ban Tổ chức</h4>
 
                 <form id="organizerForm">
                   <input type="hidden" id="organizerId" />
-
-                  <div class="form-group">
-                    <label for="organizerGroup">
-                      Nhóm <span class="required">*</span>
-                    </label>
-                    <select id="organizerGroup" required>
-                      <option value="organizer">Ban Tổ chức</option>
-                      <option value="class_representative">
-                        Đại diện Ban Liên lạc lớp
-                      </option>
-                    </select>
-                  </div>
 
                   <div class="form-group">
                     <label for="organizerFullName">
@@ -1758,19 +1707,10 @@
                   </div>
 
                   <div class="form-group">
-                    <label for="organizerRoleTitle">Vai trò/Nhiệm vụ</label>
-                    <input
-                      type="text"
-                      id="organizerRoleTitle"
-                      placeholder="Ví dụ: Trưởng ban, Phó ban, Đại diện Ban liên lạc..."
-                    />
-                  </div>
-
-                  <div class="form-group hidden" id="organizerClassGroup">
                     <label for="organizerClassId">
                       Lớp <span class="required">*</span>
                     </label>
-                    <select id="organizerClassId">
+                    <select id="organizerClassId" required>
                       <option value="">Chọn lớp</option>
                       <option value="12A">12A</option>
                       <option value="12B">12B</option>
@@ -1785,16 +1725,34 @@
                   </div>
 
                   <div class="form-group">
-                    <label for="organizerPhone">Số điện thoại</label>
+                    <label for="organizerRoleTitle">
+                      Vai trò <span class="required">*</span>
+                    </label>
+                    <select id="organizerRoleTitle" required>
+                      <option value="">Chọn vai trò</option>
+                      <option value="Trưởng Ban">Trưởng Ban</option>
+                      <option value="Phó Trưởng Ban">Phó Trưởng Ban</option>
+                      <option value="Thành viên">Thành viên</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="organizerPhone">
+                      Số điện thoại
+                    </label>
                     <input
-                      type="text"
+                      type="tel"
                       id="organizerPhone"
-                      placeholder="Chỉ dùng nội bộ, không hiển thị công khai"
+                      inputmode="numeric"
+                      autocomplete="tel"
+                      placeholder="Nhập số điện thoại"
                     />
                   </div>
 
                   <div class="form-group">
-                    <label for="organizerDisplayOrder">Thứ tự hiển thị</label>
+                    <label for="organizerDisplayOrder">
+                      Thứ tự hiển thị
+                    </label>
                     <input
                       type="number"
                       id="organizerDisplayOrder"
@@ -1802,15 +1760,6 @@
                       step="1"
                       placeholder="Ví dụ: 1"
                     />
-                  </div>
-
-                  <div class="form-group">
-                    <label for="organizerNote">Ghi chú</label>
-                    <textarea
-                      id="organizerNote"
-                      rows="3"
-                      placeholder="Thông tin nội bộ (nếu có)"
-                    ></textarea>
                   </div>
 
                   <div class="form-actions">
@@ -1840,15 +1789,20 @@
                   <input
                     type="text"
                     id="organizerSearch"
-                    placeholder="Tìm theo họ tên, vai trò hoặc lớp..."
+                    placeholder="Tìm theo họ tên, lớp hoặc vai trò..."
                   />
 
-                  <select id="organizerGroupFilter">
-                    <option value="all">Tất cả nhóm</option>
-                    <option value="organizer">Ban Tổ chức</option>
-                    <option value="class_representative">
-                      Đại diện Ban Liên lạc
-                    </option>
+                  <select id="organizerClassFilter">
+                    <option value="">Tất cả các lớp</option>
+                    <option value="12A">12A</option>
+                    <option value="12B">12B</option>
+                    <option value="12C">12C</option>
+                    <option value="12D">12D</option>
+                    <option value="12E">12E</option>
+                    <option value="12G">12G</option>
+                    <option value="12H">12H</option>
+                    <option value="12K">12K</option>
+                    <option value="12M">12M</option>
                   </select>
                 </div>
 
@@ -1857,9 +1811,8 @@
                     <thead>
                       <tr>
                         <th>STT</th>
-                        <th>Nhóm</th>
-                        <th>Lớp</th>
                         <th>Họ và tên</th>
+                        <th>Lớp</th>
                         <th>Vai trò</th>
                         <th>Số điện thoại</th>
                         <th>Thứ tự</th>
@@ -1869,7 +1822,7 @@
 
                     <tbody id="organizerAdminBody">
                       <tr>
-                        <td colspan="8" class="empty-row">Chưa có dữ liệu</td>
+                        <td colspan="7" class="empty-row">Chưa có dữ liệu</td>
                       </tr>
                     </tbody>
                   </table>
@@ -1988,6 +1941,6 @@
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
-    <script type="module" src="main.js?v=20261007-1638"></script>
+    <script type="module" src="main.js?v=20261008-1402"></script>
   </body>
 </html>

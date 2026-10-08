@@ -3583,3 +3583,106 @@ body.drive-lightbox-open {
         font-size: 12px;
     }
 }
+
+
+/* =========================================
+   BAN TỔ CHỨC - CHỈ QUẢN LÝ BTC
+========================================= */
+
+.organizer-summary-grid {
+    grid-template-columns: minmax(180px, 260px);
+}
+
+.organizer-public-grid-single {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.organizer-admin-summary {
+    justify-content: flex-end;
+}
+
+.organizer-admin-table {
+    min-width: 900px;
+    table-layout: auto;
+}
+
+.organizer-admin-table th,
+.organizer-admin-table td {
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+.organizer-admin-table th:nth-child(1),
+.organizer-admin-table td:nth-child(1) {
+    width: 58px;
+    min-width: 58px;
+    text-align: center;
+}
+
+.organizer-admin-table th:nth-child(2),
+.organizer-admin-table td:nth-child(2) {
+    min-width: 175px;
+}
+
+.organizer-admin-table th:nth-child(3),
+.organizer-admin-table td:nth-child(3) {
+    width: 78px;
+    min-width: 78px;
+    text-align: center;
+}
+
+.organizer-admin-table th:nth-child(4),
+.organizer-admin-table td:nth-child(4) {
+    min-width: 145px;
+}
+
+.organizer-admin-table th:nth-child(5),
+.organizer-admin-table td:nth-child(5) {
+    width: 155px;
+    min-width: 155px;
+}
+
+.organizer-phone-cell {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+}
+
+.organizer-admin-table th:nth-child(6),
+.organizer-admin-table td:nth-child(6) {
+    width: 78px;
+    min-width: 78px;
+    text-align: center;
+}
+
+.organizer-admin-table th:nth-child(7),
+.organizer-admin-table td:nth-child(7) {
+    width: 132px;
+    min-width: 132px;
+    text-align: center;
+}
+
+.organizer-form-card .form-group select {
+    width: 100%;
+}
+
+@media (max-width: 760px) {
+    .organizer-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .organizer-admin-table {
+        min-width: 820px;
+    }
+
+    .organizer-admin-table th:nth-child(5),
+    .organizer-admin-table td:nth-child(5) {
+        width: 145px;
+        min-width: 145px;
+    }
+
+    .organizer-admin-table th:nth-child(7),
+    .organizer-admin-table td:nth-child(7) {
+        width: 118px;
+        min-width: 118px;
+    }
+}

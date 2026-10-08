@@ -638,23 +638,21 @@ function subscribeTeachersByClass(
 ========================================= */
 
 async function addOrganizer({
-  group,
+  group = "organizer",
   fullName,
   roleTitle = "",
   classId = "",
   phone = "",
   displayOrder = 999,
-  note = "",
   createdBy,
 }) {
   return await addDoc(collection(db, "organizers"), {
-    group,
+    group: "organizer",
     fullName: fullName.trim(),
     roleTitle: roleTitle.trim(),
-    classId: group === "class_representative" ? classId : "",
+    classId: classId.trim(),
     phone: phone.trim(),
     displayOrder: Number(displayOrder) || 999,
-    note: note.trim(),
     createdBy,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
@@ -664,23 +662,21 @@ async function addOrganizer({
 async function updateOrganizer(
   organizerId,
   {
-    group,
+    group = "organizer",
     fullName,
     roleTitle = "",
     classId = "",
     phone = "",
     displayOrder = 999,
-    note = "",
   },
 ) {
   await updateDoc(doc(db, "organizers", organizerId), {
-    group,
+    group: "organizer",
     fullName: fullName.trim(),
     roleTitle: roleTitle.trim(),
-    classId: group === "class_representative" ? classId : "",
+    classId: classId.trim(),
     phone: phone.trim(),
     displayOrder: Number(displayOrder) || 999,
-    note: note.trim(),
     updatedAt: serverTimestamp(),
   });
 }
@@ -693,8 +689,13 @@ function subscribeAllOrganizers(
   callback,
   errorCallback,
 ) {
-  return onSnapshot(
+  const organizersQuery = query(
     collection(db, "organizers"),
+    where("group", "==", "organizer"),
+  );
+
+  return onSnapshot(
+    organizersQuery,
     (snapshot) => {
       const items = snapshot.docs.map((item) => ({
         id: item.id,
@@ -705,7 +706,7 @@ function subscribeAllOrganizers(
     },
     (error) => {
       console.error(
-        "Lỗi đọc Ban Tổ chức/Ban Liên lạc:",
+        "Lỗi đọc danh sách Ban Tổ chức:",
         error,
       );
 

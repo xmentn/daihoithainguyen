@@ -373,42 +373,30 @@ const publicSponsorTableBody = document.getElementById(
 );
 
 const publicOrganizerCount = document.getElementById("publicOrganizerCount");
-const publicRepresentativeCount = document.getElementById(
-  "publicRepresentativeCount",
-);
 const publicOrganizerBody = document.getElementById("publicOrganizerBody");
-const publicRepresentativeBody = document.getElementById(
-  "publicRepresentativeBody",
-);
 
 const manageOrganizersButton = document.getElementById(
   "manageOrganizersButton",
 );
 const organizerManagement = document.getElementById("organizerManagement");
 const adminOrganizerCount = document.getElementById("adminOrganizerCount");
-const adminRepresentativeCount = document.getElementById(
-  "adminRepresentativeCount",
-);
 const organizerForm = document.getElementById("organizerForm");
 const organizerFormTitle = document.getElementById("organizerFormTitle");
 const organizerIdInput = document.getElementById("organizerId");
-const organizerGroupSelect = document.getElementById("organizerGroup");
 const organizerFullNameInput = document.getElementById("organizerFullName");
 const organizerRoleTitleInput = document.getElementById("organizerRoleTitle");
-const organizerClassGroup = document.getElementById("organizerClassGroup");
 const organizerClassIdSelect = document.getElementById("organizerClassId");
 const organizerPhoneInput = document.getElementById("organizerPhone");
 const organizerDisplayOrderInput = document.getElementById(
   "organizerDisplayOrder",
 );
-const organizerNoteInput = document.getElementById("organizerNote");
 const saveOrganizerButton = document.getElementById("saveOrganizerButton");
 const cancelOrganizerEditButton = document.getElementById(
   "cancelOrganizerEditButton",
 );
 const organizerFormMessage = document.getElementById("organizerFormMessage");
 const organizerSearch = document.getElementById("organizerSearch");
-const organizerGroupFilter = document.getElementById("organizerGroupFilter");
+const organizerClassFilter = document.getElementById("organizerClassFilter");
 const organizerAdminBody = document.getElementById("organizerAdminBody");
 
 const participantSearch = document.getElementById("participantSearch");
@@ -1203,41 +1191,21 @@ function getOrganizerClassIndex(classId = "") {
   return index === -1 ? 999 : index;
 }
 
-function getOrganizerGroupLabel(group = "") {
-  return group === "class_representative"
-    ? "Đại diện Ban Liên lạc"
-    : "Ban Tổ chức";
-}
-
 function sortOrganizers(items = []) {
   return [...items].sort((a, b) => {
-    const groupA =
-      a.group === "class_representative" ? 1 : 0;
-    const groupB =
-      b.group === "class_representative" ? 1 : 0;
-
-    if (groupA !== groupB) {
-      return groupA - groupB;
-    }
-
-    if (
-      a.group === "class_representative" &&
-      b.group === "class_representative"
-    ) {
-      const classCompare =
-        getOrganizerClassIndex(a.classId) -
-        getOrganizerClassIndex(b.classId);
-
-      if (classCompare !== 0) {
-        return classCompare;
-      }
-    }
-
     const orderA = Number(a.displayOrder) || 999;
     const orderB = Number(b.displayOrder) || 999;
 
     if (orderA !== orderB) {
       return orderA - orderB;
+    }
+
+    const classCompare =
+      getOrganizerClassIndex(a.classId) -
+      getOrganizerClassIndex(b.classId);
+
+    if (classCompare !== 0) {
+      return classCompare;
     }
 
     return compareVietnameseNames(
@@ -1258,28 +1226,6 @@ function setOrganizerMessage(message = "", type = "") {
   }
 }
 
-function toggleOrganizerClassField() {
-  if (!organizerGroupSelect || !organizerClassGroup) {
-    return;
-  }
-
-  const isRepresentative =
-    organizerGroupSelect.value === "class_representative";
-
-  organizerClassGroup.classList.toggle(
-    "hidden",
-    !isRepresentative,
-  );
-
-  if (organizerClassIdSelect) {
-    organizerClassIdSelect.required = isRepresentative;
-
-    if (!isRepresentative) {
-      organizerClassIdSelect.value = "";
-    }
-  }
-}
-
 function resetOrganizerForm() {
   if (!organizerForm) return;
 
@@ -1291,7 +1237,7 @@ function resetOrganizerForm() {
 
   if (organizerFormTitle) {
     organizerFormTitle.textContent =
-      "Thêm thành viên";
+      "Thêm thành viên Ban Tổ chức";
   }
 
   if (saveOrganizerButton) {
@@ -1305,33 +1251,15 @@ function resetOrganizerForm() {
     );
   }
 
-  if (organizerDisplayOrderInput) {
-    organizerDisplayOrderInput.value = "";
-  }
-
-  toggleOrganizerClassField();
   setOrganizerMessage("");
 }
 
 function renderPublicOrganizers() {
-  const sorted = sortOrganizers(organizersData);
-
-  const organizers = sorted.filter(
-    (item) => item.group !== "class_representative",
-  );
-
-  const representatives = sorted.filter(
-    (item) => item.group === "class_representative",
-  );
+  const organizers = sortOrganizers(organizersData);
 
   if (publicOrganizerCount) {
     publicOrganizerCount.textContent =
       organizers.length;
-  }
-
-  if (publicRepresentativeCount) {
-    publicRepresentativeCount.textContent =
-      representatives.length;
   }
 
   if (totalOrganizersHome) {
@@ -1352,41 +1280,12 @@ function renderPublicOrganizers() {
                       item.fullName || "",
                     )}</strong>
                   </td>
-                  <td>${escapeHtml(
-                    item.roleTitle || "",
-                  )}</td>
-                </tr>
-              `,
-            )
-            .join("")
-        : `
-          <tr>
-            <td colspan="3" class="empty-row">
-              Chưa có dữ liệu Ban Tổ chức
-            </td>
-          </tr>
-        `;
-  }
-
-  if (publicRepresentativeBody) {
-    publicRepresentativeBody.innerHTML =
-      representatives.length
-        ? representatives
-            .map(
-              (item, index) => `
-                <tr>
-                  <td>${index + 1}</td>
                   <td>
                     <span class="organizer-class-badge">
                       ${escapeHtml(
                         item.classId || "-",
                       )}
                     </span>
-                  </td>
-                  <td>
-                    <strong>${escapeHtml(
-                      item.fullName || "",
-                    )}</strong>
                   </td>
                   <td>${escapeHtml(
                     item.roleTitle || "",
@@ -1398,7 +1297,7 @@ function renderPublicOrganizers() {
         : `
           <tr>
             <td colspan="4" class="empty-row">
-              Chưa có dữ liệu Đại diện Ban Liên lạc
+              Chưa có dữ liệu Ban Tổ chức
             </td>
           </tr>
         `;
@@ -1408,22 +1307,12 @@ function renderPublicOrganizers() {
 function renderOrganizerManagement() {
   if (!organizerAdminBody) return;
 
-  const organizerCount = organizersData.filter(
-    (item) => item.group !== "class_representative",
-  ).length;
-
-  const representativeCount = organizersData.filter(
-    (item) => item.group === "class_representative",
-  ).length;
+  const organizerCount =
+    organizersData.length;
 
   if (adminOrganizerCount) {
     adminOrganizerCount.textContent =
       organizerCount;
-  }
-
-  if (adminRepresentativeCount) {
-    adminRepresentativeCount.textContent =
-      representativeCount;
   }
 
   const keyword = String(
@@ -1432,15 +1321,15 @@ function renderOrganizerManagement() {
     .trim()
     .toLocaleLowerCase("vi");
 
-  const groupFilter =
-    organizerGroupFilter?.value || "all";
+  const selectedClass =
+    organizerClassFilter?.value || "";
 
   const filtered = sortOrganizers(
     organizersData,
   ).filter((item) => {
-    const matchesGroup =
-      groupFilter === "all" ||
-      item.group === groupFilter;
+    const matchesClass =
+      !selectedClass ||
+      item.classId === selectedClass;
 
     const haystack = [
       item.fullName,
@@ -1452,15 +1341,16 @@ function renderOrganizerManagement() {
       .toLocaleLowerCase("vi");
 
     const matchesKeyword =
-      !keyword || haystack.includes(keyword);
+      !keyword ||
+      haystack.includes(keyword);
 
-    return matchesGroup && matchesKeyword;
+    return matchesClass && matchesKeyword;
   });
 
   if (!filtered.length) {
     organizerAdminBody.innerHTML = `
       <tr>
-        <td colspan="8" class="empty-row">
+        <td colspan="7" class="empty-row">
           ${
             organizersData.length
               ? "Không tìm thấy dữ liệu phù hợp"
@@ -1479,37 +1369,21 @@ function renderOrganizerManagement() {
           <tr>
             <td>${index + 1}</td>
             <td>
-              <span class="organizer-group-badge ${
-                item.group ===
-                "class_representative"
-                  ? "representative"
-                  : "organizer"
-              }">
-                ${escapeHtml(
-                  getOrganizerGroupLabel(
-                    item.group,
-                  ),
-                )}
-              </span>
-            </td>
-            <td>
-              ${
-                item.classId
-                  ? `<span class="organizer-class-badge">${escapeHtml(
-                      item.classId,
-                    )}</span>`
-                  : "-"
-              }
-            </td>
-            <td>
               <strong>${escapeHtml(
                 item.fullName || "",
               )}</strong>
             </td>
+            <td>
+              <span class="organizer-class-badge">
+                ${escapeHtml(
+                  item.classId || "-",
+                )}
+              </span>
+            </td>
             <td>${escapeHtml(
               item.roleTitle || "",
             )}</td>
-            <td>${escapeHtml(
+            <td class="organizer-phone-cell">${escapeHtml(
               item.phone || "",
             )}</td>
             <td>${Number(
@@ -1559,16 +1433,6 @@ function startOrganizerSubscription() {
 
         if (publicOrganizerBody) {
           publicOrganizerBody.innerHTML = `
-            <tr>
-              <td colspan="3" class="empty-row">
-                Không đọc được dữ liệu
-              </td>
-            </tr>
-          `;
-        }
-
-        if (publicRepresentativeBody) {
-          publicRepresentativeBody.innerHTML = `
             <tr>
               <td colspan="4" class="empty-row">
                 Không đọc được dữ liệu
@@ -2117,11 +1981,7 @@ function renderHomeStats() {
 
   if (totalOrganizersHome) {
     totalOrganizersHome.textContent =
-      organizersData.filter(
-        (item) =>
-          item.group !==
-          "class_representative",
-      ).length;
+      organizersData.length;
   }
 
   renderPublicSponsorSummary();
@@ -3776,13 +3636,6 @@ if (manageOrganizersButton) {
   );
 }
 
-if (organizerGroupSelect) {
-  organizerGroupSelect.addEventListener(
-    "change",
-    toggleOrganizerClassField,
-  );
-}
-
 if (organizerSearch) {
   organizerSearch.addEventListener(
     "input",
@@ -3790,8 +3643,8 @@ if (organizerSearch) {
   );
 }
 
-if (organizerGroupFilter) {
-  organizerGroupFilter.addEventListener(
+if (organizerClassFilter) {
+  organizerClassFilter.addEventListener(
     "change",
     renderOrganizerManagement,
   );
@@ -3821,19 +3674,14 @@ if (organizerForm) {
         return;
       }
 
-      const group =
-        organizerGroupSelect.value;
-
       const fullName =
         organizerFullNameInput.value.trim();
 
-      const roleTitle =
-        organizerRoleTitleInput.value.trim();
-
       const classId =
-        group === "class_representative"
-          ? organizerClassIdSelect.value
-          : "";
+        organizerClassIdSelect.value;
+
+      const roleTitle =
+        organizerRoleTitleInput.value;
 
       const phone =
         organizerPhoneInput.value.trim();
@@ -3842,9 +3690,6 @@ if (organizerForm) {
         Number(
           organizerDisplayOrderInput.value,
         ) || 999;
-
-      const note =
-        organizerNoteInput.value.trim();
 
       if (!fullName) {
         setOrganizerMessage(
@@ -3855,15 +3700,21 @@ if (organizerForm) {
         return;
       }
 
-      if (
-        group === "class_representative" &&
-        !classId
-      ) {
+      if (!classId) {
         setOrganizerMessage(
           "Vui lòng chọn lớp.",
           "error",
         );
         organizerClassIdSelect.focus();
+        return;
+      }
+
+      if (!roleTitle) {
+        setOrganizerMessage(
+          "Vui lòng chọn vai trò.",
+          "error",
+        );
+        organizerRoleTitleInput.focus();
         return;
       }
 
@@ -3874,13 +3725,12 @@ if (organizerForm) {
           organizerIdInput.value;
 
         const payload = {
-          group,
+          group: "organizer",
           fullName,
           roleTitle,
           classId,
           phone,
           displayOrder,
-          note,
         };
 
         if (organizerId) {
@@ -3956,19 +3806,15 @@ if (organizerAdminBody) {
         if (!item) return;
 
         organizerIdInput.value = item.id;
-        organizerGroupSelect.value =
-          item.group || "organizer";
-
-        toggleOrganizerClassField();
 
         organizerFullNameInput.value =
           item.fullName || "";
 
-        organizerRoleTitleInput.value =
-          item.roleTitle || "";
-
         organizerClassIdSelect.value =
           item.classId || "";
+
+        organizerRoleTitleInput.value =
+          item.roleTitle || "";
 
         organizerPhoneInput.value =
           item.phone || "";
@@ -3978,11 +3824,8 @@ if (organizerAdminBody) {
             ? ""
             : Number(item.displayOrder) || "";
 
-        organizerNoteInput.value =
-          item.note || "";
-
         organizerFormTitle.textContent =
-          "Sửa thông tin";
+          "Sửa thông tin Ban Tổ chức";
 
         saveOrganizerButton.textContent =
           "Cập nhật";
