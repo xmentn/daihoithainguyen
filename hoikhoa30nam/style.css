@@ -3686,3 +3686,124 @@ body.drive-lightbox-open {
         min-width: 118px;
     }
 }
+
+
+/* =========================================
+   TRANG CHỦ - TỔNG HỢP ĐÓNG GÓP THEO LỚP
+   Chỉ áp dụng cho thành phần mới; không thay đổi bảng đóng góp nội bộ.
+========================================= */
+@media (min-width: 1101px) {
+    .home-stats-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+.home-contribution-card .stat-number {
+    overflow-wrap: anywhere;
+    font-size: clamp(20px, 1.75vw, 27px);
+}
+
+.home-contribution-status {
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.home-contribution-status:empty {
+    display: none;
+}
+
+.home-contribution-detail {
+    margin-top: 24px;
+}
+
+.home-contribution-detail .table-card {
+    padding: 22px;
+}
+
+.home-contribution-detail .attendance-list-heading {
+    margin-bottom: 12px;
+}
+
+.home-contribution-detail .attendance-list-heading h3 {
+    color: var(--blue-dark);
+    font-size: 19px;
+}
+
+.home-contribution-detail-note {
+    margin: 0 0 13px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.home-contribution-table th:nth-child(2),
+.home-contribution-table td:nth-child(2) {
+    text-align: left;
+}
+
+.home-contribution-table th:nth-child(3),
+.home-contribution-table td:nth-child(3) {
+    text-align: center;
+}
+
+.home-contribution-table th:nth-child(4),
+.home-contribution-table td:nth-child(4) {
+    text-align: right;
+}
+
+.home-contribution-table td:nth-child(4) {
+    white-space: nowrap;
+    font-weight: 800;
+    color: var(--primary-red);
+}
+
+.home-contribution-table .contribution-not-synced {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+.contribution-sync-message {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.contribution-sync-message:empty {
+    display: none;
+}
+
+.contribution-sync-message.error {
+    color: var(--primary-red);
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+    .home-stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .home-contribution-detail .table-card {
+        padding: 14px;
+    }
+
+    .home-contribution-table th,
+    .home-contribution-table td {
+        padding: 10px 7px;
+        font-size: 12px;
+    }
+
+    .home-contribution-table th:first-child,
+    .home-contribution-table td:first-child {
+        min-width: 40px;
+        width: 40px;
+    }
+}
+
+@media (max-width: 520px) {
+    .home-stats-grid .home-contribution-card {
+        grid-column: 1 / -1;
+    }
+}

@@ -309,19 +309,56 @@ function subscribeContributionsByClass(
 
   return onSnapshot(
     q,
+    { includeMetadataChanges: true },
     (snapshot) => {
       const items = snapshot.docs.map((item) => ({
         id: item.id,
         ...item.data(),
       }));
 
-      callback(items);
+      // Để chỉ công bố thống kê sau khi dữ liệu đã được máy chủ xác nhận.
+      callback(items, {
+        fromCache: snapshot.metadata.fromCache,
+        hasPendingWrites: snapshot.metadata.hasPendingWrites,
+      });
     },
     (error) => {
       console.error("Lỗi đọc đóng góp:", error);
       if (errorCallback) errorCallback(error);
     },
   );
+}
+
+/* =========================================
+   PUBLIC CONTRIBUTION STATS - TỔNG HỢP THEO LỚP
+   Không đưa tên thành viên hoặc mức đóng cá nhân ra công khai.
+========================================= */
+function subscribeAllPublicContributionStats(callback, errorCallback) {
+  return onSnapshot(
+    collection(db, "publicContributionStats"),
+    (snapshot) => {
+      callback(snapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      })));
+    },
+    (error) => {
+      console.error("Lỗi đọc thống kê đóng góp công khai:", error);
+      if (errorCallback) errorCallback(error);
+    },
+  );
+}
+
+async function publishPublicContributionStats(classId, { contributorCount, totalAmount }) {
+  const count = Math.max(0, Math.trunc(Number(contributorCount) || 0));
+  const total = Math.max(0, Math.round(Number(totalAmount) || 0));
+
+  await setDoc(doc(db, "publicContributionStats", classId), {
+    classId,
+    contributorCount: count,
+    totalAmount: total,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 /* =========================================
@@ -728,6 +765,8 @@ export {
   subscribePublicMembersByClass,
   updateMemberContribution,
   subscribeContributionsByClass,
+  subscribeAllPublicContributionStats,
+  publishPublicContributionStats,
   migrateLegacyClassData,
   addSponsor,
   updateSponsor,

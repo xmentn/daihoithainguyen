@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20261008-1402" />
+    <link rel="stylesheet" href="style.css?v=20261013-donggop" />
   </head>
 
   <body>
@@ -101,7 +101,7 @@
             <p class="home-countdown" id="homeCountdown">Còn ... ngày</p>
           </div>
 
-          <div class="stats-grid">
+          <div class="stats-grid home-stats-grid">
             <div class="stat-card">
               <div class="stat-icon">🏫</div>
               <div class="stat-number" id="totalClasses">9</div>
@@ -135,7 +135,56 @@
                 Xem danh sách →
               </button>
             </div>
+
+            <!-- Tổng hợp số tiền đóng góp của 9 lớp (không công khai từng cá nhân) -->
+            <div class="stat-card stat-card-with-action home-contribution-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-number stat-money" id="homeContributionTotal">—</div>
+              <div class="stat-label">Số tiền đóng góp</div>
+              <p class="home-contribution-status" id="homeContributionStatus" role="status">
+                Đang tải số liệu...
+              </p>
+              <button
+                class="stat-card-link"
+                id="homeContributionDetailButton"
+                type="button"
+                aria-expanded="false"
+                aria-controls="homeContributionDetail"
+              >
+                Xem chi tiết →
+              </button>
+            </div>
           </div>
+
+          <!-- Bảng chi tiết đóng góp từng lớp; chỉ chứa số liệu tổng hợp -->
+          <section class="home-contribution-detail hidden" id="homeContributionDetail" aria-label="Chi tiết số tiền đóng góp theo lớp">
+            <div class="table-card">
+              <div class="attendance-list-heading">
+                <div>
+                  <span class="attendance-list-kicker">ĐÓNG GÓP TOÀN KHÓA</span>
+                  <h3>Số tiền đóng góp của từng lớp</h3>
+                </div>
+              </div>
+              <p class="home-contribution-detail-note" id="homeContributionDetailNote" role="status">
+                Đang tải số liệu...
+              </p>
+              <div class="table-responsive">
+                <table class="home-contribution-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Tên lớp</th>
+                      <th>Số người đóng</th>
+                      <th>Số tiền</th>
+                    </tr>
+                  </thead>
+                  <tbody id="homeContributionTableBody">
+                    <tr><td colspan="4" class="empty-row">Đang tải dữ liệu...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
           <div class="home-grid">
             <article class="home-card">
@@ -847,8 +896,8 @@
             </div>
 
             <div class="privacy-note">
-              Phần đóng góp/quỹ lớp là dữ liệu riêng tư, không hiển thị công
-              khai.
+              Chi tiết các khoản đóng góp của từng thành viên là dữ liệu nội bộ;
+              Trang chủ chỉ công khai tổng số người và số tiền theo lớp.
             </div>
           </div>
         </div>
@@ -1485,6 +1534,7 @@
                   <small>của lớp</small>
                 </div>
               </div>
+              <p class="contribution-sync-message" id="contributionPublicSyncMessage" role="status"></p>
             </div>
 
             <div class="contribution-card">
@@ -1941,6 +1991,6 @@
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
-    <script type="module" src="main.js?v=20261008-1402"></script>
+    <script type="module" src="main.js?v=20261013-hientong"></script>
   </body>
 </html>

@@ -12,6 +12,8 @@ import {
   updateMemberAttendance,
   updateMemberContribution,
   subscribeContributionsByClass,
+  subscribeAllPublicContributionStats,
+  publishPublicContributionStats,
   migrateLegacyClassData,
   subscribeMembersByClass,
   subscribeAllPublicMembers,
@@ -29,7 +31,7 @@ import {
   updateOrganizer,
   deleteOrganizer,
   subscribeAllOrganizers,
-} from "./firebase/firestore.js?v=20261007-1620";
+} from "./firebase/firestore.js?v=20261013-donggop";
 
 /* ========================================
    GOOGLE DRIVE - THƯ VIỆN ẢNH
@@ -359,6 +361,13 @@ const totalParticipantsHome = document.getElementById("totalParticipants");
 const totalOrganizersHome = document.getElementById("totalOrganizers");
 const totalSponsorHome = document.getElementById("totalSponsor");
 const homeSponsorListButton = document.getElementById("homeSponsorListButton");
+const homeContributionTotal = document.getElementById("homeContributionTotal");
+const homeContributionStatus = document.getElementById("homeContributionStatus");
+const homeContributionDetailButton = document.getElementById("homeContributionDetailButton");
+const homeContributionDetail = document.getElementById("homeContributionDetail");
+const homeContributionDetailNote = document.getElementById("homeContributionDetailNote");
+const homeContributionTableBody = document.getElementById("homeContributionTableBody");
+const contributionPublicSyncMessage = document.getElementById("contributionPublicSyncMessage");
 const sponsorTotalLarge = document.getElementById("sponsorTotalLarge");
 const publicSponsorCount = document.getElementById("publicSponsorCount");
 const publicSponsorSearch = document.getElementById("publicSponsorSearch");
@@ -414,6 +423,14 @@ let classMembers = [];
 
 let unsubscribeContributions = null;
 let classContributions = [];
+let classContributionConfirmedByServer = false;
+let publicContributionStats = [];
+let publicContributionStatsLoaded = false;
+let publicContributionStatsError = false;
+let unsubscribePublicContributionStats = null;
+let contributionStatsPublishPending = false;
+let contributionStatsPublishQueued = false;
+let contributionStatsFailedSignature = "";
 
 let unsubscribeSponsors = null;
 let classSponsors = [];
@@ -933,6 +950,12 @@ function stopContributionSubscription() {
   }
 
   classContributions = [];
+  classContributionConfirmedByServer = false;
+  contributionStatsFailedSignature = "";
+  if (contributionPublicSyncMessage) {
+    contributionPublicSyncMessage.textContent = "";
+    contributionPublicSyncMessage.classList.remove("error");
+  }
   renderContributionManagement();
 }
 
@@ -941,9 +964,12 @@ function startContributionSubscription(classId) {
 
   unsubscribeContributions = subscribeContributionsByClass(
     classId,
-    (items) => {
+    (items, metadata = {}) => {
       classContributions = items;
+      classContributionConfirmedByServer =
+        metadata.fromCache === false && metadata.hasPendingWrites === false;
       renderContributionManagement();
+      syncPublicContributionStatsForClass();
     },
     () => {
       console.error("Không đọc được dữ liệu đóng góp riêng tư.");
@@ -1548,6 +1574,164 @@ function renderParticipantManagement() {
     `,
     )
     .join("");
+}
+
+/* ========================================
+   TRANG CHỦ - TỔNG HỢP ĐÓNG GÓP 9 LỚP
+   Chỉ xuất bản số người và tổng tiền, không xuất khoản của cá nhân.
+======================================== */
+function getClassContributionSummary(items = []) {
+  const validAmounts = items
+    .map((item) => Number(item.amount))
+    .filter((amount) => Number.isFinite(amount) && amount > 0);
+
+  return {
+    contributorCount: validAmounts.length,
+    totalAmount: Math.round(validAmounts.reduce((sum, amount) => sum + amount, 0)),
+  };
+}
+
+function isValidPublicContributionStat(item, classId) {
+  return item && item.id === classId && item.classId === classId &&
+    Number.isInteger(item.contributorCount) && item.contributorCount >= 0 &&
+    Number.isSafeInteger(item.totalAmount) && item.totalAmount >= 0;
+}
+
+function renderPublicContributionStats() {
+  if (!homeContributionTotal || !homeContributionTableBody) return;
+
+  if (publicContributionStatsError) {
+    homeContributionTotal.textContent = "—";
+    homeContributionStatus.textContent = "Không đọc được dữ liệu";
+    homeContributionDetailNote.textContent =
+      "Chưa được cấp quyền đọc thống kê tổng hợp. Cần kiểm tra Firestore Rules.";
+    homeContributionTableBody.innerHTML =
+      '<tr><td colspan="4" class="empty-row">Không thể tải thống kê đóng góp</td></tr>';
+    return;
+  }
+
+  if (!publicContributionStatsLoaded) {
+    homeContributionTotal.textContent = "—";
+    homeContributionStatus.textContent = "Đang tải số liệu...";
+    homeContributionDetailNote.textContent = "Đang tải số liệu...";
+    return;
+  }
+
+  let classCount = 0;
+  let totalAmount = 0;
+  const rows = ORGANIZER_CLASS_ORDER.map((classId, index) => {
+    const stat = publicContributionStats.find((item) => item.id === classId);
+    const available = isValidPublicContributionStat(stat, classId);
+    if (available) {
+      classCount += 1;
+      totalAmount += stat.totalAmount;
+    }
+    return `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>Lớp ${escapeHtml(classId)}</strong></td>
+        <td>${available ? stat.contributorCount : '<span class="contribution-not-synced">Chưa đồng bộ</span>'}</td>
+        <td>${available ? formatCurrency(stat.totalAmount) : '<span class="contribution-not-synced">—</span>'}</td>
+      </tr>
+    `;
+  });
+
+  const complete = classCount === ORGANIZER_CLASS_ORDER.length;
+  // Hiển thị tổng tiền của các lớp đã đồng bộ ngay khi có dữ liệu.
+  // Khi chưa đủ 9 lớp, ghi rõ đây chỉ là số tiền tạm tính.
+  homeContributionTotal.textContent = classCount > 0 ? formatCurrency(totalAmount) : "—";
+  homeContributionStatus.textContent = complete
+    ? "Đã tổng hợp đủ 9 lớp"
+    : classCount > 0
+      ? `Tạm tính · đã đồng bộ ${classCount}/${ORGANIZER_CLASS_ORDER.length} lớp`
+      : "Chưa có lớp nào đồng bộ";
+  homeContributionDetailNote.textContent = complete
+    ? "Số liệu cập nhật theo thời gian thực từ các lớp."
+    : classCount > 0
+      ? `Tổng đang hiển thị là số tiền tạm tính của ${classCount}/${ORGANIZER_CLASS_ORDER.length} lớp đã đồng bộ. Các lớp còn lại cần đăng nhập bằng tài khoản đại diện lớp để cập nhật đủ số liệu.`
+      : "Chưa có dữ liệu tổng hợp. Đại diện từng lớp cần đăng nhập để đồng bộ số liệu đóng góp.";
+  homeContributionTableBody.innerHTML = rows.join("");
+}
+
+function startPublicContributionStatsSubscription() {
+  if (unsubscribePublicContributionStats) return;
+
+  unsubscribePublicContributionStats = subscribeAllPublicContributionStats(
+    (items) => {
+      publicContributionStats = items;
+      publicContributionStatsLoaded = true;
+      publicContributionStatsError = false;
+      renderPublicContributionStats();
+      syncPublicContributionStatsForClass();
+    },
+    (error) => {
+      console.error("Không tải được tổng hợp đóng góp:", error);
+      publicContributionStatsError = true;
+      publicContributionStatsLoaded = false;
+      renderPublicContributionStats();
+    },
+  );
+}
+
+function setContributionPublicSyncMessage(message = "", isError = false) {
+  if (!contributionPublicSyncMessage) return;
+  contributionPublicSyncMessage.textContent = message;
+  contributionPublicSyncMessage.classList.toggle("error", isError);
+}
+
+function syncPublicContributionStatsForClass() {
+  const profile = currentSession?.profile;
+  if (profile?.role !== "class_editor" || !profile.classId ||
+      !ORGANIZER_CLASS_ORDER.includes(profile.classId) ||
+      !classContributionConfirmedByServer || !publicContributionStatsLoaded) return;
+
+  const classId = profile.classId;
+  const userId = currentSession.authUser.uid;
+  const summary = getClassContributionSummary(classContributions);
+  const existing = publicContributionStats.find((item) => item.id === classId);
+  const isCurrent = isValidPublicContributionStat(existing, classId) &&
+    existing.contributorCount === summary.contributorCount &&
+    existing.totalAmount === summary.totalAmount;
+
+  if (isCurrent) {
+    setContributionPublicSyncMessage("Số liệu tổng hợp công khai của lớp đã đồng bộ.");
+    return;
+  }
+
+  const signature = `${classId}:${summary.contributorCount}:${summary.totalAmount}`;
+  if (signature === contributionStatsFailedSignature) return;
+  if (contributionStatsPublishPending) {
+    contributionStatsPublishQueued = true;
+    return;
+  }
+
+  contributionStatsPublishPending = true;
+  setContributionPublicSyncMessage("Đang đồng bộ số liệu tổng hợp của lớp...");
+
+  publishPublicContributionStats(classId, summary)
+    .then(() => {
+      if (currentSession?.authUser?.uid === userId) {
+        contributionStatsFailedSignature = "";
+        setContributionPublicSyncMessage("Đã cập nhật tổng hợp đóng góp của lớp lên Trang chủ.");
+      }
+    })
+    .catch((error) => {
+      console.error("Không công bố được thống kê đóng góp:", error);
+      contributionStatsFailedSignature = signature;
+      if (currentSession?.authUser?.uid === userId) {
+        setContributionPublicSyncMessage(
+          "Đóng góp cá nhân vẫn được lưu riêng; chưa đồng bộ thống kê Trang chủ. Vui lòng kiểm tra quyền publicContributionStats trong Firestore Rules.",
+          true,
+        );
+      }
+    })
+    .finally(() => {
+      contributionStatsPublishPending = false;
+      if (contributionStatsPublishQueued) {
+        contributionStatsPublishQueued = false;
+        syncPublicContributionStatsForClass();
+      }
+    });
 }
 
 function formatCurrency(amount) {
@@ -4137,6 +4321,18 @@ if (cancelSponsorEditButton) {
   });
 }
 
+if (homeContributionDetailButton && homeContributionDetail) {
+  homeContributionDetailButton.addEventListener("click", () => {
+    const show = homeContributionDetail.classList.contains("hidden");
+    homeContributionDetail.classList.toggle("hidden", !show);
+    homeContributionDetailButton.setAttribute("aria-expanded", String(show));
+    homeContributionDetailButton.textContent = show ? "Ẩn chi tiết ↑" : "Xem chi tiết →";
+    if (show) {
+      homeContributionDetail.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+}
+
 if (homeSponsorListButton) {
   homeSponsorListButton.addEventListener("click", () => {
     if (publicSponsorSearch) {
@@ -4197,6 +4393,8 @@ startDashboardSubscription();
 startAllSponsorSubscription();
 
 startOrganizerSubscription();
+
+startPublicContributionStatsSubscription();
 
 publicClassButtons.forEach((button) => {
   button.addEventListener("click", () => {
