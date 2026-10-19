@@ -3807,3 +3807,89 @@ body.drive-lightbox-open {
         grid-column: 1 / -1;
     }
 }
+
+
+/* =========================================
+   TÀI TRỢ CÔNG KHAI - HAI CHẾ ĐỘ XEM
+   Chỉ áp dụng cho thành phần tại mục Tài trợ.
+========================================= */
+.public-sponsor-view-switch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    padding: 5px 22px 20px;
+}
+
+.public-sponsor-view-button {
+    min-height: 42px;
+    padding: 9px 15px;
+    border: 1px solid #e4d8c6;
+    border-radius: 9px;
+    background: #ffffff;
+    color: var(--blue-dark);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.public-sponsor-view-button:hover,
+.public-sponsor-view-button:focus-visible {
+    border-color: var(--gold);
+    outline-offset: 2px;
+}
+
+.public-sponsor-view-button.active {
+    border-color: #c69232;
+    background: #fff7e7;
+    color: var(--primary-red);
+}
+
+.public-sponsor-class-note {
+    margin: 0 22px 14px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.public-sponsor-class-table th:first-child,
+.public-sponsor-class-table td:first-child {
+    width: 80px;
+    text-align: center;
+}
+
+.public-sponsor-class-table th:last-child,
+.public-sponsor-class-table td:last-child {
+    text-align: right;
+}
+
+.public-sponsor-class-table td:nth-child(2) {
+    color: var(--blue-dark);
+}
+
+.public-sponsor-class-money {
+    color: var(--primary-red);
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+    .public-sponsor-view-switch {
+        flex-direction: column;
+        padding: 5px 14px 16px;
+    }
+
+    .public-sponsor-view-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .public-sponsor-class-note {
+        margin: 0 14px 12px;
+    }
+
+    .public-sponsor-class-table th,
+    .public-sponsor-class-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+}

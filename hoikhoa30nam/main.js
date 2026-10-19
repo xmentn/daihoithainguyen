@@ -369,7 +369,16 @@ const homeContributionDetailNote = document.getElementById("homeContributionDeta
 const homeContributionTableBody = document.getElementById("homeContributionTableBody");
 const contributionPublicSyncMessage = document.getElementById("contributionPublicSyncMessage");
 const sponsorTotalLarge = document.getElementById("sponsorTotalLarge");
+const sponsorSummaryCaption = document.getElementById("sponsorSummaryCaption");
+const publicSponsorHeadingTitle = document.getElementById("publicSponsorHeadingTitle");
 const publicSponsorCount = document.getElementById("publicSponsorCount");
+const publicSponsorCountLabel = document.getElementById("publicSponsorCountLabel");
+const publicSponsorCountUnit = document.getElementById("publicSponsorCountUnit");
+const publicSponsorIndividualsViewButton = document.getElementById("publicSponsorIndividualsViewButton");
+const publicSponsorClassesViewButton = document.getElementById("publicSponsorClassesViewButton");
+const publicSponsorIndividualsPanel = document.getElementById("publicSponsorIndividualsPanel");
+const publicSponsorClassesPanel = document.getElementById("publicSponsorClassesPanel");
+const publicSponsorClassTableBody = document.getElementById("publicSponsorClassTableBody");
 const publicSponsorSearch = document.getElementById("publicSponsorSearch");
 const publicSponsorClassFilter = document.getElementById(
   "publicSponsorClassFilter",
@@ -453,6 +462,7 @@ let driveLightboxIndex = 0;
 let dashboardMembersData = [];
 let unsubscribeDashboard = null;
 let publicSponsorsData = [];
+let publicSponsorView = "individuals";
 let unsubscribeAllSponsors = null;
 
 let organizersData = [];
@@ -1998,30 +2008,87 @@ function startSponsorSubscription(classId) {
 
 const HOME_TOTAL_CLASSES = 9;
 
-function getTotalSponsorMoney() {
+function getTotalSponsorMoney(classId = "") {
   return publicSponsorsData.reduce(
-    (sum, item) => sum + (item.type === "money" ? Number(item.amount) || 0 : 0),
+    (sum, item) =>
+      sum + ((item.type === "money" && (!classId || item.classId === classId))
+        ? Number(item.amount) || 0 : 0),
     0,
   );
 }
 
 function renderPublicSponsorSummary() {
+  // Tổng ở Trang chủ luôn là toàn khóa; chỉ ô tổng tại tab Tài trợ đổi theo lớp.
   const totalMoney = getTotalSponsorMoney();
-
   if (totalSponsorHome) {
     totalSponsorHome.textContent = formatCurrency(totalMoney);
   }
 
+  const selectedClass = publicSponsorView === "individuals"
+    ? (publicSponsorClassFilter?.value || "")
+    : "";
+
+  if (sponsorSummaryCaption) {
+    sponsorSummaryCaption.textContent = selectedClass
+      ? `Tổng số tiền tài trợ lớp ${selectedClass}`
+      : "Tổng số tiền tài trợ";
+  }
+
   if (sponsorTotalLarge) {
-    sponsorTotalLarge.textContent = formatCurrency(totalMoney);
+    sponsorTotalLarge.textContent = formatCurrency(getTotalSponsorMoney(selectedClass));
   }
 }
 
-function renderPublicSponsors() {
-  if (!publicSponsorTableBody) {
-    renderPublicSponsorSummary();
-    return;
+function renderPublicSponsorClasses() {
+  if (!publicSponsorClassTableBody) return;
+
+  // Kể cả lớp chưa có bản ghi, vẫn hiển thị đủ 9 lớp với 0 đ.
+  publicSponsorClassTableBody.innerHTML = ORGANIZER_CLASS_ORDER.map((classId, index) => `
+    <tr>
+      <td>${index + 1}</td>
+      <td><strong>Lớp ${escapeHtml(classId)}</strong></td>
+      <td class="public-sponsor-class-money">${formatCurrency(getTotalSponsorMoney(classId))}</td>
+    </tr>
+  `).join("");
+}
+
+function setPublicSponsorView(view) {
+  publicSponsorView = view === "classes" ? "classes" : "individuals";
+  const showClasses = publicSponsorView === "classes";
+
+  if (publicSponsorIndividualsPanel) {
+    publicSponsorIndividualsPanel.classList.toggle("hidden", showClasses);
   }
+  if (publicSponsorClassesPanel) {
+    publicSponsorClassesPanel.classList.toggle("hidden", !showClasses);
+  }
+  if (publicSponsorIndividualsViewButton) {
+    publicSponsorIndividualsViewButton.classList.toggle("active", !showClasses);
+    publicSponsorIndividualsViewButton.setAttribute("aria-selected", String(!showClasses));
+  }
+  if (publicSponsorClassesViewButton) {
+    publicSponsorClassesViewButton.classList.toggle("active", showClasses);
+    publicSponsorClassesViewButton.setAttribute("aria-selected", String(showClasses));
+  }
+  if (publicSponsorHeadingTitle) {
+    publicSponsorHeadingTitle.textContent = showClasses
+      ? "Tổng tài trợ theo lớp"
+      : "Danh sách tài trợ";
+  }
+  if (publicSponsorCountLabel) {
+    publicSponsorCountLabel.textContent = showClasses ? "Số lớp" : "Số lượt tài trợ";
+  }
+  if (publicSponsorCountUnit) {
+    publicSponsorCountUnit.textContent = showClasses ? "lớp" : "lượt";
+  }
+
+  renderPublicSponsors();
+}
+
+function renderPublicSponsors() {
+  renderPublicSponsorSummary();
+  renderPublicSponsorClasses();
+  if (!publicSponsorTableBody) return;
 
   const keyword = (publicSponsorSearch?.value || "")
     .trim()
@@ -2065,10 +2132,10 @@ function renderPublicSponsors() {
     });
 
   if (publicSponsorCount) {
-    publicSponsorCount.textContent = filtered.length;
+    publicSponsorCount.textContent = publicSponsorView === "classes"
+      ? ORGANIZER_CLASS_ORDER.length
+      : filtered.length;
   }
-
-  renderPublicSponsorSummary();
 
   if (filtered.length === 0) {
     publicSponsorTableBody.innerHTML = `
@@ -2143,6 +2210,10 @@ function startAllSponsorSubscription() {
               </td>
             </tr>
           `;
+      }
+      if (publicSponsorClassTableBody) {
+        publicSponsorClassTableBody.innerHTML =
+          '<tr><td colspan="3" class="empty-row">Không đọc được dữ liệu tài trợ</td></tr>';
       }
     },
   );
@@ -4347,8 +4418,20 @@ if (homeSponsorListButton) {
       publicSponsorTypeFilter.value = "all";
     }
 
-    renderPublicSponsors();
+    setPublicSponsorView("individuals");
     openTab("sponsors");
+  });
+}
+
+if (publicSponsorIndividualsViewButton) {
+  publicSponsorIndividualsViewButton.addEventListener("click", () => {
+    setPublicSponsorView("individuals");
+  });
+}
+
+if (publicSponsorClassesViewButton) {
+  publicSponsorClassesViewButton.addEventListener("click", () => {
+    setPublicSponsorView("classes");
   });
 }
 

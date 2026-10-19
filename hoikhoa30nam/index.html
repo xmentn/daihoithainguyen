@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20261013-donggop" />
+    <link rel="stylesheet" href="style.css?v=20261019-taitrotheolop" />
   </head>
 
   <body>
@@ -979,7 +979,7 @@
             <div class="sponsor-icon">💝</div>
 
             <div>
-              <p class="sponsor-caption">Tổng số tiền tài trợ</p>
+              <p class="sponsor-caption" id="sponsorSummaryCaption">Tổng số tiền tài trợ</p>
               <div class="sponsor-total" id="sponsorTotalLarge">0 đ</div>
             </div>
           </div>
@@ -988,16 +988,38 @@
             <div class="public-sponsor-heading">
               <div>
                 <span class="section-label">DANH SÁCH CÔNG KHAI</span>
-                <h3>Danh sách tài trợ</h3>
+                <h3 id="publicSponsorHeadingTitle">Danh sách tài trợ</h3>
               </div>
 
               <div class="public-sponsor-count">
-                <span>Số lượt tài trợ</span>
+                <span id="publicSponsorCountLabel">Số lượt tài trợ</span>
                 <strong id="publicSponsorCount">0</strong>
-                <small>lượt</small>
+                <small id="publicSponsorCountUnit">lượt</small>
               </div>
             </div>
 
+            <!-- Chuyển đổi giữa danh sách người/đơn vị và tổng hợp 9 lớp -->
+            <div class="public-sponsor-view-switch" role="tablist" aria-label="Chế độ xem tài trợ">
+              <button
+                type="button"
+                id="publicSponsorIndividualsViewButton"
+                class="public-sponsor-view-button active"
+                role="tab"
+                aria-selected="true"
+                aria-controls="publicSponsorIndividualsPanel"
+              >Xem theo danh sách cá nhân tài trợ</button>
+              <button
+                type="button"
+                id="publicSponsorClassesViewButton"
+                class="public-sponsor-view-button"
+                role="tab"
+                aria-selected="false"
+                aria-controls="publicSponsorClassesPanel"
+              >Xem theo danh sách lớp</button>
+            </div>
+
+            <!-- Giữ nguyên bộ lọc, bảng danh sách tài trợ hiện có -->
+            <div id="publicSponsorIndividualsPanel" role="tabpanel" aria-labelledby="publicSponsorIndividualsViewButton">
             <div class="table-toolbar">
               <input
                 type="text"
@@ -1043,6 +1065,26 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+            </div>
+
+            <!-- Thống kê tất cả 9 lớp từ dữ liệu sponsors có sẵn; không ghi Firestore -->
+            <div id="publicSponsorClassesPanel" class="hidden" role="tabpanel" aria-labelledby="publicSponsorClassesViewButton">
+              <p class="public-sponsor-class-note">Tổng tài trợ bằng tiền của từng lớp; hiện vật/dịch vụ không được quy đổi thành tiền.</p>
+              <div class="table-responsive">
+                <table class="public-sponsor-class-table">
+                  <thead>
+                    <tr>
+                      <th>STT</th>
+                      <th>Tên lớp</th>
+                      <th>Tổng tài trợ</th>
+                    </tr>
+                  </thead>
+                  <tbody id="publicSponsorClassTableBody">
+                    <tr><td colspan="3" class="empty-row">Đang tải dữ liệu...</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -1991,6 +2033,6 @@
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
-    <script type="module" src="main.js?v=20261013-hientong"></script>
+    <script type="module" src="main.js?v=20261019-taitrotheolop"></script>
   </body>
 </html>
