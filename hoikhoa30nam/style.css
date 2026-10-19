@@ -3893,3 +3893,205 @@ body.drive-lightbox-open {
         font-size: 12px;
     }
 }
+
+
+/* =========================================
+   THÔNG TIN HỘI KHÓA - THƯ NGỎ / KẾ HOẠCH
+   Selector riêng để không ảnh hưởng giao diện cũ.
+========================================= */
+.document-page-heading {
+    margin-bottom: 26px;
+}
+
+.document-view-tabs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0 0 20px;
+}
+
+.document-tab-button {
+    padding: 12px 25px;
+    min-width: 165px;
+    border: 1px solid #e7dac3;
+    border-radius: 11px;
+    background: #ffffff;
+    color: var(--blue-dark);
+    font-size: 15px;
+    font-weight: 750;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.document-tab-button.active {
+    background: #fff5e4;
+    border-color: var(--gold);
+    color: var(--primary-red);
+}
+
+.document-tab-button:hover,
+.document-tab-button:focus-visible {
+    border-color: var(--gold);
+    outline-offset: 3px;
+}
+
+.document-view-panel {
+    max-width: 1050px;
+    margin: 0 auto;
+    padding: 24px;
+    border: 1px solid #e9dfd0;
+    border-radius: 19px;
+    background: #ffffff;
+    box-shadow: var(--shadow);
+}
+
+.document-panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px 24px;
+    margin-bottom: 21px;
+}
+
+.document-panel-heading h3 {
+    color: var(--blue-dark);
+    font-size: clamp(20px, 2.6vw, 25px);
+    line-height: 1.3;
+}
+
+.document-panel-heading p {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.document-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.document-action-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 8px 13px;
+    border: 1px solid #e1d5c1;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--blue-dark);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.document-action-link:hover,
+.document-action-link:focus-visible {
+    border-color: var(--gold);
+    background: #fff9ef;
+}
+
+.document-action-primary {
+    background: var(--primary-red);
+    color: #ffffff;
+    border-color: var(--primary-red);
+}
+
+.document-action-primary:hover,
+.document-action-primary:focus-visible {
+    background: var(--primary-red-dark);
+    border-color: var(--primary-red-dark);
+}
+
+.document-image-frame {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 8px;
+    border: 1px solid #f0e5d1;
+    border-radius: 12px;
+    background: #fffaf2;
+}
+
+.document-letter-image {
+    width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.document-pdf-frame {
+    width: 100%;
+    min-height: 650px;
+    overflow: hidden;
+    border: 1px solid #e2e2e2;
+    border-radius: 12px;
+    background: #f4f4f4;
+}
+
+.document-pdf-frame iframe {
+    display: block;
+    width: 100%;
+    height: min(78vh, 980px);
+    min-height: 650px;
+    border: 0;
+}
+
+.document-mobile-note {
+    margin-top: 12px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+@media (max-width: 760px) {
+    .document-view-panel {
+        padding: 14px;
+    }
+
+    .document-panel-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .document-actions {
+        width: 100%;
+    }
+
+    .document-action-link {
+        flex: 1;
+        text-align: center;
+    }
+
+    .document-pdf-frame,
+    .document-pdf-frame iframe {
+        min-height: 470px;
+    }
+
+    .document-pdf-frame iframe {
+        height: 66vh;
+    }
+}
+
+@media (max-width: 520px) {
+    .document-view-tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+    }
+
+    .document-tab-button {
+        min-width: 0;
+        padding: 11px 7px;
+        font-size: 12px;
+    }
+
+    .document-actions {
+        flex-direction: column;
+    }
+
+    .document-image-frame {
+        padding: 3px;
+    }
+}

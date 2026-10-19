@@ -101,6 +101,11 @@ function openTab(tabId) {
   selectedTab.classList.add("active");
   selectedTab.style.display = "block";
 
+  // Chỉ tải ảnh/PDF khi người xem mở trang Thông tin Hội khóa.
+  if (tabId === "information") {
+    activateDocumentResource(documentActiveTab);
+  }
+
   const selectedLink = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
 
   if (selectedLink) {
@@ -129,6 +134,66 @@ tabLinks.forEach((link) => {
     openTab(link.dataset.tab);
   });
 });
+
+/* ========================================
+   THÔNG TIN HỘI KHÓA: ẢNH THƯ NGỎ VÀ PDF KẾ HOẠCH
+   Giữ nguyên tài liệu gốc, không sử dụng Firebase.
+======================================== */
+const documentTabButtons = document.querySelectorAll("[data-document-tab]");
+const documentLetterPanel = document.getElementById("documentLetterPanel");
+const documentPlanPanel = document.getElementById("documentPlanPanel");
+const documentLetterImage = document.getElementById("documentLetterImage");
+const documentPlanViewer = document.getElementById("documentPlanViewer");
+let documentActiveTab = "letter";
+
+function activateDocumentResource(documentType) {
+  if (documentType === "plan") {
+    if (documentPlanViewer && !documentPlanViewer.getAttribute("src")) {
+      documentPlanViewer.src = documentPlanViewer.dataset.src;
+    }
+  } else if (documentLetterImage && !documentLetterImage.getAttribute("src")) {
+    documentLetterImage.src = documentLetterImage.dataset.src;
+  }
+}
+
+function switchDocumentTab(documentType) {
+  if (documentType !== "letter" && documentType !== "plan") return;
+
+  documentActiveTab = documentType;
+  documentTabButtons.forEach((button) => {
+    const active = button.dataset.documentTab === documentType;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-selected", String(active));
+    button.tabIndex = active ? 0 : -1;
+  });
+
+  if (documentLetterPanel && documentPlanPanel) {
+    const showLetter = documentType === "letter";
+    documentLetterPanel.classList.toggle("hidden", !showLetter);
+    documentLetterPanel.setAttribute("aria-hidden", String(!showLetter));
+    documentPlanPanel.classList.toggle("hidden", showLetter);
+    documentPlanPanel.setAttribute("aria-hidden", String(showLetter));
+  }
+
+  activateDocumentResource(documentType);
+}
+
+documentTabButtons.forEach((button, index) => {
+  button.addEventListener("click", () => {
+    switchDocumentTab(button.dataset.documentTab);
+  });
+  button.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const nextIndex = event.key === "ArrowRight"
+      ? (index + 1) % documentTabButtons.length
+      : (index + documentTabButtons.length - 1) % documentTabButtons.length;
+    const nextButton = documentTabButtons[nextIndex];
+    switchDocumentTab(nextButton.dataset.documentTab);
+    nextButton.focus();
+  });
+});
+
 
 document.addEventListener("click", (event) => {
   const clickedInsideMenu =

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hội khóa 30 năm - THPT Phú Bình - Khóa 1993-1996</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="style.css?v=20261019-taitrotheolop" />
+    <link rel="stylesheet" href="style.css?v=20261019-thongtinhoikhoa" />
   </head>
 
   <body>
@@ -36,6 +36,10 @@
           <ul class="nav-menu" id="navMenu">
             <li>
               <button class="tab-link active" data-tab="home">Trang chủ</button>
+            </li>
+
+            <li>
+              <button class="tab-link" data-tab="information">Thông tin Hội khóa</button>
             </li>
 
             <li>
@@ -213,6 +217,104 @@
                 <p>Hội khóa kỷ niệm 30 năm</p>
               </div>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================
+             THÔNG TIN HỘI KHÓA: THƯ NGỎ VÀ KẾ HOẠCH
+        ========================== -->
+      <section class="tab-content" id="information">
+        <div class="container">
+          <div class="page-heading document-page-heading">
+            <span class="section-label">HỘI KHÓA 30 NĂM · KHÓA 1993–1996</span>
+            <h2>Thông tin Hội khóa</h2>
+            <p>Thư ngỏ và Kế hoạch tổ chức Hội khóa của Trường THPT Phú Bình</p>
+          </div>
+
+          <div class="document-view-tabs" role="tablist" aria-label="Chọn tài liệu Hội khóa">
+            <button
+              class="document-tab-button active"
+              type="button"
+              id="documentLetterTab"
+              role="tab"
+              aria-selected="true"
+              aria-controls="documentLetterPanel"
+              data-document-tab="letter"
+            >
+              Thư ngỏ
+            </button>
+            <button
+              class="document-tab-button"
+              type="button"
+              id="documentPlanTab"
+              role="tab"
+              aria-selected="false"
+              aria-controls="documentPlanPanel"
+              data-document-tab="plan"
+              tabindex="-1"
+            >
+              Kế hoạch tổ chức
+            </button>
+          </div>
+
+          <div class="document-view-panel" id="documentLetterPanel" role="tabpanel" aria-labelledby="documentLetterTab">
+            <div class="document-panel-heading">
+              <div>
+                <span class="section-label">LỜI MỜI TRỞ VỀ MÁI TRƯỜNG XƯA</span>
+                <h3>Thư ngỏ Hội khóa 30 năm</h3>
+                <p>Xem nguyên bản Thư ngỏ do Ban Tổ chức Hội khóa gửi tới các cựu học sinh.</p>
+              </div>
+              <div class="document-actions">
+                <a href="assets/documents/thu-ngo-hoi-khoa.png" target="_blank" rel="noopener noreferrer" class="document-action-link">
+                  Mở ảnh gốc ↗
+                </a>
+                <a href="assets/documents/thu-ngo-hoi-khoa.png" download="thu-ngo-hoi-khoa.png" class="document-action-link document-action-primary">
+                  Tải Thư ngỏ ↓
+                </a>
+              </div>
+            </div>
+            <div class="document-image-frame">
+              <img
+                id="documentLetterImage"
+                class="document-letter-image"
+                data-src="assets/documents/thu-ngo-hoi-khoa.png"
+                alt="Thư ngỏ Hội khóa kỷ niệm 30 năm ngày ra trường, khóa 1993–1996, Trường THPT Phú Bình"
+                width="1449"
+                height="2048"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </div>
+
+          <div class="document-view-panel hidden" id="documentPlanPanel" role="tabpanel" aria-labelledby="documentPlanTab" aria-hidden="true">
+            <div class="document-panel-heading">
+              <div>
+                <span class="section-label">VĂN BẢN TỔ CHỨC HỘI KHÓA</span>
+                <h3>Kế hoạch tổ chức Hội khóa</h3>
+                <p>Văn bản đầy đủ 7 trang. Có thể cuộn, phóng to hoặc mở riêng file PDF để đọc.</p>
+              </div>
+              <div class="document-actions">
+                <a href="assets/documents/ke_hoach_hoi-khoa.pdf" target="_blank" rel="noopener noreferrer" class="document-action-link">
+                  Mở PDF ↗
+                </a>
+                <a href="assets/documents/ke_hoach_hoi-khoa.pdf" download="ke_hoach_hoi-khoa.pdf" class="document-action-link document-action-primary">
+                  Tải Kế hoạch ↓
+                </a>
+              </div>
+            </div>
+            <div class="document-pdf-frame">
+              <iframe
+                id="documentPlanViewer"
+                title="Kế hoạch tổ chức Hội khóa kỷ niệm 30 năm ra trường, 7 trang PDF"
+                data-src="assets/documents/ke_hoach_hoi-khoa.pdf#view=FitH"
+                loading="lazy"
+              ></iframe>
+            </div>
+            <p class="document-mobile-note">
+              Nếu thiết bị không hiển thị PDF trực tiếp, hãy chọn <strong>Mở PDF</strong> để đọc bằng trình xem của thiết bị.
+            </p>
           </div>
         </div>
       </section>
@@ -2033,6 +2135,6 @@
     <!-- SCRIPTS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.12/vfs_fonts.js"></script>
-    <script type="module" src="main.js?v=20261019-taitrotheolop"></script>
+    <script type="module" src="main.js?v=20261019-thongtinhoikhoa"></script>
   </body>
 </html>
