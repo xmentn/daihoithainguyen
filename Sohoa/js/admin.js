@@ -43,6 +43,7 @@ window.showInstructions = function () {
 
 let campaignsConfigMap = {};
 let latestProgressByCampaignMap = {};
+let editingProgressHadThaoGhim = true; // Không tự thêm field B0 khi chỉ sửa báo cáo lịch sử cũ.
 
 function setupTab4TimeManagement() {
   onSnapshot(doc(db, "campaigns", "lock_config"), (docSnap) => {
@@ -212,6 +213,27 @@ async function setupAdminData() {
   }
 }
 
+// Ẩn ô nhập chỉnh lý khi đợt số hóa không có chỉ tiêu chỉnh lý (tongChinhLy = 0).
+// Vẫn giữ field chinhLyDaXong = 0 khi lưu để tương thích với dữ liệu cũ.
+function updateChinhLyReportFieldVisibility(campaignName) {
+  const group = document.getElementById("report-chinhly-group");
+  const input = document.getElementById("input-cl-xong");
+  if (!group || !input) return;
+
+  const config = campaignsConfigMap[campaignName];
+  const noChinhLy = !!config && Number(config.tongChinhLy) === 0;
+  const wasHidden = group.style.display === "none";
+
+  group.style.display = noChinhLy ? "none" : "";
+  input.required = !noChinhLy;
+  if (noChinhLy) {
+    input.value = "0";
+  } else if (wasHidden) {
+    // Khi chuyển từ đợt không chỉnh lý sang đợt có chỉnh lý, không giữ lại số 0 cũ.
+    input.value = "";
+  }
+}
+
 function updateCampaignSelectOptions() {
   const selectBox = document.getElementById("input-campaign-name");
   if (!selectBox) return;
@@ -224,7 +246,10 @@ function updateCampaignSelectOptions() {
   defaultOpt.innerText = "-- Chọn đợt số hóa dữ liệu --";
   selectBox.appendChild(defaultOpt);
 
-  if (campaigns.length === 0) return;
+  if (campaigns.length === 0) {
+    updateChinhLyReportFieldVisibility("");
+    return;
+  }
 
   campaigns.forEach((camp) => {
     const opt = document.createElement("option");
@@ -236,14 +261,16 @@ function updateCampaignSelectOptions() {
   if (savedValue && campaignsConfigMap[savedValue]) {
     selectBox.value = savedValue;
   }
+  updateChinhLyReportFieldVisibility(selectBox.value);
 }
 
 if (document.getElementById("input-campaign-name")) {
   document.getElementById("input-campaign-name").addEventListener("change", (e) => {
     const campaignName = e.target.value;
-    if (!campaignName) return;
-
     if (document.getElementById("input-cl-xong")) document.getElementById("input-cl-xong").value = "";
+    updateChinhLyReportFieldVisibility(campaignName);
+    if (!campaignName) return;
+    if (document.getElementById("input-sh-thaoghim")) document.getElementById("input-sh-thaoghim").value = "";
     if (document.getElementById("input-sh-scan")) document.getElementById("input-sh-scan").value = "";
     if (document.getElementById("input-sh-chuanhoa")) document.getElementById("input-sh-chuanhoa").value = "";
     if (document.getElementById("input-sh-phanmem")) document.getElementById("input-sh-phanmem").value = "";
@@ -258,6 +285,7 @@ if (document.getElementById("input-campaign-name")) {
       if (latestLog) {
         const dataMap = {
           "input-cl-xong": [Number(latestLog.chinhLyDaXong || 0), chiTieuMet],
+          "input-sh-thaoghim": [Number(latestLog.soHoaThaoGhim || 0), chiTieuTrang],
           "input-sh-scan": [Number(latestLog.soHoaDaScan || 0), chiTieuTrang],
           "input-sh-bienmuc": [Number(latestLog.soHoaBienMuc || 0), chiTieuTrang],
           "input-sh-chuanhoa": [Number(latestLog.soHoaChuanHoa || 0), chiTieuTrang],
@@ -404,8 +432,30 @@ window.updateData = async (e) => {
   const officerInCharge = document.getElementById("input-officer").value.trim();
 
   const config = campaignsConfigMap[campaignName] || { tongChinhLy: 0, tongSoCanScan: 0 };
-  const chinhLyDaXong = parseFloat(document.getElementById("input-cl-xong").value) || 0;
-  const currentStep = parseInt(document.getElementById("input-current-step").value) || 0;
+  const chinhLyDaXong = Number(config.tongChinhLy) === 0
+    ? 0
+    : (parseFloat(document.getElementById("input-cl-xong").value) || 0);
+  const currentStep = parseInt(document.getElementById("input-current-step").value, 10) || 0;
+  const thaoGhimInput = document.getElementById("input-sh-thaoghim");
+  const thaoGhimRaw = thaoGhimInput?.value.trim() ?? "";
+  // Khi sửa dữ liệu đã lưu trước B0, bỏ trống nghĩa là giữ nguyên bản ghi cũ (không ghi thêm B0 = 0).
+  const isLegacyEditWithoutThaoGhim = !!editingId && !editingProgressHadThaoGhim && thaoGhimRaw === "";
+  const thaoGhimValue = Number(thaoGhimRaw);
+  const tongSoCanScan = Number(config.tongSoCanScan);
+  if (!thaoGhimInput || (!isLegacyEditWithoutThaoGhim && (
+      thaoGhimRaw === "" || !Number.isSafeInteger(thaoGhimValue) || thaoGhimValue < 0 ||
+      !Number.isFinite(tongSoCanScan) || tongSoCanScan < 0 ||
+      thaoGhimValue > tongSoCanScan)) ||
+      (currentStep === -1 && isLegacyEditWithoutThaoGhim)) {
+    Swal.fire({
+      title: "Số trang tháo ghim không hợp lệ",
+      text: "Nhập số nguyên không âm, không vượt quá chỉ tiêu số trang của đợt số hóa.",
+      icon: "warning",
+      confirmButtonColor: "#0056b3"
+    });
+    if (btnSave) { btnSave.innerHTML = originalText; btnSave.disabled = false; }
+    return;
+  }
 
   const updatePayload = {
     campaignName,
@@ -415,6 +465,7 @@ window.updateData = async (e) => {
     tongSoCanChuanHoa: config.tongSoCanScan,
     chinhLyDaXong,
     chinhLyConLai: config.tongChinhLy - chinhLyDaXong > 0 ? config.tongChinhLy - chinhLyDaXong : 0,
+    ...(!isLegacyEditWithoutThaoGhim ? { soHoaThaoGhim: thaoGhimValue } : {}),
     soHoaDaScan: parseInt(document.getElementById("input-sh-scan").value) || 0,
     soHoaBienMuc: parseInt(document.getElementById("input-sh-bienmuc").value) || 0,
     soHoaChuanHoa: parseInt(document.getElementById("input-sh-chuanhoa").value) || 0,
@@ -453,10 +504,21 @@ window.startEdit = async (docId) => {
       if (typeof window.switchTab === "function") window.switchTab("tab-progress");
 
       document.getElementById("editing-doc-id").value = docId;
+      editingProgressHadThaoGhim = data.soHoaThaoGhim !== undefined && data.soHoaThaoGhim !== null;
+      const thaoGhimInput = document.getElementById("input-sh-thaoghim");
+      if (thaoGhimInput) {
+        thaoGhimInput.required = editingProgressHadThaoGhim;
+        thaoGhimInput.placeholder = editingProgressHadThaoGhim
+          ? "Nhập số trang đã tháo ghim..."
+          : "Lịch sử cũ chưa theo dõi B0 (có thể để trống)";
+      }
       document.getElementById("input-campaign-name").value = data.campaignName || "";
+      updateChinhLyReportFieldVisibility(data.campaignName || "");
       document.getElementById("input-officer").value = data.officerInCharge || "";
-      document.getElementById("input-cl-xong").value = data.chinhLyDaXong || 0;
+      document.getElementById("input-cl-xong").value = Number(campaignsConfigMap[data.campaignName]?.tongChinhLy) === 0
+        ? 0 : (data.chinhLyDaXong || 0);
 
+      document.getElementById("input-sh-thaoghim").value = data.soHoaThaoGhim ?? "";
       document.getElementById("input-sh-scan").value = data.soHoaDaScan || 0;
       document.getElementById("input-sh-bienmuc").value = data.soHoaBienMuc || 0;
       document.getElementById("input-sh-chuanhoa").value = data.soHoaChuanHoa || 0;
@@ -489,11 +551,18 @@ window.startEdit = async (docId) => {
 
 window.resetToCreateMode = () => {
   document.getElementById("editing-doc-id").value = "";
+  editingProgressHadThaoGhim = true;
+  const thaoGhimInput = document.getElementById("input-sh-thaoghim");
+  if (thaoGhimInput) {
+    thaoGhimInput.required = true;
+    thaoGhimInput.placeholder = "Nhập số trang đã tháo ghim...";
+  }
   document.getElementById("input-officer").value = "";
-  const fields = ["input-cl-xong", "input-sh-scan", "input-sh-bienmuc", "input-sh-chuanhoa", "input-sh-hieuchinh", "input-sh-pdf2lop", "input-sh-kyso", "input-sh-nendulieu", "input-sh-phanmem", "input-sh-bangiao"];
+  const fields = ["input-cl-xong", "input-sh-thaoghim", "input-sh-scan", "input-sh-bienmuc", "input-sh-chuanhoa", "input-sh-hieuchinh", "input-sh-pdf2lop", "input-sh-kyso", "input-sh-nendulieu", "input-sh-phanmem", "input-sh-bangiao"];
   fields.forEach(id => {
     if (document.getElementById(id)) document.getElementById(id).value = "";
   });
+  updateChinhLyReportFieldVisibility(document.getElementById("input-campaign-name")?.value || "");
   if (document.getElementById("input-current-step")) document.getElementById("input-current-step").value = 0;
 
   const formTitle = document.getElementById("form-action-title");

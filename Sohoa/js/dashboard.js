@@ -88,6 +88,56 @@ function timestampToMillis(value) {
 }
 
 let campaignConfigMap = {};
+
+// Dữ liệu các báo cáo trước khi bổ sung bước B0 không có field này.
+// Chỉ hiển thị B0 với báo cáo mới; tuyệt đối không suy diễn khối lượng của lịch sử cũ.
+function hasThaoGhimData(logRecord) {
+  return !!logRecord && logRecord.soHoaThaoGhim !== null &&
+    logRecord.soHoaThaoGhim !== undefined;
+}
+
+function positiveProgressValue(value) {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : 0;
+}
+
+function updateThaoGhimVisibility(hasThaoGhim) {
+  const card = document.getElementById("campaign-thaoghim-card");
+  if (!card) return;
+  const wasVisible = card.style.display !== "none";
+  card.style.display = hasThaoGhim ? "" : "none";
+  if (wasVisible !== hasThaoGhim && typeof window.resetCampaignCarousel === "function") {
+    window.resetCampaignCarousel();
+  }
+}
+
+// Chỉ căn cứ vào chỉ tiêu của đợt đang chọn, không phụ thuộc vào số mét đã làm.
+function hasCampaignChinhLy(campaignName, fallbackTotal = 0) {
+  const rawTotal = campaignConfigMap[campaignName]?.tongChinhLy ?? fallbackTotal;
+  const total = Number(rawTotal);
+  return Number.isFinite(total) && total > 0;
+}
+
+function updateCampaignChinhLyVisibility(campaignName, fallbackTotal = 0) {
+  const hasChinhLy = hasCampaignChinhLy(campaignName, fallbackTotal);
+  const target = document.getElementById("campaign-chinhly-target");
+  const card = document.getElementById("campaign-chinhly-card");
+  const chart = document.getElementById("campaign-chinhly-chart");
+  const grid = document.getElementById("campaign-charts-grid");
+  const wasVisible = card ? card.style.display !== "none" : hasChinhLy;
+
+  if (target) target.style.display = hasChinhLy ? "" : "none";
+  if (card) card.style.display = hasChinhLy ? "" : "none";
+  if (chart) chart.style.display = hasChinhLy ? "" : "none";
+  if (grid) grid.classList.toggle("no-chinhly", !hasChinhLy);
+
+  // Không để băng chuyền nằm lệch khi số lượng thẻ thay đổi giữa các đợt.
+  if (wasVisible !== hasChinhLy && typeof window.resetCampaignCarousel === "function") {
+    window.resetCampaignCarousel();
+  }
+  return hasChinhLy;
+}
+
 let historyLoadToken = 0;
 let unsubscribeCurrentState = null;
 
@@ -122,10 +172,11 @@ async function loadSelectedCampaignHistory(campaignName) {
         tongChinhLy: Number(cfg.tongChinhLy || 0),
         tongSoCanScan: Number(cfg.tongSoCanScan || 0),
         chinhLyDaXong: 0,
+        soHoaThaoGhim: 0,
         currentStep: 0,
         dateLabel: "Chưa có báo cáo",
       });
-      updateTrendChart([], [], [], [], []);
+      updateTrendChart([], [], [], [], [], []);
 
       const slider = document.getElementById("timelineRange");
       if (slider) {
@@ -324,7 +375,10 @@ function setupCampaignView(campaignName) {
   const chuẩnHoas = currentFilteredLogs.map((l) => l.soHoaChuanHoa || 0);
   const phanMems = currentFilteredLogs.map((l) => l.soHoaPhanMem || 0);
   const chinhLys = currentFilteredLogs.map((l) => l.chinhLyDaXong || 0);
-  updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys);
+  const thaoGhims = currentFilteredLogs.map((l) =>
+    hasThaoGhimData(l) ? positiveProgressValue(l.soHoaThaoGhim) : null
+  );
+  updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys, thaoGhims);
 
   // Đổ số liệu của bản ghi mới nhất lên các ô nhanh và 3 biểu đồ phía trên
   renderStateData(currentFilteredLogs[currentFilteredLogs.length - 1]);
@@ -334,9 +388,15 @@ function setupCampaignView(campaignName) {
 function renderStateData(logRecord) {
   if (!logRecord) return;
 
-  // Đồng bộ trạng thái 9 bước quy trình
-  const currentStep = logRecord.currentStep || 0;
-  renderWorkflowSteps(currentStep);
+  // B0 dùng currentStep = -1. Chưa bắt đầu vẫn là 0, B1..B9 giữ nguyên giá trị cũ.
+  const currentStep = Number(logRecord.currentStep) || 0;
+  const hasThaoGhim = hasThaoGhimData(logRecord);
+  updateThaoGhimVisibility(hasThaoGhim);
+  renderWorkflowSteps(currentStep, hasThaoGhim);
+  const hasChinhLy = updateCampaignChinhLyVisibility(
+    logRecord.campaignName,
+    logRecord.tongChinhLy,
+  );
 
   const tongMet = logRecord.tongChinhLy || 0;
   const tongTrang = logRecord.tongSoCanScan || 0;
@@ -350,7 +410,7 @@ function renderStateData(logRecord) {
   if (txtTongTrang) txtTongTrang.innerText = tongTrang.toLocaleString();
 
   // -------------------------------------------------------------
-  // ĐỌC VÀ TÍNH TOÁN SỐ LIỆU CHI TIẾT CHO CHỈ TIÊU & 9 BƯỚC QUY TRÌNH
+  // ĐỌC VÀ TÍNH TOÁN SỐ LIỆU CHI TIẾT CHO CHỈ TIÊU & B0 + 9 BƯỚC GỐC
   // -------------------------------------------------------------
 
   // Thẻ Chỉnh lý mét
@@ -366,6 +426,22 @@ function renderStateData(logRecord) {
     document.getElementById("cl-xong-percent").innerText = clPercent;
   if (document.getElementById("bar-cl-xong"))
     document.getElementById("bar-cl-xong").style.width = clPercent + "%";
+
+  // Bước 0: Tháo ghim tài liệu, tính theo số trang (chỉ áp dụng khi báo cáo có field).
+  if (hasThaoGhim) {
+    const shThaoGhim = positiveProgressValue(logRecord.soHoaThaoGhim);
+    const thaoGhimConLai = Math.max(0, tongTrang - shThaoGhim);
+    const thaoGhimPercent = tongTrang > 0
+      ? Math.min(100, (shThaoGhim / tongTrang) * 100).toFixed(1) : "0";
+    const actual = document.getElementById("sh-da-thaoghim");
+    const rest = document.getElementById("sh-thaoghim-conlai");
+    const percent = document.getElementById("sh-thaoghim-percent");
+    const bar = document.getElementById("bar-sh-thaoghim");
+    if (actual) actual.innerText = shThaoGhim.toLocaleString("vi-VN");
+    if (rest) rest.innerText = thaoGhimConLai.toLocaleString("vi-VN");
+    if (percent) percent.innerText = thaoGhimPercent;
+    if (bar) bar.style.width = thaoGhimPercent + "%";
+  }
 
   // Bước 1: Scan tài liệu
   const shScan = Number(logRecord.soHoaDaScan || 0);
@@ -518,10 +594,10 @@ function renderStateData(logRecord) {
       banGiaoPercent + "%";
 
   // Làm mới cấu trúc đồ họa hiển thị của 3 biểu đồ khuyên trên theo ngày đang chọn
-  updateStaticCharts(logRecord, tongMet, tongTrang);
+  updateStaticCharts(logRecord, tongMet, tongTrang, hasChinhLy);
 }
 
-function updateStaticCharts(data, tongMet, tongTrang) {
+function updateStaticCharts(data, tongMet, tongTrang, hasChinhLy) {
   const ctxScan = document.getElementById("scanChart")?.getContext("2d");
   const ctxCl = document.getElementById("clChart")?.getContext("2d");
   const ctxPm = document.getElementById("pmChart")?.getContext("2d");
@@ -532,15 +608,20 @@ function updateStaticCharts(data, tongMet, tongTrang) {
   if (!ctxScan || !ctxCl) return;
 
   if (scanChart) scanChart.destroy();
-  if (clChart) clChart.destroy();
+  if (clChart) {
+    clChart.destroy();
+    clChart = null;
+  }
   if (pmChart) pmChart.destroy();
   if (currentStepChart) currentStepChart.destroy(); // Làm sạch biểu đồ nhẫn cũ nếu có[cite: 1]
 
-  // 1. BIỂU ĐỒ 9 BƯỚC: DẠNG CỘT NGANG ĐA NĂNG THU NHỎ[cite: 1]
+  // 1. BIỂU ĐỒ: B0 (nếu có dữ liệu) + 9 bước hiện có, không đổi số thứ tự gốc.
+  const hasThaoGhim = hasThaoGhimData(data);
   scanChart = new Chart(ctxScan, {
     type: "bar",
     data: {
       labels: [
+        ...(hasThaoGhim ? ["B0: Tháo ghim"] : []),
         "B1: Scan",
         "B2: Biên mục",
         "B3: Chuẩn hóa",
@@ -555,6 +636,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
         {
           label: "Thực tế thực hiện (Trang)",
           data: [
+            ...(hasThaoGhim ? [positiveProgressValue(data.soHoaThaoGhim)] : []),
             data.soHoaDaScan || 0,
             data.soHoaBienMuc || 0,
             data.soHoaChuanHoa || 0,
@@ -566,6 +648,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
             data.soHoaBanGiao || 0,
           ],
           backgroundColor: [
+            ...(hasThaoGhim ? ["#0e7490"] : []),
             "#2ecc71",
             "#06b6d4",
             "#9b59b6",
@@ -612,7 +695,7 @@ function updateStaticCharts(data, tongMet, tongTrang) {
 
   // 2. BIỂU ĐỒ NHẪN DOUGHNUT: TIẾN ĐỘ RIÊNG CỦA BƯỚC ĐANG THỰC HIỆN (THÊM MỚI)[cite: 1]
   if (ctxCurrentStep) {
-    const stepNum = data.currentStep || 0;
+    const stepNum = Number(data.currentStep) || 0;
     const stepsNameMapping = [
       "Chưa bắt đầu",
       "B1: Scan tài liệu",
@@ -630,14 +713,17 @@ function updateStaticCharts(data, tongMet, tongTrang) {
     const titleContainer = document.getElementById("current-step-chart-title");
     if (titleContainer) {
       titleContainer.innerText =
-        stepNum > 0
-          ? `Tiến độ ${stepsNameMapping[stepNum]}`
-          : "Tiến độ Bước Hiện tại";
+        stepNum === -1 && hasThaoGhim
+          ? "Tiến độ B0: Tháo ghim tài liệu"
+          : stepNum > 0 && stepNum <= 9
+            ? `Tiến độ ${stepsNameMapping[stepNum]}`
+            : "Tiến độ Bước Hiện tại";
     }
 
     // Bóc tách chính xác số liệu của khâu đang chạy[cite: 1]
     let currentStepVolume = 0;
-    if (stepNum === 1) currentStepVolume = data.soHoaDaScan || 0;
+    if (stepNum === -1 && hasThaoGhim) currentStepVolume = positiveProgressValue(data.soHoaThaoGhim);
+    else if (stepNum === 1) currentStepVolume = data.soHoaDaScan || 0;
     else if (stepNum === 2) currentStepVolume = data.soHoaBienMuc || 0;
     else if (stepNum === 3) currentStepVolume = data.soHoaChuanHoa || 0;
     else if (stepNum === 4) currentStepVolume = data.soHoaHieuChinh || 0;
@@ -684,37 +770,39 @@ function updateStaticCharts(data, tongMet, tongTrang) {
     });
   }
 
-  // 3. BIỂU ĐỒ TRÒN: TỶ LỆ CHỈNH LÝ MÉT TÀI LIỆU (GIỮ NGUYÊN)
-  const clXong = data.chinhLyDaXong || 0;
-  const clConLai = tongMet - clXong;
-  clChart = new Chart(ctxCl, {
-    type: "pie",
-    data: {
-      labels: ["Còn lại sơ bộ", "Đã chỉnh lý xong"],
-      datasets: [
-        {
-          data: [clConLai > 0 ? clConLai : 0, clXong],
-          backgroundColor: ["#f27a1a", "#2b78e4"],
-        },
-      ],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      radius: "100%",
-      plugins: {
-        legend: { display: false },
-        datalabels: {
-          formatter: (value) => {
-            let total = clXong + (clConLai > 0 ? clConLai : 0);
-            return total > 0 ? ((value / total) * 100).toFixed(1) + "%" : "0%";
+  // 3. BIỂU ĐỒ TRÒN: chỉ khởi tạo khi đợt có công việc chỉnh lý.
+  if (hasChinhLy) {
+    const clXong = data.chinhLyDaXong || 0;
+    const clConLai = tongMet - clXong;
+    clChart = new Chart(ctxCl, {
+      type: "pie",
+      data: {
+        labels: ["Còn lại sơ bộ", "Đã chỉnh lý xong"],
+        datasets: [
+          {
+            data: [clConLai > 0 ? clConLai : 0, clXong],
+            backgroundColor: ["#f27a1a", "#2b78e4"],
           },
-          color: "#ffffff",
-          font: { weight: "bold", size: 12 },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        radius: "100%",
+        plugins: {
+          legend: { display: false },
+          datalabels: {
+            formatter: (value) => {
+              let total = clXong + (clConLai > 0 ? clConLai : 0);
+              return total > 0 ? ((value / total) * 100).toFixed(1) + "%" : "0%";
+            },
+            color: "#ffffff",
+            font: { weight: "bold", size: 12 },
+          },
         },
       },
-    },
-  });
+    });
+  }
 
   // 4. BIỂU ĐỒ DOUGHNUT: TỶ LỆ ĐƯA LÊN PHẦN MỀM TỔNG THỂ (GIỮ NGUYÊN)
   if (ctxPm) {
@@ -755,7 +843,9 @@ function updateStaticCharts(data, tongMet, tongTrang) {
   }
 }
 
-function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
+function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys, thaoGhims = []) {
+  const campaignName = document.getElementById("select-campaign")?.value;
+  const hasChinhLy = hasCampaignChinhLy(campaignName);
   const ctxTrend = document.getElementById("trendChart")?.getContext("2d");
   if (!ctxTrend) return;
   if (trendChart) trendChart.destroy();
@@ -765,6 +855,13 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
     data: {
       labels: labels,
       datasets: [
+        ...(thaoGhims.some((value) => value !== null && value !== undefined) ? [{
+          label: "Tháo ghim (Trang)",
+          data: thaoGhims,
+          borderColor: "#0e7490",
+          tension: 0.2,
+          yAxisID: "y",
+        }] : []),
         {
           label: "Đã Scan (Trang)",
           data: scans,
@@ -786,13 +883,13 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
           tension: 0.2,
           yAxisID: "y",
         },
-        {
+        ...(hasChinhLy ? [{
           label: "Chỉnh lý (Mét)",
           data: chinhLys,
           borderColor: "#2b78e4",
           tension: 0.2,
           yAxisID: "y1",
-        },
+        }] : []),
       ],
     },
     options: {
@@ -816,6 +913,7 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
           },
         },
         y1: {
+          display: hasChinhLy,
           type: "linear",
           position: "right",
           title: { display: true, text: "Số lượng Mét" },
@@ -838,50 +936,47 @@ function updateTrendChart(labels, scans, chuẩnHoas, phanMems, chinhLys) {
   });
 }
 document.addEventListener("DOMContentLoaded", loadDashboardData);
-// HÀM VẼ VÀ ĐỒNG BỘ TIẾN TRÌNH 9 BƯỚC LÊN TRANG CHỦ
-function renderWorkflowSteps(currentStep) {
+// HÀM VẼ VÀ ĐỒNG BỘ TIẾN TRÌNH: B0 (nếu báo cáo theo dõi) + 9 BƯỚC GỐC.
+function renderWorkflowSteps(currentStep, hasThaoGhim = false) {
   const container = document.getElementById("workflow-timeline");
   if (!container) return;
   container.innerHTML = "";
 
   const stepsList = [
-    "Scan tài liệu",
-    "Cắt file & biên mục",
-    "Chuẩn hóa dữ liệu",
-    "Hiệu chỉnh dữ liệu",
-    "Chuyển đổi PDF 2 lớp",
-    "Ký số tài liệu",
-    "Hoàn chỉnh, nén dữ liệu",
-    "Cập nhật lên phần mềm",
-    "Hoàn chỉnh & bàn giao",
+    ...(hasThaoGhim ? [{ number: 0, name: "Tháo ghim tài liệu" }] : []),
+    { number: 1, name: "Scan tài liệu" },
+    { number: 2, name: "Cắt file & biên mục" },
+    { number: 3, name: "Chuẩn hóa dữ liệu" },
+    { number: 4, name: "Hiệu chỉnh dữ liệu" },
+    { number: 5, name: "Chuyển đổi PDF 2 lớp" },
+    { number: 6, name: "Ký số tài liệu" },
+    { number: 7, name: "Hoàn chỉnh, nén dữ liệu" },
+    { number: 8, name: "Cập nhật lên phần mềm" },
+    { number: 9, name: "Hoàn chỉnh & bàn giao" },
   ];
 
-  stepsList.forEach((stepName, index) => {
-    const stepNum = index + 1;
-    let statusClass = ""; // Chưa thực hiện
-    let iconHTML = `<i class="fa-regular fa-circle"></i>`;
+  stepsList.forEach(({ number, name }) => {
+    let statusClass = "step-waiting";
+    let iconHTML = `<i class="fa-regular fa-circle" style="opacity: 0.5;"></i>`;
 
-    if (stepNum < currentStep) {
-      // 1. Bước đã thực hiện xong
+    // B0 hoạt động khi currentStep = -1; trạng thái 0 vẫn là chưa bắt đầu.
+    const isActive = number === 0 ? currentStep === -1 : number === currentStep;
+    const isCompleted = number === 0 ? currentStep > 0 : number < currentStep;
+    if (isCompleted) {
       statusClass = "step-completed";
       iconHTML = `<i class="fa-solid fa-circle-check"></i>`;
-    } else if (stepNum === currentStep) {
-      // 2. Bước đang thực hiện
+    } else if (isActive) {
       statusClass = "step-active";
       iconHTML = `<i class="fa-solid fa-spinner fa-spin"></i>`;
-    } else {
-      // 3. Bước chưa thực hiện
-      statusClass = "step-waiting";
-      iconHTML = `<i class="fa-regular fa-circle" style="opacity: 0.5;"></i>`;
     }
 
     const stepDiv = document.createElement("div");
     stepDiv.className = `workflow-step ${statusClass}`;
     stepDiv.innerHTML = `
-      <div class="step-icon-box" title="Bước ${stepNum}">
+      <div class="step-icon-box" title="Bước ${number}">
         ${iconHTML}
       </div>
-      <div class="step-name">B${stepNum}: ${stepName}</div>
+      <div class="step-name">B${number}: ${name}</div>
     `;
     container.appendChild(stepDiv);
   });
@@ -897,6 +992,11 @@ function initCarouselSlider() {
 
   let currentTranslateX = 0;
   const cardWidth = 270; // 250px chiều rộng Card + 20px Gap khoảng cách giữa các Card
+
+  window.resetCampaignCarousel = () => {
+    currentTranslateX = 0;
+    track.style.transform = "translateX(0px)";
+  };
 
   // Xử lý sự kiện trượt sang phải (Xem thêm bước sau)
   slideRightBtn.addEventListener("click", () => {

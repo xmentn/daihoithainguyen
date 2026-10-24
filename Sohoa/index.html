@@ -1755,7 +1755,7 @@
             "></select>
       </section>
 
-      <!-- KHU VỰC THÀNH TRƯỢT THẺ SỐ LIỆU QUY TRÌNH (9 BƯỚC + CHỈ TIÊU) -->
+      <!-- KHU VỰC THÀNH TRƯỢT THẺ SỐ LIỆU QUY TRÌNH (B0 + 9 BƯỚC GỐC + CHỈ TIÊU) -->
       <section class="carousel-container" style="
             position: relative;
             margin-bottom: 25px;
@@ -1814,8 +1814,10 @@
               <div class="card-info">
                 <span class="card-label" style="color: #475569">CHỈ TIÊU TỔNG ĐỢT</span>
                 <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
-                  <span id="show-tong-met">0</span>
-                  <span class="unit">m</span> |<br />
+                  <span id="campaign-chinhly-target">
+                    <span id="show-tong-met">0</span>
+                    <span class="unit">m</span> |<br />
+                  </span>
                   <span id="show-tong-trang">0</span>
                   <span class="unit">trang</span>
                 </p>
@@ -1827,7 +1829,7 @@
             </div>
 
             <!-- THẺ CHỈNH LÝ (MÉT) -->
-            <div class="card-new white-card" style="
+            <div id="campaign-chinhly-card" class="card-new white-card" style="
                   width: 250px;
                   flex-shrink: 0;
                   border-left: 4px solid #0056b3;
@@ -1849,6 +1851,31 @@
                     <span id="cl-con-lai">0</span>m)</span>
                   <div class="progress-bar-bg">
                     <div id="bar-cl-xong" class="progress-bar blue-bg" style="width: 0%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- THẺ B0: THÁO GHIM TÀI LIỆU (chỉ hiển thị khi dữ liệu báo cáo có theo dõi B0) -->
+            <div id="campaign-thaoghim-card" class="card-new white-card" style="
+                  width: 250px;
+                  flex-shrink: 0;
+                  border-left: 4px solid #0e7490;
+                  display: none;
+                ">
+              <div class="card-icon" style="background: #0e7490; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-link-slash" style="color: white"></i>
+              </div>
+              <div class="card-info">
+                <span class="card-label" style="color: #0e7490">B0: THÁO GHIM TÀI LIỆU</span>
+                <p class="card-value" style="font-size: 18px; margin-top: 5px; font-weight: 700">
+                  <span id="sh-da-thaoghim">0</span> <span class="unit">trang</span>
+                </p>
+                <div class="progress-container">
+                  <span class="progress-text">Đạt <span id="sh-thaoghim-percent">0</span>% (Còn
+                    <span id="sh-thaoghim-conlai">0</span>tr)</span>
+                  <div class="progress-bar-bg">
+                    <div id="bar-sh-thaoghim" class="progress-bar" style="width: 0%; background: #0e7490"></div>
                   </div>
                 </div>
               </div>
@@ -2234,6 +2261,13 @@
           margin-top: 25px;
         }
 
+        /* Đợt không chỉnh lý: ba biểu đồ còn lại chiếm trọn hàng. */
+        @media (min-width: 1101px) {
+          .charts-grid-4column.no-chinhly {
+            grid-template-columns: 1.3fr 1fr 1fr;
+          }
+        }
+
         @media (max-width: 1100px) {
           .charts-grid-4column {
             grid-template-columns: 1fr 1fr;
@@ -2250,9 +2284,9 @@
       </style>
 
       <!-- 2. THAY THẾ KHỐI CŨ BẰNG CỤM 4 KHỐI BIỂU ĐỒ ĐỒNG BỘ MỚI HOÀN TOÀN -->
-      <section class="charts-grid-4column">
+      <section id="campaign-charts-grid" class="charts-grid-4column">
         <!-- KHỐI 1: TỶ LỆ CHỈNH LÝ -->
-        <div class="chart-box chart-box-pie" style="
+        <div id="campaign-chinhly-chart" class="chart-box chart-box-pie" style="
               background: #ffffff;
               padding: 15px;
               border-radius: 12px;
@@ -2310,7 +2344,7 @@
           </div>
         </div>
 
-        <!-- KHỐI 2: BIỂU ĐỒ SO SÁNH KHỐI LƯỢNG 9 BƯỚC -->
+        <!-- KHỐI 2: BIỂU ĐỒ SO SÁNH KHỐI LƯỢNG QUY TRÌNH (B0 + 9 BƯỚC GỐC) -->
         <div class="chart-box" style="
               background: #ffffff;
               padding: 15px;
@@ -2328,7 +2362,7 @@
               ">
             So sánh Tiến độ các Bước (Trang)
           </h3>
-          <div style="position: relative; width: 100%; height: 200px">
+          <div style="position: relative; width: 100%; height: 225px">
             <canvas id="scanChart"></canvas>
           </div>
         </div>
@@ -2483,10 +2517,10 @@
               gap: 8px;
             ">
           <i class="fa-solid fa-diagram-next" style="color: #0056b3"></i> DIỄN
-          BIẾN TIẾN TRÌNH QUY TRÌNH SỐ HÓA (9 BƯỚC)
+          BIẾN TIẾN TRÌNH QUY TRÌNH SỐ HÓA
         </h3>
 
-        <!-- Khu vực hiển thị 9 bước chạy động -->
+        <!-- Khu vực hiển thị các bước chạy động, bổ sung B0 cho báo cáo có dữ liệu tháo ghim -->
         <div id="workflow-timeline" class="workflow-timeline-container">
           <!-- Các bước sẽ được sinh tự động bằng Javascript -->
         </div>
