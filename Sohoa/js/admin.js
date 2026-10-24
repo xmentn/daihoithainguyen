@@ -43,6 +43,7 @@ window.showInstructions = function () {
 
 let campaignsConfigMap = {};
 let latestProgressByCampaignMap = {};
+let progressHistoryCache = []; // Lịch sử tải một lần; lọc hiển thị theo dropdown chung.
 let editingProgressHadThaoGhim = true; // Không tự thêm field B0 khi chỉ sửa báo cáo lịch sử cũ.
 
 function setupTab4TimeManagement() {
@@ -145,22 +146,31 @@ async function loadCampaignsAdminTable() {
   updateCampaignSelectOptions();
 }
 
-async function loadProgressHistoryAdminTable() {
-  const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "desc"));
-  const querySnapshot = await getDocs(historyQuery);
+// Lọc Nhật ký báo cáo theo đúng đợt đang chọn trong biểu mẫu bên trái.
+// Chỉ thay đổi bảng hiển thị, không ghi/đụng tới dữ liệu lịch sử trên Firestore.
+function renderProgressHistoryByCampaign() {
   const tableBody = document.getElementById("history-table-body");
-  if (tableBody) tableBody.innerHTML = "";
-  latestProgressByCampaignMap = {};
+  if (!tableBody) return;
 
-  querySnapshot.forEach((docSnap) => {
-    const log = docSnap.data();
-    const docId = docSnap.id;
+  const campaignName = document.getElementById("input-campaign-name")?.value || "";
+  const status = document.getElementById("history-campaign-status");
+  tableBody.innerHTML = "";
 
-    // Query đang sắp xếp mới nhất -> cũ nhất nên bản ghi đầu tiên của mỗi đợt là bản mới nhất.
-    if (log.campaignName && !latestProgressByCampaignMap[log.campaignName]) {
-      latestProgressByCampaignMap[log.campaignName] = log;
-    }
+  if (!campaignName) {
+    if (status) status.textContent = "Chọn đợt số hóa trong biểu mẫu bên trái để xem nhật ký tương ứng.";
+    tableBody.innerHTML = '<tr><td colspan="4" style="padding: 24px 12px; text-align: center; color: #64748b;">Vui lòng chọn đợt số hóa để xem nhật ký báo cáo.</td></tr>';
+    return;
+  }
 
+  const filteredLogs = progressHistoryCache.filter(({ log }) => log.campaignName === campaignName);
+  if (status) status.textContent = `Đợt: ${campaignName} — ${filteredLogs.length} lần báo cáo`;
+
+  if (filteredLogs.length === 0) {
+    tableBody.innerHTML = '<tr><td colspan="4" style="padding: 24px 12px; text-align: center; color: #64748b;">Đợt số hóa này chưa có báo cáo tiến độ.</td></tr>';
+    return;
+  }
+
+  filteredLogs.forEach(({ docId, log }) => {
     const row = document.createElement("tr");
     row.style.borderBottom = "1px solid #f1f5f9";
     row.innerHTML = `
@@ -172,8 +182,26 @@ async function loadProgressHistoryAdminTable() {
             <button onclick="deleteProgress('${docId}')" style="background: #fee2e2; color: #b91c1c; border: none; padding: 4px 8px; border-radius: 4px; font-weight: 600; cursor: pointer; font-size: 11.5px;">Xóa</button>
         </td>
       `;
-    if (tableBody) tableBody.appendChild(row);
+    tableBody.appendChild(row);
   });
+}
+
+async function loadProgressHistoryAdminTable() {
+  const historyQuery = query(collection(db, "progress_history"), orderBy("timestamp", "desc"));
+  const querySnapshot = await getDocs(historyQuery);
+  latestProgressByCampaignMap = {};
+  progressHistoryCache = [];
+
+  querySnapshot.forEach((docSnap) => {
+    const log = docSnap.data();
+    // Truy vấn đã sắp xếp mới -> cũ: giữ thông tin bản ghi mới nhất cho tính năng nhập liệu lũy kế.
+    if (log.campaignName && !latestProgressByCampaignMap[log.campaignName]) {
+      latestProgressByCampaignMap[log.campaignName] = log;
+    }
+    progressHistoryCache.push({ docId: docSnap.id, log });
+  });
+
+  renderProgressHistoryByCampaign();
 }
 
 async function syncCurrentStateFromLatestHistory() {
@@ -248,6 +276,7 @@ function updateCampaignSelectOptions() {
 
   if (campaigns.length === 0) {
     updateChinhLyReportFieldVisibility("");
+    renderProgressHistoryByCampaign();
     return;
   }
 
@@ -262,11 +291,15 @@ function updateCampaignSelectOptions() {
     selectBox.value = savedValue;
   }
   updateChinhLyReportFieldVisibility(selectBox.value);
+  renderProgressHistoryByCampaign();
 }
 
 if (document.getElementById("input-campaign-name")) {
   document.getElementById("input-campaign-name").addEventListener("change", (e) => {
     const campaignName = e.target.value;
+    // Không cho chế độ sửa bản ghi của đợt cũ tồn tại khi chuyển sang đợt khác.
+    if (document.getElementById("editing-doc-id")?.value) window.resetToCreateMode();
+    renderProgressHistoryByCampaign();
     if (document.getElementById("input-cl-xong")) document.getElementById("input-cl-xong").value = "";
     updateChinhLyReportFieldVisibility(campaignName);
     if (!campaignName) return;
@@ -513,6 +546,7 @@ window.startEdit = async (docId) => {
           : "Lịch sử cũ chưa theo dõi B0 (có thể để trống)";
       }
       document.getElementById("input-campaign-name").value = data.campaignName || "";
+      renderProgressHistoryByCampaign();
       updateChinhLyReportFieldVisibility(data.campaignName || "");
       document.getElementById("input-officer").value = data.officerInCharge || "";
       document.getElementById("input-cl-xong").value = Number(campaignsConfigMap[data.campaignName]?.tongChinhLy) === 0
