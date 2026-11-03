@@ -3,472 +3,388 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Hệ thống theo dõi tiến độ giải phóng mặt bằng</title>
-
-    <link rel="stylesheet" href="css/style.css" />
+    <meta
+      name="description"
+      content="Theo dõi tiến độ giải phóng mặt bằng và bố trí tái định cư tuyến cao tốc Bắc Kạn – Cao Bằng."
+    />
+    <title>Theo dõi GPMB - Cao tốc Bắc Kạn – Cao Bằng</title>
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
-
-  <body class="home-dashboard">
-    <!-- =====================================================
-         1. BANNER
-    ====================================================== -->
-    <header class="header">
-      <div class="banner-container">
+  <body>
+    <header class="site-header">
+      <div class="banner-shell">
         <img
-          src="images/banner1.png"
-          alt="Hệ thống theo dõi tiến độ giải phóng mặt bằng"
-          class="banner-image"
+          id="siteBanner"
+          src="./images/banner.png"
+          alt="Banner tuyến cao tốc Bắc Kạn – Cao Bằng"
         />
+        <div id="bannerFallback" class="banner-fallback" hidden>
+          <div class="banner-fallback-inner">
+            <span class="eyebrow">HỆ THỐNG THÔNG TIN THEO DÕI TIẾN ĐỘ</span>
+            <h1>ĐƯỜNG CAO TỐC BẮC KẠN – CAO BẰNG</h1>
+            <p>GIẢI PHÓNG MẶT BẰNG VÀ BỐ TRÍ TÁI ĐỊNH CƯ</p>
+          </div>
+        </div>
+      </div>
+      <div class="topbar wrap">
+        <div class="brandline">
+          <span class="live-dot"></span><strong>THEO DÕI TIẾN ĐỘ</strong
+          ><span class="subtle-separator">/</span
+          ><span>GPMB & Tái định cư</span>
+        </div>
+        <div class="auth-actions">
+          <span id="authLabel" class="auth-label"
+            >Khách truy cập · Chế độ xem</span
+          >
+          <button id="adminPanelBtn" class="btn btn-ghost" hidden type="button">
+            Quản lý phân quyền
+          </button>
+          <button id="loginBtn" class="btn btn-primary" type="button">
+            Đăng nhập
+          </button>
+          <button id="logoutBtn" class="btn btn-ghost" type="button" hidden>
+            Đăng xuất
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- =====================================================
-         2. THANH ĐIỀU HƯỚNG
-    ====================================================== -->
-    <nav class="navbar">
-      <div class="navbar-container">
-        <div class="navbar-left">
-          <a href="index.html" class="nav-item active"> Trang chủ </a>
+    <main class="wrap main-content">
+      <div id="configAlert" class="notice notice-warn" hidden>
+        <strong>Chưa cấu hình Firebase.</strong> Vui lòng mở
+        <code>public/js/config.js</code> và điền cấu hình dự án Firebase của anh
+        theo tệp hướng dẫn.
+      </div>
+      <div
+        id="toast"
+        class="notice"
+        role="status"
+        aria-live="polite"
+        hidden
+      ></div>
 
-          <a href="progress.html" class="nav-item"> Tiến độ GPMB </a>
-
-          <a href="#" class="nav-item"> Báo cáo </a>
-
-          <!-- =============================================
-         CHỈ ADMIN MỚI HIỆN
-    ============================================== -->
-
-          <a
-            href="admin.html"
-            id="adminNavButton"
-            class="nav-item"
-            style="display: none"
-          >
-            Quản trị
-          </a>
-
-          <!-- =============================================
-         CHỈ TÀI KHOẢN ĐƠN VỊ MỚI HIỆN
-    ============================================== -->
-
-          <a
-            href="commune-workflow.html"
-            id="communeDataNavButton"
-            class="nav-item"
-            style="display: none"
-          >
-            Nhập số liệu
-          </a>
+      <div class="page-heading">
+        <div>
+          <p class="overline">BÁO CÁO TIẾN ĐỘ THEO TUẦN</p>
+          <h2>Tình hình thực hiện dự án</h2>
+          <p class="muted">
+            Theo dõi số liệu của 10 xã, phường và báo cáo riêng của cấp tỉnh.
+          </p>
         </div>
+        <div class="heading-actions">
+          <button id="editBtn" class="btn btn-primary" type="button" hidden>
+            ✎ Nhập / cập nhật số liệu
+          </button>
+          <button id="exportBtn" class="btn btn-outline" type="button">
+            ↓ Xuất CSV
+          </button>
+        </div>
+      </div>
 
-        <div class="navbar-right">
-          <!-- =============================================
-         CHƯA ĐĂNG NHẬP
-    ============================================== -->
+      <section class="control-panel" aria-label="Bộ lọc báo cáo">
+        <div class="field">
+          <label for="weekSelect">KỲ BÁO CÁO (TUẦN)</label>
+          <input id="weekSelect" type="week" />
+        </div>
+        <div class="field field-grow">
+          <label for="unitSelect">PHẠM VI THEO DÕI</label>
+          <select id="unitSelect"></select>
+        </div>
+        <div class="field field-action">
+          <label class="invisible" for="refreshBtn">Làm mới</label>
+          <button id="refreshBtn" class="btn btn-outline" type="button">
+            ↻ Làm mới
+          </button>
+        </div>
+      </section>
 
-          <a href="login.html" class="login-button" id="loginButton">
-            Đăng nhập
-          </a>
+      <nav class="section-tabs" aria-label="Hai nhóm công việc">
+        <button
+          id="gpmbTab"
+          class="section-tab active"
+          type="button"
+          aria-selected="true"
+          role="tab"
+        >
+          <span class="tab-icon">01</span
+          ><span
+            ><strong>GIẢI PHÓNG MẶT BẰNG</strong
+            ><small>14 chỉ tiêu theo dõi</small></span
+          >
+        </button>
+        <button
+          id="tdcTab"
+          class="section-tab"
+          type="button"
+          aria-selected="false"
+          role="tab"
+        >
+          <span class="tab-icon">02</span
+          ><span
+            ><strong>BỐ TRÍ TÁI ĐỊNH CƯ</strong
+            ><small>8 chỉ tiêu theo dõi</small></span
+          >
+        </button>
+      </nav>
 
-          <!-- =============================================
-         ĐÃ ĐĂNG NHẬP
-         Ban đầu phải ẩn
-    ============================================== -->
+      <section
+        class="stats-grid"
+        id="statsCards"
+        aria-label="Các chỉ số tiến độ"
+      ></section>
 
-          <div class="user-menu" id="userMenu" style="display: none">
-            <button type="button" class="user-menu-button" id="userMenuButton">
-              <span id="currentUserName"> Người dùng </span>
+      <section class="card report-card" aria-label="Báo cáo chi tiết">
+        <div class="card-heading">
+          <div>
+            <p class="overline">CHI TIẾT THEO BIỂU MẪU BÁO CÁO</p>
+            <h3 id="sectionTitle">I. GIẢI PHÓNG MẶT BẰNG</h3>
+            <p id="dataCoverage" class="muted"></p>
+          </div>
+          <span class="view-chip">Dữ liệu công khai</span>
+        </div>
+        <div class="table-scroll">
+          <table class="report-table" id="reportTable">
+            <thead>
+              <tr>
+                <th class="col-number">STT</th>
+                <th class="col-metric">Chỉ tiêu</th>
+                <th>Đơn vị</th>
+                <th>Tổng phải thực hiện</th>
+                <th>Đã thực hiện</th>
+                <th>Còn lại<br /><small>(tự tính)</small></th>
+                <th class="heading-emphasis">
+                  % Hoàn thành<br /><small>(tự tính)</small>
+                </th>
+                <th>Trạng thái</th>
+                <th class="col-note">Khó khăn, vướng mắc, kiến nghị đề xuất</th>
+              </tr>
+            </thead>
+            <tbody id="metricsBody"></tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          Dấu “—” thể hiện chưa có số liệu hoặc chưa xác định được tỷ lệ. Còn
+          lại và % Hoàn thành được tính tự động; tổng bằng 0 không tính tỷ lệ.
+        </div>
+      </section>
 
-              <span class="user-menu-arrow"> ▼ </span>
+      <section id="overviewCard" class="card overview-card" hidden>
+        <div class="card-heading">
+          <div>
+            <p class="overline">SO SÁNH TIẾN ĐỘ</p>
+            <h3 id="overviewTitle">Tình hình từng xã, phường</h3>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="overview-table">
+            <thead id="overviewHead"></thead>
+            <tbody id="overviewBody"></tbody>
+          </table>
+        </div>
+        <p class="table-footer">
+          Số liệu “Tất cả xã, phường” chỉ tổng hợp các đơn vị đã có báo cáo
+          trong kỳ; không bao gồm báo cáo cấp tỉnh.
+        </p>
+      </section>
+
+      <section id="editorPanel" class="card editor-panel" hidden>
+        <div class="card-heading">
+          <div>
+            <p class="overline">NHẬP LIỆU THEO PHÂN QUYỀN</p>
+            <h3 id="editTitle">Cập nhật báo cáo</h3>
+            <p class="muted" id="editHint">Lưu riêng nhóm chỉ tiêu đang xem.</p>
+          </div>
+          <button id="closeEditorBtn" class="btn btn-ghost" type="button">
+            ✕ Đóng
+          </button>
+        </div>
+        <div class="editor-toolbar">
+          <div class="field">
+            <label for="editUnitSelect">ĐƠN VỊ NHẬP LIỆU</label
+            ><select id="editUnitSelect"></select>
+          </div>
+          <p id="lastWeekNote" class="muted"></p>
+        </div>
+        <div class="notice notice-blue">
+          Nhập Tổng phải thực hiện và Đã thực hiện (lũy kế đến kỳ báo cáo), sau
+          đó chọn Trạng thái. Còn lại và % Hoàn thành được tính tự động. Dữ liệu
+          tuần trước chỉ được gợi ý để tham khảo; không tự thay thế báo cáo tuần
+          này.
+        </div>
+        <div class="table-scroll">
+          <table class="report-table edit-table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th class="col-metric">Chỉ tiêu</th>
+                <th>Đơn vị</th>
+                <th>Tổng phải thực hiện</th>
+                <th>Đã thực hiện</th>
+                <th>Còn lại (tự tính)</th>
+                <th>% Hoàn thành (tự tính)</th>
+                <th>Trạng thái</th>
+                <th class="col-note">Khó khăn, vướng mắc, kiến nghị</th>
+              </tr>
+            </thead>
+            <tbody id="editRows"></tbody>
+          </table>
+        </div>
+        <div class="editor-actions">
+          <span class="muted"
+            >Số liệu lưu theo đơn vị và tuần; mỗi tab giữ nguyên dữ liệu tab còn
+            lại.</span
+          >
+          <div class="heading-actions">
+            <button
+              id="deleteReportBtn"
+              class="btn btn-outline"
+              type="button"
+              hidden
+            >
+              Xóa báo cáo kỳ này</button
+            ><button id="saveBtn" class="btn btn-primary" type="button">
+              Lưu báo cáo
             </button>
-
-            <!-- MENU XỔ XUỐNG -->
-
-            <div class="user-dropdown">
-              <div class="user-dropdown-info">
-                <span> Đang đăng nhập </span>
-
-                <strong id="currentUserEmail"> </strong>
-              </div>
-
-              <button
-                type="button"
-                id="homeLogoutButton"
-                class="user-logout-button"
-              >
-                Đăng xuất
-              </button>
-            </div>
           </div>
         </div>
-      </div>
-    </nav>
+      </section>
 
-    <!-- =====================================================
-         3. NỘI DUNG DASHBOARD
-    ====================================================== -->
-    <main class="main-content home-main-content">
-      <div class="container home-dashboard-container">
-        <!-- =================================================
-             TIÊU ĐỀ DASHBOARD
-        ================================================== -->
-        <section class="dashboard-header home-dashboard-header">
-          <div class="home-dashboard-title-wrap">
-            <span class="home-dashboard-title-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M4 13h4v7H4v-7Zm6-5h4v12h-4V8Zm6-4h4v16h-4V4ZM3 22h18v-2H3v2Z"
-                />
-              </svg>
-            </span>
-
-            <div>
-              <h1>Dashboard tiến độ giải phóng mặt bằng</h1>
-              <p>
-                Tổng hợp kết quả thực hiện theo diện tích, chiều dài tuyến, hộ
-                dân và 05 bước nghiệp vụ GPMB.
-              </p>
-            </div>
+      <section id="usersPanel" class="card users-panel" hidden>
+        <div class="card-heading">
+          <div>
+            <p class="overline">CHỈ DÀNH CHO ADMIN</p>
+            <h3>Quản lý phân quyền tài khoản</h3>
           </div>
-
-          <div class="phase-filter home-update-chip">
-            <span class="home-update-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm1 5v4.6l3.2 1.9-1 1.7L11 12.7V7h2Z"
-                />
-              </svg>
-            </span>
-            <span id="dashboardUpdatedAt">Đang tải dữ liệu...</span>
+          <button id="closeUsersBtn" class="btn btn-ghost" type="button">
+            ✕ Đóng
+          </button>
+        </div>
+        <p class="muted">
+          Giai đoạn đầu, tạo email và mật khẩu ở Firebase Authentication trước,
+          sau đó lấy <strong>UID</strong> để cấp quyền tại đây. Chức năng này
+          không tạo hoặc xóa tài khoản Authentication.
+        </p>
+        <form id="userForm" class="user-form">
+          <div class="field">
+            <label for="profileUid">Firebase Authentication UID</label
+            ><input
+              id="profileUid"
+              type="text"
+              maxlength="128"
+              required
+              placeholder="UID tài khoản đã tạo"
+            />
           </div>
-        </section>
-
-        <!-- =================================================
-             5. BA CỤM KPI CHÍNH
-        ================================================== -->
-        <section class="home-kpi-grid" aria-label="Các chỉ số tổng quan">
-          <!-- DIỆN TÍCH -->
-          <article class="home-kpi-panel home-kpi-panel-area">
-            <div class="home-kpi-panel-header">
-              <div class="home-kpi-heading">
-                <span class="home-kpi-index">1</span>
-                <div>
-                  <h2>Diện tích cần thu hồi</h2>
-                  <span>Đơn vị: ha</span>
-                </div>
-              </div>
-
-              <span
-                class="home-kpi-symbol home-kpi-symbol-blue"
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M4 18 9 5l4 7 3-4 4 10H4Zm4.8-3.5 2.1-5.4L13.8 14l1.8-2.4 1.2 2.9h-8Z"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <div class="home-kpi-metrics home-kpi-metrics-four">
-              <div class="home-mini-metric">
-                <span>Tổng diện tích</span>
-                <strong><span id="totalArea">0</span><small> ha</small></strong>
-              </div>
-
-              <div class="home-mini-metric is-success">
-                <span>Đã thu hồi</span>
-                <strong
-                  ><span id="recoveredArea">0</span><small> ha</small></strong
-                >
-              </div>
-
-              <div class="home-mini-metric is-warning">
-                <span>Còn lại</span>
-                <strong
-                  ><span id="remainingArea">0</span><small> ha</small></strong
-                >
-              </div>
-
-              <div class="home-mini-metric home-mini-metric-rate">
-                <span>Hoàn thành</span>
-                <strong><span id="areaPercent">0</span><small>%</small></strong>
-              </div>
-            </div>
-
-            <div class="home-panel-progress">
-              <div class="home-panel-progress-label">
-                <span>Tiến độ thu hồi diện tích</span>
-                <strong id="areaProgressText">0%</strong>
-              </div>
-
-              <div class="progress">
-                <div
-                  class="progress-bar"
-                  id="areaProgressBar"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-          </article>
-
-          <!-- CHIỀU DÀI TUYẾN -->
-          <article class="home-kpi-panel home-kpi-panel-length">
-            <div class="home-kpi-panel-header">
-              <div class="home-kpi-heading">
-                <span class="home-kpi-index">2</span>
-                <div>
-                  <h2>Chiều dài tuyến</h2>
-                  <span>Đơn vị: km</span>
-                </div>
-              </div>
-
-              <span
-                class="home-kpi-symbol home-kpi-symbol-green"
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M7 21h10l-1.3-5H8.3L7 21Zm2-7h6l-1-4h-4l-1 4Zm2-6h2l-.8-5h-.4L11 8ZM4 21h2l1.6-6H5.8L4 21Zm14 0h2l-1.8-6h-1.8L18 21Z"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <div class="home-kpi-metrics home-kpi-metrics-four">
-              <div class="home-mini-metric">
-                <span>Tổng chiều dài</span>
-                <strong
-                  ><span id="totalLength">0</span><small> km</small></strong
-                >
-              </div>
-
-              <div class="home-mini-metric is-success">
-                <span>Đã bàn giao</span>
-                <strong
-                  ><span id="deliveredLength">0</span><small> km</small></strong
-                >
-              </div>
-
-              <div class="home-mini-metric is-warning">
-                <span>Còn vướng</span>
-                <strong
-                  ><span id="remainingLength">0</span><small> km</small></strong
-                >
-              </div>
-
-              <div class="home-mini-metric home-mini-metric-rate">
-                <span>Hoàn thành</span>
-                <strong
-                  ><span id="lengthPercent">0</span><small>%</small></strong
-                >
-              </div>
-            </div>
-
-            <div class="home-panel-progress">
-              <div class="home-panel-progress-label">
-                <span>Tiến độ bàn giao tuyến</span>
-                <strong id="lengthProgressText">0%</strong>
-              </div>
-
-              <div class="progress">
-                <div
-                  class="progress-bar"
-                  id="lengthProgressBar"
-                  style="width: 0%"
-                ></div>
-              </div>
-            </div>
-          </article>
-
-          <!-- HỘ DÂN / TỔ CHỨC -->
-          <article class="home-kpi-panel home-kpi-panel-household">
-            <div class="home-kpi-panel-header">
-              <div class="home-kpi-heading">
-                <span class="home-kpi-index">3</span>
-                <div>
-                  <h2>Hộ dân / tổ chức bị ảnh hưởng</h2>
-                  <span>Theo tình trạng thực hiện</span>
-                </div>
-              </div>
-
-              <span
-                class="home-kpi-symbol home-kpi-symbol-cyan"
-                aria-hidden="true"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M8 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm8-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 13c-4 0-7 2-7 4.7V21h14v-3.3C15 15 12 13 8 13Zm8 0c-.5 0-1 .1-1.5.1 1.5 1.1 2.5 2.7 2.5 4.6V21h6v-2.8c0-3-3-5.2-7-5.2Z"
-                  />
-                </svg>
-              </span>
-            </div>
-
-            <div class="home-household-total-row">
-              <span>Tổng số bị ảnh hưởng</span>
-              <strong id="totalHouseholds">0</strong>
-            </div>
-
-            <div class="home-household-status-grid">
-              <div class="home-status-item is-approved">
-                <span>Đã phê duyệt</span>
-                <strong id="approvedHouseholds">0</strong>
-              </div>
-
-              <div class="home-status-item is-paid">
-                <span>Đã nhận tiền</span>
-                <strong id="paidHouseholds">0</strong>
-              </div>
-
-              <div class="home-status-item is-handed">
-                <span>Đã bàn giao MB</span>
-                <strong id="handedOverHouseholds">0</strong>
-              </div>
-
-              <div class="home-status-item is-alert">
-                <span>Chưa đồng ý</span>
-                <strong id="notAgreedHouseholds">0</strong>
-              </div>
-            </div>
-          </article>
-        </section>
-
-        <!-- =================================================
-             6. TIẾN ĐỘ THEO QUY TRÌNH
-             Đợt 1 giữ nguyên logic render hiện tại.
-        ================================================== -->
-        <section
-          class="dashboard-section home-dashboard-section"
-          id="workflowProgressSection"
-        >
-          <div class="section-title home-section-title">
-            <div>
-              <span class="home-section-eyebrow">QUY TRÌNH NGHIỆP VỤ</span>
-              <h2>Tiến độ theo quy trình GPMB</h2>
-              <p class="section-description">
-                Tổng hợp mức độ hoàn thành của 05 bước nghiệp vụ.
-              </p>
-            </div>
-
-            <a href="progress.html" class="home-section-link">
-              Xem chi tiết
-              <span aria-hidden="true">→</span>
-            </a>
+          <div class="field">
+            <label for="profileName">Tên hiển thị</label
+            ><input
+              id="profileName"
+              type="text"
+              maxlength="100"
+              required
+              placeholder="Người nhập liệu"
+            />
           </div>
-
-          <div class="phase-grid workflow-dashboard-grid" id="workflowCards">
-            <div class="phase-note">Đang tải tiến độ quy trình...</div>
+          <div class="field">
+            <label for="profileEmail">Email (để đối chiếu)</label
+            ><input
+              id="profileEmail"
+              type="email"
+              maxlength="254"
+              required
+              placeholder="email@example.com"
+            />
           </div>
-        </section>
-
-        <!-- =================================================
-             7. ĐIỂM NGHẼN / CẢNH BÁO + XẾP HẠNG ĐƠN VỊ
-             Đợt 3: chỉ tổng hợp từ dữ liệu hiện có.
-        ================================================== -->
-        <section class="home-insight-grid" id="dashboardInsightsSection">
-          <!-- ĐIỂM NGHẼN / CẢNH BÁO -->
-          <article
-            class="dashboard-section home-dashboard-section home-insight-card home-alert-panel"
-          >
-            <div class="section-title home-section-title home-insight-title">
-              <div>
-                <span class="home-section-eyebrow">CẦN CHÚ Ý</span>
-                <h2>Điểm nghẽn / Cảnh báo</h2>
-                <p class="section-description">
-                  Tổng hợp tự động từ số liệu nghiệp vụ và nội dung ghi chú của
-                  các đơn vị.
-                </p>
-              </div>
-
-              <a href="progress.html" class="home-section-link">
-                Xem chi tiết
-                <span aria-hidden="true">→</span>
-              </a>
-            </div>
-
-            <div id="dashboardAlerts" class="home-alert-list">
-              <div class="home-insight-empty">Đang tổng hợp cảnh báo...</div>
-            </div>
-          </article>
-
-          <!-- XẾP HẠNG ĐƠN VỊ -->
-          <article
-            class="dashboard-section home-dashboard-section home-insight-card home-ranking-panel"
-          >
-            <div class="section-title home-section-title home-insight-title">
-              <div>
-                <span class="home-section-eyebrow">SO SÁNH KẾT QUẢ</span>
-                <h2>Xếp hạng tiến độ bàn giao</h2>
-                <p class="section-description">
-                  Xếp theo tỷ lệ số hộ / tổ chức đã bàn giao mặt bằng.
-                </p>
-              </div>
-
-              <span class="home-ranking-unit">Theo % bàn giao</span>
-            </div>
-
-            <div id="unitRanking" class="home-ranking-list">
-              <div class="home-insight-empty">Đang tổng hợp xếp hạng...</div>
-            </div>
-          </article>
-        </section>
-
-        <!-- =================================================
-             8. TIẾN ĐỘ THEO ĐƠN VỊ
-        ================================================== -->
-        <section
-          class="dashboard-section home-dashboard-section"
-          id="unitProgressSection"
-        >
-          <div class="section-title home-section-title">
-            <div>
-              <span class="home-section-eyebrow">SO SÁNH ĐƠN VỊ</span>
-              <h2>Tiến độ theo đơn vị</h2>
-              <p class="section-description">
-                So sánh mức độ thực hiện từng bước giữa các xã, phường và đơn vị
-                tham gia dự án.
-              </p>
-            </div>
-
-            <span class="section-unit" id="unitCountText">0 đơn vị</span>
+          <div class="field">
+            <label for="profileRole">Vai trò</label
+            ><select id="profileRole">
+              <option value="nhaplieu_xa">Nhập liệu xã, phường</option>
+              <option value="nhaplieu">Nhập liệu tỉnh và các xã</option>
+              <option value="admin">Quản trị viên</option>
+            </select>
           </div>
-
-          <div class="workflow-table-wrap home-table-wrap">
-            <table class="workflow-unit-table">
-              <thead>
-                <tr>
-                  <th>STT</th>
-                  <th>Đơn vị</th>
-                  <th>Kiểm đếm</th>
-                  <th>Bồi thường</th>
-                  <th>Hỗ trợ</th>
-                  <th>Tái định cư</th>
-                  <th>Bàn giao</th>
-                </tr>
-              </thead>
-
-              <tbody id="unitProgressBody">
-                <tr>
-                  <td colspan="7" class="workflow-table-empty">
-                    Đang tải dữ liệu...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div class="field">
+            <label for="profileUnit">Đơn vị được giao</label
+            ><select id="profileUnit"></select>
           </div>
-        </section>
-      </div>
+          <div class="field checkbox-field">
+            <label
+              ><input type="checkbox" id="profileActive" checked /> Tài khoản
+              đang hoạt động</label
+            >
+          </div>
+          <button class="btn btn-primary" type="submit">Lưu phân quyền</button>
+        </form>
+        <h4>Danh sách phân quyền đã lưu</h4>
+        <div class="table-scroll">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>Tên / Email</th>
+                <th>UID</th>
+                <th>Vai trò</th>
+                <th>Đơn vị</th>
+                <th>Trạng thái</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p>
+          HỆ THỐNG THEO DÕI TIẾN ĐỘ GPMB VÀ BỐ TRÍ TÁI ĐỊNH CƯ · CAO TỐC BẮC KẠN
+          – CAO BẰNG
+        </p>
+        <p>
+          Số liệu được tổng hợp theo từng kỳ báo cáo và được cập nhật bởi tài
+          khoản có thẩm quyền.
+        </p>
+      </footer>
     </main>
 
-    <!-- =====================================================
-         9. FOOTER
-    ====================================================== -->
-    <footer class="footer home-footer">
-      <div class="container">Hệ thống theo dõi tiến độ giải phóng mặt bằng</div>
-    </footer>
+    <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
+      <form id="loginForm" class="login-form">
+        <button
+          id="closeLoginBtn"
+          class="dialog-close"
+          type="button"
+          aria-label="Đóng"
+        >
+          ✕
+        </button>
+        <p class="overline">KHU VỰC DÀNH CHO CÁN BỘ</p>
+        <h3 id="loginTitle">Đăng nhập hệ thống</h3>
+        <p class="muted">
+          Khách truy cập có thể xem báo cáo mà không cần đăng nhập.
+        </p>
+        <div class="field">
+          <label for="emailInput">Địa chỉ email</label
+          ><input
+            id="emailInput"
+            type="email"
+            autocomplete="username"
+            required
+          />
+        </div>
+        <div class="field">
+          <label for="passwordInput">Mật khẩu</label
+          ><input
+            id="passwordInput"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+        </div>
+        <p id="loginError" class="error-text" role="alert" hidden></p>
+        <button id="loginSubmitBtn" class="btn btn-primary wide" type="submit">
+          Đăng nhập
+        </button>
+      </form>
+    </dialog>
 
-    <script type="module" src="js/app-workflow.js"></script>
-    <script type="module" src="js/index-auth.js"></script>
+    <script type="module" src="./js/app.js"></script>
   </body>
 </html>
