@@ -1,466 +1,305 @@
 import { auth, db, firebaseReady } from './firebase.js';
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import { collection, doc, getDoc, getDocs, setDoc, serverTimestamp, runTransaction, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {
-  collection, doc, getDoc, getDocs, query, where, setDoc, deleteDoc,
-  serverTimestamp, runTransaction
-} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import {
-  PROVINCE, UNITS, SECTIONS, FIELDS, STATUS_OPTIONS, computed, formatNumber, formatPercent,
-  toNumber, isoWeek, previousWeek, getUnitName, aggregateRows, normalizeRow,
-  statusLabel, validateMetricRow, normalizeReportRowsForWrite
-} from './data.js';
+  UNITS, SECTIONS, FIELDS, STATUS_OPTIONS, computed, formatNumber, formatPercent,
+  toNumber, getUnitName, aggregateRows, normalizeRow, statusLabel,
+  validateMetricRow, hasRowContent, comparableRow, formatUpdatedAt, asDate
+} from './data.js?v=3.1.0';
 
+// V3.1: app.js va data.js duoc dong bo; query version ngan cache JavaScript cu.
 const $ = id => document.getElementById(id);
 const state = {
-  period: isoWeek(), unitId: 'ALL', section: 'gpmb', reports: new Map(),
+  unitId: 'ALL', section: 'gpmb', reports: new Map(),
   user: null, profile: null, editUnitId: null, editorDirty: false,
-  loading: false, requestId: 0, toastTimer: null
+  baseline: {}, loading: false, toastTimer: null, unsubscribe: null
 };
-
 function el(tag, text, className) {
   const node = document.createElement(tag);
   if (text !== undefined && text !== null) node.textContent = String(text);
   if (className) node.className = className;
   return node;
 }
-function makeCell(tr, text, className) {
-  const td = el('td', text, className);
-  tr.appendChild(td);
-  return td;
+function makeCell(tr, value, className) { const cell=el('td',value,className); tr.appendChild(cell); return cell; }
+function option(select, value, label) { const o=el('option',label); o.value=value; select.appendChild(o); }
+function toast(message, type='info') {
+  const node=$('toast'); node.textContent=message;
+  node.className=`notice${type==='error'?' notice-error':''}`; node.hidden=false;
+  clearTimeout(state.toastTimer);
+  state.toastTimer=setTimeout(()=>{node.hidden=true;},9000);
 }
-function option(select, value, label) {
-  const item = el('option', label);
-  item.value = value;
-  select.appendChild(item);
+function errorMessage(err) {
+  if (!navigator.onLine) return 'Không có kết nối Internet.';
+  if (err?.code==='permission-denied') return 'Firestore từ chối ghi. Kiểm tra đã Publish firestore.rules V3 và quyền đơn vị.';
+  if (['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(err?.code)) return 'Email hoặc mật khẩu không đúng.';
+  if (err?.code==='auth/too-many-requests') return 'Đăng nhập đang bị giới hạn do thử nhiều lần.';
+  return err?.message || 'Không thể hoàn thành thao tác.';
 }
-function toast(message, type = 'info') {
-  const node = $('toast');
-  node.textContent = message;
-  node.className = `notice${type === 'error' ? ' notice-error' : ''}`;
-  node.hidden = false;
-  if (state.toastTimer) clearTimeout(state.toastTimer);
-  state.toastTimer = setTimeout(() => { node.hidden = true; }, 8500);
-}
-function errorMessage(error) {
-  if (!navigator.onLine) return 'Không có kết nối mạng. Vui lòng kiểm tra Internet.';
-  const code = error?.code ?? '';
-  if (code === 'permission-denied') return 'Firestore từ chối quyền ghi. Kiểm tra đã Publish file firestore.rules V2.1 và quyền tài khoản.';
-  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') return 'Email hoặc mật khẩu không đúng.';
-  if (code === 'auth/too-many-requests') return 'Đăng nhập bị giới hạn tạm thời do nhiều lần thử. Vui lòng thử lại sau.';
-  if (code === 'auth/invalid-email') return 'Địa chỉ email không hợp lệ.';
-  if (code === 'auth/network-request-failed') return 'Không thể kết nối đến Firebase Authentication.';
-  return error?.message || 'Có lỗi xảy ra. Vui lòng thử lại.';
-}
-function hasEditorRights() {
-  return state.user && state.profile?.active === true && ['admin', 'nhaplieu', 'nhaplieu_xa'].includes(state.profile.role);
-}
-function isAdmin() { return hasEditorRights() && state.profile.role === 'admin'; }
-function canEdit(unitId) {
-  if (!hasEditorRights()) return false;
-  return state.profile.role !== 'nhaplieu_xa' || (unitId !== 'TINH' && unitId === state.profile.unitId);
+function hasEditorRights() { return !!state.user && state.profile?.active===true && ['admin','nhaplieu','nhaplieu_xa'].includes(state.profile.role); }
+function isAdmin() { return hasEditorRights() && state.profile.role==='admin'; }
+function canEdit(id) {
+  return hasEditorRights() && UNITS.some(u=>u.id===id) &&
+    (state.profile.role!=='nhaplieu_xa' || state.profile.unitId===id);
 }
 function editableUnits() {
-  return state.profile?.role === 'nhaplieu_xa'
-    ? UNITS.filter(unit => unit.id === state.profile.unitId)
-    : [PROVINCE, ...UNITS];
+  return state.profile?.role==='nhaplieu_xa' ? UNITS.filter(u=>u.id===state.profile.unitId) : UNITS;
 }
 function currentReportRows() {
-  if (state.unitId === 'ALL') {
-    const reports = UNITS.map(unit => state.reports.get(unit.id)).filter(Boolean);
-    return aggregateRows(reports);
-  }
-  return state.reports.get(state.unitId)?.rows ?? {};
+  if (state.unitId!=='ALL') return state.reports.get(state.unitId)?.rows ?? {};
+  return aggregateRows(UNITS.map(u=>state.reports.get(u.id)).filter(Boolean));
 }
-function createNumberCell(tr, value, strong = false) {
-  return makeCell(tr, formatNumber(value), strong ? 'value-strong' : '');
+function latestTimeForSection(report, section=state.section) {
+  const times=SECTIONS[section].items.map(m=>asDate(report?.rows?.[m.id]?.updatedAt)).filter(Boolean);
+  return times.length ? new Date(Math.max(...times.map(d=>d.getTime()))) : null;
 }
-function statusCell(tr, status) {
-  const td = makeCell(tr);
-  const kind = status === 'da_hoan_thanh' ? ' completed'
-    : status === 'dang_thuc_hien' ? ' in-progress'
-      : status === 'chua_thuc_hien' ? ' missing' : ' unknown';
-  td.appendChild(el('span', statusLabel(status), `status-pill${kind}`));
-  return td;
+function hasSectionRows(report, section=state.section) {
+  return SECTIONS[section].items.some(m=>hasRowContent(report?.rows?.[m.id]));
+}
+function statusCell(tr, status, labelOverride) {
+  const cell=makeCell(tr);
+  const kind=status==='da_hoan_thanh'?' completed':status==='dang_thuc_hien'?' in-progress':status==='chua_thuc_hien'?' missing':' unknown';
+  cell.appendChild(el('span', labelOverride || statusLabel(status),`status-pill${kind}`));
+  return cell;
 }
 function renderTable() {
-  const section = SECTIONS[state.section];
-  const rows = currentReportRows();
-  $('sectionTitle').textContent = section.title;
-  const body = $('metricsBody');
-  body.replaceChildren();
+  const section=SECTIONS[state.section]; const rows=currentReportRows();
+  $('sectionTitle').textContent=section.title;
+  $('metricsBody').replaceChildren();
   for (const metric of section.items) {
-    const row = normalizeRow(rows[metric.id]);
-    const derived = computed(row);
-    const tr = el('tr');
-    makeCell(tr, metric.number);
-    makeCell(tr, metric.label, 'metric-name');
-    makeCell(tr, metric.unit);
-    createNumberCell(tr, toNumber(row.target));
-    createNumberCell(tr, derived.completed);
-    createNumberCell(tr, derived.remaining);
-    const td = makeCell(tr, formatPercent(derived.percentage), 'value-strong');
-    if (derived.percentage !== null) {
-      const track = el('div', undefined, 'progress-track');
-      const fill = el('div', undefined, 'progress-fill');
-      fill.style.width = `${Math.min(100, Math.max(0, derived.percentage))}%`;
-      track.appendChild(fill);
-      td.appendChild(track);
+    const row=normalizeRow(rows[metric.id]); const calc=computed(row); const tr=el('tr');
+    makeCell(tr,metric.number); makeCell(tr,metric.label,'metric-name'); makeCell(tr,metric.unit);
+    makeCell(tr,formatNumber(toNumber(row.target)));
+    makeCell(tr,formatNumber(calc.completed));
+    makeCell(tr,formatNumber(calc.remaining),'value-strong');
+    const td=makeCell(tr,formatPercent(calc.percentage),'value-strong');
+    if (calc.percentage!==null) {
+      const track=el('div',undefined,'progress-track'); const fill=el('div',undefined,'progress-fill');
+      fill.style.width=`${Math.min(100,Math.max(0,calc.percentage))}%`;
+      track.appendChild(fill); td.appendChild(track);
     }
-    statusCell(tr, row.status);
-    const note = makeCell(tr, row.note?.trim() || '—', 'note-cell');
-    note.title = row.note?.trim() || '';
-    body.appendChild(tr);
+    const aggregate=state.unitId==='ALL';
+    const insufficient=aggregate && row.coverage!==undefined && row.coverage!==UNITS.length;
+    statusCell(tr,row.status,insufficient?`Chưa đủ dữ liệu (${row.coverage}/10)`:null);
+    const notes=makeCell(tr,row.note?.trim()||'—','note-cell'); notes.title=row.note?.trim()||'';
+    const updateCell=makeCell(tr,formatUpdatedAt(row.updatedAt),'update-cell');
+    if (aggregate && row.coverage!==undefined) {
+      updateCell.appendChild(el('small',`${row.coverage}/10 xã có số liệu`,'coverage-caption'));
+      updateCell.title='Lần cập nhật gần nhất của chỉ tiêu trong số 10 xã, phường';
+    }
+    $('metricsBody').appendChild(tr);
   }
 }
-function statCard(label, value, description) {
-  const card = el('article', undefined, 'stat-card');
-  card.append(el('div', label, 'stat-label'), el('div', value, 'stat-number'), el('div', description, 'stat-caption'));
+function statCard(label,value,caption) {
+  const card=el('article',undefined,'stat-card');
+  card.append(el('div',label,'stat-label'),el('div',value,'stat-number'),el('div',caption,'stat-caption'));
   return card;
 }
 function renderStats() {
-  const section = SECTIONS[state.section];
-  const rows = currentReportRows();
-  const isAll = state.unitId === 'ALL';
-  const report = state.reports.get(state.unitId);
-  const count = isAll ? UNITS.filter(unit => state.reports.has(unit.id)).length : Number(!!report);
-  const filled = section.items.filter(metric => {
-    const row = rows[metric.id] && normalizeRow(rows[metric.id]);
-    return row && (FIELDS.some(field => toNumber(row[field]) !== null) || !!row.status || !!row.note?.trim());
-  }).length;
-  const metric1 = section.items.find(item => item.id === section.keyMetrics[0]);
-  const metric2 = section.items.find(item => item.id === section.keyMetrics[1]);
-  const metric3 = section.items.find(item => item.id === section.keyMetrics[2]);
-  const first = computed(rows[metric1.id]);
-  const second = computed(rows[metric2.id]);
-  const third = computed(rows[metric3.id]);
-  const cards = [
-    statCard('Đơn vị đã có báo cáo', isAll ? `${count}/10` : count ? 'Đã báo cáo' : 'Chưa có', isAll ? 'Trong 10 xã, phường' : getUnitName(state.unitId)),
-    statCard('Chỉ tiêu đã cập nhật', `${filled}/${section.items.length}`, 'Chỉ tiêu có dữ liệu hoặc kiến nghị'),
-    statCard(metric1.label, `${formatNumber(first.completed)} ${first.completed !== null ? metric1.unit : ''}`, 'Đã thực hiện lũy kế đến kỳ này'),
-    statCard(metric2.label, `${formatNumber(second.completed)} ${second.completed !== null ? metric2.unit : ''}`, third.completed === null ? 'Theo báo cáo hiện có' : `${metric3.label}: ${formatNumber(third.completed)} ${metric3.unit}`)
-  ];
-  $('statsCards').replaceChildren(...cards);
-  const scope = state.unitId === 'ALL' ? `Tổng hợp ${count}/10 xã, phường đã có báo cáo` : getUnitName(state.unitId);
-  $('dataCoverage').textContent = `${scope} · Kỳ ${state.period} · ${filled}/${section.items.length} chỉ tiêu có thông tin`;
+  const rows=currentReportRows(), section=SECTIONS[state.section], isAll=state.unitId==='ALL';
+  const count=UNITS.filter(u=>hasSectionRows(state.reports.get(u.id))).length;
+  const hasUnitData=hasSectionRows(state.reports.get(state.unitId));
+  const filled=section.items.filter(m=>hasRowContent(rows[m.id])).length;
+  const [first,second]=section.keyMetrics.map(id=>section.items.find(m=>m.id===id));
+  const calc1=computed(rows[first.id]),calc2=computed(rows[second.id]);
+  $('statsCards').replaceChildren(
+    statCard('Xã, phường đã cập nhật',isAll?`${count}/10`:(hasUnitData?'Đã có dữ liệu':'Chưa có'),isAll?'Trên toàn tuyến':getUnitName(state.unitId)),
+    statCard('Chỉ tiêu có dữ liệu',`${filled}/${section.items.length}`,isAll?'Số liệu tổng hợp từ các xã':'Thông tin hiện có'),
+    statCard(first.label,`${formatNumber(calc1.completed)}${calc1.completed===null?'':` ${first.unit}`}`,'Lũy kế tại thời điểm xem'),
+    statCard(second.label,`${formatNumber(calc2.completed)}${calc2.completed===null?'':` ${second.unit}`}`,'Các xã có thể cập nhật bất kỳ lúc nào')
+  );
+  const label=isAll?`Toàn tuyến · ${count}/10 xã, phường có dữ liệu`:`${getUnitName(state.unitId)} · Dữ liệu hiện tại`;
+  $('dataCoverage').textContent=`${label} · ${filled}/${section.items.length} chỉ tiêu có thông tin`;
 }
 function renderOverview() {
-  const visible = state.unitId === 'ALL';
-  $('overviewCard').hidden = !visible;
-  if (!visible) return;
-  const section = SECTIONS[state.section];
-  const [key1, key2] = section.keyMetrics;
-  const metric1 = section.items.find(item => item.id === key1);
-  const metric2 = section.items.find(item => item.id === key2);
-  $('overviewTitle').textContent = `Tình hình từng xã, phường – ${section.shortTitle}`;
-  const headerRow = el('tr');
-  for (const title of ['STT', 'Xã, phường', 'Tình trạng báo cáo', `${metric1.label} (${metric1.unit})`, `${metric2.label} (${metric2.unit})`, 'Tiến độ chỉ tiêu đầu (%)']) {
-    headerRow.appendChild(el('th', title));
-  }
-  $('overviewHead').replaceChildren(headerRow);
-  const body = $('overviewBody');
-  body.replaceChildren();
-  UNITS.forEach((unit, index) => {
-    const report = state.reports.get(unit.id);
-    const row1 = report?.rows?.[key1] ?? {};
-    const row2 = report?.rows?.[key2] ?? {};
-    const first = computed(row1);
-    const second = computed(row2);
-    const percentage = first.percentage;
-    const tr = el('tr');
-    makeCell(tr, index + 1);
-    makeCell(tr, unit.name);
-    const status = makeCell(tr);
-    status.appendChild(el('span', report ? 'Đã có báo cáo' : 'Chưa báo cáo', `status-pill${report ? '' : ' missing'}`));
-    makeCell(tr, formatNumber(first.completed));
-    makeCell(tr, formatNumber(second.completed));
-    makeCell(tr, formatPercent(percentage));
-    body.appendChild(tr);
+  const visible=state.unitId==='ALL'; $('overviewCard').hidden=!visible; if(!visible)return;
+  const section=SECTIONS[state.section];
+  const [m1,m2]=section.keyMetrics.map(id=>section.items.find(m=>m.id===id));
+  $('overviewTitle').textContent=`Tình hình từng xã, phường – ${section.shortTitle}`;
+  const header=el('tr');
+  for (const label of ['STT','Xã, phường','Tình trạng dữ liệu',`${m1.label} (${m1.unit})`,`${m2.label} (${m2.unit})`,'Tiến độ chỉ tiêu đầu (%)','Cập nhật gần nhất']) header.appendChild(el('th',label));
+  $('overviewHead').replaceChildren(header); $('overviewBody').replaceChildren();
+  UNITS.forEach((unit,index)=>{
+    const report=state.reports.get(unit.id),a=computed(report?.rows?.[m1.id]),b=computed(report?.rows?.[m2.id]);
+    const tr=el('tr'); makeCell(tr,index+1); makeCell(tr,unit.name);
+    statusCell(tr,'',hasSectionRows(report)?'Đã có dữ liệu':'Chưa có dữ liệu');
+    makeCell(tr,formatNumber(a.completed)); makeCell(tr,formatNumber(b.completed));
+    makeCell(tr,formatPercent(a.percentage));
+    makeCell(tr,formatUpdatedAt(latestTimeForSection(report)));
+    $('overviewBody').appendChild(tr);
   });
 }
 function renderDashboard() {
-  $('gpmbTab').classList.toggle('active', state.section === 'gpmb');
-  $('tdcTab').classList.toggle('active', state.section === 'tdc');
-  $('gpmbTab').setAttribute('aria-selected', String(state.section === 'gpmb'));
-  $('tdcTab').setAttribute('aria-selected', String(state.section === 'tdc'));
-  renderStats();
-  renderTable();
-  renderOverview();
+  $('gpmbTab').classList.toggle('active',state.section==='gpmb');
+  $('tdcTab').classList.toggle('active',state.section==='tdc');
+  $('gpmbTab').setAttribute('aria-selected',String(state.section==='gpmb'));
+  $('tdcTab').setAttribute('aria-selected',String(state.section==='tdc'));
+  renderStats(); renderTable(); renderOverview();
 }
-async function loadReports() {
-  if (!firebaseReady) { renderDashboard(); return; }
-  const requestId = ++state.requestId;
-  const requestedPeriod = state.period;
-  state.loading = true;
-  $('refreshBtn').disabled = true;
-  $('refreshBtn').textContent = 'Đang tải...';
+function startLiveReports() {
+  if (!firebaseReady)return;
+  if (state.unsubscribe) state.unsubscribe();
+  state.loading=true;
+  $('refreshBtn').textContent='Đang kết nối...'; $('refreshBtn').disabled=true;
+  state.unsubscribe=onSnapshot(collection(db,'progress'),snapshot=>{
+    const reports=new Map();
+    for(const item of snapshot.docs) if(UNITS.some(u=>u.id===item.id)) reports.set(item.id,item.data());
+    state.reports=reports;
+    state.loading=false; $('refreshBtn').disabled=false; $('refreshBtn').textContent='↻ Làm mới';
+    renderDashboard();
+  },err=>{
+    state.loading=false; $('refreshBtn').disabled=false; $('refreshBtn').textContent='↻ Làm mới';
+    toast(`Không tải được dữ liệu: ${errorMessage(err)}`,'error');
+  });
+}
+async function refreshData() {
+  if (!firebaseReady)return;
   try {
-    const results = await getDocs(query(collection(db, 'reports'), where('period', '==', requestedPeriod)));
-    // Khi đổi tuần liên tiếp, bỏ kết quả của yêu cầu cũ đến muộn.
-    if (requestId !== state.requestId) return;
-    state.reports = new Map(results.docs.map(item => [item.data().unitId, item.data()]));
-    renderDashboard();
-  } catch (error) {
-    if (requestId !== state.requestId) return;
-    state.reports = new Map();
-    renderDashboard();
-    toast(`Không tải được số liệu: ${errorMessage(error)}`, 'error');
-  } finally {
-    if (requestId === state.requestId) {
-      state.loading = false;
-      $('refreshBtn').disabled = false;
-      $('refreshBtn').textContent = '↻ Làm mới';
-    }
-  }
+    // Luôn nhận dữ liệu đồng bộ khi nhấn Làm mới, kể cả khi kết nối realtime bị gián đoạn.
+    const snapshot=await getDocs(collection(db,'progress'));
+    state.reports=new Map(snapshot.docs.filter(i=>UNITS.some(u=>u.id===i.id)).map(i=>[i.id,i.data()]));
+    renderDashboard(); toast('Đã tải lại dữ liệu mới nhất.');
+  } catch (err) { toast(`Không làm mới được: ${errorMessage(err)}`,'error'); }
 }
-
 function refreshAuthUI() {
-  const signedIn = !!state.user;
-  $('loginBtn').hidden = signedIn;
-  $('logoutBtn').hidden = !signedIn;
-  $('editBtn').hidden = !hasEditorRights();
-  $('adminPanelBtn').hidden = !isAdmin();
-  $('deleteReportBtn').hidden = !isAdmin() || !state.editUnitId || !state.reports.has(state.editUnitId);
-  const roleLabel = { admin: 'Quản trị viên', nhaplieu: 'Nhập liệu tỉnh và xã', nhaplieu_xa: 'Nhập liệu xã, phường' };
-  $('authLabel').textContent = signedIn
-    ? `${state.profile?.displayName || state.user.email} · ${hasEditorRights() ? roleLabel[state.profile.role] : 'Chưa được cấp quyền nhập liệu'}`
-    : 'Khách truy cập · Chế độ xem';
+  const signedIn=!!state.user;
+  $('loginBtn').hidden=signedIn; $('logoutBtn').hidden=!signedIn;
+  $('editBtn').hidden=!hasEditorRights(); $('adminPanelBtn').hidden=!isAdmin();
+  const labels={admin:'Quản trị viên',nhaplieu:'Nhập liệu toàn tuyến',nhaplieu_xa:'Nhập liệu xã, phường'};
+  $('authLabel').textContent=signedIn?`${state.profile?.displayName||state.user.email} · ${hasEditorRights()?labels[state.profile.role]:'Chưa được cấp quyền nhập liệu'}`:'Khách truy cập · Chế độ xem';
   if (!hasEditorRights()) closeEditor(true);
-  if (!isAdmin()) $('usersPanel').hidden = true;
+  if (!isAdmin()) $('usersPanel').hidden=true;
 }
-function confirmDiscard() { return !state.editorDirty || window.confirm('Dữ liệu nhập chưa lưu. Anh có muốn bỏ những thay đổi này không?'); }
+function confirmDiscard() { return !state.editorDirty || window.confirm('Có thay đổi chưa lưu. Anh có muốn bỏ những thay đổi này không?'); }
+function closeEditor(force=false) {
+  if (!force && !confirmDiscard())return;
+  $('editorPanel').hidden=true; state.editorDirty=false; state.editUnitId=null; state.baseline={};
+}
 async function switchSection(section) {
-  if (state.section === section || !confirmDiscard()) return;
-  state.section = section;
-  renderDashboard();
-  if (!$('editorPanel').hidden) await renderEditorRows();
+  if (state.section===section || !confirmDiscard())return;
+  state.section=section; renderDashboard();
+  if (!$('editorPanel').hidden) renderEditorRows();
 }
-function closeEditor(force = false) {
-  if (!force && !confirmDiscard()) return;
-  $('editorPanel').hidden = true;
-  state.editorDirty = false;
-  state.editUnitId = null;
-  $('deleteReportBtn').hidden = true;
-}
-async function openEditor() {
-  if (!hasEditorRights()) return;
-  const units = editableUnits();
-  if (!units.length) { toast('Tài khoản chưa được gán đơn vị hợp lệ.', 'error'); return; }
-  const selected = units.find(unit => unit.id === state.unitId);
-  state.editUnitId = selected?.id ?? units[0].id;
-  const input = $('editUnitSelect');
-  input.replaceChildren();
-  units.forEach(unit => option(input, unit.id, unit.name));
-  input.value = state.editUnitId;
-  $('editorPanel').hidden = false;
-  $('deleteReportBtn').hidden = !isAdmin() || !state.reports.has(state.editUnitId);
-  await renderEditorRows();
-  $('editorPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+function openEditor() {
+  if (!hasEditorRights())return;
+  const units=editableUnits(); if(!units.length){toast('Chưa được gán đơn vị hợp lệ.','error');return;}
+  state.editUnitId=units.find(u=>u.id===state.unitId)?.id ?? units[0].id;
+  $('editUnitSelect').replaceChildren(); units.forEach(u=>option($('editUnitSelect'),u.id,u.name));
+  $('editUnitSelect').value=state.editUnitId;
+  $('editorPanel').hidden=false; renderEditorRows();
+  $('editorPanel').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function readInputRow(tr) {
-  const result = {};
-  for (const field of FIELDS) {
-    const input = tr.querySelector(`[data-field="${field}"]`);
-    const value = input.value.trim();
-    result[field] = input.validity.badInput ? NaN : value === '' ? null : Number(value);
+  const r={};
+  for(const field of FIELDS){
+    const input=tr.querySelector(`[data-field="${field}"]`),s=input.value.trim();
+    r[field]=input.validity.badInput?NaN:(s===''?null:Number(s));
   }
-  result.status = tr.querySelector('[data-field="status"]').value;
-  result.note = tr.querySelector('[data-field="note"]').value.trim();
-  return result;
+  r.status=tr.querySelector('[data-field="status"]').value;
+  r.note=tr.querySelector('[data-field="note"]').value.trim();
+  return r;
 }
 function updatePreview(tr) {
-  const row = readInputRow(tr);
-  const result = computed(row);
-  tr.querySelector('[data-computed="remaining"]').textContent = formatNumber(result.remaining);
-  tr.querySelector('[data-computed="percentage"]').textContent = formatPercent(result.percentage);
-  const metric = SECTIONS[state.section].items.find(item => item.id === tr.dataset.metric);
-  const error = validateMetricRow(row, metric);
-  tr.classList.toggle('invalid-row', !!error);
-  const feedback = tr.querySelector('[data-feedback]');
-  feedback.textContent = error ? error.replace(/^Chỉ tiêu [0-9]+ \([^)]+\): /, '') : '';
-  feedback.hidden = !error;
-  for (const field of FIELDS) {
-    const input = tr.querySelector(`[data-field="${field}"]`);
-    input.setAttribute('aria-invalid', String(!!error));
-  }
+  const row=readInputRow(tr),calc=computed(row);
+  tr.querySelector('[data-computed="remaining"]').textContent=formatNumber(calc.remaining);
+  tr.querySelector('[data-computed="percentage"]').textContent=formatPercent(calc.percentage);
+  const metric=SECTIONS[state.section].items.find(m=>m.id===tr.dataset.metric);
+  const error=validateMetricRow(row,metric); tr.classList.toggle('invalid-row',!!error);
+  const feedback=tr.querySelector('[data-feedback]');
+  feedback.textContent=error?error.replace(/^Chỉ tiêu [0-9]+ \([^)]+\): /,''):''; feedback.hidden=!error;
+  for(const field of FIELDS) tr.querySelector(`[data-field="${field}"]`).setAttribute('aria-invalid',String(!!error));
 }
-async function renderEditorRows() {
-  const unitId = state.editUnitId;
-  const period = state.period;
-  const sectionId = state.section;
-  $('deleteReportBtn').hidden = !isAdmin() || !state.reports.has(unitId);
-  const currentRows = state.reports.get(unitId)?.rows ?? {};
-  const body = $('editRows');
-  body.replaceChildren();
-  $('editTitle').textContent = `${SECTIONS[sectionId].shortTitle} · ${period}`;
-  $('lastWeekNote').textContent = 'Đang kiểm tra báo cáo tuần trước...';
-  let previousRows = {};
-  try {
-    const prevPeriod = previousWeek(period);
-    const prev = await getDoc(doc(db, 'reports', `${prevPeriod}_${unitId}`));
-    previousRows = prev.exists() ? prev.data().rows ?? {} : {};
-    $('lastWeekNote').textContent = prev.exists()
-      ? `Có báo cáo tuần ${prevPeriod} để tham khảo. Dữ liệu gợi ý được phép sửa.`
-      : `Chưa có báo cáo tuần ${prevPeriod}.`;
-  } catch (error) {
-    $('lastWeekNote').textContent = 'Không truy xuất được báo cáo tuần trước; anh vẫn có thể nhập trực tiếp.';
-  }
-  if (state.editUnitId !== unitId || state.period !== period || state.section !== sectionId || $('editorPanel').hidden) return;
-  for (const metric of SECTIONS[sectionId].items) {
-    const existing = currentRows[metric.id];
-    const previous = previousRows[metric.id] ? normalizeRow(previousRows[metric.id]) : null;
-    const values = existing ? normalizeRow(existing) : previous
-      ? { ...previous, note: '' } : { target: null, completed: null, status: '', note: '' };
-    const tr = el('tr');
-    tr.dataset.metric = metric.id;
-    makeCell(tr, metric.number);
-    makeCell(tr, metric.label, 'metric-name');
-    makeCell(tr, metric.unit);
-    for (const field of FIELDS) {
-      const td = makeCell(tr);
-      const input = el('input');
-      input.type = 'number';
-      input.step = 'any';
-      input.min = '0';
-      input.max = '1000000000000';
-      input.inputMode = 'decimal';
-      input.dataset.field = field;
-      input.setAttribute('aria-label', `${metric.label} - ${field === 'target' ? 'Tổng phải thực hiện' : 'Đã thực hiện'}`);
-      input.value = values[field] === null || values[field] === undefined ? '' : String(values[field]);
-      input.addEventListener('input', () => { state.editorDirty = true; updatePreview(tr); });
+function renderEditorRows() {
+  const section=SECTIONS[state.section]; const old=state.reports.get(state.editUnitId)?.rows ?? {};
+  state.baseline={}; $('editTitle').textContent=`${section.shortTitle} · cập nhật thường xuyên`;
+  $('lastWeekNote').textContent='Chỉ tiêu đã lưu sẽ được điền sẵn. Thời gian cập nhật tính riêng cho từng chỉ tiêu.';
+  $('editRows').replaceChildren();
+  for(const m of section.items){
+    const existing=normalizeRow(old[m.id]); state.baseline[m.id]=existing;
+    const tr=el('tr'); tr.dataset.metric=m.id;
+    makeCell(tr,m.number);makeCell(tr,m.label,'metric-name');makeCell(tr,m.unit);
+    for(const field of FIELDS){
+      const td=makeCell(tr),input=el('input'); input.type='number';input.step='any';input.min='0';input.max='1000000000000';
+      input.inputMode='decimal';input.dataset.field=field;input.setAttribute('aria-label',`${m.label} - ${field==='target'?'Tổng':'Đã thực hiện'}`);
+      input.value=existing[field]===null?'':String(existing[field]);
+      input.addEventListener('input',()=>{state.editorDirty=true;updatePreview(tr);});
       td.appendChild(input);
     }
-    for (const key of ['remaining', 'percentage']) {
-      const cell = makeCell(tr, undefined, 'value-strong');
-      cell.dataset.computed = key;
-    }
-    const statusTd = makeCell(tr);
-    const select = el('select');
-    select.dataset.field = 'status';
-    select.setAttribute('aria-label', `Trạng thái - ${metric.label}`);
-    option(select, '', '— Chọn trạng thái —');
-    STATUS_OPTIONS.forEach(item => option(select, item.value, item.label));
-    select.value = values.status;
-    select.addEventListener('change', () => { state.editorDirty = true; updatePreview(tr); });
-    statusTd.appendChild(select);
-    const noteCell = makeCell(tr);
-    const note = el('textarea');
-    note.dataset.field = 'note';
-    note.maxLength = 1500;
-    note.value = values.note ?? '';
-    note.setAttribute('aria-label', `Ghi chú - ${metric.label}`);
-    note.addEventListener('input', () => { state.editorDirty = true; updatePreview(tr); });
-    noteCell.appendChild(note);
-    const feedback = el('p', '', 'row-error');
-    feedback.dataset.feedback = '';
-    feedback.hidden = true;
-    noteCell.appendChild(feedback);
-    body.appendChild(tr);
-    updatePreview(tr);
+    for(const field of ['remaining','percentage']){const td=makeCell(tr,undefined,'value-strong');td.dataset.computed=field;}
+    const statusTd=makeCell(tr),select=el('select');select.dataset.field='status';
+    option(select,'','— Chọn trạng thái —');STATUS_OPTIONS.forEach(s=>option(select,s.value,s.label));select.value=existing.status;
+    select.addEventListener('change',()=>{state.editorDirty=true;updatePreview(tr);});statusTd.appendChild(select);
+    const td=makeCell(tr),note=el('textarea');note.dataset.field='note';note.maxLength=1500;note.value=existing.note;
+    note.setAttribute('aria-label',`Ghi chú - ${m.label}`);note.addEventListener('input',()=>{state.editorDirty=true;updatePreview(tr);});
+    td.appendChild(note);
+    const feedback=el('p','','row-error');feedback.dataset.feedback='';feedback.hidden=true;td.appendChild(feedback);
+    makeCell(tr,formatUpdatedAt(existing.updatedAt),'update-cell');
+    $('editRows').appendChild(tr);updatePreview(tr);
   }
-  state.editorDirty = false;
+  state.editorDirty=false;
 }
 async function saveReport() {
-  if (!canEdit(state.editUnitId)) { toast('Tài khoản không có quyền nhập liệu cho đơn vị này.', 'error'); return; }
-  const unit = [PROVINCE, ...UNITS].find(item => item.id === state.editUnitId);
-  if (!unit) { toast('Đơn vị không hợp lệ.', 'error'); return; }
-  const rows = {};
-  for (const tr of $('editRows').querySelectorAll('tr[data-metric]')) {
-    const metric = SECTIONS[state.section].items.find(item => item.id === tr.dataset.metric);
-    const row = readInputRow(tr);
-    const error = validateMetricRow(row, metric);
-    if (error) {
-      updatePreview(tr);
-      tr.querySelector('[data-field="note"]').closest('td').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      toast(error, 'error');
-      return;
-    }
-    // Chỉ gửi dòng có số liệu/trạng thái/ghi chú, không ghi 14 dòng rỗng.
-    // Các dòng chưa nhập được xem là chưa có thông tin, không phải tiến độ 0%.
-    if (row.target !== null || row.completed !== null || row.status !== '' || row.note.trim() !== '') {
-      rows[metric.id] = row;
-    }
+  if(!canEdit(state.editUnitId)){toast('Không có quyền cập nhật xã, phường này.','error');return;}
+  const unit=UNITS.find(u=>u.id===state.editUnitId);
+  const changed={};
+  for(const tr of $('editRows').querySelectorAll('tr[data-metric]')){
+    const metric=SECTIONS[state.section].items.find(m=>m.id===tr.dataset.metric),row=readInputRow(tr);
+    const error=validateMetricRow(row,metric);
+    if(error){updatePreview(tr);tr.scrollIntoView({behavior:'smooth',block:'center'});toast(error,'error');return;}
+    if(comparableRow(row)!==comparableRow(state.baseline[metric.id])) changed[metric.id]=row;
   }
-  const period = state.period;
-  const reportId = `${period}_${unit.id}`;
-  $('saveBtn').disabled = true;
-  $('saveBtn').textContent = 'Đang lưu...';
+  const ids=Object.keys(changed);
+  if(!ids.length){toast('Không có chỉ tiêu nào thay đổi để lưu.');return;}
+  $('saveBtn').disabled=true;$('saveBtn').textContent='Đang lưu...';
   try {
-    const target = doc(db, 'reports', reportId);
-    await runTransaction(db, async transaction => {
-      const snapshot = await transaction.get(target);
-      // Giữ số liệu ở tab còn lại và chuyển định dạng V1 (nếu còn).
-      const oldRows = snapshot.exists() ? normalizeReportRowsForWrite(snapshot.data().rows ?? {}) : {};
-      // Thay toàn bộ dữ liệu của TAB đang nhập; giữ nguyên TAB còn lại.
-      // Xóa dòng cũ khi người dùng xóa hết nội dung dòng đó.
-      for (const metric of SECTIONS[state.section].items) delete oldRows[metric.id];
-      const mergedRows = { ...oldRows, ...rows };
-      if (!Object.keys(mergedRows).length) {
-        throw new Error('Báo cáo chưa có chỉ tiêu hoặc ghi chú nào để lưu.');
+    const target=doc(db,'progress',unit.id);
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(target);
+      const old=snap.exists()?snap.data().rows??{}:{};
+      for(const id of ids){
+        if(comparableRow(old[id])!==comparableRow(state.baseline[id])){
+          throw new Error(`Chỉ tiêu ${id} vừa được người khác cập nhật. Vui lòng đóng biểu mẫu, mở lại để kiểm tra trước khi lưu.`);
+        }
       }
-      transaction.set(target, {
-        unitId: unit.id,
-        unitName: unit.name,
-        period,
-        rows: mergedRows,
-        updatedBy: state.user.uid,
-        updatedAt: serverTimestamp()
-      });
+      const merged={...old};
+      for(const id of ids){
+        const row=changed[id];
+        if(!hasRowContent(row)){delete merged[id];continue;}
+        merged[id]={...row,updatedAt:serverTimestamp(),updatedBy:state.user.uid};
+      }
+      tx.set(target,{unitId:unit.id,rows:merged,updatedAt:serverTimestamp(),updatedBy:state.user.uid});
     });
-    state.editorDirty = false;
     closeEditor(true);
-    await loadReports();
-    toast(`Đã lưu ${SECTIONS[state.section].shortTitle.toLowerCase()} của ${unit.name}, kỳ ${period}.`);
-  } catch (error) {
-    toast(`Không lưu được báo cáo: ${errorMessage(error)}`, 'error');
-  } finally {
-    $('saveBtn').disabled = false;
-    $('saveBtn').textContent = 'Lưu báo cáo';
-  }
-}
-async function deleteSelectedReport() {
-  if (!isAdmin() || !state.editUnitId || !state.reports.has(state.editUnitId)) return;
-  const unitName = getUnitName(state.editUnitId);
-  if (!window.confirm(`XÓA TOÀN BỘ báo cáo (cả GPMB và tái định cư) của ${unitName}, kỳ ${state.period}? Thao tác này không thể hoàn tác.`)) return;
-  try {
-    await deleteDoc(doc(db, 'reports', `${state.period}_${state.editUnitId}`));
-    closeEditor(true);
-    await loadReports();
-    toast(`Đã xóa báo cáo kỳ ${state.period} của ${unitName}.`);
-  } catch (error) { toast(`Không thể xóa báo cáo: ${errorMessage(error)}`, 'error'); }
+    await refreshData();
+    toast(`Đã cập nhật ${ids.length} chỉ tiêu của ${unit.name}. Các chỉ tiêu khác giữ nguyên.`);
+  }catch(err){toast(`Không lưu được: ${errorMessage(err)}`,'error');}
+  finally{$('saveBtn').disabled=false;$('saveBtn').textContent='Lưu thay đổi';}
 }
 function csvCell(value) {
-  const raw = String(value ?? '');
-  // Không để nội dung ghi chú công khai trở thành công thức khi mở CSV trong Excel.
-  const safe = typeof value === 'string' && /^[=+@\-\t\r]/.test(raw) ? `\'${raw}` : raw;
-  return `"${safe.replaceAll('"', '""')}"`;
+  const raw=String(value??'');
+  const safe=typeof value==='string'&&/^[=+@\-\t\r]/.test(raw)?`'${raw}`:raw;
+  return `"${safe.replaceAll('"','""')}"`;
 }
 function exportCsv() {
-  const section = SECTIONS[state.section];
-  const rows = currentReportRows();
-  const headers = ['STT', 'Chỉ tiêu', 'Đơn vị', 'Tổng phải thực hiện', 'Đã thực hiện', 'Còn lại', '% Hoàn thành', 'Trạng thái', 'Khó khăn, vướng mắc, kiến nghị'];
-  const data = section.items.map(metric => {
-    const row = normalizeRow(rows[metric.id]);
-    const result = computed(row);
-    return [metric.number, metric.label, metric.unit, row.target ?? '', result.completed ?? '', result.remaining ?? '',
-      result.percentage === null ? '' : Number(result.percentage.toFixed(2)), statusLabel(row.status) === '—' ? '' : statusLabel(row.status), row.note ?? ''];
+  const section=SECTIONS[state.section],rows=currentReportRows();
+  const headers=['STT','Chỉ tiêu','Đơn vị','Tổng phải thực hiện','Đã thực hiện','Còn lại','% Hoàn thành','Trạng thái','Khó khăn, vướng mắc, kiến nghị','Thời gian cập nhật','Số xã có số liệu'];
+  const lines=section.items.map(m=>{
+    const r=normalizeRow(rows[m.id]),calc=computed(r);
+    return [m.number,m.label,m.unit,r.target??'',calc.completed??'',calc.remaining??'',
+      calc.percentage===null?'':Number(calc.percentage.toFixed(2)),
+      state.unitId==='ALL'&&r.coverage!==undefined&&r.coverage!==10?'Chưa đủ dữ liệu':(r.status?statusLabel(r.status):''),
+      r.note,formatUpdatedAt(r.updatedAt),state.unitId==='ALL'?(r.coverage??0):''];
   });
-  const fileText = '\ufeff' + [headers, ...data].map(row => row.map(csvCell).join(',')).join('\r\n');
-  const blob = new Blob([fileText], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const anchor = el('a');
-  anchor.href = url;
-  anchor.download = `Bao_cao_${state.section}_${state.unitId}_${state.period}.csv`;
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+  const content='\ufeff'+[headers,...lines].map(line=>line.map(csvCell).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}));
+  const a=el('a');a.href=url;a.download=`Tien_do_hien_tai_${state.section}_${state.unitId}.csv`;
+  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
 }
 function updateProfileUnitControl() {
   const role = $('profileRole').value;
   const select = $('profileUnit');
   if (role !== 'nhaplieu_xa') {
     select.replaceChildren();
-    option(select, 'TINH', 'Không giới hạn theo xã');
+    option(select, 'TINH', 'Nhập liệu toàn tuyến');
     select.disabled = true;
   } else {
     const old = select.value;
@@ -567,83 +406,55 @@ async function login(event) {
   }
 }
 function attachListeners() {
-  const banner = $('siteBanner');
-  const showBannerFallback = () => {
-    banner.hidden = true;
-    $('bannerFallback').hidden = false;
-  };
-  banner.addEventListener('error', showBannerFallback);
-  // Ảnh có thể lỗi trước khi JS module hoàn thành tải.
-  if (banner.complete && banner.naturalWidth === 0) showBannerFallback();
-  $('gpmbTab').addEventListener('click', () => switchSection('gpmb'));
-  $('tdcTab').addEventListener('click', () => switchSection('tdc'));
-  $('refreshBtn').addEventListener('click', () => loadReports());
-  $('exportBtn').addEventListener('click', exportCsv);
-  $('weekSelect').addEventListener('change', async event => {
-    if (!event.target.value) { event.target.value = state.period; return; }
-    if (!confirmDiscard()) { event.target.value = state.period; return; }
-    const requested = event.target.value;
-    if (!/^\d{4}-W\d{2}$/.test(requested)) { toast('Tuần báo cáo không hợp lệ.', 'error'); return; }
-    closeEditor(true);
-    state.period = requested;
-    await loadReports();
+  const banner=$('siteBanner');
+  const fallback=()=>{banner.hidden=true;$('bannerFallback').hidden=false;};
+  banner.addEventListener('error',fallback);
+  if(banner.complete&&banner.naturalWidth===0)fallback();
+  $('gpmbTab').addEventListener('click',()=>switchSection('gpmb'));
+  $('tdcTab').addEventListener('click',()=>switchSection('tdc'));
+  $('refreshBtn').addEventListener('click',refreshData);
+  $('exportBtn').addEventListener('click',exportCsv);
+  $('unitSelect').addEventListener('change',event=>{
+    if(!confirmDiscard()){event.target.value=state.unitId;return;}
+    closeEditor(true);state.unitId=event.target.value;renderDashboard();
   });
-  $('unitSelect').addEventListener('change', event => {
-    if (!confirmDiscard()) { event.target.value = state.unitId; return; }
-    closeEditor(true);
-    state.unitId = event.target.value;
-    renderDashboard();
+  $('loginBtn').addEventListener('click',()=>{$('loginError').hidden=true;$('loginDialog').showModal();});
+  $('closeLoginBtn').addEventListener('click',()=>$('loginDialog').close());
+  $('loginForm').addEventListener('submit',login);
+  $('logoutBtn').addEventListener('click',async()=>{
+    if(!confirmDiscard())return;
+    await signOut(auth);toast('Đã đăng xuất. Dữ liệu công khai vẫn xem được.');
   });
-  $('loginBtn').addEventListener('click', () => { $('loginError').hidden = true; $('loginDialog').showModal(); });
-  $('closeLoginBtn').addEventListener('click', () => $('loginDialog').close());
-  $('loginForm').addEventListener('submit', login);
-  $('logoutBtn').addEventListener('click', async () => {
-    if (!confirmDiscard()) return;
-    await signOut(auth);
-    toast('Đã đăng xuất. Anh vẫn có thể xem dữ liệu công khai.');
+  $('editBtn').addEventListener('click',openEditor);
+  $('closeEditorBtn').addEventListener('click',()=>closeEditor());
+  $('saveBtn').addEventListener('click',saveReport);
+  $('editUnitSelect').addEventListener('change',event=>{
+    if(!confirmDiscard()){event.target.value=state.editUnitId;return;}
+    state.editUnitId=event.target.value;renderEditorRows();
   });
-  $('editBtn').addEventListener('click', openEditor);
-  $('closeEditorBtn').addEventListener('click', () => closeEditor());
-  $('saveBtn').addEventListener('click', saveReport);
-  $('deleteReportBtn').addEventListener('click', deleteSelectedReport);
-  $('editUnitSelect').addEventListener('change', async event => {
-    if (!confirmDiscard()) { event.target.value = state.editUnitId; return; }
-    state.editUnitId = event.target.value;
-    await renderEditorRows();
+  $('adminPanelBtn').addEventListener('click',async()=>{
+    $('usersPanel').hidden=false;await renderProfiles();
+    $('usersPanel').scrollIntoView({behavior:'smooth',block:'start'});
   });
-  $('adminPanelBtn').addEventListener('click', async () => {
-    $('usersPanel').hidden = false;
-    await renderProfiles();
-    $('usersPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-  $('closeUsersBtn').addEventListener('click', () => { $('usersPanel').hidden = true; });
-  $('userForm').addEventListener('submit', saveProfile);
-  $('profileRole').addEventListener('change', updateProfileUnitControl);
+  $('closeUsersBtn').addEventListener('click',()=>{$('usersPanel').hidden=true;});
+  $('userForm').addEventListener('submit',saveProfile);
+  $('profileRole').addEventListener('change',updateProfileUnitControl);
 }
 function init() {
-  $('weekSelect').value = state.period;
-  option($('unitSelect'), 'ALL', 'Tất cả 10 xã, phường (tổng hợp)');
-  option($('unitSelect'), PROVINCE.id, PROVINCE.name + ' (riêng)');
-  UNITS.forEach(unit => option($('unitSelect'), unit.id, unit.name));
-  updateProfileUnitControl();
-  attachListeners();
-  renderDashboard();
-  if (!firebaseReady) {
-    $('configAlert').hidden = false;
-    $('loginBtn').disabled = true;
-    return;
-  }
-  onAuthStateChanged(auth, async user => {
-    state.user = user;
-    state.profile = null;
-    if (user) {
-      try {
-        const snapshot = await getDoc(doc(db, 'users', user.uid));
-        state.profile = snapshot.exists() ? snapshot.data() : null;
-      } catch (error) { toast(`Không đọc được phân quyền: ${errorMessage(error)}`, 'error'); }
+  option($('unitSelect'),'ALL','Toàn tuyến (tự tổng hợp 10 xã, phường)');
+  UNITS.forEach(unit=>option($('unitSelect'),unit.id,unit.name));
+  updateProfileUnitControl(); attachListeners(); renderDashboard();
+  if(!firebaseReady){$('configAlert').hidden=false;$('loginBtn').disabled=true;return;}
+  onAuthStateChanged(auth,async user=>{
+    state.user=user;state.profile=null;
+    if(user){
+      try{
+        const snap=await getDoc(doc(db,'users',user.uid));
+        state.profile=snap.exists()?snap.data():null;
+      }catch(err){toast(`Không đọc được phân quyền: ${errorMessage(err)}`,'error');}
     }
     refreshAuthUI();
   });
-  loadReports();
+  startLiveReports();
 }
 init();

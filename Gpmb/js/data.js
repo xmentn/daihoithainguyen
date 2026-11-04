@@ -1,5 +1,4 @@
-export const PROVINCE = { id: 'TINH', name: 'Báo cáo cấp tỉnh', type: 'Tỉnh' };
-
+// Data module cho Website GPMB V3.1.0 - dong bo voi app.js V3.1.0.
 export const UNITS = [
   { id: 'BAC_KAN', name: 'Phường Bắc Kạn', type: 'Phường' },
   { id: 'DUC_XUAN', name: 'Phường Đức Xuân', type: 'Phường' },
@@ -81,13 +80,13 @@ export function statusLabel(value) {
 
 /** Tương thích đọc các bản ghi cũ V1. Khi lưu V2 sẽ chỉ ghi schema mới. */
 export function normalizeRow(raw = {}) {
-  if (raw == null || typeof raw !== 'object') return { target: null, completed: null, status: '', note: '' };
+  if (raw == null || typeof raw !== 'object') return { target: null, completed: null, status: '', note: '', updatedAt: null, updatedBy: '' };
   if ('completed' in raw || 'status' in raw) {
     return {
       target: raw.target ?? null,
       completed: raw.completed ?? null,
       status: raw.status ?? '',
-      note: raw.note ?? ''
+      note: raw.note ?? '', updatedAt: raw.updatedAt ?? null, updatedBy: raw.updatedBy ?? '', coverage: raw.coverage, totalUnits: raw.totalUnits
     };
   }
   const target = toNumber(raw.target);
@@ -99,7 +98,7 @@ export function normalizeRow(raw = {}) {
     else if (completed === target && target > 0) status = 'da_hoan_thanh';
     else status = 'dang_thuc_hien';
   }
-  return { target, completed, status, note: raw.note ?? '' };
+  return { target, completed, status, note: raw.note ?? '', updatedAt: raw.updatedAt ?? null, updatedBy: raw.updatedBy ?? '', coverage: raw.coverage, totalUnits: raw.totalUnits };
 }
 
 export function computed(raw = {}) {
@@ -157,68 +156,73 @@ export function formatPercent(value) {
     ? '—' : `${value.toLocaleString('vi-VN', { maximumFractionDigits: 2 })}%`;
 }
 
-export function isoWeek(date = new Date()) {
-  const copy = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  copy.setUTCDate(copy.getUTCDate() + 4 - (copy.getUTCDay() || 7));
-  const year = copy.getUTCFullYear();
-  const first = new Date(Date.UTC(year, 0, 1));
-  const week = Math.ceil((((copy - first) / 86400000) + 1) / 7);
-  return `${year}-W${String(week).padStart(2, '0')}`;
-}
-
-export function previousWeek(period) {
-  const match = /^(\d{4})-W(\d{2})$/.exec(period);
-  if (!match) throw new Error('Kỳ báo cáo không hợp lệ.');
-  const year = Number(match[1]);
-  const week = Number(match[2]);
-  const jan4 = new Date(Date.UTC(year, 0, 4));
-  const day = jan4.getUTCDay() || 7;
-  const mondayPrev = new Date(Date.UTC(year, 0, 4 - day + 1 + (week - 2) * 7));
-  return isoWeek(mondayPrev);
-}
-
+/** Mỗi xã/phường một bản ghi, từng chỉ tiêu có mốc cập nhật riêng. */
 export function getUnitName(unitId) {
-  return [PROVINCE, ...UNITS].find(unit => unit.id === unitId)?.name ?? unitId;
+  return UNITS.find(unit => unit.id === unitId)?.name ?? unitId;
 }
 
-/** Tổng hợp theo cùng chỉ tiêu / cùng đơn vị đo, chỉ lấy xã có báo cáo. */
+export function hasRowContent(raw) {
+  const r = normalizeRow(raw);
+  return r.target !== null || r.completed !== null || r.status !== '' || r.note.trim() !== '';
+}
+
+export function comparableRow(raw) {
+  const row = normalizeRow(raw);
+  return JSON.stringify([row.target, row.completed, row.status, row.note]);
+}
+
+export function asDate(value) {
+  if (!value) return null;
+  if (typeof value.toDate === 'function') return value.toDate();
+  if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
+  if (typeof value.seconds === 'number') return new Date(value.seconds * 1000);
+  if (typeof value === 'string') { const d = new Date(value); return Number.isNaN(d.getTime()) ? null : d; }
+  return null;
+}
+
+export function formatUpdatedAt(value) {
+  const d = asDate(value);
+  return d ? new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh', hour: '2-digit', minute: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric', hour12: false
+  }).format(d) : '—';
+}
+
+/** Lấy bản cập nhật gần nhất của đúng chỉ tiêu, không phải của toàn xã. */
+function maxTimestamp(values) {
+  return values.map(asDate).filter(Boolean).sort((a, b) => b.getTime() - a.getTime())[0] ?? null;
+}
+
+/**
+ * Tổng hợp dữ liệu hiện tại từ 10 xã, phường, không sử dụng báo cáo 'tỉnh'.
+ * Nếu chưa đủ 10 xã, phép cộng chỉ phản ánh dữ liệu đã cập nhật.
+ */
 export function aggregateRows(reports) {
   const rows = {};
   for (const metric of ALL_METRICS) {
-    const sourceRows = reports.map(report => ({
-      unitId: report.unitId,
-      row: report.rows?.[metric.id]
-    })).filter(entry => entry.row).map(entry => ({...entry, row: normalizeRow(entry.row)}));
-    if (!sourceRows.length) continue;
-    const output = { target: null, completed: null, status: '', note: '' };
+    const entries = UNITS.map(unit => ({ unitId: unit.id, raw: reports.find(r => r.unitId === unit.id)?.rows?.[metric.id] }))
+      .filter(e => e.raw && hasRowContent(e.raw))
+      .map(e => ({ unitId: e.unitId, row: normalizeRow(e.raw) }));
+    if (!entries.length) continue;
+    const covered = entries.filter(e => toNumber(e.row.target) !== null && e.row.status).length;
+    const output = {
+      target: null, completed: null, status: '', note: '',
+      coverage: covered, totalUnits: UNITS.length,
+      updatedAt: maxTimestamp(entries.map(e => e.row.updatedAt))
+    };
     for (const field of FIELDS) {
-      const numbers = sourceRows.map(({ row }) => field === 'completed' ? computed(row).completed : toNumber(row[field]))
-        .filter(value => value !== null);
-      output[field] = numbers.length ? numbers.reduce((a, b) => a + b, 0) : null;
+      const values = entries.map(({ row }) => field === 'completed' ? computed(row).completed : toNumber(row[field]))
+        .filter(v => v !== null);
+      output[field] = values.length ? values.reduce((a, b) => a + b, 0) : null;
     }
-    const statuses = sourceRows.map(({ row }) => row.status).filter(Boolean);
-    if (statuses.length) {
-      output.status = statuses.every(s => s === 'da_hoan_thanh') ? 'da_hoan_thanh'
-        : statuses.every(s => s === 'chua_thuc_hien') ? 'chua_thuc_hien'
-          : 'dang_thuc_hien';
+    // Không tuyên bố 'đã hoàn thành' khi còn xã chưa cung cấp chỉ tiêu.
+    if (covered === UNITS.length && output.target !== null && output.completed !== null) {
+      output.status = output.target > 0 && output.completed === output.target ? 'da_hoan_thanh'
+        : output.completed === 0 ? 'chua_thuc_hien' : 'dang_thuc_hien';
     }
-    output.note = sourceRows.filter(({ row }) => row.note?.trim())
-      .map(({ unitId, row }) => `${getUnitName(unitId)}: ${row.note.trim()}`)
-      .join(' | ');
+    output.note = entries.filter(({row}) => row.note.trim())
+      .map(({unitId,row}) => `${getUnitName(unitId)}: ${row.note.trim()}`).join(' | ');
     rows[metric.id] = output;
   }
   return rows;
-}
-
-/** Chỉ ghi schema V2. V1 được chuyển đổi khi cập nhật mà không xóa nội dung tab còn lại. */
-export function normalizeReportRowsForWrite(rows = {}) {
-  const result = {};
-  for (const metric of ALL_METRICS) {
-    if (!(metric.id in rows)) continue;
-    const row = normalizeRow(rows[metric.id]);
-    const error = validateMetricRow(row, metric);
-    if (error) throw new Error(`Bản ghi cũ cần đối chiếu trước khi chuyển đổi. ${error}`);
-    result[metric.id] = row;
-  }
-  return result;
 }

@@ -1,390 +1,156 @@
 <!doctype html>
 <html lang="vi">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Theo dõi tiến độ giải phóng mặt bằng và bố trí tái định cư tuyến cao tốc Bắc Kạn – Cao Bằng."
-    />
-    <title>Theo dõi GPMB - Cao tốc Bắc Kạn – Cao Bằng</title>
-    <link rel="stylesheet" href="./css/style.css" />
-  </head>
-  <body>
-    <header class="site-header">
-      <div class="banner-shell">
-        <img
-          id="siteBanner"
-          src="./images/banner.png"
-          alt="Banner tuyến cao tốc Bắc Kạn – Cao Bằng"
-        />
-        <div id="bannerFallback" class="banner-fallback" hidden>
-          <div class="banner-fallback-inner">
-            <span class="eyebrow">HỆ THỐNG THÔNG TIN THEO DÕI TIẾN ĐỘ</span>
-            <h1>ĐƯỜNG CAO TỐC BẮC KẠN – CAO BẰNG</h1>
-            <p>GIẢI PHÓNG MẶT BẰNG VÀ BỐ TRÍ TÁI ĐỊNH CƯ</p>
-          </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Theo dõi tiến độ giải phóng mặt bằng và bố trí tái định cư tuyến cao tốc Bắc Kạn – Cao Bằng." />
+  <title>Theo dõi GPMB - Cao tốc Bắc Kạn – Cao Bằng</title>
+  <meta name="app-version" content="3.1.0" />
+  <link rel="stylesheet" href="./css/style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="banner-shell">
+      <img id="siteBanner" src="./images/banner.png" alt="Banner tuyến cao tốc Bắc Kạn – Cao Bằng" />
+      <div id="bannerFallback" class="banner-fallback" hidden>
+        <div class="banner-fallback-inner">
+          <span class="eyebrow">HỆ THỐNG THÔNG TIN THEO DÕI TIẾN ĐỘ</span>
+          <h1>ĐƯỜNG CAO TỐC BẮC KẠN – CAO BẰNG</h1>
+          <p>GIẢI PHÓNG MẶT BẰNG VÀ BỐ TRÍ TÁI ĐỊNH CƯ</p>
         </div>
       </div>
-      <div class="topbar wrap">
-        <div class="brandline">
-          <span class="live-dot"></span><strong>THEO DÕI TIẾN ĐỘ</strong
-          ><span class="subtle-separator">/</span
-          ><span>GPMB & Tái định cư</span>
-        </div>
-        <div class="auth-actions">
-          <span id="authLabel" class="auth-label"
-            >Khách truy cập · Chế độ xem</span
-          >
-          <button id="adminPanelBtn" class="btn btn-ghost" hidden type="button">
-            Quản lý phân quyền
-          </button>
-          <button id="loginBtn" class="btn btn-primary" type="button">
-            Đăng nhập
-          </button>
-          <button id="logoutBtn" class="btn btn-ghost" type="button" hidden>
-            Đăng xuất
-          </button>
-        </div>
+    </div>
+    <div class="topbar wrap">
+      <div class="brandline"><span class="live-dot"></span><strong>THEO DÕI TIẾN ĐỘ</strong><span class="subtle-separator">/</span><span>GPMB & Tái định cư</span></div>
+      <div class="auth-actions">
+        <span id="authLabel" class="auth-label">Khách truy cập · Chế độ xem</span>
+        <button id="adminPanelBtn" class="btn btn-ghost" hidden type="button">Quản lý phân quyền</button>
+        <button id="loginBtn" class="btn btn-primary" type="button">Đăng nhập</button>
+        <button id="logoutBtn" class="btn btn-ghost" type="button" hidden>Đăng xuất</button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <main class="wrap main-content">
-      <div id="configAlert" class="notice notice-warn" hidden>
-        <strong>Chưa cấu hình Firebase.</strong> Vui lòng mở
-        <code>public/js/config.js</code> và điền cấu hình dự án Firebase của anh
-        theo tệp hướng dẫn.
-      </div>
-      <div
-        id="toast"
-        class="notice"
-        role="status"
-        aria-live="polite"
-        hidden
-      ></div>
+  <main class="wrap main-content">
+    <div id="configAlert" class="notice notice-warn" hidden>
+      <strong>Chưa cấu hình Firebase.</strong> Vui lòng mở <code>public/js/config.js</code> và điền cấu hình dự án Firebase của anh theo tệp hướng dẫn.
+    </div>
+    <div id="toast" class="notice" role="status" aria-live="polite" hidden></div>
 
-      <div class="page-heading">
+    <div class="page-heading">
+      <div>
+        <p class="overline">THÔNG TIN TIẾN ĐỘ CẬP NHẬT LIÊN TỤC</p>
+        <h2>Tình hình thực hiện dự án</h2>
+        <p class="muted">Số liệu toàn tuyến tự tổng hợp từ 10 xã, phường; mỗi chỉ tiêu có thời gian cập nhật riêng.</p>
+      </div>
+      <div class="heading-actions">
+        <button id="editBtn" class="btn btn-primary" type="button" hidden>✎ Nhập / cập nhật số liệu</button>
+        <button id="exportBtn" class="btn btn-outline" type="button">↓ Xuất CSV</button>
+      </div>
+    </div>
+
+    <section class="control-panel" aria-label="Bộ lọc đơn vị">
+      <div class="field field-grow">
+        <label for="unitSelect">PHẠM VI THEO DÕI</label>
+        <select id="unitSelect"></select>
+      </div>
+      <div class="field field-action">
+        <label class="invisible" for="refreshBtn">Làm mới</label>
+        <button id="refreshBtn" class="btn btn-outline" type="button">↻ Làm mới</button>
+      </div>
+    </section>
+
+    <nav class="section-tabs" aria-label="Hai nhóm công việc">
+      <button id="gpmbTab" class="section-tab active" type="button" aria-selected="true" role="tab"><span class="tab-icon">01</span><span><strong>GIẢI PHÓNG MẶT BẰNG</strong><small>14 chỉ tiêu theo dõi</small></span></button>
+      <button id="tdcTab" class="section-tab" type="button" aria-selected="false" role="tab"><span class="tab-icon">02</span><span><strong>BỐ TRÍ TÁI ĐỊNH CƯ</strong><small>8 chỉ tiêu theo dõi</small></span></button>
+    </nav>
+
+    <section class="stats-grid" id="statsCards" aria-label="Các chỉ số tiến độ"></section>
+
+    <section class="card report-card" aria-label="Báo cáo chi tiết">
+      <div class="card-heading">
         <div>
-          <p class="overline">BÁO CÁO TIẾN ĐỘ THEO TUẦN</p>
-          <h2>Tình hình thực hiện dự án</h2>
-          <p class="muted">
-            Theo dõi số liệu của 10 xã, phường và báo cáo riêng của cấp tỉnh.
-          </p>
+          <p class="overline">CHI TIẾT THEO BIỂU MẪU BÁO CÁO</p>
+          <h3 id="sectionTitle">I. GIẢI PHÓNG MẶT BẰNG</h3>
+          <p id="dataCoverage" class="muted"></p>
         </div>
-        <div class="heading-actions">
-          <button id="editBtn" class="btn btn-primary" type="button" hidden>
-            ✎ Nhập / cập nhật số liệu
-          </button>
-          <button id="exportBtn" class="btn btn-outline" type="button">
-            ↓ Xuất CSV
-          </button>
-        </div>
+        <span class="view-chip">Dữ liệu công khai</span>
       </div>
+      <div class="table-scroll">
+        <table class="report-table" id="reportTable">
+          <thead>
+            <tr>
+              <th class="col-number">STT</th>
+              <th class="col-metric">Chỉ tiêu</th>
+              <th>Đơn vị</th>
+              <th>Tổng phải thực hiện</th>
+              <th>Đã thực hiện</th>
+              <th>Còn lại<br /><small>(tự tính)</small></th>
+              <th class="heading-emphasis">% Hoàn thành<br /><small>(tự tính)</small></th>
+              <th>Trạng thái</th>
+              <th class="col-note">Khó khăn, vướng mắc, kiến nghị đề xuất</th>
+              <th class="col-updated">Thời gian cập nhật</th>
+            </tr>
+          </thead>
+          <tbody id="metricsBody"></tbody>
+        </table>
+      </div>
+      <div class="table-footer">Dấu “—” thể hiện chưa có số liệu hoặc chưa xác định được tỷ lệ. Toàn tuyến là tổng hợp từ các xã đã cập nhật; thời gian hiển thị là lần cập nhật gần nhất của từng chỉ tiêu. Còn lại và % Hoàn thành được tính tự động.</div>
+    </section>
 
-      <section class="control-panel" aria-label="Bộ lọc báo cáo">
-        <div class="field">
-          <label for="weekSelect">KỲ BÁO CÁO (TUẦN)</label>
-          <input id="weekSelect" type="week" />
-        </div>
-        <div class="field field-grow">
-          <label for="unitSelect">PHẠM VI THEO DÕI</label>
-          <select id="unitSelect"></select>
-        </div>
-        <div class="field field-action">
-          <label class="invisible" for="refreshBtn">Làm mới</label>
-          <button id="refreshBtn" class="btn btn-outline" type="button">
-            ↻ Làm mới
-          </button>
-        </div>
-      </section>
+    <section id="overviewCard" class="card overview-card" hidden>
+      <div class="card-heading"><div><p class="overline">SO SÁNH TIẾN ĐỘ</p><h3 id="overviewTitle">Tình hình từng xã, phường</h3></div></div>
+      <div class="table-scroll"><table class="overview-table"><thead id="overviewHead"></thead><tbody id="overviewBody"></tbody></table></div>
+      <p class="table-footer">Số liệu toàn tuyến chỉ cộng các xã có dữ liệu đối với từng chỉ tiêu. Khi chưa đủ 10/10 xã, cần xem đây là tổng tạm thời.</p>
+    </section>
 
-      <nav class="section-tabs" aria-label="Hai nhóm công việc">
-        <button
-          id="gpmbTab"
-          class="section-tab active"
-          type="button"
-          aria-selected="true"
-          role="tab"
-        >
-          <span class="tab-icon">01</span
-          ><span
-            ><strong>GIẢI PHÓNG MẶT BẰNG</strong
-            ><small>14 chỉ tiêu theo dõi</small></span
-          >
-        </button>
-        <button
-          id="tdcTab"
-          class="section-tab"
-          type="button"
-          aria-selected="false"
-          role="tab"
-        >
-          <span class="tab-icon">02</span
-          ><span
-            ><strong>BỐ TRÍ TÁI ĐỊNH CƯ</strong
-            ><small>8 chỉ tiêu theo dõi</small></span
-          >
-        </button>
-      </nav>
+    <section id="editorPanel" class="card editor-panel" hidden>
+      <div class="card-heading">
+        <div><p class="overline">NHẬP LIỆU THEO PHÂN QUYỀN</p><h3 id="editTitle">Cập nhật báo cáo</h3><p class="muted" id="editHint">Chỉ lưu các chỉ tiêu có thay đổi; không ghi đè các chỉ tiêu khác.</p></div>
+        <button id="closeEditorBtn" class="btn btn-ghost" type="button">✕ Đóng</button>
+      </div>
+      <div class="editor-toolbar"><div class="field"><label for="editUnitSelect">ĐƠN VỊ NHẬP LIỆU</label><select id="editUnitSelect"></select></div><p id="lastWeekNote" class="muted"></p></div>
+      <div class="notice notice-blue">Mỗi chỉ tiêu có thể cập nhật bất cứ lúc nào. Nhập Tổng phải thực hiện, Đã thực hiện (lũy kế hiện tại), chọn Trạng thái và nhấn Lưu thay đổi. Hệ thống chỉ ghi các chỉ tiêu vừa sửa, tự ghi thời gian cập nhật theo máy chủ Firebase.</div>
+      <div class="table-scroll">
+        <table class="report-table edit-table">
+          <thead><tr><th>STT</th><th class="col-metric">Chỉ tiêu</th><th>Đơn vị</th><th>Tổng phải thực hiện</th><th>Đã thực hiện</th><th>Còn lại (tự tính)</th><th>% Hoàn thành (tự tính)</th><th>Trạng thái</th><th class="col-note">Khó khăn, vướng mắc, kiến nghị</th><th class="col-updated">Thời gian cập nhật</th></tr></thead>
+          <tbody id="editRows"></tbody>
+        </table>
+      </div>
+      <div class="editor-actions"><span class="muted">Một bản ghi/đơn vị; giữ nguyên dữ liệu và thời gian của những chỉ tiêu không thay đổi.</span><div class="heading-actions"><button id="saveBtn" class="btn btn-primary" type="button">Lưu thay đổi</button></div></div>
+    </section>
 
-      <section
-        class="stats-grid"
-        id="statsCards"
-        aria-label="Các chỉ số tiến độ"
-      ></section>
-
-      <section class="card report-card" aria-label="Báo cáo chi tiết">
-        <div class="card-heading">
-          <div>
-            <p class="overline">CHI TIẾT THEO BIỂU MẪU BÁO CÁO</p>
-            <h3 id="sectionTitle">I. GIẢI PHÓNG MẶT BẰNG</h3>
-            <p id="dataCoverage" class="muted"></p>
-          </div>
-          <span class="view-chip">Dữ liệu công khai</span>
-        </div>
-        <div class="table-scroll">
-          <table class="report-table" id="reportTable">
-            <thead>
-              <tr>
-                <th class="col-number">STT</th>
-                <th class="col-metric">Chỉ tiêu</th>
-                <th>Đơn vị</th>
-                <th>Tổng phải thực hiện</th>
-                <th>Đã thực hiện</th>
-                <th>Còn lại<br /><small>(tự tính)</small></th>
-                <th class="heading-emphasis">
-                  % Hoàn thành<br /><small>(tự tính)</small>
-                </th>
-                <th>Trạng thái</th>
-                <th class="col-note">Khó khăn, vướng mắc, kiến nghị đề xuất</th>
-              </tr>
-            </thead>
-            <tbody id="metricsBody"></tbody>
-          </table>
-        </div>
-        <div class="table-footer">
-          Dấu “—” thể hiện chưa có số liệu hoặc chưa xác định được tỷ lệ. Còn
-          lại và % Hoàn thành được tính tự động; tổng bằng 0 không tính tỷ lệ.
-        </div>
-      </section>
-
-      <section id="overviewCard" class="card overview-card" hidden>
-        <div class="card-heading">
-          <div>
-            <p class="overline">SO SÁNH TIẾN ĐỘ</p>
-            <h3 id="overviewTitle">Tình hình từng xã, phường</h3>
-          </div>
-        </div>
-        <div class="table-scroll">
-          <table class="overview-table">
-            <thead id="overviewHead"></thead>
-            <tbody id="overviewBody"></tbody>
-          </table>
-        </div>
-        <p class="table-footer">
-          Số liệu “Tất cả xã, phường” chỉ tổng hợp các đơn vị đã có báo cáo
-          trong kỳ; không bao gồm báo cáo cấp tỉnh.
-        </p>
-      </section>
-
-      <section id="editorPanel" class="card editor-panel" hidden>
-        <div class="card-heading">
-          <div>
-            <p class="overline">NHẬP LIỆU THEO PHÂN QUYỀN</p>
-            <h3 id="editTitle">Cập nhật báo cáo</h3>
-            <p class="muted" id="editHint">Lưu riêng nhóm chỉ tiêu đang xem.</p>
-          </div>
-          <button id="closeEditorBtn" class="btn btn-ghost" type="button">
-            ✕ Đóng
-          </button>
-        </div>
-        <div class="editor-toolbar">
-          <div class="field">
-            <label for="editUnitSelect">ĐƠN VỊ NHẬP LIỆU</label
-            ><select id="editUnitSelect"></select>
-          </div>
-          <p id="lastWeekNote" class="muted"></p>
-        </div>
-        <div class="notice notice-blue">
-          Nhập Tổng phải thực hiện và Đã thực hiện (lũy kế đến kỳ báo cáo), sau
-          đó chọn Trạng thái. Còn lại và % Hoàn thành được tính tự động. Dữ liệu
-          tuần trước chỉ được gợi ý để tham khảo; không tự thay thế báo cáo tuần
-          này.
-        </div>
-        <div class="table-scroll">
-          <table class="report-table edit-table">
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th class="col-metric">Chỉ tiêu</th>
-                <th>Đơn vị</th>
-                <th>Tổng phải thực hiện</th>
-                <th>Đã thực hiện</th>
-                <th>Còn lại (tự tính)</th>
-                <th>% Hoàn thành (tự tính)</th>
-                <th>Trạng thái</th>
-                <th class="col-note">Khó khăn, vướng mắc, kiến nghị</th>
-              </tr>
-            </thead>
-            <tbody id="editRows"></tbody>
-          </table>
-        </div>
-        <div class="editor-actions">
-          <span class="muted"
-            >Số liệu lưu theo đơn vị và tuần; mỗi tab giữ nguyên dữ liệu tab còn
-            lại.</span
-          >
-          <div class="heading-actions">
-            <button
-              id="deleteReportBtn"
-              class="btn btn-outline"
-              type="button"
-              hidden
-            >
-              Xóa báo cáo kỳ này</button
-            ><button id="saveBtn" class="btn btn-primary" type="button">
-              Lưu báo cáo
-            </button>
-          </div>
-        </div>
-      </section>
-
-      <section id="usersPanel" class="card users-panel" hidden>
-        <div class="card-heading">
-          <div>
-            <p class="overline">CHỈ DÀNH CHO ADMIN</p>
-            <h3>Quản lý phân quyền tài khoản</h3>
-          </div>
-          <button id="closeUsersBtn" class="btn btn-ghost" type="button">
-            ✕ Đóng
-          </button>
-        </div>
-        <p class="muted">
-          Giai đoạn đầu, tạo email và mật khẩu ở Firebase Authentication trước,
-          sau đó lấy <strong>UID</strong> để cấp quyền tại đây. Chức năng này
-          không tạo hoặc xóa tài khoản Authentication.
-        </p>
-        <form id="userForm" class="user-form">
-          <div class="field">
-            <label for="profileUid">Firebase Authentication UID</label
-            ><input
-              id="profileUid"
-              type="text"
-              maxlength="128"
-              required
-              placeholder="UID tài khoản đã tạo"
-            />
-          </div>
-          <div class="field">
-            <label for="profileName">Tên hiển thị</label
-            ><input
-              id="profileName"
-              type="text"
-              maxlength="100"
-              required
-              placeholder="Người nhập liệu"
-            />
-          </div>
-          <div class="field">
-            <label for="profileEmail">Email (để đối chiếu)</label
-            ><input
-              id="profileEmail"
-              type="email"
-              maxlength="254"
-              required
-              placeholder="email@example.com"
-            />
-          </div>
-          <div class="field">
-            <label for="profileRole">Vai trò</label
-            ><select id="profileRole">
-              <option value="nhaplieu_xa">Nhập liệu xã, phường</option>
-              <option value="nhaplieu">Nhập liệu tỉnh và các xã</option>
-              <option value="admin">Quản trị viên</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="profileUnit">Đơn vị được giao</label
-            ><select id="profileUnit"></select>
-          </div>
-          <div class="field checkbox-field">
-            <label
-              ><input type="checkbox" id="profileActive" checked /> Tài khoản
-              đang hoạt động</label
-            >
-          </div>
-          <button class="btn btn-primary" type="submit">Lưu phân quyền</button>
-        </form>
-        <h4>Danh sách phân quyền đã lưu</h4>
-        <div class="table-scroll">
-          <table class="users-table">
-            <thead>
-              <tr>
-                <th>Tên / Email</th>
-                <th>UID</th>
-                <th>Vai trò</th>
-                <th>Đơn vị</th>
-                <th>Trạng thái</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="usersBody"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <footer class="footer">
-        <p>
-          HỆ THỐNG THEO DÕI TIẾN ĐỘ GPMB VÀ BỐ TRÍ TÁI ĐỊNH CƯ · CAO TỐC BẮC KẠN
-          – CAO BẰNG
-        </p>
-        <p>
-          Số liệu được tổng hợp theo từng kỳ báo cáo và được cập nhật bởi tài
-          khoản có thẩm quyền.
-        </p>
-      </footer>
-    </main>
-
-    <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
-      <form id="loginForm" class="login-form">
-        <button
-          id="closeLoginBtn"
-          class="dialog-close"
-          type="button"
-          aria-label="Đóng"
-        >
-          ✕
-        </button>
-        <p class="overline">KHU VỰC DÀNH CHO CÁN BỘ</p>
-        <h3 id="loginTitle">Đăng nhập hệ thống</h3>
-        <p class="muted">
-          Khách truy cập có thể xem báo cáo mà không cần đăng nhập.
-        </p>
-        <div class="field">
-          <label for="emailInput">Địa chỉ email</label
-          ><input
-            id="emailInput"
-            type="email"
-            autocomplete="username"
-            required
-          />
-        </div>
-        <div class="field">
-          <label for="passwordInput">Mật khẩu</label
-          ><input
-            id="passwordInput"
-            type="password"
-            autocomplete="current-password"
-            required
-          />
-        </div>
-        <p id="loginError" class="error-text" role="alert" hidden></p>
-        <button id="loginSubmitBtn" class="btn btn-primary wide" type="submit">
-          Đăng nhập
-        </button>
+    <section id="usersPanel" class="card users-panel" hidden>
+      <div class="card-heading"><div><p class="overline">CHỈ DÀNH CHO ADMIN</p><h3>Quản lý phân quyền tài khoản</h3></div><button id="closeUsersBtn" class="btn btn-ghost" type="button">✕ Đóng</button></div>
+      <p class="muted">Giai đoạn đầu, tạo email và mật khẩu ở Firebase Authentication trước, sau đó lấy <strong>UID</strong> để cấp quyền tại đây. Chức năng này không tạo hoặc xóa tài khoản Authentication.</p>
+      <form id="userForm" class="user-form">
+        <div class="field"><label for="profileUid">Firebase Authentication UID</label><input id="profileUid" type="text" maxlength="128" required placeholder="UID tài khoản đã tạo" /></div>
+        <div class="field"><label for="profileName">Tên hiển thị</label><input id="profileName" type="text" maxlength="100" required placeholder="Người nhập liệu" /></div>
+        <div class="field"><label for="profileEmail">Email (để đối chiếu)</label><input id="profileEmail" type="email" maxlength="254" required placeholder="email@example.com" /></div>
+        <div class="field"><label for="profileRole">Vai trò</label><select id="profileRole"><option value="nhaplieu_xa">Nhập liệu xã, phường</option><option value="nhaplieu">Nhập liệu toàn tuyến (10 xã, phường)</option><option value="admin">Quản trị viên</option></select></div>
+        <div class="field"><label for="profileUnit">Đơn vị được giao</label><select id="profileUnit"></select></div>
+        <div class="field checkbox-field"><label><input type="checkbox" id="profileActive" checked /> Tài khoản đang hoạt động</label></div>
+        <button class="btn btn-primary" type="submit">Lưu phân quyền</button>
       </form>
-    </dialog>
+      <h4>Danh sách phân quyền đã lưu</h4>
+      <div class="table-scroll"><table class="users-table"><thead><tr><th>Tên / Email</th><th>UID</th><th>Vai trò</th><th>Đơn vị</th><th>Trạng thái</th><th></th></tr></thead><tbody id="usersBody"></tbody></table></div>
+    </section>
 
-    <script type="module" src="./js/app.js"></script>
-  </body>
+    <footer class="footer"><p>HỆ THỐNG THEO DÕI TIẾN ĐỘ GPMB VÀ BỐ TRÍ TÁI ĐỊNH CƯ · CAO TỐC BẮC KẠN – CAO BẰNG</p><p>Dữ liệu được cập nhật thường xuyên theo từng chỉ tiêu bởi tài khoản có thẩm quyền.</p></footer>
+  </main>
+
+  <dialog id="loginDialog" class="login-dialog" aria-labelledby="loginTitle">
+    <form id="loginForm" class="login-form">
+      <button id="closeLoginBtn" class="dialog-close" type="button" aria-label="Đóng">✕</button>
+      <p class="overline">KHU VỰC DÀNH CHO CÁN BỘ</p><h3 id="loginTitle">Đăng nhập hệ thống</h3>
+      <p class="muted">Khách truy cập có thể xem báo cáo mà không cần đăng nhập.</p>
+      <div class="field"><label for="emailInput">Địa chỉ email</label><input id="emailInput" type="email" autocomplete="username" required /></div>
+      <div class="field"><label for="passwordInput">Mật khẩu</label><input id="passwordInput" type="password" autocomplete="current-password" required /></div>
+      <p id="loginError" class="error-text" role="alert" hidden></p>
+      <button id="loginSubmitBtn" class="btn btn-primary wide" type="submit">Đăng nhập</button>
+    </form>
+  </dialog>
+
+  <script type="module" src="./js/app.js?v=3.1.0"></script>
+</body>
 </html>
