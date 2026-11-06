@@ -1,460 +1,291 @@
-import { auth, db, firebaseReady } from './firebase.js';
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import { collection, doc, getDoc, getDocs, setDoc, serverTimestamp, runTransaction, onSnapshot } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
-import {
-  UNITS, SECTIONS, FIELDS, STATUS_OPTIONS, computed, formatNumber, formatPercent,
-  toNumber, getUnitName, aggregateRows, normalizeRow, statusLabel,
-  validateMetricRow, hasRowContent, comparableRow, formatUpdatedAt, asDate
-} from './data.js?v=3.1.0';
-
-// V3.1: app.js va data.js duoc dong bo; query version ngan cache JavaScript cu.
-const $ = id => document.getElementById(id);
-const state = {
-  unitId: 'ALL', section: 'gpmb', reports: new Map(),
-  user: null, profile: null, editUnitId: null, editorDirty: false,
-  baseline: {}, loading: false, toastTimer: null, unsubscribe: null
-};
-function el(tag, text, className) {
-  const node = document.createElement(tag);
-  if (text !== undefined && text !== null) node.textContent = String(text);
-  if (className) node.className = className;
-  return node;
+/* Website GPMB & TĐC V4 — giao diện kế thừa demo, dữ liệu Firebase thực. */
+import {auth,db as fs} from './firebase.js';
+import {onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
+import {collection,doc,getDoc,getDocs,query,orderBy,limit,onSnapshot,serverTimestamp,runTransaction,updateDoc,setDoc} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import {UNITS,STAGES,METRICS,METRIC_MAP,STAGE_MAP,STATUS,readRow,validate,percent,fmtNumber,fmtDate as formatDate,isDecimal,asDate} from './data.js';
+const stageDefs=STAGES,metricDefs=METRICS,stageById=STAGE_MAP,metricById=METRIC_MAP;
+const db={units:UNITS,records:{},history:[]};
+const ui={page:'overview',scope:'all',stage:'lap',metric:'gpmb_03',compStage:'lap',compMetric:'gpmb_03',unit:'BAC_KAN',editUnit:'BAC_KAN',editStage:'lap',editMetric:'gpmb_03',overviewKind:'gpmb'};
+let currentUser=null,profile=null,progressUnsubscribe=null,usersUnsubscribe=null,historyUnsubscribe=null,profileUnsubscribe=null;
+let profileRows=[],historyLoading=false,legacyDocs=[],loadingProgress=true,serverError='',pending=false;
+const $=q=>document.querySelector(q);
+const esc=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const rnd=(x,n=2)=>Number(x.toFixed(n));
+function fmt(v,unit=''){return v==null||!Number.isFinite(Number(v))?'—':fmtNumber(v,unit);}
+function fmtDate(v){return formatDate(v);}
+function pct(v,t){return percent(v,t);}
+function ptxt(x){return x==null?'Chưa có dữ liệu':`${Number(x).toLocaleString('vi-VN',{maximumFractionDigits:1})}%`;}
+function colorFor(p){return p==null?'#9aacbc':p>=85?'#119b84':p>=65?'#2b79ce':p>=45?'#da972c':'#d66b63';}
+function progress(p,color){return `<div class="bar-track"><div class="bar-fill" style="width:${p==null?0:Math.max(0,Math.min(100,p))}%;--bar:${color||colorFor(p)}"></div></div>`;}
+function getRec(unitId,metricId){return db.records[`${unitId}|${metricId}`]||{target:null,value:null,status:'',updatedAt:null,note:'',startDate:'',endDate:''};}
+function unitsInScope(scope=ui.scope){return scope==='all'?db.units:db.units.filter(u=>u.id===scope);}
+function metricSum(metricId,scope='all'){
+  const units=unitsInScope(scope);let target=0,value=0,count=0;
+  for(const u of units){const r=getRec(u.id,metricId);if(r.target!==null&&r.value!==null&&Number.isFinite(r.target)&&Number.isFinite(r.value)&&r.target>=0&&r.value>=0&&r.value<=r.target){target+=r.target;value+=r.value;count++;}}
+  return {target:count?rnd(target,4):null,value:count?rnd(value,4):null,percent:count&&target>0?rnd(100*value/target,2):null,count,totalUnits:units.length};
 }
-function makeCell(tr, value, className) { const cell=el('td',value,className); tr.appendChild(cell); return cell; }
-function option(select, value, label) { const o=el('option',label); o.value=value; select.appendChild(o); }
-function toast(message, type='info') {
-  const node=$('toast'); node.textContent=message;
-  node.className=`notice${type==='error'?' notice-error':''}`; node.hidden=false;
-  clearTimeout(state.toastTimer);
-  state.toastTimer=setTimeout(()=>{node.hidden=true;},9000);
+// Tiến độ công đoạn CHỈ dựa vào chỉ tiêu kết quả được tô vàng trong biểu Excel.
+function stageScore(stageId,scope='all'){
+ const marker=stageById[stageId]?.milestone;
+ return marker?metricSum(marker,scope).percent:null;
 }
-function errorMessage(err) {
-  if (!navigator.onLine) return 'Không có kết nối Internet.';
-  if (err?.code==='permission-denied') return 'Firestore từ chối ghi. Kiểm tra đã Publish firestore.rules V3 và quyền đơn vị.';
-  if (['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(err?.code)) return 'Email hoặc mật khẩu không đúng.';
-  if (err?.code==='auth/too-many-requests') return 'Đăng nhập đang bị giới hạn do thử nhiều lần.';
-  return err?.message || 'Không thể hoàn thành thao tác.';
+// Chỉ số tham khảo liên công đoạn để đối chiếu đơn vị, không phải tỷ lệ chốt công đoạn.
+function unitScore(id,kind='all'){
+ const xs=stageDefs.filter(s=>kind==='all'||s.kind===kind).map(s=>stageScore(s.id,id)).filter(x=>x!=null);
+ return xs.length?rnd(xs.reduce((a,b)=>a+b,0)/xs.length,1):null;
 }
-function hasEditorRights() { return !!state.user && state.profile?.active===true && ['admin','nhaplieu','nhaplieu_xa'].includes(state.profile.role); }
-function isAdmin() { return hasEditorRights() && state.profile.role==='admin'; }
-function canEdit(id) {
-  return hasEditorRights() && UNITS.some(u=>u.id===id) &&
-    (state.profile.role!=='nhaplieu_xa' || state.profile.unitId===id);
+function latestUnit(id){let t=0;for(const m of metricDefs){const d=asDate(getRec(id,m.id).updatedAt)?.getTime()||0;if(d>t)t=d;}return t?new Date(t):null;}
+function lastUpdated(scope='all'){const ts=unitsInScope(scope).map(u=>latestUnit(u.id)?.getTime()||0);const n=Math.max(0,...ts);return n?new Date(n):null;}
+function isFresh(id){const t=latestUnit(id)?.getTime();return t!=null&&Date.now()-t<=86400000;}
+function timeStatus(v){const t=asDate(v)?.getTime();if(!t)return 'Chưa cập nhật';const hours=Math.max(0,(Date.now()-t)/3600000);return hours<=24?'Trong 24 giờ':`${Math.floor(hours)} giờ trước`;}
+function selectOptions(items,selected){return items.map(o=>`<option value="${esc(o.value)}" ${o.value===selected?'selected':''}>${esc(o.name)}</option>`).join('');}
+function scopeOptions(selected){return selectOptions([{value:'all',name:'Toàn tuyến (10 xã, phường)'},...db.units.map(u=>({value:u.id,name:u.name}))],selected);}
+function stageOptions(selected){return selectOptions(stageDefs.map(s=>({value:s.id,name:s.full})),selected);}
+function metricOptions(stageId,selected){return selectOptions(metricDefs.filter(m=>m.stage===stageId).map(m=>({value:m.id,name:`${m.code} · ${m.label}`})),selected);}
+function section(title,body,subtitle=''){return `<section class="panel"><div class="panel-toolbar"><div><h2 class="panel-title">${title}</h2>${subtitle?`<p class="subtext">${subtitle}</p>`:''}</div></div>${body}</section>`;}
+function pageHead(kicker,title,description,actions=''){return `<div class="page-header"><div><div class="eyebrow">${kicker}</div><h1 class="page-title">${title}</h1><p class="page-desc">${description}</p></div><div class="actions">${actions}</div></div>`;}
+function dataNote(){if(serverError)return `<div class="demo-note"><span class="note-icon">!</span><div><strong>Lỗi kết nối Firestore:</strong> ${esc(serverError)}. Hãy kiểm tra Rules và Console.</div></div>`;
+if(loadingProgress)return '<div class="info-line" style="margin-bottom:19px">Đang kết nối dữ liệu toàn tuyến từ Firebase…</div>';
+const n=db.units.filter(u=>latestUnit(u.id)).length;
+return `<div class="info-line" style="margin-bottom:19px">Dữ liệu trực tiếp từ Firebase · ${n}/10 xã, phường đã có cập nhật · Mỗi chỉ tiêu hiển thị bản ghi hiện hành. Tỷ lệ công đoạn tính theo chỉ tiêu chốt tô vàng trong biểu Excel.</div>`;}
+function kpiCard(metricId,title,icon,color,bg,unitId){const m=metricById[metricId],x=metricSum(metricId,unitId);return `<div class="metric-card" style="--accent:${color};--accentbg:${bg}"><div class="metric-head"><div class="metric-tag">${title}</div><div class="metric-symbol">${icon}</div></div><div class="metric-number">${fmt(x.value,m.unit)} <small>${esc(m.unit)}</small></div><div class="metric-bottom"><span>Kế hoạch: ${fmt(x.target,m.unit)} ${esc(m.unit)} · ${x.count}/${x.totalUnits} đơn vị</span><strong>${ptxt(x.percent)}</strong></div>${progress(x.percent,color)}</div>`;}
+function stagesProgress(scope,kind=ui.overviewKind){return stageDefs.filter(s=>s.kind===kind).map(s=>{
+ const p=stageScore(s.id,scope),m=metricById[s.milestone],total=metricSum(s.milestone,scope);
+ return `<div class="stage-row" style="--accent:${s.accent};--accentbg:${s.bg}"><div class="stage-ico">${s.icon}</div><div class="stage-middle"><div class="stage-name">${esc(s.full)}</div><div class="stage-hint">Chỉ tiêu chốt ${m.code}: ${esc(m.label)} · ${total.count}/${total.totalUnits} đơn vị có số liệu</div>${progress(p,s.accent)}</div><div class="stage-score">${ptxt(p)}</div></div>`;
+ }).join('');}
+function ranked(stage='all'){return db.units.map(unit=>({unit,score:stage==='all'?unitScore(unit.id):stageScore(stage,unit.id)})).sort((a,b)=>(b.score??-1)-(a.score??-1));}
+function miniRank(rows){return `<ol class="toplist">${rows.map((x,i)=>`<li><span class="list-left"><span class="rank">${i+1}</span><span><span class="list-name">${esc(x.unit.name)}</span><span class="list-meta">${fmtDate(latestUnit(x.unit.id))}</span></span></span><strong style="color:${colorFor(x.score)}">${ptxt(x.score)}</strong></li>`).join('')}</ol>`;}
+function barChart(rows){return `<div class="comparison-bars">${rows.map(r=>`<div class="compare-row"><div class="compare-label" title="${esc(r.name)}">${esc(r.name)}</div>${progress(r.percent,colorFor(r.percent))}<div class="compare-value" style="color:${colorFor(r.percent)}">${r.percent==null?'—':ptxt(r.percent)}</div></div>`).join('')}</div>`;}
+function updateList(limit=5){const rows=db.units.map(unit=>({unit,iso:latestUnit(unit.id)})).sort((a,b)=>(asDate(b.iso)?.getTime()||0)-(asDate(a.iso)?.getTime()||0));return `<div class="unit-list">${rows.slice(0,limit).map(x=>`<div class="unit-card"><div><strong><span class="status-dot ${isFresh(x.unit.id)?'':'late'}"></span>${esc(x.unit.name)}</strong><p>${fmtDate(x.iso)} · ${timeStatus(x.iso)}</p></div><span class="pill ${isFresh(x.unit.id)?'':'warn'}">${isFresh(x.unit.id)?'Đã cập nhật':'Cần cập nhật'}</span></div>`).join('')}</div>`;}
+function mayWrite(id){return !!profile?.active&&(profile.role==='admin'||profile.role==='nhaplieu'||(profile.role==='nhaplieu_xa'&&profile.unitId===id));}
+function canEdit(){return !!profile?.active&&['admin','nhaplieu','nhaplieu_xa'].includes(profile.role);}
+function isAdmin(){return profile?.active===true&&profile.role==='admin';}
+const unitOptionsForWrite=()=>db.units.filter(u=>mayWrite(u.id));
+function renderOverview(){
+ const scope=ui.scope,kind=ui.overviewKind;
+ const stages=stageDefs.filter(s=>s.kind===kind);
+ const least=stages.map(s=>({...s,score:stageScore(s.id,scope)})).filter(s=>s.score!=null).sort((a,b)=>a.score-b.score)[0];
+ const uu=unitsInScope(scope),fresh=uu.filter(u=>isFresh(u.id)).length;
+ const rows=uu.map(u=>({name:u.name,percent:unitScore(u.id,kind)})).sort((a,b)=>(b.percent??-1)-(a.percent??-1));
+ const sectionName=kind==='gpmb'?'GIẢI PHÓNG MẶT BẰNG (BỒI THƯỜNG)':'TÁI ĐỊNH CƯ';
+ return `${pageHead('BẢNG ĐIỀU HÀNH TRỰC QUAN','Tổng quan tiến độ toàn tuyến','Hai phần việc lớn được theo dõi độc lập. Tỷ lệ từng công đoạn lấy theo chỉ tiêu chốt được tô vàng trong biểu mẫu.',`<button class="btn" data-action="export-csv">⇩ Xuất Excel (CSV)</button><button class="btn" data-action="print">⎙ In báo cáo</button>${canEdit()?'<button class="btn btn-primary" data-action="go-update">＋ Cập nhật số liệu</button>':''}`)}
+ ${dataNote()}
+ <div class="work-tabs overview-tabs" role="tablist" aria-label="Hai phần việc chính"><button type="button" class="work-tab ${kind==='gpmb'?'active':''}" role="tab" aria-selected="${kind==='gpmb'}" data-action="overview-kind" data-kind="gpmb">I. GIẢI PHÓNG MẶT BẰNG (BỒI THƯỜNG)</button><button type="button" class="work-tab ${kind==='tdc'?'active':''}" role="tab" aria-selected="${kind==='tdc'}" data-action="overview-kind" data-kind="tdc">II. TÁI ĐỊNH CƯ</button></div>
+ <div class="section-heading"><h2>${sectionName} <span class="hint">· ${stages.length} công đoạn · ${kind==='gpmb'?14:11} chỉ tiêu</span></h2><div class="filter-row"><label class="label" for="scope">Phạm vi</label><select class="filter-select" id="scope" data-select="scope">${scopeOptions(scope)}</select></div></div>
+ <div class="metric-grid milestone-grid ${kind==='tdc'?'two':''}">
+ ${stages.map(s=>{const m=metricById[s.milestone];return kpiCard(s.milestone,`${s.short.toUpperCase()} · MỐC ${m.code}`,s.icon,s.accent,s.bg,scope);}).join('')}
+ </div>
+ <div class="panel-grid">
+ ${section(`Tiến độ ${stages.length} công đoạn`,stagesProgress(scope,kind),'Chỉ sử dụng tỷ lệ của chỉ tiêu chốt (dòng tô vàng); KHÔNG lấy trung bình các chỉ tiêu thành phần.')}
+ ${section('Tín hiệu điều hành',`<div class="insights">
+ <div class="insight-box warning"><div class="insight-kicker">Công đoạn cần tập trung</div><div class="insight-big">${least?esc(least.short):'Chưa có dữ liệu'}</div><div class="insight-desc">${least?`Mốc chốt: ${esc(metricById[least.milestone].label)} · ${ptxt(least.score)}.`:'Cần cập nhật số liệu chỉ tiêu chốt của từng công đoạn.'}</div><button class="insight-link" data-action="go-stages" data-stage="${least?.id||stages[0].id}">Phân tích công đoạn →</button></div>
+ <div class="insight-box good"><div class="insight-kicker">Tình hình cập nhật trong 24 giờ</div><div class="insight-big">${fresh}/${uu.length} đơn vị</div><div class="insight-desc">${uu.length-fresh} đơn vị chưa có cập nhật trong 24 giờ gần nhất.</div>${canEdit()?'<button class="insight-link" data-action="go-updates">Xem nhật ký →</button>':''}</div>
+ <div class="insight-box"><div class="insight-kicker">Dữ liệu gần nhất</div><div class="insight-big" style="font-size:17px">${fmtDate(lastUpdated(scope))}</div><div class="insight-desc">Tổng hợp tự động từ báo cáo xã, phường, không có biểu nhập toàn tuyến.</div></div>
+ </div>`,'Chỉ số chốt công đoạn giúp điều hành, không thay thế việc xem chi tiết từng chỉ tiêu.')}
+ </div>
+ <div class="panel-grid lower-section">
+ ${section('Đối chiếu tiến độ giữa địa phương',barChart(rows),'Chỉ số THAM KHẢO: bình quân các tỷ lệ mốc chốt của riêng phần việc đang xem.')}
+ ${section('Tình trạng cập nhật',updateList(),'Thời điểm cập nhật chỉ tiêu gần nhất của từng đơn vị.')}
+ </div>
+ <p class="footer-note">Tỷ lệ một công đoạn = tổng Đã thực hiện / tổng Tổng phải thực hiện của CHỈ TIÊU CHỐT công đoạn đó, trên các đơn vị có dữ liệu. Không cộng số hộ, ha, ngày, km, cọc hoặc tỷ đồng với nhau. Kết quả phải kèm số xã/phường đã cập nhật.</p>`;
 }
-function editableUnits() {
-  return state.profile?.role==='nhaplieu_xa' ? UNITS.filter(u=>u.id===state.profile.unitId) : UNITS;
+function renderStages(){
+  const s=stageById[ui.stage];
+  let metrics=metricDefs.filter(m=>m.stage===ui.stage);if(!metrics.some(m=>m.id===ui.metric))ui.metric=metrics[0].id;
+  const current=metricById[ui.metric];
+  const sum=metricSum(current.id),pctAll=sum.percent;
+  const rows=db.units.map(u=>({name:u.name,percent:metricSum(current.id,u.id).percent})).sort((a,b)=>(b.percent??-1)-(a.percent??-1));
+  const cards=stageDefs.filter(st=>st.kind===s.kind).map(st=>{let p=stageScore(st.id);return `<button class="stage-card ${st.id===s.id?"active":""}" data-action="pick-stage" data-stage="${st.id}"><div class="stage-top"><span class="stage-ico" style="background:${st.bg};color:${st.accent}">${st.icon}</span><span class="number">${ptxt(p)}</span></div><h3>${esc(st.full)}</h3>${progress(p,st.accent)}<div class="detail">${metricDefs.filter(m=>m.stage===st.id).length} chỉ tiêu · Mốc chốt ${metricById[st.milestone].code}</div></button>`;}).join("");
+  const lines=metrics.map(m=>{const x=metricSum(m.id);return `<button class="indicator-line ${m.id===current.id?"active":""}" data-action="pick-metric" data-metric="${m.id}"><div><div class="indicator-main"><span class="indicator-code">${m.code}</span>${esc(m.label)}${m.milestone?' <span class="marker-tag">Mốc chốt công đoạn</span>':''}</div><div class="indicator-meta">${fmt(x.value,m.unit)} / ${fmt(x.target,m.unit)} ${esc(m.unit)}</div></div><span class="indicator-right">${ptxt(x.percent)}<small>hoàn thành</small></span></button>`;}).join("");
+  return `${pageHead("THEO DÕI CHI TIẾT","Tiến độ theo công đoạn","Chọn một công đoạn rồi chọn chỉ tiêu để thấy các địa phương thực hiện như thế nào.",`<button class="btn btn-primary" data-action="go-update">＋ Cập nhật số liệu</button>`)}${dataNote()}
+    <div class="section-heading"><h2>Hai nhóm công việc chính · ${s.kind==='gpmb'?'14 chỉ tiêu GPMB':'11 chỉ tiêu tái định cư'}</h2></div>
+    <div class="work-tabs"><button class="work-tab ${s.kind==='gpmb'?'active':''}" data-action="pick-kind" data-kind="gpmb">I. GIẢI PHÓNG MẶT BẰNG · 14 chỉ tiêu</button><button class="work-tab ${s.kind==='tdc'?'active':''}" data-action="pick-kind" data-kind="tdc">II. TÁI ĐỊNH CƯ · 11 chỉ tiêu</button></div>
+    <div class="stage-cards">${cards}</div>
+    <div class="panel-grid lower-section equal-cols">
+      ${section(`Các chỉ tiêu · ${esc(s.short)}`,`<div class="indicator-list">${lines}</div>`,"Chọn từng dòng để phân tích kết quả theo đơn vị.")}
+      ${section("So sánh địa phương",`<div class="mini-title" style="margin-bottom:5px">${esc(current.label)}</div><div class="subtext" style="margin-bottom:17px">Toàn tuyến: <strong>${fmt(sum.value,current.unit)} / ${fmt(sum.target,current.unit)} ${esc(current.unit)}</strong> · ${ptxt(pctAll)}</div>${barChart(rows)}<p class="footer-note">So sánh tỷ lệ thực hiện / kế hoạch của cùng một chỉ tiêu, không so sánh giá trị tuyệt đối.</p>`,"Dữ liệu từ bản ghi mới nhất của từng xã, phường.")}
+    </div>
+    <div class="lower-section">${section(`Bảng tổng hợp · ${esc(s.full)}`,`<div class="table-scroll"><table class="data-table"><thead><tr><th>TT</th><th class="wrap">Chỉ tiêu</th><th>Đơn vị</th><th>Thực hiện</th><th>Kế hoạch</th><th>Có số liệu</th><th>Tỷ lệ</th></tr></thead><tbody>${metrics.map(m=>{let x=metricSum(m.id);return `<tr class="${m.milestone?'milestone-row':''}"><td>${m.code}</td><td class="wrap strong">${esc(m.label)}${m.milestone?' <span class="marker-tag">Mốc chốt</span>':''}</td><td>${esc(m.unit)}</td><td class="strong">${fmt(x.value,m.unit)}</td><td>${fmt(x.target,m.unit)}</td><td>${x.count}/10</td><td><div class="bar-mini">${progress(x.percent)}<strong>${ptxt(x.percent)}</strong></div></td></tr>`;}).join("")}</tbody></table></div>`,"Toàn tuyến · cộng các địa phương trong cùng chỉ tiêu")}</div>`;
 }
-function currentReportRows() {
-  if (state.unitId!=='ALL') return state.reports.get(state.unitId)?.rows ?? {};
-  return aggregateRows(UNITS.map(u=>state.reports.get(u.id)).filter(Boolean));
+function renderCompare(){
+  const opts=metricDefs.filter(m=>m.stage===ui.compStage);if(!opts.some(m=>m.id===ui.compMetric))ui.compMetric=opts[0].id;
+  const m=metricById[ui.compMetric];
+  const rows=db.units.map(u=>{const r=getRec(u.id,m.id);return {unit:u,value:r.value,target:r.target,percent:pct(r.value,r.target),updatedAt:r.updatedAt};}).sort((a,b)=>(b.percent??-1)-(a.percent??-1));
+  const eligible=rows.filter(x=>x.percent!=null), top=eligible.slice(0,3),bottom=[...eligible].reverse().slice(0,3);
+  return `${pageHead("PHÂN TÍCH HIỆU QUẢ","So sánh giữa các địa phương","Xác định đơn vị dẫn đầu, đơn vị cần đôn đốc trong từng chỉ tiêu cụ thể.",`<button class="btn" data-action="export-csv">⇩ Xuất bảng Excel</button>`)}${dataNote()}
+    <section class="panel" style="margin-bottom:17px"><div class="field-grid"><div class="field"><label for="compare-stage" class="field-label">Công đoạn</label><select id="compare-stage" class="field-select" data-select="comp-stage">${stageOptions(ui.compStage)}</select></div><div class="field"><label for="compare-metric" class="field-label">Chỉ tiêu so sánh</label><select id="compare-metric" class="field-select" data-select="comp-metric">${metricOptions(ui.compStage,ui.compMetric)}</select></div></div><div class="info-line mt-12">So sánh trên cùng chỉ tiêu <strong>${esc(m.unit)}</strong>. Tỷ lệ = kết quả thực hiện / tổng phải thực hiện của từng đơn vị; không xếp hạng nếu chưa xác lập kế hoạch.</div></section>
+    <div class="panel-grid">
+      ${section("Biểu đồ tỷ lệ hoàn thành",barChart(rows.map(x=>({name:x.unit.name,percent:x.percent}))),`Chỉ tiêu: ${esc(m.label)}`)}
+      ${section("Đơn vị cần chú ý",`<div class="two-cols"><div><h3 class="compact-title" style="color:#118776">Hoàn thành cao</h3>${miniRank(top.map(x=>({unit:x.unit,score:x.percent})))}</div><div><h3 class="compact-title" style="color:#c27a2b">Cần tập trung</h3>${miniRank(bottom.map(x=>({unit:x.unit,score:x.percent})))}</div></div><div class="warn-note">Xếp theo tỷ lệ hoàn thành, không khẳng định nguyên nhân chậm. Cần đối chiếu vướng mắc, tính chất dự án và thời gian được giao chỉ tiêu.</div>`,"Bảng gợi ý đối chiếu, không phải kết quả đánh giá thi đua.")}
+    </div>
+    <div class="lower-section">${section("Chi tiết kết quả của từng đơn vị",`<div class="table-scroll"><table class="data-table"><thead><tr><th>STT</th><th>Đơn vị</th><th>Đã thực hiện</th><th>Kế hoạch</th><th>Tỷ lệ hoàn thành</th><th>Cập nhật lần cuối</th></tr></thead><tbody>${rows.map((x,i)=>`<tr><td>${i+1}</td><td class="strong">${esc(x.unit.name)}</td><td>${fmt(x.value,m.unit)} ${esc(m.unit)}</td><td>${fmt(x.target,m.unit)} ${esc(m.unit)}</td><td><div class="bar-mini">${progress(x.percent)}<strong>${ptxt(x.percent)}</strong></div></td><td class="muted">${fmtDate(x.updatedAt)}</td></tr>`).join("")}</tbody></table></div>`,"Có thể thay đổi chỉ tiêu để tìm công đoạn các địa phương làm tốt hoặc còn chậm.")}</div>`;
 }
-function latestTimeForSection(report, section=state.section) {
-  const times=SECTIONS[section].items.map(m=>asDate(report?.rows?.[m.id]?.updatedAt)).filter(Boolean);
-  return times.length ? new Date(Math.max(...times.map(d=>d.getTime()))) : null;
+function renderUnits(){
+ const unit=db.units.find(x=>x.id===ui.unit)||db.units[0];ui.unit=unit.id;
+ const cards=stageDefs.map(stage=>{const p=stageScore(stage.id,unit.id);return `<div class="stage-card"><div class="stage-top"><span class="stage-ico" style="color:${stage.accent};background:${stage.bg}">${stage.icon}</span><span class="number">${ptxt(p)}</span></div><h3>${esc(stage.full)}</h3>${progress(p,stage.accent)}<div class="detail">Tỷ lệ chỉ tiêu chốt công đoạn</div></div>`;}).join('');
+ const tables=stageDefs.map(stage=>{const ms=metricDefs.filter(m=>m.stage===stage.id),trows=ms.map(m=>{
+ const r=getRec(unit.id,m.id),p=pct(r.value,r.target),remaining=r.target!=null&&r.value!=null&&r.value<=r.target?r.target-r.value:null;
+ return `<tr class="${m.milestone?'milestone-row':''}"><td>${m.code}</td><td class="wrap strong">${esc(m.label)}${m.milestone?' <span class="marker-tag">Mốc chốt</span>':''}</td><td>${esc(m.unit)}</td><td>${esc(r.startDate||'—')}</td><td>${esc(r.endDate||'—')}</td><td>${fmt(r.target,m.unit)}</td><td>${fmt(r.value,m.unit)}</td><td>${fmt(remaining,m.unit)}</td><td><div class="bar-mini">${progress(p)}<strong>${p==null?'—':ptxt(p)}</strong></div></td><td>${esc(STATUS[r.status]||'—')}</td><td class="muted">${fmtDate(r.updatedAt)}</td><td class="wrap">${esc(r.note||'—')}</td><td>${mayWrite(unit.id)?`<button class="btn btn-soft" data-action="edit-metric" data-unit="${unit.id}" data-metric="${m.id}">Sửa</button>`:''}</td></tr>`;
+ }).join('');
+ return `<div class="lower-section">${section(`${stage.icon} · ${esc(stage.full)}`,`<div class="table-scroll"><table class="data-table"><thead><tr><th>Mã</th><th class="wrap">Chỉ tiêu</th><th>Đơn vị</th><th>Ngày bắt đầu</th><th>Ngày kết thúc</th><th>Tổng phải thực hiện</th><th>Đã thực hiện</th><th>Còn lại</th><th>% hoàn thành</th><th>Trạng thái</th><th>Thời gian cập nhật</th><th class="wrap">Khó khăn, vướng mắc, kiến nghị</th><th></th></tr></thead><tbody>${trows}</tbody></table></div>`,'Mốc chốt công đoạn được tô vàng; cuộn ngang để xem ngày bắt đầu/kết thúc, trạng thái và thời gian cập nhật.')}</div>`;
+ }).join('');
+ return `${pageHead('HỒ SƠ TIẾN ĐỘ ĐƠN VỊ','Theo dõi xã, phường','Xem 25 chỉ tiêu theo 5 công đoạn, thời điểm cập nhật riêng từng chỉ tiêu.',mayWrite(unit.id)?`<button class="btn btn-primary" data-action="edit-unit" data-unit="${unit.id}">✎ Cập nhật đơn vị</button>`:'')}${dataNote()}
+ <div class="section-heading"><h2>Thông tin địa phương</h2><div class="filter-row"><label class="label">Chọn đơn vị</label><select class="filter-select" data-select="unit">${selectOptions(db.units.map(u=>({value:u.id,name:u.name})),unit.id)}</select></div></div>
+ <div class="panel" style="margin-bottom:16px"><div class="quick-kpis"><div><span>Chỉ số chung (tham khảo)</span><strong>${ptxt(unitScore(unit.id))}</strong></div><div><span>Chỉ tiêu đã cập nhật</span><strong>${metricDefs.filter(m=>getRec(unit.id,m.id).target!=null).length}/${metricDefs.length}</strong></div><div><span>Cập nhật gần nhất</span><strong style="font-size:15px;margin-top:6px">${fmtDate(latestUnit(unit.id))}</strong></div></div></div>
+ <div class="stage-cards">${cards}</div>${tables}`;
 }
-function hasSectionRows(report, section=state.section) {
-  return SECTIONS[section].items.some(m=>hasRowContent(report?.rows?.[m.id]));
+function renderUpdate(){
+ if(!canEdit())return pageHead('QUẢN LÝ TIẾN ĐỘ','Cần đăng nhập','Chỉ tài khoản nhập liệu và quản trị được cập nhật tiến độ.',`<button class="btn btn-primary" data-action="login">Đăng nhập</button>`);
+ const permitted=unitOptionsForWrite();if(!permitted.some(u=>u.id===ui.editUnit))ui.editUnit=permitted[0]?.id||'';
+ const u=permitted.find(x=>x.id===ui.editUnit);
+ const ms=metricDefs.filter(m=>m.stage===ui.editStage);
+ if(!ms.some(m=>m.id===ui.editMetric))ui.editMetric=ms[0].id;
+ const m=metricById[ui.editMetric],r=getRec(ui.editUnit,m.id);
+ const history=db.history.filter(h=>!u||h.unitId===u.id).slice(0,18);
+ const logs=history.length?history.map(h=>{const unit=db.units.find(u=>u.id===h.unitId),hm=metricById[h.metricId];return `<div class="journal-item"><div class="journal-date">${fmtDate(h.at)}</div><div><div class="journal-title">${esc(unit?.name||h.unitId)}</div><div class="journal-sub">${esc(hm?.label||h.metricId)} · ${esc(h.note||'')}</div></div><div class="journal-delta">${fmt(h.before?.completed,hm?.unit)} → ${fmt(h.after?.completed,hm?.unit)}</div></div>`;}).join(''):'<div class="empty">Chưa có nhật ký cập nhật trên Firestore.</div>';
+ return `${pageHead('CẬP NHẬT TRỰC TIẾP','Cập nhật số liệu & nhật ký','Mỗi đơn vị có 01 tài liệu tiến độ; sửa từng chỉ tiêu độc lập, cập nhật thời gian máy chủ Firebase.')}${dataNote()}
+ <div class="panel-grid update-cols"><section class="panel form-card"><div class="panel-toolbar"><div><h2 class="panel-title">Nhập kết quả thực hiện</h2><p class="subtext">Lưu lũy kế, không nhập lại theo tuần. Cập nhật riêng từng chỉ tiêu.</p></div></div>
+ <div class="info-line">Ngày bắt đầu/kết thúc theo từng chỉ tiêu (không bắt buộc); hai giá trị phải thực hiện/đã thực hiện dùng đúng đơn vị tính trong biểu Excel. Các dòng tô vàng là mốc chốt công đoạn. Toàn tuyến tổng hợp tự động từ xã/phường.</div>
+ <div class="form-grid"><div class="field wide"><label class="field-label">Xã, phường báo cáo</label><select class="field-select" data-select="edit-unit">${selectOptions(permitted.map(x=>({value:x.id,name:x.name})),ui.editUnit)}</select></div>
+ <div class="field wide"><label class="field-label">Nhóm nhiệm vụ / công đoạn</label><select class="field-select" data-select="edit-stage">${stageOptions(ui.editStage)}</select></div>
+ <div class="field wide"><label class="field-label">Chỉ tiêu</label><select class="field-select" data-select="edit-metric">${metricOptions(ui.editStage,ui.editMetric)}</select></div></div>
+ <form id="update-form"><div class="field-grid"><div class="field"><label class="field-label" for="startDate">Ngày bắt đầu</label><input class="field-input" type="date" id="startDate" value="${esc(r.startDate||'')}"></div>
+ <div class="field"><label class="field-label" for="endDate">Ngày kết thúc</label><input class="field-input" type="date" id="endDate" value="${esc(r.endDate||'')}"></div>
+ <div class="field"><label class="field-label" for="target">Tổng phải thực hiện (${esc(m.unit)})</label><input class="field-input" type="number" min="0" max="1000000000000" step="${isDecimal(m)?'0.001':'1'}" id="target" required value="${r.target??''}"></div>
+ <div class="field"><label class="field-label" for="value">Đã thực hiện (${esc(m.unit)})</label><input class="field-input" type="number" min="0" max="1000000000000" step="${isDecimal(m)?'0.001':'1'}" id="value" value="${r.value??''}" placeholder="Có thể bỏ trống nếu Chưa thực hiện"></div>
+ <div class="field wide"><label class="field-label" for="status">Trạng thái</label><select required class="field-select" id="status"><option value="">— Chọn trạng thái —</option>${Object.entries(STATUS).map(([key,label])=>`<option value="${key}" ${key===r.status?'selected':''}>${label}</option>`).join('')}</select></div>
+ <div class="field wide"><label class="field-label" for="note">Khó khăn, vướng mắc, kiến nghị</label><textarea maxlength="1500" id="note" class="field-textarea" placeholder="Nêu rõ khó khăn, vướng mắc và đề xuất (nếu có)">${esc(r.note)}</textarea></div></div>
+ <div id="form-preview" class="preview-previous">Còn lại: <strong>${r.target!=null&&r.value!=null?fmt(r.target-r.value,m.unit):'—'}</strong> · Hoàn thành: <strong>${ptxt(pct(r.value,r.target))}</strong> · Lần cập nhật: ${fmtDate(r.updatedAt)}</div>
+ <div class="form-actions mt-20"><button type="submit" class="btn btn-primary" ${pending?'disabled':''}>✓ ${pending?'Đang lưu…':'Lưu kết quả cập nhật'}</button><button type="button" class="btn" data-action="go-units">Xem hồ sơ đơn vị</button></div></form>
+ </section>${section('Nhật ký thay đổi gần nhất',logs,'Chỉ người đăng nhập được xem nhật ký; lịch sử tách khỏi dữ liệu hiện hành.')}</div>
+ <div class="lower-section">${section('Danh sách đơn vị thuộc tuyến',`<div class="unit-list">${db.units.map(u=>`<div class="unit-card"><div><strong>${esc(u.name)}</strong><p>${fmtDate(latestUnit(u.id))} · ${metricDefs.filter(m=>getRec(u.id,m.id).target!==null).length}/${metricDefs.length} chỉ tiêu có số liệu</p></div>${mayWrite(u.id)?`<button class="btn btn-soft" data-action="edit-unit" data-unit="${u.id}">Cập nhật</button>`:''}</div>`).join('')}</div>`,'Danh mục 10 xã, phường cố định, không thay đổi bằng tài khoản nhập liệu.')}</div>`;
 }
-function statusCell(tr, status, labelOverride) {
-  const cell=makeCell(tr);
-  const kind=status==='da_hoan_thanh'?' completed':status==='dang_thuc_hien'?' in-progress':status==='chua_thuc_hien'?' missing':' unknown';
-  cell.appendChild(el('span', labelOverride || statusLabel(status),`status-pill${kind}`));
-  return cell;
+function renderManage(){
+ if(!isAdmin())return pageHead('BẢO MẬT','Không có quyền','Chỉ tài khoản admin được phép quản lý hồ sơ phân quyền.');
+ const rows=profileRows.map(x=>`<tr><td class="wrap"><strong>${esc(x.displayName||'')}</strong><div class="subtext">${esc(x.email||'')}</div><div class="subtext">UID: ${esc(x.id)}</div></td><td>${esc(x.role||'')}</td><td>${esc(x.unitId||'')}</td><td>${x.active?'Hoạt động':'Khóa'}</td><td><button class="btn btn-soft" data-action="choose-user" data-uid="${esc(x.id)}">Sửa quyền</button></td></tr>`).join('');
+ return `${pageHead('QUẢN TRỊ HỆ THỐNG','Quản lý phân quyền','Kế thừa tài khoản Firebase Authentication và collection users của các phiên bản trước.')}${dataNote()}
+ <div class="form-actions" style="margin-bottom:16px"><button class="btn" data-action="export-json">⇩ Sao lưu dữ liệu hiện hành (JSON)</button></div><div class="panel-grid update-cols"><section class="panel"><div class="panel-toolbar"><h2 class="panel-title">Cấp / cập nhật quyền</h2></div>
+ <div class="info-line">Đầu tiên tạo tài khoản email/mật khẩu trong Firebase Console → Authentication → Users. Sau đó sao chép UID và cấp hồ sơ tại đây. Không nhập mật khẩu người dùng vào website.</div>
+ <form id="user-form" style="margin-top:17px"><div class="field-grid"><div class="field wide"><label class="field-label">Firebase User UID</label><input id="user-uid" class="field-input" maxlength="128" required placeholder="Dán UID từ Authentication"></div>
+ <div class="field wide"><label class="field-label">Email đã tạo trong Authentication</label><input id="user-email" class="field-input" type="email" maxlength="254" required></div><div class="field wide"><label class="field-label">Tên hiển thị</label><input id="user-name" class="field-input" maxlength="100" required></div>
+ <div class="field"><label class="field-label">Vai trò</label><select id="user-role" class="field-select"><option value="nhaplieu_xa">nhaplieu_xa – Một xã</option><option value="nhaplieu">nhaplieu – Toàn tuyến</option><option value="admin">admin – Quản trị</option></select></div><div class="field"><label class="field-label">Đơn vị</label><select id="user-unit" class="field-select">${selectOptions([{value:'TINH',name:'Toàn tuyến'},...UNITS.map(u=>({value:u.id,name:u.name}))],'BAC_KAN')}</select></div><div class="field wide"><label><input type="checkbox" id="user-active" checked> Tài khoản đang hoạt động</label></div></div>
+ <div class="form-actions mt-20"><button type="submit" class="btn btn-primary">Lưu hồ sơ phân quyền</button></div></form></section>
+ ${section('Các tài khoản đã có',`<div class="table-scroll"><table class="data-table"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Đơn vị</th><th>Trạng thái</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5">Chưa có hồ sơ</td></tr>'}</tbody></table></div>`,'Không thay đổi Authentication UID; không tự tạo mật khẩu từ trình duyệt.')}</div>
+ <div class="lower-section">${section('Dữ liệu cũ V2.1 – chỉ đọc',`<p class="subtext">Các báo cáo theo tuần trong <code>reports</code> được giữ nguyên. Admin có thể chọn từng báo cáo, xem trước và chuyển các chỉ tiêu hợp lệ chưa có trong <code>progress</code>; không tự động chuyển số liệu thử nghiệm hoặc báo cáo TINH.</p><button class="btn" data-action="load-legacy">Đọc danh sách báo cáo cũ (admin)</button><div class="unit-list mt-12">${legacyDocs.map(x=>`<div class="unit-card"><span><strong>${esc(x.id)}</strong><p>${esc(x.unitName||'')} · ${esc(x.period||'')}</p></span>${UNITS.some(u=>u.id===x.unitId)?`<button class="btn btn-soft" data-action="migrate-legacy" data-report="${esc(x.id)}">Kiểm tra và chuyển chỉ tiêu chưa có</button>`:`<span class="pill neutral">Báo cáo toàn tuyến cũ, không chuyển</span>`}</div>`).join('')}</div>`,'Để nhập dữ liệu chính thức, dùng biểu Cập nhật & nhật ký; không sao chép tự động các báo cáo thử.')}</div>`;
 }
-function renderTable() {
-  const section=SECTIONS[state.section]; const rows=currentReportRows();
-  $('sectionTitle').textContent=section.title;
-  $('metricsBody').replaceChildren();
-  for (const metric of section.items) {
-    const row=normalizeRow(rows[metric.id]); const calc=computed(row); const tr=el('tr');
-    makeCell(tr,metric.number); makeCell(tr,metric.label,'metric-name'); makeCell(tr,metric.unit);
-    makeCell(tr,formatNumber(toNumber(row.target)));
-    makeCell(tr,formatNumber(calc.completed));
-    makeCell(tr,formatNumber(calc.remaining),'value-strong');
-    const td=makeCell(tr,formatPercent(calc.percentage),'value-strong');
-    if (calc.percentage!==null) {
-      const track=el('div',undefined,'progress-track'); const fill=el('div',undefined,'progress-fill');
-      fill.style.width=`${Math.min(100,Math.max(0,calc.percentage))}%`;
-      track.appendChild(fill); td.appendChild(track);
-    }
-    const aggregate=state.unitId==='ALL';
-    const insufficient=aggregate && row.coverage!==undefined && row.coverage!==UNITS.length;
-    statusCell(tr,row.status,insufficient?`Chưa đủ dữ liệu (${row.coverage}/10)`:null);
-    const notes=makeCell(tr,row.note?.trim()||'—','note-cell'); notes.title=row.note?.trim()||'';
-    const updateCell=makeCell(tr,formatUpdatedAt(row.updatedAt),'update-cell');
-    if (aggregate && row.coverage!==undefined) {
-      updateCell.appendChild(el('small',`${row.coverage}/10 xã có số liệu`,'coverage-caption'));
-      updateCell.title='Lần cập nhật gần nhất của chỉ tiêu trong số 10 xã, phường';
-    }
-    $('metricsBody').appendChild(tr);
-  }
+function render(){
+ const lookup={overview:renderOverview,stages:renderStages,compare:renderCompare,units:renderUnits,update:renderUpdate,manage:renderManage};
+ const title={overview:'Tổng quan',stages:'Tiến độ công đoạn',compare:'So sánh địa phương',units:'Hồ sơ đơn vị',update:'Cập nhật & nhật ký',manage:'Quản lý phân quyền'};
+ $('#main').innerHTML=`<div class="page">${(lookup[ui.page]||renderOverview)()}</div>`;
+ $('#topbar-section').textContent=title[ui.page]||'Tổng quan';
+ document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===ui.page));
+ const who=$('#identity');who.textContent=currentUser?(profile?.active?`${profile.displayName||'Người dùng'} · ${profile.role}`:'Tài khoản chưa được cấp quyền'):'Khách truy cập';
+ $('#login-btn').hidden=!!currentUser;$('#logout-btn').hidden=!currentUser;
+ document.body.classList.toggle('can-write',canEdit());document.body.classList.toggle('is-admin',isAdmin());
+ const clock=$('#clock');clock.textContent=new Date().toLocaleDateString('vi-VN',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'});
 }
-function statCard(label,value,caption) {
-  const card=el('article',undefined,'stat-card');
-  card.append(el('div',label,'stat-label'),el('div',value,'stat-number'),el('div',caption,'stat-caption'));
-  return card;
+function openPage(page){if((page==='update'&&!canEdit())||(page==='manage'&&!isAdmin())){toast('Bạn không có quyền vào chức năng này.');return;}ui.page=page;render();window.scrollTo({top:0,behavior:'instant'});$('#sidebar').classList.remove('open');}
+let toastTimer;
+function toast(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),4800);}
+function fileDownload(name,text,mime='text/plain;charset=utf-8'){const b=new Blob([text],{type:mime}),a=document.createElement('a'),url=URL.createObjectURL(b);a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
+function csvCell(v){let s=String(v??'');if(/^[\s]*[=+@\-\t\r]/.test(s))s="'"+s;return `"${s.replace(/"/g,'""')}"`;}
+function exportCsv(){const rows=[['Mã đơn vị','Xã/phường','Nhóm công việc','Mã chỉ tiêu','Chỉ tiêu','Đơn vị','Ngày bắt đầu','Ngày kết thúc','Tổng phải thực hiện','Đã thực hiện','Còn lại','Hoàn thành (%)','Trạng thái','Cập nhật lần cuối','Khó khăn, vướng mắc, kiến nghị']];
+for(const u of db.units)for(const m of metricDefs){const r=getRec(u.id,m.id);rows.push([u.id,u.name,stageById[m.stage].full,m.code,m.label,m.unit,r.startDate||'',r.endDate||'',r.target??'',r.value??'',r.target!=null&&r.value!=null?r.target-r.value:'',pct(r.value,r.target)??'',STATUS[r.status]||'',asDate(r.updatedAt)?fmtDate(r.updatedAt):'',r.note]);}
+fileDownload('Tien_do_GPMB_Bac_Kan_Cao_Bang.csv','\ufeffsep=;\r\n'+rows.map(x=>x.map(csvCell).join(';')).join('\r\n'),'text/csv;charset=utf-8');toast('Đã xuất bảng dữ liệu hiện hành.');}
+function exportJson(){if(!isAdmin())return;const safeRows=Object.fromEntries(Object.entries(db.records).map(([key,r])=>[key,{...r,updatedAt:asDate(r.updatedAt)?.toISOString()||null}]));fileDownload('Sao_luu_tien_do_hien_hanh.json',JSON.stringify({version:'V4',generatedAt:new Date().toISOString(),units:UNITS,records:safeRows,history:db.history},null,2),'application/json;charset=utf-8');toast('Đã tạo bản sao lưu dữ liệu V4 trên máy tính.');}
+function freshCurrent(){return db.units.map(u=>({unit:u,updatedAt:latestUnit(u.id)}));}
+function onFormPreview(form){const t=form.querySelector('#target').value,v=form.querySelector('#value').value;const total=t===''?null:Number(t),done=v===''?null:Number(v);const m=metricById[ui.editMetric];const valid=total!==null&&done!==null&&total>=0&&done>=0&&done<=total;
+const remaining=valid?fmt(total-done,m.unit):'—',p=valid?ptxt(pct(done,total)):'—';form.querySelector('#form-preview').innerHTML=`Còn lại: <strong>${remaining}</strong> · Hoàn thành: <strong>${p}</strong> · Lần cập nhật gần nhất: ${fmtDate(getRec(ui.editUnit,ui.editMetric).updatedAt)}`;}
+async function saveMetric(unitId,metricId,row,{onlyIfEmpty=false}={}){
+ if(!currentUser||!mayWrite(unitId))throw Error('Không có quyền cập nhật xã, phường này.');
+ const m=metricById[metricId],err=validate(row,m);if(err)throw Error(err);
+ const progressRef=doc(fs,'progress',unitId),logRef=doc(collection(fs,'history'));
+ // Chỉ gửi một dòng chỉ tiêu; giao dịch ghi nhật ký cùng lúc với dữ liệu hiện hành.
+ await runTransaction(fs,async tx=>{
+  const snap=await tx.get(progressRef);const old=snap.exists()?readRow(snap.data().rows?.[metricId]):null;
+  if(onlyIfEmpty&&old)throw Error('Chỉ tiêu đã có dữ liệu, từ chối ghi đè.');
+  const shown=getRec(unitId,metricId);const beforeStamp=old?.updatedAt?.getTime()||0,shownStamp=shown.updatedAt?.getTime()||0;
+  if(beforeStamp!==shownStamp&&!onlyIfEmpty)throw Error('Một người khác đã cập nhật chỉ tiêu này. Hãy tải lại dữ liệu trước khi lưu.');
+  const update={target:row.target,completed:row.value,status:row.status,note:row.note,startDate:row.startDate||'',endDate:row.endDate||'',updatedAt:serverTimestamp(),updatedBy:currentUser.uid};
+  const meta={updatedAt:serverTimestamp(),updatedBy:currentUser.uid,lastMetricId:metricId,lastHistoryId:logRef.id};
+  if(snap.exists())tx.update(progressRef,{...meta,[`rows.${metricId}`]:update});
+  else tx.set(progressRef,{unitId,rows:{[metricId]:update},...meta});
+  tx.set(logRef,{unitId,metricId,before:{target:old?.target??null,completed:old?.value??null,status:old?.status??'',startDate:old?.startDate||'',endDate:old?.endDate||''},after:{target:row.target,completed:row.value,status:row.status,startDate:row.startDate||'',endDate:row.endDate||''},note:row.note,createdBy:currentUser.uid,at:serverTimestamp()});
+ });
 }
-function renderStats() {
-  const rows=currentReportRows(), section=SECTIONS[state.section], isAll=state.unitId==='ALL';
-  const count=UNITS.filter(u=>hasSectionRows(state.reports.get(u.id))).length;
-  const hasUnitData=hasSectionRows(state.reports.get(state.unitId));
-  const filled=section.items.filter(m=>hasRowContent(rows[m.id])).length;
-  const [first,second]=section.keyMetrics.map(id=>section.items.find(m=>m.id===id));
-  const calc1=computed(rows[first.id]),calc2=computed(rows[second.id]);
-  $('statsCards').replaceChildren(
-    statCard('Xã, phường đã cập nhật',isAll?`${count}/10`:(hasUnitData?'Đã có dữ liệu':'Chưa có'),isAll?'Trên toàn tuyến':getUnitName(state.unitId)),
-    statCard('Chỉ tiêu có dữ liệu',`${filled}/${section.items.length}`,isAll?'Số liệu tổng hợp từ các xã':'Thông tin hiện có'),
-    statCard(first.label,`${formatNumber(calc1.completed)}${calc1.completed===null?'':` ${first.unit}`}`,'Lũy kế tại thời điểm xem'),
-    statCard(second.label,`${formatNumber(calc2.completed)}${calc2.completed===null?'':` ${second.unit}`}`,'Các xã có thể cập nhật bất kỳ lúc nào')
-  );
-  const label=isAll?`Toàn tuyến · ${count}/10 xã, phường có dữ liệu`:`${getUnitName(state.unitId)} · Dữ liệu hiện tại`;
-  $('dataCoverage').textContent=`${label} · ${filled}/${section.items.length} chỉ tiêu có thông tin`;
+async function onSaveMetric(form){if(pending)return;const unitId=ui.editUnit,m=metricById[ui.editMetric];if(!m||!mayWrite(unitId))return toast('Không có quyền nhập liệu.');
+ const targetStr=form.querySelector('#target').value.trim(),doneStr=form.querySelector('#value').value.trim();
+ const row={target:targetStr===''?null:Number(targetStr),value:doneStr===''?null:Number(doneStr),status:form.querySelector('#status').value,note:form.querySelector('#note').value.trim(),startDate:form.querySelector('#startDate').value,endDate:form.querySelector('#endDate').value};
+ const error=validate(row,m);if(error)return toast(error);
+ const old=getRec(unitId,m.id);if(old.target===row.target&&old.value===row.value&&old.status===row.status&&old.note===row.note&&(old.startDate||'')===row.startDate&&(old.endDate||'')===row.endDate)return toast('Chỉ tiêu chưa thay đổi, không cần lưu.');
+ pending=true;const saveButton=form.querySelector('[type=submit]');saveButton.disabled=true;saveButton.textContent='Đang lưu…';
+ try{await saveMetric(unitId,m.id,row);toast('Đã lưu chỉ tiêu và nhật ký trên Firebase.');render();}
+ catch(e){console.error(e);toast(`Không thể lưu: ${e.message}`);}
+ finally{pending=false;saveButton.disabled=false;saveButton.textContent='✓ Lưu kết quả cập nhật';}
 }
-function renderOverview() {
-  const visible=state.unitId==='ALL'; $('overviewCard').hidden=!visible; if(!visible)return;
-  const section=SECTIONS[state.section];
-  const [m1,m2]=section.keyMetrics.map(id=>section.items.find(m=>m.id===id));
-  $('overviewTitle').textContent=`Tình hình từng xã, phường – ${section.shortTitle}`;
-  const header=el('tr');
-  for (const label of ['STT','Xã, phường','Tình trạng dữ liệu',`${m1.label} (${m1.unit})`,`${m2.label} (${m2.unit})`,'Tiến độ chỉ tiêu đầu (%)','Cập nhật gần nhất']) header.appendChild(el('th',label));
-  $('overviewHead').replaceChildren(header); $('overviewBody').replaceChildren();
-  UNITS.forEach((unit,index)=>{
-    const report=state.reports.get(unit.id),a=computed(report?.rows?.[m1.id]),b=computed(report?.rows?.[m2.id]);
-    const tr=el('tr'); makeCell(tr,index+1); makeCell(tr,unit.name);
-    statusCell(tr,'',hasSectionRows(report)?'Đã có dữ liệu':'Chưa có dữ liệu');
-    makeCell(tr,formatNumber(a.completed)); makeCell(tr,formatNumber(b.completed));
-    makeCell(tr,formatPercent(a.percentage));
-    makeCell(tr,formatUpdatedAt(latestTimeForSection(report)));
-    $('overviewBody').appendChild(tr);
-  });
+function pickUser(uid){const u=profileRows.find(x=>x.id===uid);if(!u)return;$('#user-uid').value=u.id;$('#user-email').value=u.email||'';$('#user-name').value=u.displayName||'';$('#user-role').value=u.role||'nhaplieu_xa';$('#user-unit').value=u.unitId||'BAC_KAN';$('#user-active').checked=!!u.active;$('#user-form').scrollIntoView({behavior:'smooth'});}
+async function onSaveUser(form){if(!isAdmin())return;const uid=form.querySelector('#user-uid').value.trim(),email=form.querySelector('#user-email').value.trim(),name=form.querySelector('#user-name').value.trim(),role=form.querySelector('#user-role').value,unitId=form.querySelector('#user-unit').value,active=form.querySelector('#user-active').checked;
+ if(!uid||uid.includes('/')||!email||!name)return toast('UID, email, tên hiển thị chưa hợp lệ.');
+ if((role==='nhaplieu_xa'&&!UNITS.some(u=>u.id===unitId))||(role!=='nhaplieu_xa'&&unitId!=='TINH'))return toast('Vai trò và đơn vị không khớp. Tài khoản toàn tuyến phải có unitId = TINH.');
+ if(uid===currentUser.uid&&(!active||role!=='admin'))return toast('Không thể tự khóa hoặc hạ vai trò tài khoản admin đang sử dụng.');
+ if(!confirm(`Lưu quyền ${role} cho ${email}?`))return;
+ try{await setDoc(doc(fs,'users',uid),{displayName:name,email,role,unitId,active,updatedAt:serverTimestamp()});toast('Đã lưu hồ sơ phân quyền.');}catch(e){toast(`Không thể lưu quyền: ${e.message}`);console.error(e);}
 }
-function renderDashboard() {
-  $('gpmbTab').classList.toggle('active',state.section==='gpmb');
-  $('tdcTab').classList.toggle('active',state.section==='tdc');
-  $('gpmbTab').setAttribute('aria-selected',String(state.section==='gpmb'));
-  $('tdcTab').setAttribute('aria-selected',String(state.section==='tdc'));
-  renderStats(); renderTable(); renderOverview();
+async function loadLegacy(){if(!isAdmin())return;try{const s=await getDocs(query(collection(fs,'reports'),limit(100)));legacyDocs=s.docs.map(d=>({id:d.id,...d.data()}));render();toast(`Đã đọc ${legacyDocs.length} tài liệu báo cáo cũ, không thay đổi số liệu.`);}catch(e){console.error(e);toast(`Không đọc được reports: ${e.message}`);}}
+async function migrateLegacyReport(reportId){
+ if(!isAdmin())return;
+ const report=legacyDocs.find(x=>x.id===reportId);
+ if(!report||!UNITS.some(u=>u.id===report.unitId))return toast('Báo cáo này không thuộc 10 xã, phường.');
+ const entries=[];
+ for(const m of metricDefs){const raw=report.rows?.[m.id];if(!raw)continue;
+   const row={target:raw.target??null,value:raw.completed??null,status:raw.status||'',note:raw.note||'',startDate:raw.startDate||'',endDate:raw.endDate||''};
+   if(row.target===null&&!row.status&&!row.note)continue;
+   const error=validate(row,m);if(error){toast('Dữ liệu báo cáo cũ chưa hợp lệ: '+error);return;}
+   if(/thử nghiệm|thử nghi[eệ]m|test/i.test(row.note)){toast('Báo cáo có dấu hiệu dữ liệu thử nghiệm. Không chuyển tự động.');return;}
+   entries.push({m,row});
+ }
+ if(!entries.length)return toast('Không tìm thấy chỉ tiêu hợp lệ trong báo cáo.');
+ const preview=entries.map(x=>`${x.m.code} · ${x.m.label}: ${x.row.value??0}/${x.row.target}`).join('\n');
+ if(!confirm(`Chuyển ${entries.length} chỉ tiêu từ ${reportId} sang dữ liệu hiện hành của ${report.unitName}?\n\nCHỈ CHUYỂN những chỉ tiêu chưa có trong progress, không ghi đè dữ liệu hiện hành. Thời gian cập nhật được ghi là thời điểm chuyển thực tế.\n\n${preview}`))return;
+ let copied=0,skipped=0,failed=0;
+ for(const {m,row} of entries){try{await saveMetric(report.unitId,m.id,row,{onlyIfEmpty:true});copied++;}
+ catch(e){if(String(e.message).includes('đã có dữ liệu'))skipped++;else {failed++;console.error('Migration:',m.id,e);}}}
+ toast(`Đã chuyển ${copied} chỉ tiêu, bỏ qua ${skipped} đã có, ${failed} lỗi. Báo cáo gốc giữ nguyên.`);
 }
-function startLiveReports() {
-  if (!firebaseReady)return;
-  if (state.unsubscribe) state.unsubscribe();
-  state.loading=true;
-  $('refreshBtn').textContent='Đang kết nối...'; $('refreshBtn').disabled=true;
-  state.unsubscribe=onSnapshot(collection(db,'progress'),snapshot=>{
-    const reports=new Map();
-    for(const item of snapshot.docs) if(UNITS.some(u=>u.id===item.id)) reports.set(item.id,item.data());
-    state.reports=reports;
-    state.loading=false; $('refreshBtn').disabled=false; $('refreshBtn').textContent='↻ Làm mới';
-    renderDashboard();
-  },err=>{
-    state.loading=false; $('refreshBtn').disabled=false; $('refreshBtn').textContent='↻ Làm mới';
-    toast(`Không tải được dữ liệu: ${errorMessage(err)}`,'error');
-  });
-}
-async function refreshData() {
-  if (!firebaseReady)return;
-  try {
-    // Luôn nhận dữ liệu đồng bộ khi nhấn Làm mới, kể cả khi kết nối realtime bị gián đoạn.
-    const snapshot=await getDocs(collection(db,'progress'));
-    state.reports=new Map(snapshot.docs.filter(i=>UNITS.some(u=>u.id===i.id)).map(i=>[i.id,i.data()]));
-    renderDashboard(); toast('Đã tải lại dữ liệu mới nhất.');
-  } catch (err) { toast(`Không làm mới được: ${errorMessage(err)}`,'error'); }
-}
-function refreshAuthUI() {
-  const signedIn=!!state.user;
-  $('loginBtn').hidden=signedIn; $('logoutBtn').hidden=!signedIn;
-  $('editBtn').hidden=!hasEditorRights(); $('adminPanelBtn').hidden=!isAdmin();
-  const labels={admin:'Quản trị viên',nhaplieu:'Nhập liệu toàn tuyến',nhaplieu_xa:'Nhập liệu xã, phường'};
-  $('authLabel').textContent=signedIn?`${state.profile?.displayName||state.user.email} · ${hasEditorRights()?labels[state.profile.role]:'Chưa được cấp quyền nhập liệu'}`:'Khách truy cập · Chế độ xem';
-  if (!hasEditorRights()) closeEditor(true);
-  if (!isAdmin()) $('usersPanel').hidden=true;
-}
-function confirmDiscard() { return !state.editorDirty || window.confirm('Có thay đổi chưa lưu. Anh có muốn bỏ những thay đổi này không?'); }
-function closeEditor(force=false) {
-  if (!force && !confirmDiscard())return;
-  $('editorPanel').hidden=true; state.editorDirty=false; state.editUnitId=null; state.baseline={};
-}
-async function switchSection(section) {
-  if (state.section===section || !confirmDiscard())return;
-  state.section=section; renderDashboard();
-  if (!$('editorPanel').hidden) renderEditorRows();
-}
-function openEditor() {
-  if (!hasEditorRights())return;
-  const units=editableUnits(); if(!units.length){toast('Chưa được gán đơn vị hợp lệ.','error');return;}
-  state.editUnitId=units.find(u=>u.id===state.unitId)?.id ?? units[0].id;
-  $('editUnitSelect').replaceChildren(); units.forEach(u=>option($('editUnitSelect'),u.id,u.name));
-  $('editUnitSelect').value=state.editUnitId;
-  $('editorPanel').hidden=false; renderEditorRows();
-  $('editorPanel').scrollIntoView({behavior:'smooth',block:'start'});
-}
-function readInputRow(tr) {
-  const r={};
-  for(const field of FIELDS){
-    const input=tr.querySelector(`[data-field="${field}"]`),s=input.value.trim();
-    r[field]=input.validity.badInput?NaN:(s===''?null:Number(s));
-  }
-  r.status=tr.querySelector('[data-field="status"]').value;
-  r.note=tr.querySelector('[data-field="note"]').value.trim();
-  return r;
-}
-function updatePreview(tr) {
-  const row=readInputRow(tr),calc=computed(row);
-  tr.querySelector('[data-computed="remaining"]').textContent=formatNumber(calc.remaining);
-  tr.querySelector('[data-computed="percentage"]').textContent=formatPercent(calc.percentage);
-  const metric=SECTIONS[state.section].items.find(m=>m.id===tr.dataset.metric);
-  const error=validateMetricRow(row,metric); tr.classList.toggle('invalid-row',!!error);
-  const feedback=tr.querySelector('[data-feedback]');
-  feedback.textContent=error?error.replace(/^Chỉ tiêu [0-9]+ \([^)]+\): /,''):''; feedback.hidden=!error;
-  for(const field of FIELDS) tr.querySelector(`[data-field="${field}"]`).setAttribute('aria-invalid',String(!!error));
-}
-function renderEditorRows() {
-  const section=SECTIONS[state.section]; const old=state.reports.get(state.editUnitId)?.rows ?? {};
-  state.baseline={}; $('editTitle').textContent=`${section.shortTitle} · cập nhật thường xuyên`;
-  $('lastWeekNote').textContent='Chỉ tiêu đã lưu sẽ được điền sẵn. Thời gian cập nhật tính riêng cho từng chỉ tiêu.';
-  $('editRows').replaceChildren();
-  for(const m of section.items){
-    const existing=normalizeRow(old[m.id]); state.baseline[m.id]=existing;
-    const tr=el('tr'); tr.dataset.metric=m.id;
-    makeCell(tr,m.number);makeCell(tr,m.label,'metric-name');makeCell(tr,m.unit);
-    for(const field of FIELDS){
-      const td=makeCell(tr),input=el('input'); input.type='number';input.step='any';input.min='0';input.max='1000000000000';
-      input.inputMode='decimal';input.dataset.field=field;input.setAttribute('aria-label',`${m.label} - ${field==='target'?'Tổng':'Đã thực hiện'}`);
-      input.value=existing[field]===null?'':String(existing[field]);
-      input.addEventListener('input',()=>{state.editorDirty=true;updatePreview(tr);});
-      td.appendChild(input);
-    }
-    for(const field of ['remaining','percentage']){const td=makeCell(tr,undefined,'value-strong');td.dataset.computed=field;}
-    const statusTd=makeCell(tr),select=el('select');select.dataset.field='status';
-    option(select,'','— Chọn trạng thái —');STATUS_OPTIONS.forEach(s=>option(select,s.value,s.label));select.value=existing.status;
-    select.addEventListener('change',()=>{state.editorDirty=true;updatePreview(tr);});statusTd.appendChild(select);
-    const td=makeCell(tr),note=el('textarea');note.dataset.field='note';note.maxLength=1500;note.value=existing.note;
-    note.setAttribute('aria-label',`Ghi chú - ${m.label}`);note.addEventListener('input',()=>{state.editorDirty=true;updatePreview(tr);});
-    td.appendChild(note);
-    const feedback=el('p','','row-error');feedback.dataset.feedback='';feedback.hidden=true;td.appendChild(feedback);
-    makeCell(tr,formatUpdatedAt(existing.updatedAt),'update-cell');
-    $('editRows').appendChild(tr);updatePreview(tr);
-  }
-  state.editorDirty=false;
-}
-async function saveReport() {
-  if(!canEdit(state.editUnitId)){toast('Không có quyền cập nhật xã, phường này.','error');return;}
-  const unit=UNITS.find(u=>u.id===state.editUnitId);
-  const changed={};
-  for(const tr of $('editRows').querySelectorAll('tr[data-metric]')){
-    const metric=SECTIONS[state.section].items.find(m=>m.id===tr.dataset.metric),row=readInputRow(tr);
-    const error=validateMetricRow(row,metric);
-    if(error){updatePreview(tr);tr.scrollIntoView({behavior:'smooth',block:'center'});toast(error,'error');return;}
-    if(comparableRow(row)!==comparableRow(state.baseline[metric.id])) changed[metric.id]=row;
-  }
-  const ids=Object.keys(changed);
-  if(!ids.length){toast('Không có chỉ tiêu nào thay đổi để lưu.');return;}
-  $('saveBtn').disabled=true;$('saveBtn').textContent='Đang lưu...';
-  try {
-    const target=doc(db,'progress',unit.id);
-    await runTransaction(db,async tx=>{
-      const snap=await tx.get(target);
-      const old=snap.exists()?snap.data().rows??{}:{};
-      for(const id of ids){
-        if(comparableRow(old[id])!==comparableRow(state.baseline[id])){
-          throw new Error(`Chỉ tiêu ${id} vừa được người khác cập nhật. Vui lòng đóng biểu mẫu, mở lại để kiểm tra trước khi lưu.`);
-        }
-      }
-      const merged={...old};
-      for(const id of ids){
-        const row=changed[id];
-        if(!hasRowContent(row)){delete merged[id];continue;}
-        merged[id]={...row,updatedAt:serverTimestamp(),updatedBy:state.user.uid};
-      }
-      tx.set(target,{unitId:unit.id,rows:merged,updatedAt:serverTimestamp(),updatedBy:state.user.uid});
-    });
-    closeEditor(true);
-    await refreshData();
-    toast(`Đã cập nhật ${ids.length} chỉ tiêu của ${unit.name}. Các chỉ tiêu khác giữ nguyên.`);
-  }catch(err){toast(`Không lưu được: ${errorMessage(err)}`,'error');}
-  finally{$('saveBtn').disabled=false;$('saveBtn').textContent='Lưu thay đổi';}
-}
-function csvCell(value) {
-  const raw=String(value??'');
-  const safe=typeof value==='string'&&/^[=+@\-\t\r]/.test(raw)?`'${raw}`:raw;
-  return `"${safe.replaceAll('"','""')}"`;
-}
-function exportCsv() {
-  const section=SECTIONS[state.section],rows=currentReportRows();
-  const headers=['STT','Chỉ tiêu','Đơn vị','Tổng phải thực hiện','Đã thực hiện','Còn lại','% Hoàn thành','Trạng thái','Khó khăn, vướng mắc, kiến nghị','Thời gian cập nhật','Số xã có số liệu'];
-  const lines=section.items.map(m=>{
-    const r=normalizeRow(rows[m.id]),calc=computed(r);
-    return [m.number,m.label,m.unit,r.target??'',calc.completed??'',calc.remaining??'',
-      calc.percentage===null?'':Number(calc.percentage.toFixed(2)),
-      state.unitId==='ALL'&&r.coverage!==undefined&&r.coverage!==10?'Chưa đủ dữ liệu':(r.status?statusLabel(r.status):''),
-      r.note,formatUpdatedAt(r.updatedAt),state.unitId==='ALL'?(r.coverage??0):''];
-  });
-  const content='\ufeff'+[headers,...lines].map(line=>line.map(csvCell).join(',')).join('\r\n');
-  const url=URL.createObjectURL(new Blob([content],{type:'text/csv;charset=utf-8;'}));
-  const a=el('a');a.href=url;a.download=`Tien_do_hien_tai_${state.section}_${state.unitId}.csv`;
-  document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
-}
-function updateProfileUnitControl() {
-  const role = $('profileRole').value;
-  const select = $('profileUnit');
-  if (role !== 'nhaplieu_xa') {
-    select.replaceChildren();
-    option(select, 'TINH', 'Nhập liệu toàn tuyến');
-    select.disabled = true;
-  } else {
-    const old = select.value;
-    select.replaceChildren();
-    UNITS.forEach(unit => option(select, unit.id, unit.name));
-    if (UNITS.some(unit => unit.id === old)) select.value = old;
-    select.disabled = false;
-  }
-}
-async function renderProfiles() {
-  if (!isAdmin()) return;
-  const body = $('usersBody');
-  body.replaceChildren();
-  const loadingRow = el('tr');
-  const loadingCell = makeCell(loadingRow, 'Đang tải danh sách phân quyền...');
-  loadingCell.colSpan = 6;
-  body.appendChild(loadingRow);
-  try {
-    const profiles = await getDocs(collection(db, 'users'));
-    body.replaceChildren();
-    for (const snapshot of profiles.docs) {
-      const profile = snapshot.data();
-      const tr = el('tr');
-      const info = makeCell(tr);
-      info.append(el('strong', profile.displayName ?? ''), el('div', profile.email ?? '', 'muted'));
-      makeCell(tr, snapshot.id);
-      makeCell(tr, profile.role ?? '');
-      makeCell(tr, getUnitName(profile.unitId ?? ''));
-      const tdStatus = makeCell(tr);
-      tdStatus.appendChild(el('span', profile.active ? 'Hoạt động' : 'Tạm khóa', `status-pill${profile.active ? '' : ' missing'}`));
-      const actions = makeCell(tr);
-      const button = el('button', 'Sửa', 'btn btn-outline');
-      button.type = 'button';
-      button.addEventListener('click', () => {
-        $('profileUid').value = snapshot.id;
-        $('profileName').value = profile.displayName ?? '';
-        $('profileEmail').value = profile.email ?? '';
-        $('profileRole').value = profile.role ?? 'nhaplieu_xa';
-        updateProfileUnitControl();
-        if (profile.role === 'nhaplieu_xa') $('profileUnit').value = profile.unitId;
-        $('profileActive').checked = profile.active === true;
-        $('userForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-      actions.appendChild(button);
-      body.appendChild(tr);
-    }
-    if (profiles.empty) {
-      const empty = el('tr');
-      const cell = makeCell(empty, 'Chưa có tài khoản nào được phân quyền.');
-      cell.colSpan = 6;
-      body.appendChild(empty);
-    }
-  } catch (error) { toast(`Không tải được danh sách tài khoản: ${errorMessage(error)}`, 'error'); }
-}
-async function saveProfile(event) {
-  event.preventDefault();
-  if (!isAdmin()) { toast('Chỉ quản trị viên được phân quyền.', 'error'); return; }
-  const uid = $('profileUid').value.trim();
-  const role = $('profileRole').value;
-  const unitId = role === 'nhaplieu_xa' ? $('profileUnit').value : 'TINH';
-  if (!uid || uid.includes('/')) { toast('UID không hợp lệ.', 'error'); return; }
-  if (role === 'nhaplieu_xa' && !UNITS.some(unit => unit.id === unitId)) {
-    toast('Hãy chọn một xã hoặc phường.', 'error'); return;
-  }
-  if (uid === state.user.uid && (!$('profileActive').checked || role !== 'admin')) {
-    if (!window.confirm('Anh đang thay đổi hoặc tắt quyền admin của chính mình. Tiếp tục?')) return;
-  }
-  try {
-    await setDoc(doc(db, 'users', uid), {
-      displayName: $('profileName').value.trim(),
-      email: $('profileEmail').value.trim(),
-      role,
-      unitId,
-      active: $('profileActive').checked,
-      updatedAt: serverTimestamp()
-    }, { merge: true });
-    toast(`Đã lưu phân quyền cho UID ${uid}.`);
-    $('userForm').reset();
-    updateProfileUnitControl();
-    await renderProfiles();
-    if (uid === state.user.uid) {
-      const self = await getDoc(doc(db, 'users', state.user.uid));
-      state.profile = self.exists() ? self.data() : null;
-      refreshAuthUI();
-    }
-  } catch (error) { toast(`Không thể lưu phân quyền: ${errorMessage(error)}`, 'error'); }
-}
-async function login(event) {
-  event.preventDefault();
-  const button = $('loginSubmitBtn');
-  button.disabled = true;
-  button.textContent = 'Đang đăng nhập...';
-  $('loginError').hidden = true;
-  try {
-    await signInWithEmailAndPassword(auth, $('emailInput').value.trim(), $('passwordInput').value);
-    $('loginDialog').close();
-    $('passwordInput').value = '';
-  } catch (error) {
-    $('loginError').textContent = errorMessage(error);
-    $('loginError').hidden = false;
-  } finally {
-    button.disabled = false;
-    button.textContent = 'Đăng nhập';
-  }
-}
-function attachListeners() {
-  const banner=$('siteBanner');
-  const fallback=()=>{banner.hidden=true;$('bannerFallback').hidden=false;};
-  banner.addEventListener('error',fallback);
-  if(banner.complete&&banner.naturalWidth===0)fallback();
-  $('gpmbTab').addEventListener('click',()=>switchSection('gpmb'));
-  $('tdcTab').addEventListener('click',()=>switchSection('tdc'));
-  $('refreshBtn').addEventListener('click',refreshData);
-  $('exportBtn').addEventListener('click',exportCsv);
-  $('unitSelect').addEventListener('change',event=>{
-    if(!confirmDiscard()){event.target.value=state.unitId;return;}
-    closeEditor(true);state.unitId=event.target.value;renderDashboard();
-  });
-  $('loginBtn').addEventListener('click',()=>{$('loginError').hidden=true;$('loginDialog').showModal();});
-  $('closeLoginBtn').addEventListener('click',()=>$('loginDialog').close());
-  $('loginForm').addEventListener('submit',login);
-  $('logoutBtn').addEventListener('click',async()=>{
-    if(!confirmDiscard())return;
-    await signOut(auth);toast('Đã đăng xuất. Dữ liệu công khai vẫn xem được.');
-  });
-  $('editBtn').addEventListener('click',openEditor);
-  $('closeEditorBtn').addEventListener('click',()=>closeEditor());
-  $('saveBtn').addEventListener('click',saveReport);
-  $('editUnitSelect').addEventListener('change',event=>{
-    if(!confirmDiscard()){event.target.value=state.editUnitId;return;}
-    state.editUnitId=event.target.value;renderEditorRows();
-  });
-  $('adminPanelBtn').addEventListener('click',async()=>{
-    $('usersPanel').hidden=false;await renderProfiles();
-    $('usersPanel').scrollIntoView({behavior:'smooth',block:'start'});
-  });
-  $('closeUsersBtn').addEventListener('click',()=>{$('usersPanel').hidden=true;});
-  $('userForm').addEventListener('submit',saveProfile);
-  $('profileRole').addEventListener('change',updateProfileUnitControl);
-}
-function init() {
-  option($('unitSelect'),'ALL','Toàn tuyến (tự tổng hợp 10 xã, phường)');
-  UNITS.forEach(unit=>option($('unitSelect'),unit.id,unit.name));
-  updateProfileUnitControl(); attachListeners(); renderDashboard();
-  if(!firebaseReady){$('configAlert').hidden=false;$('loginBtn').disabled=true;return;}
-  onAuthStateChanged(auth,async user=>{
-    state.user=user;state.profile=null;
-    if(user){
-      try{
-        const snap=await getDoc(doc(db,'users',user.uid));
-        state.profile=snap.exists()?snap.data():null;
-      }catch(err){toast(`Không đọc được phân quyền: ${errorMessage(err)}`,'error');}
-    }
-    refreshAuthUI();
-  });
-  startLiveReports();
-}
-init();
+function handleAction(el){const a=el.dataset.action;switch(a){
+ case 'export-csv':exportCsv();break;
+ case 'export-json':exportJson();break;
+ case 'print':window.print();break;
+ case 'login':$('#login-dialog').showModal();break;
+ case 'go-update':openPage('update');break;
+ case 'go-stages':ui.stage=el.dataset.stage||'lap';ui.metric=metricDefs.find(m=>m.stage===ui.stage).id;openPage('stages');break;
+ case 'go-updates':openPage('update');break;
+ case 'go-units':ui.unit=ui.editUnit;openPage('units');break;
+ case 'overview-kind':ui.overviewKind=el.dataset.kind==='tdc'?'tdc':'gpmb';render();break;
+ case 'pick-kind':ui.stage=el.dataset.kind==='tdc'?'tdc_design':'lap';ui.metric=metricDefs.find(m=>m.stage===ui.stage).id;render();break;
+ case 'pick-stage':ui.stage=el.dataset.stage;ui.metric=metricDefs.find(m=>m.stage===ui.stage).id;render();break;
+ case 'pick-metric':ui.metric=el.dataset.metric;render();break;
+ case 'edit-unit':if(!mayWrite(el.dataset.unit))return toast('Không có quyền sửa đơn vị này.');ui.editUnit=el.dataset.unit;openPage('update');break;
+ case 'edit-metric':if(!mayWrite(el.dataset.unit))return toast('Không có quyền sửa đơn vị này.');ui.editUnit=el.dataset.unit;ui.editMetric=el.dataset.metric;ui.editStage=metricById[ui.editMetric].stage;openPage('update');break;
+ case 'choose-user':if(isAdmin())pickUser(el.dataset.uid);break;
+ case 'load-legacy':loadLegacy();break;
+ case 'migrate-legacy':migrateLegacyReport(el.dataset.report);break;
+ }}
+document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav){openPage(nav.dataset.page);return;}const action=e.target.closest('[data-action]');if(action)handleAction(action);});
+document.addEventListener('change',e=>{if(e.target.id==='user-role'){const s=$('#user-unit');if(s)s.value=e.target.value==='nhaplieu_xa'?'BAC_KAN':'TINH';return;}const sel=e.target.closest('[data-select]');if(!sel)return;switch(sel.dataset.select){case 'scope':ui.scope=sel.value;break;case 'unit':ui.unit=sel.value;break;case 'comp-stage':ui.compStage=sel.value;ui.compMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'comp-metric':ui.compMetric=sel.value;break;case 'edit-unit':ui.editUnit=sel.value;break;case 'edit-stage':ui.editStage=sel.value;ui.editMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'edit-metric':ui.editMetric=sel.value;break;}render();});
+document.addEventListener('input',e=>{if(e.target.closest('#update-form')&&['target','value'].includes(e.target.id)){const f=e.target.closest('#update-form');onFormPreview(f);}});
+document.addEventListener('submit',e=>{if(e.target.id==='update-form'){e.preventDefault();onSaveMetric(e.target);}if(e.target.id==='user-form'){e.preventDefault();onSaveUser(e.target);}});
+$('#mobile-menu').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
+$('#login-btn').addEventListener('click',()=>$('#login-dialog').showModal());
+$('#logout-btn').addEventListener('click',async()=>{try{await signOut(auth);toast('Đã đăng xuất.');}catch(e){toast(e.message);}});
+$('#login-form').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,btn=f.querySelector('[type=submit]');btn.disabled=true;try{await signInWithEmailAndPassword(auth,f.elements.namedItem('email').value.trim(),f.elements.namedItem('password').value);f.elements.namedItem('password').value='';$('#login-dialog').close();}catch(err){console.error(err);toast('Không đăng nhập được. Kiểm tra email và mật khẩu.');}finally{btn.disabled=false;}});
+function subscribeProgress(){progressUnsubscribe?.();progressUnsubscribe=onSnapshot(collection(fs,'progress'),snapshot=>{loadingProgress=false;serverError='';db.records={};snapshot.forEach(d=>{if(!UNITS.some(u=>u.id===d.id))return;for(const [key,raw] of Object.entries(d.data().rows||{})){if(!metricById[key])continue;const row=readRow(raw);if(row)db.records[`${d.id}|${key}`]=row;}});
+ // Không xóa biểu mẫu đang gõ vì dữ liệu của xã khác vừa đồng bộ.
+ const active=document.activeElement;if(ui.page==='update'&&active?.closest('#update-form'))return;render();},err=>{loadingProgress=false;serverError=err.message;console.error(err);render();});}
+function resetPrivate(){usersUnsubscribe?.();historyUnsubscribe?.();usersUnsubscribe=null;historyUnsubscribe=null;profileRows=[];db.history=[];}
+function startPrivate(){resetPrivate();if(!profile?.active)return;
+ historyUnsubscribe=onSnapshot(query(collection(fs,'history'),orderBy('at','desc'),limit(60)),s=>{db.history=s.docs.map(d=>({id:d.id,...d.data()}));if(ui.page==='update')render();},e=>console.warn('History:',e));
+ if(isAdmin())usersUnsubscribe=onSnapshot(collection(fs,'users'),s=>{profileRows=s.docs.map(d=>({id:d.id,...d.data()}));if(ui.page==='manage')render();},e=>console.warn('Users:',e));}
+onAuthStateChanged(auth,user=>{currentUser=user;profileUnsubscribe?.();profileUnsubscribe=null;profile=null;resetPrivate();if(!user){if(['update','manage'].includes(ui.page))ui.page='overview';render();return;}
+ profileUnsubscribe=onSnapshot(doc(fs,'users',user.uid),s=>{profile=s.exists()?s.data():null;if(profile?.role==='nhaplieu_xa'&&profile.unitId)ui.editUnit=profile.unitId;if(!canEdit()&&['update','manage'].includes(ui.page))ui.page='overview';if(!isAdmin()&&ui.page==='manage')ui.page='overview';startPrivate();render();},e=>{profile=null;console.error(e);toast('Không đọc được hồ sơ phân quyền.');render();});});
+subscribeProgress();render();
