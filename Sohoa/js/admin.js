@@ -12,6 +12,7 @@ import {
   deleteDoc,
   getDocs,
   limit,
+  writeBatch,
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import {
   onAuthStateChanged,
@@ -664,52 +665,112 @@ function initAdminPage() {
 
 document.addEventListener("DOMContentLoaded", initAdminPage);
 
+// Cache danh mục: giữ nguyên document ID để các dữ liệu liên kết với đơn vị không bị ảnh hưởng.
+let adminOrganizationUnits = [];
+
+function validUnitStt(value) {
+  if (typeof value === "string" && !/^0*[1-9]\d*$/.test(value.trim())) return null;
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number > 0 ? number : null;
+}
+
+function normalizeUnitName(value) {
+  return String(value || "").normalize("NFC").trim().replace(/\s+/g, " ").toLocaleLowerCase("vi");
+}
+
+function escapeUnitText(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
+}
+
+// Nhập Excel chỉ thêm mới. Kiểm tra toàn bộ tệp và danh mục hiện có TRƯỚC KHI ghi.
 window.handleExcelUpload = function (event) {
-  const file = event.target.files[0];
+  const file = event.target.files?.[0];
   if (!file) return;
 
   const fileNameDisplay = document.getElementById("file-name-display");
   if (fileNameDisplay) fileNameDisplay.innerText = file.name;
 
   const reader = new FileReader();
-  reader.onload = async function (e) {
+  reader.onload = async function (readEvent) {
     try {
-      const data = new Uint8Array(e.target.result);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const firstSheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[firstSheetName];
+      const data = new Uint8Array(readEvent.target.result);
+      const workbook = XLSX.read(data, { type: "array" });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-      const unitRows = rawRows.slice(1).filter(row => row && row[1]);
+      const unitRows = rawRows.slice(1).map((row, index) => ({
+        excelRow: index + 2,
+        stt: validUnitStt(row?.[0]),
+        rawStt: row?.[0],
+        unitName: String(row?.[1] ?? "").trim()
+      })).filter((row) => row.unitName || String(row.rawStt ?? "").trim());
 
       if (unitRows.length === 0) {
-        Swal.fire("Lỗi dữ liệu", "Tệp trống hoặc sai định dạng (Cột 2 phải là Tên cơ quan, đơn vị).", "warning");
+        await Swal.fire("Lỗi dữ liệu", "Tệp không có đơn vị hợp lệ (cột 1: STT, cột 2: Tên đơn vị).", "warning");
+        return;
+      }
+      // Firestore hỗ trợ tối đa 500 thao tác/batch. Danh mục hiện tại có khoảng 92 đơn vị.
+      if (unitRows.length > 450) {
+        await Swal.fire("Tệp quá lớn", "Vui lòng chia danh sách thành các tệp tối đa 450 đơn vị để nhập an toàn.", "warning");
         return;
       }
 
-      Swal.fire({
-        title: 'Đang xử lý...',
-        text: `Nạp thông tin ${unitRows.length} đơn vị vào cơ sở dữ liệu.`,
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
+      const existing = await getDocs(collection(db, "organization_units"));
+      const occupiedStt = new Set();
+      const occupiedNames = new Set();
+      existing.forEach((unitDoc) => {
+        const info = unitDoc.data();
+        const number = validUnitStt(info.stt);
+        if (number !== null) occupiedStt.add(number);
+        occupiedNames.add(normalizeUnitName(info.unitName));
       });
-
+      const incomingStt = new Set();
+      const incomingNames = new Set();
       for (const row of unitRows) {
-        const stt = parseInt(row[0]) || 0;
-        const unitName = String(row[1]).trim();
-        await addDoc(collection(db, "organization_units"), {
-          stt: stt,
-          unitName: unitName,
-          createdAt: new Date()
-        });
+        if (!row.unitName) {
+          await Swal.fire("Thiếu tên đơn vị", `Dòng ${row.excelRow}: Chưa có tên đơn vị tại cột 2. Chưa có dữ liệu nào được ghi.`, "warning");
+          return;
+        }
+        if (row.stt === null) {
+          await Swal.fire("STT không hợp lệ", `Dòng ${row.excelRow}: STT phải là số nguyên dương. Chưa có dữ liệu nào được ghi.`, "warning");
+          return;
+        }
+        if (occupiedStt.has(row.stt) || incomingStt.has(row.stt)) {
+          await Swal.fire("Trùng STT", `Dòng ${row.excelRow}: STT ${row.stt} đã được sử dụng. Chưa có dữ liệu nào được ghi.`, "warning");
+          return;
+        }
+        const nameKey = normalizeUnitName(row.unitName);
+        if (occupiedNames.has(nameKey) || incomingNames.has(nameKey)) {
+          await Swal.fire("Trùng đơn vị", `Dòng ${row.excelRow}: ${row.unitName} đã có trong danh mục hoặc trong tệp. Chưa có dữ liệu nào được ghi.`, "warning");
+          return;
+        }
+        incomingStt.add(row.stt);
+        incomingNames.add(nameKey);
       }
 
-      Swal.fire("Hoàn tất", `Cập nhật thành công danh mục ${unitRows.length} đơn vị.`, "success");
-      loadOrganizationUnits();
-
+      const batch = writeBatch(db);
+      unitRows.forEach((row) => {
+        batch.set(doc(collection(db, "organization_units")), {
+          stt: row.stt,
+          unitName: row.unitName,
+          createdAt: new Date()
+        });
+      });
+      await batch.commit();
+      await loadOrganizationUnits();
+      await Swal.fire("Hoàn tất", `Đã thêm ${unitRows.length} đơn vị, STT không trùng nhau.`, "success");
     } catch (error) {
-      console.error("Lỗi đọc Excel: ", error);
-      Swal.fire("Lỗi hệ thống", "Không thể trích xuất dữ liệu, kiểm tra lại cấu trúc tệp Excel.", "error");
+      console.error("Lỗi nhập danh mục Excel:", error);
+      await Swal.fire("Không thể nhập danh mục", "Đã xảy ra lỗi khi đọc tệp hoặc ghi Firestore. Vui lòng kiểm tra kết nối và thử lại.", "error");
+    } finally {
+      // Cho phép người dùng chọn lại đúng cùng một tệp khi cần.
+      if (event.target) event.target.value = "";
     }
+  };
+  reader.onerror = () => {
+    Swal.fire("Lỗi tệp", "Không thể đọc tệp Excel đã chọn.", "error");
+    if (event.target) event.target.value = "";
   };
   reader.readAsArrayBuffer(file);
 };
@@ -719,50 +780,179 @@ async function loadOrganizationUnits() {
   if (!tbody) return;
 
   try {
-    const q = query(collection(db, "organization_units"), orderBy("stt", "asc"));
-    const querySnapshot = await getDocs(q);
+    // Không dùng orderBy phía server: vẫn đọc được các bản ghi cũ bị thiếu field stt.
+    const snapshot = await getDocs(collection(db, "organization_units"));
+    adminOrganizationUnits = snapshot.docs.map((unitDoc) => ({
+      id: unitDoc.id,
+      stt: validUnitStt(unitDoc.data().stt),
+      rawStt: unitDoc.data().stt,
+      unitName: String(unitDoc.data().unitName || "")
+    }));
+    adminOrganizationUnits.sort((a, b) =>
+      (a.stt ?? Number.MAX_SAFE_INTEGER) - (b.stt ?? Number.MAX_SAFE_INTEGER) ||
+      a.unitName.localeCompare(b.unitName, "vi") || a.id.localeCompare(b.id)
+    );
 
     tbody.innerHTML = "";
-    if (querySnapshot.empty) {
-      tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Hệ thống chưa ghi nhận đơn vị nào. Vui lòng cập nhật.</td></tr>`;
+    const statusBox = document.getElementById("unit-order-status");
+    if (adminOrganizationUnits.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #94a3b8;">Hệ thống chưa ghi nhận đơn vị nào. Vui lòng cập nhật.</td></tr>';
+      if (statusBox) statusBox.style.display = "none";
       return;
     }
 
-    querySnapshot.forEach((docSnap) => {
-      const u = docSnap.data();
-      const id = docSnap.id;
+    const seenStt = new Set();
+    const conflictingStt = new Set();
+    for (const unit of adminOrganizationUnits) {
+      if (unit.stt === null) continue;
+      if (seenStt.has(unit.stt)) conflictingStt.add(unit.stt);
+      seenStt.add(unit.stt);
+    }
+    const invalidCount = adminOrganizationUnits.filter((unit) => unit.stt === null).length;
+    if (statusBox) {
+      statusBox.style.display = conflictingStt.size || invalidCount ? "block" : "none";
+      if (conflictingStt.size || invalidCount) {
+        statusBox.textContent = `Dữ liệu cũ cần rà soát: ${conflictingStt.size} STT bị trùng, ${invalidCount} STT trống/sai định dạng. Bấm Sửa để điều chỉnh, hệ thống không tự thay đổi dữ liệu đã lưu.`;
+      }
+    }
+
+    for (const unit of adminOrganizationUnits) {
+      const isConflict = unit.stt === null || conflictingStt.has(unit.stt);
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td style="text-align: center; font-weight: 600;">${u.stt}</td>
-        <td style="font-weight: 600; color: #1e293b;">${u.unitName}</td>
-        <td style="text-align: center;">
-          <button class="modern-btn-secondary" onclick="deleteUnit('${id}')" style="color: #e53e3e; border-color: #fed7d7; background: #fff5f5; padding: 4px 10px; height: auto; font-size: 12px;">
+        <td style="text-align: center; font-weight: 700; ${isConflict ? "color: #b45309;" : ""}" title="${isConflict ? "STT cần rà soát" : ""}">
+          ${unit.stt ?? "Chưa có"}${isConflict ? ' <i class="fa-solid fa-triangle-exclamation" aria-label="STT cần rà soát"></i>' : ""}
+        </td>
+        <td style="font-weight: 600; color: #1e293b;">${escapeUnitText(unit.unitName)}</td>
+        <td style="text-align: center; white-space: nowrap;">
+          <button type="button" class="modern-btn-secondary" data-unit-action="edit" style="color: #0369a1; border-color: #bae6fd; background: #e0f2fe; padding: 4px 10px; height: auto; font-size: 12px;">
+            <i class="fa-solid fa-pen"></i> Sửa
+          </button>
+          <button type="button" class="modern-btn-secondary" data-unit-action="delete" style="color: #e53e3e; border-color: #fed7d7; background: #fff5f5; padding: 4px 10px; height: auto; font-size: 12px; margin-left: 5px;">
             <i class="fa-solid fa-trash-can"></i> Xóa
           </button>
-        </td>
-      `;
+        </td>`;
+      tr.querySelector('[data-unit-action="edit"]').addEventListener("click", () => window.editUnit(unit.id));
+      tr.querySelector('[data-unit-action="delete"]').addEventListener("click", () => window.deleteUnit(unit.id));
       tbody.appendChild(tr);
-    });
+    }
   } catch (error) {
-    console.error("Lỗi tải danh mục: ", error);
+    console.error("Lỗi tải danh mục đơn vị:", error);
+    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #b91c1c;">Không tải được danh mục đơn vị. Vui lòng kiểm tra kết nối.</td></tr>';
   }
 }
 
-window.deleteUnit = async function (id) {
+window.editUnit = async function (id) {
+  const unit = adminOrganizationUnits.find((item) => item.id === id);
+  if (!unit) {
+    await Swal.fire("Không tìm thấy đơn vị", "Hãy tải lại trang quản trị và thử lại.", "warning");
+    return;
+  }
+
   const result = await Swal.fire({
-    title: 'Xác nhận xóa?',
-    text: "Thao tác gỡ bỏ này không thể hoàn tác.",
-    icon: 'warning',
+    title: "Sửa thông tin đơn vị",
+    html: `
+      <div style="text-align: left; font-size: 13px; color: #334155;">
+        <label for="edit-unit-stt" style="display:block; font-weight:700; margin: 8px 0 5px;">STT ưu tiên (số nguyên dương)</label>
+        <input id="edit-unit-stt" type="number" min="1" step="1" class="swal2-input" style="width:100%; margin:0; box-sizing:border-box;" />
+        <label for="edit-unit-name" style="display:block; font-weight:700; margin: 15px 0 5px;">Tên cơ quan, đơn vị, địa phương</label>
+        <input id="edit-unit-name" type="text" class="swal2-input" style="width:100%; margin:0; box-sizing:border-box;" />
+        <p style="margin: 10px 0 0; color:#64748b; line-height:1.6;">Nếu STT đã được đơn vị khác sử dụng, hai đơn vị sẽ hoán đổi STT. Không thay đổi mã đơn vị hoặc số liệu báo cáo.</p>
+      </div>`,
+    didOpen: () => {
+      document.getElementById("edit-unit-stt").value = unit.stt ?? "";
+      document.getElementById("edit-unit-name").value = unit.unitName;
+    },
     showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Đồng ý',
-    cancelButtonText: 'Hủy'
+    confirmButtonText: "Lưu thay đổi",
+    cancelButtonText: "Hủy",
+    confirmButtonColor: "#0056b3",
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      const sttRaw = document.getElementById("edit-unit-stt").value.trim();
+      const desiredStt = sttRaw ? validUnitStt(sttRaw) : null;
+      const desiredName = document.getElementById("edit-unit-name").value.trim();
+      if (desiredStt === null) {
+        Swal.showValidationMessage("STT phải là số nguyên dương và không được để trống.");
+        return false;
+      }
+      if (!desiredName) {
+        Swal.showValidationMessage("Vui lòng nhập tên đơn vị.");
+        return false;
+      }
+
+      try {
+        // Đọc lại trước khi ghi nhằm phát hiện thay đổi từ phiên đăng nhập khác.
+        const fresh = await getDocs(collection(db, "organization_units"));
+        const records = fresh.docs.map((snap) => ({ id: snap.id, ref: snap.ref, ...snap.data() }));
+        const old = records.find((item) => item.id === id);
+        if (!old) {
+          Swal.showValidationMessage("Đơn vị đã bị xóa. Vui lòng tải lại danh sách.");
+          return false;
+        }
+        const nameExists = records.some((item) =>
+          item.id !== id && normalizeUnitName(item.unitName) === normalizeUnitName(desiredName)
+        );
+        if (nameExists) {
+          Swal.showValidationMessage("Tên đơn vị này đã tồn tại.");
+          return false;
+        }
+
+        const otherUnits = records.filter((item) => item.id !== id);
+        const targetOccupants = otherUnits.filter((item) => validUnitStt(item.stt) === desiredStt);
+        if (targetOccupants.length > 1) {
+          Swal.showValidationMessage(`STT ${desiredStt} đang bị trùng trong dữ liệu cũ. Hãy xử lý các đơn vị trùng STT trước.`);
+          return false;
+        }
+        if (targetOccupants.length === 1) {
+          const oldStt = validUnitStt(old.stt);
+          const oldSttIsUnique = oldStt !== null &&
+            !otherUnits.some((item) => validUnitStt(item.stt) === oldStt);
+          if (!oldSttIsUnique) {
+            Swal.showValidationMessage("STT hiện tại của đơn vị đang bị trùng/không hợp lệ. Hãy đặt STT chưa được sử dụng để xử lý trước khi hoán đổi.");
+            return false;
+          }
+          const batch = writeBatch(db);
+          batch.update(old.ref, { stt: desiredStt, unitName: desiredName });
+          batch.update(targetOccupants[0].ref, { stt: oldStt });
+          await batch.commit();
+        } else {
+          await updateDoc(old.ref, { stt: desiredStt, unitName: desiredName });
+        }
+        return true;
+      } catch (error) {
+        console.error("Lỗi cập nhật thông tin đơn vị:", error);
+        Swal.showValidationMessage("Không thể lưu thay đổi. Kiểm tra kết nối Firestore và thử lại.");
+        return false;
+      }
+    }
   });
 
   if (result.isConfirmed) {
-    await deleteDoc(doc(db, "organization_units", id));
-    Swal.fire('Hoàn tất', 'Đã gỡ thông tin cơ quan, đơn vị.', 'success');
-    loadOrganizationUnits();
+    await loadOrganizationUnits();
+    await Swal.fire({ title: "Đã cập nhật", text: "Thông tin đơn vị và thứ tự hiển thị đã được cập nhật.", icon: "success", confirmButtonColor: "#0056b3" });
+  }
+};
+
+window.deleteUnit = async function (id) {
+  const result = await Swal.fire({
+    title: "Xác nhận xóa?",
+    text: "Thao tác gỡ bỏ này không thể hoàn tác.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Đồng ý",
+    cancelButtonText: "Hủy"
+  });
+  if (result.isConfirmed) {
+    try {
+      await deleteDoc(doc(db, "organization_units", id));
+      await Swal.fire("Hoàn tất", "Đã gỡ thông tin cơ quan, đơn vị.", "success");
+      await loadOrganizationUnits();
+    } catch (error) {
+      console.error("Lỗi xóa đơn vị:", error);
+      await Swal.fire("Lỗi", "Không thể xóa đơn vị. Kiểm tra quyền và kết nối Firestore.", "error");
+    }
   }
 };
