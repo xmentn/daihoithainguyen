@@ -176,3 +176,33 @@ body{font-size:15px;color:var(--ink);background:linear-gradient(180deg,#eff8ff 0
  .focus-card-footer{font-size:9px}
  .focus-heading .filter-row{display:none}
 }
+
+
+/* V4.1.3 — Thông báo và xác nhận đồng bộ với nhận diện website. */
+[hidden]{display:none!important}
+.app-confirm{width:min(550px,calc(100vw - 28px));max-width:550px;border:1px solid #d2e2f1;border-radius:21px;padding:0;overflow:visible;box-shadow:0 28px 90px rgba(14,48,80,.28)}
+.app-confirm::backdrop{background:rgba(10,34,58,.56);backdrop-filter:blur(3px)}
+.confirm-panel{padding:28px 28px 23px;background:#fff;border-radius:21px}
+.confirm-top{display:flex;align-items:flex-start;gap:17px}
+.confirm-icon{display:grid;place-items:center;flex:none;width:54px;height:54px;border-radius:16px;background:linear-gradient(145deg,#e6f5ff,#d8ebff);border:1px solid #bbdaf5;color:#1769ac;font-size:28px;font-weight:850}
+.app-confirm[data-tone="warning"] .confirm-icon{color:#ae741b;background:linear-gradient(150deg,#fff7e5,#ffefd0);border-color:#f2dca9}
+.confirm-heading{min-width:0;flex:1}
+.confirm-eyebrow{font-size:10.5px;line-height:1.4;letter-spacing:1px;color:#2372a6;font-weight:800;margin:1px 0 7px}
+.confirm-heading h2{font-size:21px;font-weight:850;line-height:1.25;letter-spacing:-.2px;margin:0 0 9px;color:#173d60}
+.confirm-heading p{font-size:14px;line-height:1.65;margin:0;color:#526c82}
+.confirm-details{white-space:pre-wrap;overflow-wrap:anywhere;max-height:min(38vh,350px);overflow-y:auto;padding:17px 19px;margin:22px 0 0;border:1px solid #dbe9f5;background:#f4f9ff;border-radius:13px;color:#2f506a;font-size:13.5px;line-height:1.8}
+.confirm-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:25px;padding-top:18px;border-top:1px solid #e9eff5}
+.confirm-actions .btn{min-width:114px;padding:11px 17px;font-size:13px}
+#toast{display:flex;align-items:flex-start;gap:12px;bottom:23px;right:23px;z-index:40;max-width:min(450px,calc(100vw - 32px));min-width:min(320px,calc(100vw - 32px));padding:15px 15px 14px;box-shadow:0 16px 48px rgba(16,50,76,.18);border:1px solid #d7e5f1;border-left:4px solid #2379c6;background:#fff;color:#21435f;font-size:13.5px;line-height:1.55}
+#toast[data-tone="success"]{border-left-color:#169a78;background:#f6fffb}
+#toast[data-tone="error"]{border-left-color:#d85b58;background:#fff9f8}
+#toast[data-tone="warning"]{border-left-color:#d99a2a;background:#fffaf2}
+.toast-icon{display:grid;place-items:center;flex:none;height:28px;width:28px;border-radius:50%;background:#e3f2fe;color:#1f70ae;font-size:15px;font-weight:850}
+#toast[data-tone="success"] .toast-icon{background:#ddf6e9;color:#0c8864}
+#toast[data-tone="error"] .toast-icon{background:#ffe7e5;color:#b43f3c}
+#toast[data-tone="warning"] .toast-icon{background:#fff0d2;color:#a76a0e}
+.toast-copy{flex:1;min-width:0;font-weight:660;overflow-wrap:anywhere;padding-top:2px}
+.toast-dismiss{border:0;background:transparent;color:#6f879b;font-size:21px;line-height:1;padding:0 2px;cursor:pointer;flex:none}
+.toast-dismiss:hover{color:#183b59}
+@media(max-width:580px){.confirm-panel{padding:22px 17px 19px}.confirm-top{gap:11px}.confirm-icon{width:42px;height:42px;font-size:22px;border-radius:12px}.confirm-heading h2{font-size:18px}.confirm-heading p{font-size:13px}.confirm-details{margin-top:15px;padding:13px;font-size:12.5px}.confirm-actions .btn{min-width:0;flex:1}#toast{bottom:12px;right:12px;min-width:0;width:calc(100vw - 24px)}}
+@media print{.app-confirm,#toast{display:none!important}}

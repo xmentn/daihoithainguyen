@@ -238,13 +238,48 @@ function render(){
 }
 function openPage(page){if((page==='update'&&!canEdit())||(page==='manage'&&!isAdmin())){toast('Bạn không có quyền vào chức năng này.');return;}ui.page=page;render();window.scrollTo({top:0,behavior:'instant'});$('#sidebar').classList.remove('open');}
 let toastTimer;
-function toast(message){const el=$('#toast');el.textContent=message;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),4800);}
+function toast(message,tone='info'){
+ const el=$('#toast');if(!el)return;
+ const tones={info:'i',success:'✓',error:'!',warning:'!'};
+ const selected=Object.hasOwn(tones,tone)?tone:'info';
+ el.dataset.tone=selected;
+ el.setAttribute('role',selected==='error'?'alert':'status');
+ // Không đưa nội dung người dùng nhập trực tiếp vào innerHTML (phòng XSS).
+ el.innerHTML=`<span class="toast-icon" aria-hidden="true">${tones[selected]}</span><span class="toast-copy">${esc(message)}</span><button type="button" class="toast-dismiss" aria-label="Đóng thông báo">×</button>`;
+ el.classList.add('show');clearTimeout(toastTimer);
+ toastTimer=setTimeout(()=>el.classList.remove('show'),5200);
+}
+$('#toast').addEventListener('click',e=>{
+ if(e.target.closest('.toast-dismiss')){clearTimeout(toastTimer);$('#toast').classList.remove('show');}
+});
+
+// Hộp thoại xác nhận có nút Hủy/Xác nhận, hỗ trợ Escape và bấm bên ngoài.
+let pendingConfirm=null;
+const confirmDialog=$('#confirm-dialog');
+confirmDialog.addEventListener('close',()=>{
+ const resolve=pendingConfirm;pendingConfirm=null;
+ if(resolve)resolve(confirmDialog.returnValue==='confirm');
+});
+confirmDialog.addEventListener('click',e=>{
+ if(e.target===confirmDialog)confirmDialog.close('cancel');
+});
+function askConfirm({title='Xác nhận thao tác',message='Bạn muốn tiếp tục?',details='',accept='Xác nhận',tone='info'}={}){
+ if(confirmDialog.open)return Promise.resolve(false);
+ $('#confirm-title').textContent=title;
+ $('#confirm-message').textContent=message;
+ const detail=$('#confirm-details');detail.textContent=details;detail.hidden=!details;
+ $('#confirm-accept').textContent=accept;
+ $('#confirm-icon').textContent=tone==='warning'?'!':'?';
+ confirmDialog.dataset.tone=tone;
+ confirmDialog.returnValue='cancel';
+ return new Promise(resolve=>{pendingConfirm=resolve;confirmDialog.showModal();});
+}
 function fileDownload(name,text,mime='text/plain;charset=utf-8'){const b=new Blob([text],{type:mime}),a=document.createElement('a'),url=URL.createObjectURL(b);a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);}
 function csvCell(v){let s=String(v??'');if(/^[\s]*[=+@\-\t\r]/.test(s))s="'"+s;return `"${s.replace(/"/g,'""')}"`;}
 function exportCsv(){const rows=[['Mã đơn vị','Xã/phường','Nhóm công việc','Mã chỉ tiêu','Chỉ tiêu','Đơn vị','Ngày bắt đầu','Ngày kết thúc','Tổng phải thực hiện','Đã thực hiện','Còn lại','Hoàn thành (%)','Trạng thái','Cập nhật lần cuối','Khó khăn, vướng mắc, kiến nghị']];
 for(const u of db.units)for(const m of metricDefs){const r=getRec(u.id,m.id);rows.push([u.id,u.name,stageById[m.stage].full,m.code,m.label,m.unit,r.startDate||'',r.endDate||'',r.target??'',r.value??'',r.target!=null&&r.value!=null?r.target-r.value:'',pct(r.value,r.target)??'',STATUS[r.status]||'',asDate(r.updatedAt)?fmtDate(r.updatedAt):'',r.note]);}
-fileDownload('Tien_do_GPMB_Bac_Kan_Cao_Bang.csv','\ufeffsep=;\r\n'+rows.map(x=>x.map(csvCell).join(';')).join('\r\n'),'text/csv;charset=utf-8');toast('Đã xuất bảng dữ liệu hiện hành.');}
-function exportJson(){if(!isAdmin())return;const safeRows=Object.fromEntries(Object.entries(db.records).map(([key,r])=>[key,{...r,updatedAt:asDate(r.updatedAt)?.toISOString()||null}]));fileDownload('Sao_luu_tien_do_hien_hanh.json',JSON.stringify({version:'V4',generatedAt:new Date().toISOString(),units:UNITS,records:safeRows,history:db.history},null,2),'application/json;charset=utf-8');toast('Đã tạo bản sao lưu dữ liệu V4 trên máy tính.');}
+fileDownload('Tien_do_GPMB_Bac_Kan_Cao_Bang.csv','\ufeffsep=;\r\n'+rows.map(x=>x.map(csvCell).join(';')).join('\r\n'),'text/csv;charset=utf-8');toast('Đã xuất bảng dữ liệu hiện hành.','success');}
+function exportJson(){if(!isAdmin())return;const safeRows=Object.fromEntries(Object.entries(db.records).map(([key,r])=>[key,{...r,updatedAt:asDate(r.updatedAt)?.toISOString()||null}]));fileDownload('Sao_luu_tien_do_hien_hanh.json',JSON.stringify({version:'V4',generatedAt:new Date().toISOString(),units:UNITS,records:safeRows,history:db.history},null,2),'application/json;charset=utf-8');toast('Đã tạo bản sao lưu dữ liệu V4 trên máy tính.','success');}
 function freshCurrent(){return db.units.map(u=>({unit:u,updatedAt:latestUnit(u.id)}));}
 function onFormPreview(form){const t=form.querySelector('#target').value,v=form.querySelector('#value').value;const total=t===''?null:Number(t),done=v===''?null:Number(v);const m=metricById[ui.editMetric];const valid=total!==null&&done!==null&&total>=0&&done>=0&&done<=total;
 const remaining=valid?fmt(total-done,m.unit):'—',p=valid?ptxt(pct(done,total)):'—';form.querySelector('#form-preview').innerHTML=`Còn lại: <strong>${remaining}</strong> · Hoàn thành: <strong>${p}</strong> · Lần cập nhật gần nhất: ${fmtDate(getRec(ui.editUnit,ui.editMetric).updatedAt)}`;}
@@ -271,19 +306,37 @@ async function onSaveMetric(form){if(pending)return;const unitId=ui.editUnit,m=m
  const error=validate(row,m);if(error)return toast(error);
  const old=getRec(unitId,m.id);if(old.target===row.target&&old.value===row.value&&old.status===row.status&&old.note===row.note&&(old.startDate||'')===row.startDate&&(old.endDate||'')===row.endDate)return toast('Chỉ tiêu chưa thay đổi, không cần lưu.');
  pending=true;const saveButton=form.querySelector('[type=submit]');saveButton.disabled=true;saveButton.textContent='Đang lưu…';
- try{await saveMetric(unitId,m.id,row);toast('Đã lưu chỉ tiêu và nhật ký trên Firebase.');render();}
- catch(e){console.error(e);toast(`Không thể lưu: ${e.message}`);}
+ try{await saveMetric(unitId,m.id,row);toast('Đã lưu chỉ tiêu và nhật ký trên Firebase.','success');render();}
+ catch(e){console.error(e);toast(`Không thể lưu: ${e.message}`,'error');}
  finally{pending=false;saveButton.disabled=false;saveButton.textContent='✓ Lưu kết quả cập nhật';}
 }
 function pickUser(uid){const u=profileRows.find(x=>x.id===uid);if(!u)return;$('#user-uid').value=u.id;$('#user-email').value=u.email||'';$('#user-name').value=u.displayName||'';$('#user-role').value=u.role||'nhaplieu_xa';$('#user-unit').value=u.unitId||'BAC_KAN';$('#user-active').checked=!!u.active;$('#user-form').scrollIntoView({behavior:'smooth'});}
-async function onSaveUser(form){if(!isAdmin())return;const uid=form.querySelector('#user-uid').value.trim(),email=form.querySelector('#user-email').value.trim(),name=form.querySelector('#user-name').value.trim(),role=form.querySelector('#user-role').value,unitId=form.querySelector('#user-unit').value,active=form.querySelector('#user-active').checked;
- if(!uid||uid.includes('/')||!email||!name)return toast('UID, email, tên hiển thị chưa hợp lệ.');
- if((role==='nhaplieu_xa'&&!UNITS.some(u=>u.id===unitId))||(role!=='nhaplieu_xa'&&unitId!=='TINH'))return toast('Vai trò và đơn vị không khớp. Tài khoản toàn tuyến phải có unitId = TINH.');
- if(uid===currentUser.uid&&(!active||role!=='admin'))return toast('Không thể tự khóa hoặc hạ vai trò tài khoản admin đang sử dụng.');
- if(!confirm(`Lưu quyền ${role} cho ${email}?`))return;
- try{await setDoc(doc(fs,'users',uid),{displayName:name,email,role,unitId,active,updatedAt:serverTimestamp()});toast('Đã lưu hồ sơ phân quyền.');}catch(e){toast(`Không thể lưu quyền: ${e.message}`);console.error(e);}
+let userSavePending=false;
+async function onSaveUser(form){
+ if(!isAdmin()||userSavePending)return;
+ const uid=form.querySelector('#user-uid').value.trim(),email=form.querySelector('#user-email').value.trim(),name=form.querySelector('#user-name').value.trim(),role=form.querySelector('#user-role').value,unitId=form.querySelector('#user-unit').value,active=form.querySelector('#user-active').checked;
+ if(!uid||uid.includes('/')||!email||!name)return toast('UID, email, tên hiển thị chưa hợp lệ.','warning');
+ if((role==='nhaplieu_xa'&&!UNITS.some(u=>u.id===unitId))||(role!=='nhaplieu_xa'&&unitId!=='TINH'))return toast('Vai trò và đơn vị không khớp. Tài khoản toàn tuyến phải có unitId = TINH.','warning');
+ if(uid===currentUser.uid&&(!active||role!=='admin'))return toast('Không thể tự khóa hoặc hạ vai trò tài khoản admin đang sử dụng.','error');
+ const existing=profileRows.some(u=>u.id===uid);
+ const unitName=unitId==='TINH'?'Toàn tuyến':(UNITS.find(u=>u.id===unitId)?.name||unitId);
+ const approved=await askConfirm({
+  title:existing?'Xác nhận cập nhật phân quyền':'Xác nhận cấp quyền tài khoản',
+  message:'Vui lòng kiểm tra hồ sơ trước khi lưu vào Firebase.',
+  details:`Tên hiển thị: ${name}\nEmail: ${email}\nVai trò: ${role}\nĐơn vị: ${unitName}\nTrạng thái: ${active?'Hoạt động':'Khóa'}`,
+  accept:existing?'Lưu thay đổi':'Cấp quyền'
+ });
+ if(!approved)return;
+ if(!isAdmin())return toast('Phiên quản trị không còn hợp lệ. Vui lòng đăng nhập lại.','error');
+ userSavePending=true;
+ const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;
+ try{
+  await setDoc(doc(fs,'users',uid),{displayName:name,email,role,unitId,active,updatedAt:serverTimestamp()});
+  toast(existing?'Đã cập nhật hồ sơ phân quyền.':'Đã cấp quyền tài khoản thành công.','success');
+ }catch(e){console.error(e);toast(`Không thể lưu quyền: ${e.message}`,'error');}
+ finally{userSavePending=false;if(button)button.disabled=false;}
 }
-async function loadLegacy(){if(!isAdmin())return;try{const s=await getDocs(query(collection(fs,'reports'),limit(100)));legacyDocs=s.docs.map(d=>({id:d.id,...d.data()}));render();toast(`Đã đọc ${legacyDocs.length} tài liệu báo cáo cũ, không thay đổi số liệu.`);}catch(e){console.error(e);toast(`Không đọc được reports: ${e.message}`);}}
+async function loadLegacy(){if(!isAdmin())return;try{const s=await getDocs(query(collection(fs,'reports'),limit(100)));legacyDocs=s.docs.map(d=>({id:d.id,...d.data()}));render();toast(`Đã đọc ${legacyDocs.length} tài liệu báo cáo cũ, không thay đổi số liệu.`,'success');}catch(e){console.error(e);toast(`Không đọc được reports: ${e.message}`,'error');}}
 async function migrateLegacyReport(reportId){
  if(!isAdmin())return;
  const report=legacyDocs.find(x=>x.id===reportId);
@@ -298,11 +351,17 @@ async function migrateLegacyReport(reportId){
  }
  if(!entries.length)return toast('Không tìm thấy chỉ tiêu hợp lệ trong báo cáo.');
  const preview=entries.map(x=>`${x.m.code} · ${x.m.label}: ${x.row.value??0}/${x.row.target}`).join('\n');
- if(!confirm(`Chuyển ${entries.length} chỉ tiêu từ ${reportId} sang dữ liệu hiện hành của ${report.unitName}?\n\nCHỈ CHUYỂN những chỉ tiêu chưa có trong progress, không ghi đè dữ liệu hiện hành. Thời gian cập nhật được ghi là thời điểm chuyển thực tế.\n\n${preview}`))return;
+ if(!await askConfirm({
+  title:'Xác nhận chuyển dữ liệu báo cáo cũ',
+  message:`Chuyển ${entries.length} chỉ tiêu từ ${reportId} sang dữ liệu hiện hành của ${report.unitName}? Chỉ chuyển chỉ tiêu chưa có; không ghi đè dữ liệu hiện hành.`,
+  details:`Thời gian cập nhật được ghi là thời điểm chuyển thực tế.\n\n${preview}`,
+  accept:'Xác nhận chuyển',tone:'warning'
+ }))return;
+ if(!isAdmin())return toast('Phiên quản trị không còn hợp lệ.','error');
  let copied=0,skipped=0,failed=0;
  for(const {m,row} of entries){try{await saveMetric(report.unitId,m.id,row,{onlyIfEmpty:true});copied++;}
  catch(e){if(String(e.message).includes('đã có dữ liệu'))skipped++;else {failed++;console.error('Migration:',m.id,e);}}}
- toast(`Đã chuyển ${copied} chỉ tiêu, bỏ qua ${skipped} đã có, ${failed} lỗi. Báo cáo gốc giữ nguyên.`);
+ toast(`Đã chuyển ${copied} chỉ tiêu, bỏ qua ${skipped} đã có, ${failed} lỗi. Báo cáo gốc giữ nguyên.`,failed?'warning':'success');
 }
 function handleAction(el){const a=el.dataset.action;switch(a){
  case 'export-csv':exportCsv();break;
@@ -341,8 +400,8 @@ document.addEventListener('input',e=>{if(e.target.closest('#update-form')&&['tar
 document.addEventListener('submit',e=>{if(e.target.id==='update-form'){e.preventDefault();onSaveMetric(e.target);}if(e.target.id==='user-form'){e.preventDefault();onSaveUser(e.target);}});
 $('#mobile-menu').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
 $('#login-btn').addEventListener('click',()=>$('#login-dialog').showModal());
-$('#logout-btn').addEventListener('click',async()=>{try{await signOut(auth);toast('Đã đăng xuất.');}catch(e){toast(e.message);}});
-$('#login-form').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,btn=f.querySelector('[type=submit]');btn.disabled=true;try{await signInWithEmailAndPassword(auth,f.elements.namedItem('email').value.trim(),f.elements.namedItem('password').value);f.elements.namedItem('password').value='';$('#login-dialog').close();}catch(err){console.error(err);toast('Không đăng nhập được. Kiểm tra email và mật khẩu.');}finally{btn.disabled=false;}});
+$('#logout-btn').addEventListener('click',async()=>{try{await signOut(auth);toast('Đã đăng xuất.','success');}catch(e){toast(e.message);}});
+$('#login-form').addEventListener('submit',async e=>{e.preventDefault();const f=e.target,btn=f.querySelector('[type=submit]');btn.disabled=true;try{await signInWithEmailAndPassword(auth,f.elements.namedItem('email').value.trim(),f.elements.namedItem('password').value);f.elements.namedItem('password').value='';$('#login-dialog').close();}catch(err){console.error(err);toast('Không đăng nhập được. Kiểm tra email và mật khẩu.','error');}finally{btn.disabled=false;}});
 function subscribeProgress(){progressUnsubscribe?.();progressUnsubscribe=onSnapshot(collection(fs,'progress'),snapshot=>{loadingProgress=false;serverError='';db.records={};snapshot.forEach(d=>{if(!UNITS.some(u=>u.id===d.id))return;for(const [key,raw] of Object.entries(d.data().rows||{})){if(!metricById[key])continue;const row=readRow(raw);if(row)db.records[`${d.id}|${key}`]=row;}});
  // Không xóa biểu mẫu đang gõ vì dữ liệu của xã khác vừa đồng bộ.
  const active=document.activeElement;if(ui.page==='update'&&active?.closest('#update-form'))return;render();},err=>{loadingProgress=false;serverError=err.message;console.error(err);render();});}
