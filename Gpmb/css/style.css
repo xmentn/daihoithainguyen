@@ -26,3 +26,153 @@ dialog{border:1px solid #cbddea;border-radius:15px;max-width:92vw;box-shadow:0 2
 @media(max-width:525px){.milestone-grid,.milestone-grid.two{grid-template-columns:1fr}.overview-tabs{display:grid;grid-template-columns:1fr}}
 
 .milestone-indicator{background:#fff8d9!important;border-color:#e9d393!important}
+
+/* ==============================================================
+   V4.1.2 — Tinh chỉnh giao diện; chỉ ảnh hưởng lớp hiển thị.
+   Không thay đổi Firebase, phân quyền hoặc mô hình dữ liệu.
+   ============================================================== */
+:root{
+  --navy:#176eab;--navy2:#0878a5;--blue:#186dd2;--blue2:#3487ed;
+  --cyan:#008fbb;--green:#079a80;--amber:#d78324;
+  --ink:#193b59;--muted:#526f85;--line:#dae6ef;--bg:#f1f7fc;
+  --radius:17px;--shadow:0 8px 28px rgba(17,85,142,.09);
+}
+body{font-size:15px;color:var(--ink);background:linear-gradient(180deg,#eff8ff 0%,#f5f9fd 320px,#f5f9fd 100%);line-height:1.56}
+.app-shell{grid-template-columns:258px minmax(0,1fr)}
+.sidebar{background:linear-gradient(165deg,#146aa8 0%,#147cae 52%,#106e9e 100%);color:#fff;padding:29px 15px 21px;box-shadow:5px 0 25px rgba(24,104,157,.12)}
+.brand{padding:2px 9px 32px;gap:12px}
+.brand-mark{width:43px;height:43px;border-radius:14px;background:linear-gradient(140deg,#7fe6f5,#d4f5ff);color:#126398;font-size:27px;box-shadow:0 6px 20px rgba(7,70,125,.16)}
+.brand-name{font-size:20px;letter-spacing:-.25px}.brand-name span{color:#c4fbff}
+.brand-sub{font-size:10.5px;letter-spacing:1px;color:#d7f4ff}
+.nav-title{font-size:11.5px;letter-spacing:1.55px;color:#d4eeff;margin:0 12px 12px}
+.navigation{gap:7px}
+.nav-item{font-size:14px;font-weight:720;min-height:47px;padding:12px 12px;color:#f0faff;border-radius:12px}
+.nav-item:hover{background:rgba(255,255,255,.19);color:#fff}
+.nav-item.active{background:#fff;color:#115a92;box-shadow:0 5px 18px rgba(10,70,115,.16)}
+.nav-ico{color:#ceefff;font-size:21px;width:23px}
+.nav-item.active .nav-ico{color:#117bb6}.nav-aux{opacity:.72;font-size:20px}
+.sidebar-footer{color:#dcf4ff;font-size:12px;font-weight:600;line-height:1.65;padding:24px 9px 0;margin:auto 5px 0;border-top:1px solid rgba(255,255,255,.22)}
+.topbar{min-height:62px;height:auto;padding:10px 29px;border-bottom:1px solid #dce9f4;color:#476880;font-size:12.5px;gap:12px}
+.topbar-project{font-size:12px;color:#23618f;letter-spacing:.45px}
+.identity{font-size:12.5px;max-width:250px;color:#355f80;font-weight:640}
+.page{padding-top:28px}
+.eyebrow{font-size:12px;color:#1676ba;letter-spacing:1.3px}
+.page-title{font-size:30px;color:#133e61;letter-spacing:-.6px}
+.page-desc{font-size:14px;color:#4e6b82;line-height:1.55}
+.btn{font-size:13px;padding:10px 15px;border-radius:10px;color:#285a7c}
+.btn-primary{background:#1772ce;color:#fff;border-color:#1772ce}
+.btn-primary:hover{background:#095daa;color:#fff}
+.btn-soft{color:#155c99;background:#eaf4ff}
+.section-heading h2,.panel-title{font-size:18px;font-weight:830;color:#174467}
+.section-heading{align-items:center;gap:14px}
+.hint,.label{font-size:13px;color:#53718a}
+.label,.field-label{font-weight:750}
+.field-label{font-size:13px;color:#436581}
+.filter-select,.field-input,.field-select,.field-textarea{font-size:14px;min-height:43px;color:#1b4669}
+.tab,.work-tab{font-size:14px}
+.work-tab{border-radius:12px}
+.overview-tabs .work-tab{font-size:15px;line-height:1.4;padding:15px 20px}
+.work-tab.active{background:linear-gradient(115deg,#1672c0,#0d94b8);border-color:#1685b9;box-shadow:0 6px 18px rgba(24,112,175,.2)}
+.metric-card,.panel,.stage-card{border-color:#dae9f3;box-shadow:var(--shadow)}
+.metric-tag{font-size:13px;color:#4f7089}
+.metric-number{font-size:29px;color:#183f65}
+.metric-number small{font-size:13px;color:#607a90}
+.metric-bottom,.metric-bottom strong{font-size:12.5px;color:#526e84}
+.section-heading .hint{font-weight:600}
+.subtext,.stage-hint,.insight-desc,.list-meta,.indicator-meta,.footer-note,.field-help{font-size:12.5px;color:#617d93}
+.stage-name,.stage-card h3,.list-name,.indicator-main{font-size:14px;color:#204765}
+.stage-score{font-size:19px}
+.insight-kicker,.mini-title{font-size:12.5px}
+.insight-big{font-size:22px}
+.insight-link{font-size:13px}
+.insight-box{border-radius:12px}
+.label,.field-label{letter-spacing:0}
+.data-table{font-size:13.5px}
+.data-table th{font-size:12px;color:#506b80;padding:12px}
+.data-table td{font-size:13px;color:#35566e}
+.data-table .strong{color:#194b70}
+.quick-kpis span,.unit-card p,.journal-title,.journal-sub,.journal-date,.unit-card strong,.compact-title{font-size:13px}
+.unit-card strong{color:#214c6d}
+.bar-mini strong,.compare-value{font-size:12.5px}
+.compare-label{font-size:13px}
+.pill{font-size:12px}
+.info-line,.demo-note,.warn-note{font-size:13px}
+#toast{font-size:13px}
+
+/* Dashboard chọn lọc riêng cho Tổng quan GPMB */
+.focus-heading{margin:6px 0 15px}
+.focus-heading h2{font-size:21px;color:#145889;letter-spacing:.25px}
+.focus-heading .filter-select{min-width:240px;max-width:320px;border-color:#c7dbeb;background:#fff}
+.focus-picker{margin-bottom:18px;border:1px solid #d8e7f4;background:#fff;border-radius:15px;box-shadow:0 4px 16px rgba(21,94,146,.045);overflow:hidden}
+.focus-picker-toggle{border:0;background:#fff;width:100%;padding:14px 18px;text-align:left;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#1d537c;font-size:14.5px;font-weight:780}
+.focus-picker-toggle:hover{background:#f5faff}
+.picker-toggle-title,.picker-toggle-right{display:inline-flex;align-items:center;gap:9px}
+.picker-toggle-icon{width:26px;height:26px;display:grid;place-items:center;background:#e3f6fd;color:#007ca9;border-radius:8px;font-size:17px}
+.picker-count{display:inline-flex;align-items:center;background:#e6f2ff;color:#1467a2;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:850;white-space:nowrap}
+.picker-toggle-right{font-size:13px;color:#187ab0;white-space:nowrap}
+.focus-picker-content{padding:17px 19px 20px;border-top:1px solid #e3ecf4;background:#fafcff}
+.focus-picker-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:17px}
+.focus-picker-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;align-items:start}
+.focus-picker-group{min-width:0;margin:0;padding:13px 12px 8px;border:1px solid #dce9f4;border-radius:12px;background:#fff}
+.focus-picker-group legend{color:#23567d;font-size:13.5px;font-weight:820;line-height:1.45;padding:0 4px;max-width:100%}
+.focus-metric-choice{display:flex;align-items:flex-start;gap:10px;cursor:pointer;border-radius:8px;padding:9px 7px;font-size:13.5px;line-height:1.45;color:#2b4d65}
+.focus-metric-choice:hover{background:#f0f8ff}
+.focus-metric-choice input{width:18px;height:18px;flex:none;margin:2px 0 0;accent-color:#177aca;cursor:pointer}
+.focus-metric-choice strong{color:#135c99;font-size:12.5px;margin-right:3px}
+.focus-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;align-items:stretch}
+.focus-card{min-width:0;display:flex;flex-direction:column;position:relative;overflow:hidden;padding:22px 22px 18px;border-radius:18px;background:linear-gradient(155deg,var(--focus-tint) 0%,#fff 49%,#fff 100%);border:1px solid #dbe7f1;box-shadow:0 11px 30px rgba(20,76,125,.09)}
+.focus-card:before{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--focus-accent)}
+.focus-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.focus-stage{font-weight:830;color:var(--focus-accent);font-size:12.5px;line-height:1.35}
+.focus-code{font-size:12px;font-weight:900;padding:4px 10px;border-radius:8px;background:#fff;border:1px solid #dce7f0;color:#52728a;flex-shrink:0}
+.focus-card-title{font-size:17.5px;line-height:1.45;color:#153e60;font-weight:820;margin:0 0 25px;min-height:77px;letter-spacing:-.1px}
+.focus-value-row{display:flex;gap:10px;align-items:end;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap}
+.focus-small-label{font-size:11.5px;color:#57738a;font-weight:830;letter-spacing:.9px}
+.focus-primary-value{font-size:28px;line-height:1.25;font-weight:880;color:#163d5f;letter-spacing:-.4px;word-break:break-word}
+.focus-primary-value small{font-size:13.5px;color:#59758a;font-weight:700;letter-spacing:0;white-space:nowrap}
+.focus-percent{font-size:26px;line-height:1.2;font-weight:890;letter-spacing:-.5px;color:var(--focus-accent)}
+.focus-progress{height:11px;background:#e5edf4;border-radius:99px;overflow:hidden;margin-bottom:20px}
+.focus-progress>span{display:block;height:100%;background:var(--focus-accent);border-radius:99px;transition:width .25s}
+.focus-values{display:grid;grid-template-columns:1fr 1fr;gap:15px;border-top:1px solid #e2ebf3;padding:16px 0 18px}
+.focus-values>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+.focus-values span{font-size:12px;color:#5a7489;line-height:1.4}
+.focus-values strong{font-size:16px;color:#234d6f;line-height:1.35;word-break:break-word}
+.focus-card-footer{margin-top:auto;padding-top:14px;border-top:1px dashed #d8e5ee;display:grid;gap:4px;color:#56758c;font-size:12px;font-weight:600}
+.focus-empty{text-align:center;border:1px dashed #b4cfe6;padding:32px;background:#fff;border-radius:14px;font-size:14px;color:#3f617c}
+@media(max-width:1200px){
+ .app-shell{grid-template-columns:234px minmax(0,1fr)}
+ .sidebar{padding-left:11px;padding-right:11px}
+ .focus-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .focus-picker-groups{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:830px){
+ .sidebar{width:256px}
+ .topbar{min-height:56px;padding:9px 16px}
+ .page{padding:21px 15px 42px}
+ .page-title{font-size:26px}
+ .focus-heading{align-items:flex-start;flex-direction:column}
+ .focus-heading .filter-select{max-width:100%;width:100%}
+ .focus-card-title{min-height:0}
+}
+@media(max-width:580px){
+ .focus-grid,.focus-picker-groups{grid-template-columns:1fr}
+ .focus-card{padding:20px 17px 16px}
+ .focus-card-title{font-size:17px;margin-bottom:19px}
+ .focus-picker-toggle{padding:13px 12px;align-items:flex-start}
+ .picker-toggle-right{font-size:12px}
+ .focus-picker-content{padding:13px}
+ .focus-heading h2{font-size:19px}
+ .focus-primary-value{font-size:27px}
+ .focus-percent{font-size:25px}
+ .section-heading h2,.panel-title{font-size:17px}
+ .topbar{flex-wrap:wrap}
+}
+@media print{
+ .focus-picker{display:none!important}
+ .focus-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+ .focus-card{padding:12px;box-shadow:none;break-inside:avoid}
+ .focus-card-title{font-size:12px;min-height:57px;margin-bottom:10px}
+ .focus-primary-value,.focus-percent{font-size:19px}
+ .focus-card-footer{font-size:9px}
+ .focus-heading .filter-row{display:none}
+}

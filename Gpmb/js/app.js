@@ -6,6 +6,10 @@ import {UNITS,STAGES,METRICS,METRIC_MAP,STAGE_MAP,STATUS,readRow,validate,percen
 const stageDefs=STAGES,metricDefs=METRICS,stageById=STAGE_MAP,metricById=METRIC_MAP;
 const db={units:UNITS,records:{},history:[]};
 const ui={page:'overview',scope:'all',stage:'lap',metric:'gpmb_03',compStage:'lap',compMetric:'gpmb_03',unit:'BAC_KAN',editUnit:'BAC_KAN',editStage:'lap',editMetric:'gpmb_03',overviewKind:'gpmb'};
+// Chỉ là lựa chọn giao diện, không ghi vào Firestore và không sửa danh mục chỉ tiêu.
+const GPMB_DEFAULT_OVERVIEW=['gpmb_07','gpmb_11','gpmb_14'];
+const gpmbOverviewSelected=new Set(GPMB_DEFAULT_OVERVIEW);
+let gpmbPickerOpen=false;
 let currentUser=null,profile=null,progressUnsubscribe=null,usersUnsubscribe=null,historyUnsubscribe=null,profileUnsubscribe=null;
 let profileRows=[],historyLoading=false,legacyDocs=[],loadingProgress=true,serverError='',pending=false;
 const $=q=>document.querySelector(q);
@@ -44,10 +48,11 @@ function stageOptions(selected){return selectOptions(stageDefs.map(s=>({value:s.
 function metricOptions(stageId,selected){return selectOptions(metricDefs.filter(m=>m.stage===stageId).map(m=>({value:m.id,name:`${m.code} · ${m.label}`})),selected);}
 function section(title,body,subtitle=''){return `<section class="panel"><div class="panel-toolbar"><div><h2 class="panel-title">${title}</h2>${subtitle?`<p class="subtext">${subtitle}</p>`:''}</div></div>${body}</section>`;}
 function pageHead(kicker,title,description,actions=''){return `<div class="page-header"><div><div class="eyebrow">${kicker}</div><h1 class="page-title">${title}</h1><p class="page-desc">${description}</p></div><div class="actions">${actions}</div></div>`;}
-function dataNote(){if(serverError)return `<div class="demo-note"><span class="note-icon">!</span><div><strong>Lỗi kết nối Firestore:</strong> ${esc(serverError)}. Hãy kiểm tra Rules và Console.</div></div>`;
-if(loadingProgress)return '<div class="info-line" style="margin-bottom:19px">Đang kết nối dữ liệu toàn tuyến từ Firebase…</div>';
-const n=db.units.filter(u=>latestUnit(u.id)).length;
-return `<div class="info-line" style="margin-bottom:19px">Dữ liệu trực tiếp từ Firebase · ${n}/10 xã, phường đã có cập nhật · Mỗi chỉ tiêu hiển thị bản ghi hiện hành. Tỷ lệ công đoạn tính theo chỉ tiêu chốt tô vàng trong biểu Excel.</div>`;}
+function dataNote(){
+ if(serverError)return `<div class="demo-note"><span class="note-icon">!</span><div><strong>Lỗi kết nối Firestore:</strong> ${esc(serverError)}. Hãy kiểm tra Rules và Console.</div></div>`;
+ if(loadingProgress)return '<div class="info-line" style="margin-bottom:19px">Đang tải số liệu…</div>';
+ return ''; // Ẩn thuyết minh về nguồn dữ liệu khi hệ thống hoạt động bình thường.
+}
 function kpiCard(metricId,title,icon,color,bg,unitId){const m=metricById[metricId],x=metricSum(metricId,unitId);return `<div class="metric-card" style="--accent:${color};--accentbg:${bg}"><div class="metric-head"><div class="metric-tag">${title}</div><div class="metric-symbol">${icon}</div></div><div class="metric-number">${fmt(x.value,m.unit)} <small>${esc(m.unit)}</small></div><div class="metric-bottom"><span>Kế hoạch: ${fmt(x.target,m.unit)} ${esc(m.unit)} · ${x.count}/${x.totalUnits} đơn vị</span><strong>${ptxt(x.percent)}</strong></div>${progress(x.percent,color)}</div>`;}
 function stagesProgress(scope,kind=ui.overviewKind){return stageDefs.filter(s=>s.kind===kind).map(s=>{
  const p=stageScore(s.id,scope),m=metricById[s.milestone],total=metricSum(s.milestone,scope);
@@ -61,34 +66,81 @@ function mayWrite(id){return !!profile?.active&&(profile.role==='admin'||profile
 function canEdit(){return !!profile?.active&&['admin','nhaplieu','nhaplieu_xa'].includes(profile.role);}
 function isAdmin(){return profile?.active===true&&profile.role==='admin';}
 const unitOptionsForWrite=()=>db.units.filter(u=>mayWrite(u.id));
+// Các dashboard GPMB thể hiện trực tiếp kết quả của chỉ tiêu được chọn,
+// không thay công thức tính tiến độ từng công đoạn ở những trang khác.
+function latestMetricDate(metricId,scope){
+ const t=Math.max(0,...unitsInScope(scope).map(u=>asDate(getRec(u.id,metricId).updatedAt)?.getTime()||0));
+ return t?new Date(t):null;
+}
+function gpmbFocusCard(m,scope){
+ const x=metricSum(m.id,scope),stage=stageById[m.stage];
+ const remaining=x.target!==null&&x.value!==null?Math.max(0,rnd(x.target-x.value,4)):null;
+ return `<article class="focus-card" style="--focus-accent:${stage.accent};--focus-tint:${stage.bg}">
+   <div class="focus-card-top"><span class="focus-stage">${esc(stage.short)}</span><span class="focus-code">${esc(m.code)}</span></div>
+   <h3 class="focus-card-title">${esc(m.label)}</h3>
+   <div class="focus-value-row">
+    <div><div class="focus-small-label">ĐÃ THỰC HIỆN</div><div class="focus-primary-value">${fmt(x.value,m.unit)} <small>${esc(m.unit)}</small></div></div>
+    <div class="focus-percent" aria-label="Tỷ lệ hoàn thành: ${ptxt(x.percent)}">${ptxt(x.percent)}</div>
+   </div>
+   <div class="focus-progress" role="progressbar" aria-label="${esc(m.label)}" aria-valuemin="0" aria-valuemax="100" ${x.percent!=null?`aria-valuenow="${x.percent}"`:''}><span style="width:${x.percent==null?0:Math.max(0,Math.min(100,x.percent))}%"></span></div>
+   <div class="focus-values"><div><span>Tổng phải thực hiện</span><strong>${fmt(x.target,m.unit)} ${esc(m.unit)}</strong></div><div><span>Còn lại</span><strong>${fmt(remaining,m.unit)} ${esc(m.unit)}</strong></div></div>
+   <div class="focus-card-footer"><span>${x.count}/${x.totalUnits} đơn vị có số liệu</span><span>Cập nhật: ${fmtDate(latestMetricDate(m.id,scope))}</span></div>
+  </article>`;
+}
+function gpmbSelector(){
+ const all=metricDefs.filter(m=>stageById[m.stage]?.kind==='gpmb');
+ const count=all.filter(m=>gpmbOverviewSelected.has(m.id)).length;
+ return `<section class="focus-picker">
+   <button class="focus-picker-toggle" type="button" data-action="overview-toggle-picker" aria-expanded="${gpmbPickerOpen}" aria-controls="gpmb-metric-options">
+    <span class="picker-toggle-title"><span class="picker-toggle-icon">☑</span> Tùy chọn các chỉ tiêu hiển thị <span class="picker-count">${count}/${all.length}</span></span>
+    <span class="picker-toggle-right">${gpmbPickerOpen?'Thu gọn':'Chọn chỉ tiêu'} <span aria-hidden="true">${gpmbPickerOpen?'▴':'▾'}</span></span>
+   </button>
+   ${gpmbPickerOpen?`<div class="focus-picker-content" id="gpmb-metric-options">
+    <div class="focus-picker-actions"><button class="btn btn-soft" type="button" data-action="overview-reset-metrics">3 khâu trọng yếu</button><button class="btn" type="button" data-action="overview-all-metrics">Chọn cả 14 chỉ tiêu</button></div>
+    <div class="focus-picker-groups">${stageDefs.filter(s=>s.kind==='gpmb').map(stage=>`
+     <fieldset class="focus-picker-group"><legend>${esc(stage.full)}</legend>
+     ${all.filter(m=>m.stage===stage.id).map(m=>`<label class="focus-metric-choice"><input type="checkbox" data-overview-metric="${esc(m.id)}" ${gpmbOverviewSelected.has(m.id)?'checked':''}><span><strong>${esc(m.code)}</strong> ${esc(m.label)}</span></label>`).join('')}
+     </fieldset>`).join('')}</div>
+   </div>`:''}
+ </section>`;
+}
 function renderOverview(){
  const scope=ui.scope,kind=ui.overviewKind;
  const stages=stageDefs.filter(s=>s.kind===kind);
+ const header=pageHead('BẢNG ĐIỀU HÀNH TRỰC QUAN','Tổng quan tiến độ toàn tuyến','Theo dõi kết quả giải phóng mặt bằng và tái định cư theo từng xã, phường.',`<button class="btn" data-action="export-csv">⇩ Xuất Excel (CSV)</button><button class="btn" data-action="print">⎙ In báo cáo</button>${canEdit()?'<button class="btn btn-primary" data-action="go-update">＋ Cập nhật số liệu</button>':''}`);
+ const tabs=`<div class="work-tabs overview-tabs" role="tablist" aria-label="Hai phần việc chính"><button type="button" class="work-tab ${kind==='gpmb'?'active':''}" role="tab" aria-selected="${kind==='gpmb'}" data-action="overview-kind" data-kind="gpmb">I. GIẢI PHÓNG MẶT BẰNG (BỒI THƯỜNG)</button><button type="button" class="work-tab ${kind==='tdc'?'active':''}" role="tab" aria-selected="${kind==='tdc'}" data-action="overview-kind" data-kind="tdc">II. TÁI ĐỊNH CƯ</button></div>`;
+ const scopeFilter=`<div class="filter-row"><label class="label" for="scope">Phạm vi</label><select class="filter-select" id="scope" data-select="scope">${scopeOptions(scope)}</select></div>`;
+ if(kind==='gpmb'){
+  const chosen=metricDefs.filter(m=>stageById[m.stage]?.kind==='gpmb'&&gpmbOverviewSelected.has(m.id));
+  return `${header}${dataNote()}${tabs}
+   <div class="section-heading focus-heading"><h2>TIẾN ĐỘ CÁC KHÂU TRỌNG YẾU</h2>${scopeFilter}</div>
+   ${gpmbSelector()}
+   ${chosen.length?`<div class="focus-grid">${chosen.map(m=>gpmbFocusCard(m,scope)).join('')}</div>`:'<div class="focus-empty">Chưa chọn chỉ tiêu nào. Mở mục <strong>Tùy chọn các chỉ tiêu hiển thị</strong> để chọn nội dung cần xem.</div>'}`;
+ }
+ // Tái định cư: bảo toàn đầy đủ các dashboard và công thức của phiên bản trước.
  const least=stages.map(s=>({...s,score:stageScore(s.id,scope)})).filter(s=>s.score!=null).sort((a,b)=>a.score-b.score)[0];
  const uu=unitsInScope(scope),fresh=uu.filter(u=>isFresh(u.id)).length;
  const rows=uu.map(u=>({name:u.name,percent:unitScore(u.id,kind)})).sort((a,b)=>(b.percent??-1)-(a.percent??-1));
- const sectionName=kind==='gpmb'?'GIẢI PHÓNG MẶT BẰNG (BỒI THƯỜNG)':'TÁI ĐỊNH CƯ';
- return `${pageHead('BẢNG ĐIỀU HÀNH TRỰC QUAN','Tổng quan tiến độ toàn tuyến','Hai phần việc lớn được theo dõi độc lập. Tỷ lệ từng công đoạn lấy theo chỉ tiêu chốt được tô vàng trong biểu mẫu.',`<button class="btn" data-action="export-csv">⇩ Xuất Excel (CSV)</button><button class="btn" data-action="print">⎙ In báo cáo</button>${canEdit()?'<button class="btn btn-primary" data-action="go-update">＋ Cập nhật số liệu</button>':''}`)}
- ${dataNote()}
- <div class="work-tabs overview-tabs" role="tablist" aria-label="Hai phần việc chính"><button type="button" class="work-tab ${kind==='gpmb'?'active':''}" role="tab" aria-selected="${kind==='gpmb'}" data-action="overview-kind" data-kind="gpmb">I. GIẢI PHÓNG MẶT BẰNG (BỒI THƯỜNG)</button><button type="button" class="work-tab ${kind==='tdc'?'active':''}" role="tab" aria-selected="${kind==='tdc'}" data-action="overview-kind" data-kind="tdc">II. TÁI ĐỊNH CƯ</button></div>
- <div class="section-heading"><h2>${sectionName} <span class="hint">· ${stages.length} công đoạn · ${kind==='gpmb'?14:11} chỉ tiêu</span></h2><div class="filter-row"><label class="label" for="scope">Phạm vi</label><select class="filter-select" id="scope" data-select="scope">${scopeOptions(scope)}</select></div></div>
- <div class="metric-grid milestone-grid ${kind==='tdc'?'two':''}">
- ${stages.map(s=>{const m=metricById[s.milestone];return kpiCard(s.milestone,`${s.short.toUpperCase()} · MỐC ${m.code}`,s.icon,s.accent,s.bg,scope);}).join('')}
- </div>
- <div class="panel-grid">
- ${section(`Tiến độ ${stages.length} công đoạn`,stagesProgress(scope,kind),'Chỉ sử dụng tỷ lệ của chỉ tiêu chốt (dòng tô vàng); KHÔNG lấy trung bình các chỉ tiêu thành phần.')}
- ${section('Tín hiệu điều hành',`<div class="insights">
- <div class="insight-box warning"><div class="insight-kicker">Công đoạn cần tập trung</div><div class="insight-big">${least?esc(least.short):'Chưa có dữ liệu'}</div><div class="insight-desc">${least?`Mốc chốt: ${esc(metricById[least.milestone].label)} · ${ptxt(least.score)}.`:'Cần cập nhật số liệu chỉ tiêu chốt của từng công đoạn.'}</div><button class="insight-link" data-action="go-stages" data-stage="${least?.id||stages[0].id}">Phân tích công đoạn →</button></div>
- <div class="insight-box good"><div class="insight-kicker">Tình hình cập nhật trong 24 giờ</div><div class="insight-big">${fresh}/${uu.length} đơn vị</div><div class="insight-desc">${uu.length-fresh} đơn vị chưa có cập nhật trong 24 giờ gần nhất.</div>${canEdit()?'<button class="insight-link" data-action="go-updates">Xem nhật ký →</button>':''}</div>
- <div class="insight-box"><div class="insight-kicker">Dữ liệu gần nhất</div><div class="insight-big" style="font-size:17px">${fmtDate(lastUpdated(scope))}</div><div class="insight-desc">Tổng hợp tự động từ báo cáo xã, phường, không có biểu nhập toàn tuyến.</div></div>
- </div>`,'Chỉ số chốt công đoạn giúp điều hành, không thay thế việc xem chi tiết từng chỉ tiêu.')}
- </div>
- <div class="panel-grid lower-section">
- ${section('Đối chiếu tiến độ giữa địa phương',barChart(rows),'Chỉ số THAM KHẢO: bình quân các tỷ lệ mốc chốt của riêng phần việc đang xem.')}
- ${section('Tình trạng cập nhật',updateList(),'Thời điểm cập nhật chỉ tiêu gần nhất của từng đơn vị.')}
- </div>
- <p class="footer-note">Tỷ lệ một công đoạn = tổng Đã thực hiện / tổng Tổng phải thực hiện của CHỈ TIÊU CHỐT công đoạn đó, trên các đơn vị có dữ liệu. Không cộng số hộ, ha, ngày, km, cọc hoặc tỷ đồng với nhau. Kết quả phải kèm số xã/phường đã cập nhật.</p>`;
+ return `${header}${dataNote()}${tabs}
+  <div class="section-heading"><h2>TÁI ĐỊNH CƯ <span class="hint">· ${stages.length} công đoạn · 11 chỉ tiêu</span></h2>${scopeFilter}</div>
+  <div class="metric-grid milestone-grid two">
+  ${stages.map(s=>{const m=metricById[s.milestone];return kpiCard(s.milestone,`${s.short.toUpperCase()} · MỐC ${m.code}`,s.icon,s.accent,s.bg,scope);}).join('')}
+  </div>
+  <div class="panel-grid">
+  ${section(`Tiến độ ${stages.length} công đoạn`,stagesProgress(scope,kind),'Chỉ sử dụng tỷ lệ của chỉ tiêu chốt (dòng tô vàng); KHÔNG lấy trung bình các chỉ tiêu thành phần.')}
+  ${section('Tín hiệu điều hành',`<div class="insights">
+  <div class="insight-box warning"><div class="insight-kicker">Công đoạn cần tập trung</div><div class="insight-big">${least?esc(least.short):'Chưa có dữ liệu'}</div><div class="insight-desc">${least?`Mốc chốt: ${esc(metricById[least.milestone].label)} · ${ptxt(least.score)}.`:'Cần cập nhật số liệu chỉ tiêu chốt của từng công đoạn.'}</div><button class="insight-link" data-action="go-stages" data-stage="${least?.id||stages[0].id}">Phân tích công đoạn →</button></div>
+  <div class="insight-box good"><div class="insight-kicker">Tình hình cập nhật trong 24 giờ</div><div class="insight-big">${fresh}/${uu.length} đơn vị</div><div class="insight-desc">${uu.length-fresh} đơn vị chưa có cập nhật trong 24 giờ gần nhất.</div>${canEdit()?'<button class="insight-link" data-action="go-updates">Xem nhật ký →</button>':''}</div>
+  <div class="insight-box"><div class="insight-kicker">Dữ liệu gần nhất</div><div class="insight-big" style="font-size:17px">${fmtDate(lastUpdated(scope))}</div><div class="insight-desc">Tổng hợp tự động từ báo cáo xã, phường, không có biểu nhập toàn tuyến.</div></div>
+  </div>`,'Chỉ số chốt công đoạn giúp điều hành, không thay thế việc xem chi tiết từng chỉ tiêu.')}
+  </div>
+  <div class="panel-grid lower-section">
+  ${section('Đối chiếu tiến độ giữa địa phương',barChart(rows),'Chỉ số THAM KHẢO: bình quân các tỷ lệ mốc chốt của riêng phần việc đang xem.')}
+  ${section('Tình trạng cập nhật',updateList(),'Thời điểm cập nhật chỉ tiêu gần nhất của từng đơn vị.')}
+  </div>
+  <p class="footer-note">Tỷ lệ một công đoạn = tổng Đã thực hiện / tổng Tổng phải thực hiện của CHỈ TIÊU CHỐT công đoạn đó, trên các đơn vị có dữ liệu. Không cộng số hộ, ha, ngày, km, cọc hoặc tỷ đồng với nhau. Kết quả phải kèm số xã/phường đã cập nhật.</p>`;
 }
+
 function renderStages(){
   const s=stageById[ui.stage];
   let metrics=metricDefs.filter(m=>m.stage===ui.stage);if(!metrics.some(m=>m.id===ui.metric))ui.metric=metrics[0].id;
@@ -262,6 +314,9 @@ function handleAction(el){const a=el.dataset.action;switch(a){
  case 'go-updates':openPage('update');break;
  case 'go-units':ui.unit=ui.editUnit;openPage('units');break;
  case 'overview-kind':ui.overviewKind=el.dataset.kind==='tdc'?'tdc':'gpmb';render();break;
+ case 'overview-toggle-picker':gpmbPickerOpen=!gpmbPickerOpen;render();break;
+ case 'overview-reset-metrics':gpmbOverviewSelected.clear();GPMB_DEFAULT_OVERVIEW.forEach(id=>gpmbOverviewSelected.add(id));render();break;
+ case 'overview-all-metrics':metricDefs.filter(m=>stageById[m.stage]?.kind==='gpmb').forEach(m=>gpmbOverviewSelected.add(m.id));render();break;
  case 'pick-kind':ui.stage=el.dataset.kind==='tdc'?'tdc_design':'lap';ui.metric=metricDefs.find(m=>m.stage===ui.stage).id;render();break;
  case 'pick-stage':ui.stage=el.dataset.stage;ui.metric=metricDefs.find(m=>m.stage===ui.stage).id;render();break;
  case 'pick-metric':ui.metric=el.dataset.metric;render();break;
@@ -272,7 +327,16 @@ function handleAction(el){const a=el.dataset.action;switch(a){
  case 'migrate-legacy':migrateLegacyReport(el.dataset.report);break;
  }}
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav){openPage(nav.dataset.page);return;}const action=e.target.closest('[data-action]');if(action)handleAction(action);});
-document.addEventListener('change',e=>{if(e.target.id==='user-role'){const s=$('#user-unit');if(s)s.value=e.target.value==='nhaplieu_xa'?'BAC_KAN':'TINH';return;}const sel=e.target.closest('[data-select]');if(!sel)return;switch(sel.dataset.select){case 'scope':ui.scope=sel.value;break;case 'unit':ui.unit=sel.value;break;case 'comp-stage':ui.compStage=sel.value;ui.compMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'comp-metric':ui.compMetric=sel.value;break;case 'edit-unit':ui.editUnit=sel.value;break;case 'edit-stage':ui.editStage=sel.value;ui.editMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'edit-metric':ui.editMetric=sel.value;break;}render();});
+document.addEventListener('change',e=>{
+ if(e.target.matches('[data-overview-metric]')){
+  const metricId=e.target.dataset.overviewMetric;
+  if(metricById[metricId]&&stageById[metricById[metricId].stage]?.kind==='gpmb'){
+   if(e.target.checked)gpmbOverviewSelected.add(metricId);else gpmbOverviewSelected.delete(metricId);
+   render();
+  }
+  return;
+ }
+ if(e.target.id==='user-role'){const s=$('#user-unit');if(s)s.value=e.target.value==='nhaplieu_xa'?'BAC_KAN':'TINH';return;}const sel=e.target.closest('[data-select]');if(!sel)return;switch(sel.dataset.select){case 'scope':ui.scope=sel.value;break;case 'unit':ui.unit=sel.value;break;case 'comp-stage':ui.compStage=sel.value;ui.compMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'comp-metric':ui.compMetric=sel.value;break;case 'edit-unit':ui.editUnit=sel.value;break;case 'edit-stage':ui.editStage=sel.value;ui.editMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'edit-metric':ui.editMetric=sel.value;break;}render();});
 document.addEventListener('input',e=>{if(e.target.closest('#update-form')&&['target','value'].includes(e.target.id)){const f=e.target.closest('#update-form');onFormPreview(f);}});
 document.addEventListener('submit',e=>{if(e.target.id==='update-form'){e.preventDefault();onSaveMetric(e.target);}if(e.target.id==='user-form'){e.preventDefault();onSaveUser(e.target);}});
 $('#mobile-menu').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));

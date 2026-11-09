@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiến độ GPMB Cao tốc Bắc Kạn - Cao Bằng</title>
+    <!-- Tích hợp Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thêm Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Cấu hình màu sắc tùy chỉnh cho Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#0056b3',
+                        secondary: '#f8fafc',
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        
+        /* Hiệu ứng ẩn hiện Tab */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tùy chỉnh bảng */
+        .admin-table th {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            font-weight: 600;
+            text-align: center;
+            vertical-align: middle;
+            border: 1px solid #cbd5e1;
+        }
+        
+        .admin-table td {
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem;
+            vertical-align: middle;
+            color: #334155;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header Section -->
+    <header class="bg-white shadow-md">
+        <!-- Banner Hình ảnh (Có fallback dự phòng nếu không tìm thấy file banner.png) -->
+        <div class="w-full h-24 md:h-32 bg-primary overflow-hidden relative">
+            <img src="images/banner.png" 
+                 onerror="this.src='https://placehold.co/1920x200/0056b3/ffffff?text=HỆ+THỐNG+BÁO+CÁO+TIẾN+ĐỘ+GPMB\nCAO+TỐC+BẮC+KẠN+-+CAO+BẰNG'" 
+                 alt="Banner Dự án Cao tốc" 
+                 class="w-full h-full object-cover">
+        </div>
+        
+        <!-- Thanh điều hướng và nút Đăng nhập -->
+        <div class="container mx-auto px-4 lg:px-8 py-3 flex justify-between items-center">
+            <div class="text-primary font-bold text-lg hidden md:block">
+                UBND TỈNH - BAN QUẢN LÝ DỰ ÁN ĐTXD
+            </div>
+            <div class="md:hidden text-primary font-bold">
+                BQL Dự Án ĐTXD
+            </div>
+            <div>
+                <button class="bg-primary hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-md transition duration-200 shadow-sm flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                    </svg>
+                    Đăng nhập
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 lg:px-8 py-6">
+        
+        <!-- Khu vực tiêu đề trang -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-end justify-between border-b pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 uppercase">Báo cáo số liệu GPMB & Tái định cư</h1>
+                <p class="text-gray-500 mt-1 text-sm">Dữ liệu tổng hợp toàn tuyến | Cập nhật lần cuối: Hôm nay</p>
+            </div>
+            
+            <!-- Lọc đơn vị (Mô phỏng chức năng) -->
+            <div class="mt-4 md:mt-0 flex items-center gap-2">
+                <label for="filter-donvi" class="text-sm font-medium text-gray-600">Đơn vị:</label>
+                <select id="filter-donvi" class="border border-gray-300 rounded px-3 py-1.5 text-sm focus:outline-none focus:border-primary">
+                    <option value="all">-- Toàn tuyến --</option>
+                    <option value="bac_kan">Phường Bắc Kạn</option>
+                    <option value="bang_van">Xã Bằng Vân</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Dashboard Card chứa Tabs và Table -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            
+            <!-- Tabs Controls -->
+            <div class="flex border-b border-gray-200 bg-gray-50 overflow-x-auto">
+                <button class="tab-btn px-6 py-4 text-sm md:text-base font-semibold text-primary border-b-2 border-primary bg-white focus:outline-none whitespace-nowrap transition-colors" onclick="openTab('tabDashboard', this)">
+                    Dashboard Tổng quan
+                </button>
+                <button class="tab-btn px-6 py-4 text-sm md:text-base font-semibold text-gray-500 hover:text-primary hover:bg-gray-100 border-b-2 border-transparent focus:outline-none whitespace-nowrap transition-colors" onclick="openTab('tab1', this)">
+                    I. Giải phóng mặt bằng
+                </button>
+                <button class="tab-btn px-6 py-4 text-sm md:text-base font-semibold text-gray-500 hover:text-primary hover:bg-gray-100 border-b-2 border-transparent focus:outline-none whitespace-nowrap transition-colors" onclick="openTab('tab2', this)">
+                    II. Bố trí tái định cư
+                </button>
+            </div>
+
+            <!-- Tab Dashboard Content -->
+            <div id="tabDashboard" class="tab-content active p-4 md:p-6 bg-gray-50/50">
+                <!-- Hàng 1: Summary Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Tổng hộ ảnh hưởng</p>
+                            <p class="text-2xl font-bold text-gray-800">1,250 <span class="text-sm font-normal text-gray-500">hộ</span></p>
+                        </div>
+                        <div class="p-3 bg-blue-100 text-blue-600 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Diện tích đã bàn giao</p>
+                            <p class="text-2xl font-bold text-gray-800">365.5 <span class="text-sm font-normal text-gray-500">ha</span></p>
+                        </div>
+                        <div class="p-3 bg-green-100 text-green-600 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Kinh phí đã chi trả</p>
+                            <p class="text-2xl font-bold text-gray-800">850.2 <span class="text-sm font-normal text-gray-500">tỷ đ</span></p>
+                        </div>
+                        <div class="p-3 bg-orange-100 text-orange-600 rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-500 font-medium">Tỷ lệ hoàn thành chung</p>
+                            <p class="text-2xl font-bold text-primary">72.5 <span class="text-sm font-normal text-gray-500">%</span></p>
+                        </div>
+                        <div class="p-3 bg-blue-100 text-primary rounded-full">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hàng 2: Charts và Progress -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <!-- Biểu đồ tròn -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Tỷ lệ thu hồi đất (ha)</h3>
+                        <div class="relative h-64 w-full flex justify-center">
+                            <canvas id="doughnutChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Thanh tiến độ các khâu -->
+                    <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100 flex flex-col justify-center">
+                        <h3 class="text-lg font-semibold text-gray-700 mb-6 border-b pb-2">Tiến độ các khâu trọng yếu</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1.5">
+                                    <span class="font-medium text-gray-700">Đã thông báo thu hồi</span>
+                                    <span class="text-gray-600 font-semibold">95%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-600 h-2.5 rounded-full" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1.5">
+                                    <span class="font-medium text-gray-700">Đã hoàn thành kiểm đếm</span>
+                                    <span class="text-gray-600 font-semibold">82%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-blue-500 h-2.5 rounded-full" style="width: 82%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1.5">
+                                    <span class="font-medium text-gray-700">Đã lập phương án bồi thường</span>
+                                    <span class="text-gray-600 font-semibold">68%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-orange-500 h-2.5 rounded-full" style="width: 68%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1.5">
+                                    <span class="font-medium text-gray-700">Đã nhận tiền, bàn giao mặt bằng</span>
+                                    <span class="text-gray-600 font-semibold">55%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                    <div class="bg-green-500 h-2.5 rounded-full" style="width: 55%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hàng 3: Biểu đồ cột -->
+                <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">Tiến độ bàn giao mặt bằng theo từng địa phương (ha)</h3>
+                    <div class="relative h-80 w-full">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 1 Content: Giải phóng mặt bằng -->
+            <div id="tab1" class="tab-content p-4 md:p-6">
+                <div class="overflow-x-auto">
+                    <table class="admin-table w-full whitespace-nowrap md:whitespace-normal">
+                        <thead>
+                            <tr>
+                                <th class="p-3 w-12">STT</th>
+                                <th class="p-3 min-w-[250px]">Chỉ tiêu</th>
+                                <th class="p-3 w-24">Đơn vị</th>
+                                <th class="p-3 w-32">Tổng phải thực hiện<br><span class="text-xs font-normal">(D)</span></th>
+                                <th class="p-3 w-32">Lũy kế kỳ trước<br><span class="text-xs font-normal">(E)</span></th>
+                                <th class="p-3 w-32">Phát sinh kỳ này<br><span class="text-xs font-normal">(F)</span></th>
+                                <th class="p-3 w-32 bg-blue-100">Lũy kế kỳ này<br><span class="text-xs font-normal">(H) = E + F</span></th>
+                                <th class="p-3 w-32 bg-orange-50">Còn lại<br><span class="text-xs font-normal">(I) = D - H</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Dòng 1 -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="text-center font-medium">1</td>
+                                <td class="text-left font-medium text-gray-800">Số cọc GPMB đã nhận bàn giao</td>
+                                <td class="text-center">cọc</td>
+                                <td class="text-center font-semibold text-gray-700">1,500</td>
+                                <td class="text-center">1,200</td>
+                                <td class="text-center text-green-600 font-semibold">+150</td>
+                                <td class="text-center font-bold text-primary bg-blue-50/50">1,350</td>
+                                <td class="text-center font-bold text-orange-600 bg-orange-50/50">150</td>
+                            </tr>
+                            <!-- Dòng 2 -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="text-center font-medium">2</td>
+                                <td class="text-left font-medium text-gray-800">Diện tích đã đo đạc, trích đo đầy đủ</td>
+                                <td class="text-center">ha</td>
+                                <td class="text-center font-semibold text-gray-700">450.5</td>
+                                <td class="text-center">320.0</td>
+                                <td class="text-center text-green-600 font-semibold">+45.5</td>
+                                <td class="text-center font-bold text-primary bg-blue-50/50">365.5</td>
+                                <td class="text-center font-bold text-orange-600 bg-orange-50/50">85.0</td>
+                            </tr>
+                            <!-- Dòng 3 -->
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="text-center font-medium">3</td>
+                                <td class="text-left font-medium text-gray-800">Hộ đã hoàn thành kiểm đếm</td>
+                                <td class="text-center">hộ</td>
+                                <td class="text-center font-semibold text-gray-700">850</td>
+                                <td class="text-center">600</td>
+                                <td class="text-center text-green-600 font-semibold">+50</td>
+                                <td class="text-center font-bold text-primary bg-blue-50/50">650</td>
+                                <td class="text-center font-bold text-orange-600 bg-orange-50/50">200</td>
+                            </tr>
+                            <!-- Dòng tổng hợp / Ghi chú nếu cần -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center text-sm text-gray-500">
+                    <div>* Ghi chú: Số liệu phát sinh dương biểu thị sự tiến triển trong kỳ.</div>
+                    <button class="flex items-center gap-1 text-primary hover:underline">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Xuất báo cáo Excel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab 2 Content: Bố trí tái định cư -->
+            <div id="tab2" class="tab-content p-4 md:p-6">
+                <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mb-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <p class="text-lg font-medium text-gray-600">Dữ liệu Bố trí tái định cư</p>
+                    <p class="text-sm mt-1">Chọn khu vực để hiển thị báo cáo chi tiết về khu tái định cư.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t mt-auto py-6">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>&copy; 2026 Hệ thống Quản lý Tiến độ GPMB Cao tốc Bắc Kạn - Cao Bằng.</p>
+            <p class="mt-1">Phát triển cho mục đích quản lý hành chính nhà nước.</p>
+        </div>
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        function openTab(tabId, element) {
+            // 1. Ẩn tất cả nội dung tab
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => {
+                content.classList.remove('active');
+            });
+
+            // 2. Xóa trạng thái active của tất cả các nút tab
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            tabButtons.forEach(btn => {
+                btn.classList.remove('text-primary', 'border-primary', 'bg-white');
+                btn.classList.add('text-gray-500', 'border-transparent');
+            });
+
+            // 3. Hiển thị nội dung tab được chọn
+            document.getElementById(tabId).classList.add('active');
+
+            // 4. Cập nhật giao diện nút tab đang active
+            element.classList.remove('text-gray-500', 'border-transparent');
+            element.classList.add('text-primary', 'border-primary', 'bg-white');
+        }
+
+        // Khởi tạo Chart.js khi trang load xong
+        document.addEventListener("DOMContentLoaded", function() {
+            // --- Cấu hình Biểu đồ Tròn (Doughnut Chart) ---
+            const doughnutCtx = document.getElementById('doughnutChart').getContext('2d');
+            new Chart(doughnutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Đã bàn giao mặt bằng', 'Chưa bàn giao'],
+                    datasets: [{
+                        data: [365.5, 134.5], // Dữ liệu giả lập
+                        backgroundColor: ['#10b981', '#f3f4f6'], // Xanh lá, Xám nhạt
+                        hoverBackgroundColor: ['#059669', '#e5e7eb'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                font: { family: "'Inter', sans-serif" }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) { label += ': '; }
+                                    label += context.raw + ' ha';
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // --- Cấu hình Biểu đồ Cột (Bar Chart) ---
+            const barCtx = document.getElementById('barChart').getContext('2d');
+            new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Phường Bắc Kạn', 'Phường Đức Xuân', 'Xã Bằng Vân', 'Xã Cẩm Giàng', 'Xã Ngân Sơn'],
+                    datasets: [
+                        {
+                            label: 'Tổng diện tích cần GPMB (ha)',
+                            data: [80, 50, 120, 90, 110.5],
+                            backgroundColor: '#e2e8f0', // Xám
+                            borderRadius: 4,
+                            barPercentage: 0.6
+                        },
+                        {
+                            label: 'Diện tích đã bàn giao (ha)',
+                            data: [65, 48, 85, 70, 97.5],
+                            backgroundColor: '#0056b3', // Xanh primary
+                            borderRadius: 4,
+                            barPercentage: 0.6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { font: { family: "'Inter', sans-serif" } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { family: "'Inter', sans-serif" } }
+                        }
+                    },
+                    plugins: {
+                        legend: { 
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                font: { family: "'Inter', sans-serif" }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
