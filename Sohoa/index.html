@@ -1733,6 +1733,355 @@
           if (exportButton) exportButton.disabled = oldButtonDisabled;
         }
       };
+      // Xuất toàn bộ bảng theo dõi khối lượng của các đơn vị, độc lập với báo cáo tổng hợp.
+      // Đọc 12 cột từ bảng đang hiển thị để giữ nguyên STT, dữ liệu và thứ tự do hệ thống tạo.
+      // Render trực tiếp canvas -> PDF nhiều trang; tránh html2canvas gây PDF trắng.
+      window.exportUnitsTablePDF = async function () {
+        const button = document.getElementById("btn-export-units-table-pdf");
+        if (button?.disabled) return;
+        const oldLabel = button ? button.innerHTML : "";
+        const notifyError = (message) => {
+          if (typeof window.showCustomAlert === "function") {
+            window.showCustomAlert("Không thể xuất bảng PDF", message);
+          } else {
+            alert(message);
+          }
+        };
+
+        try {
+          const periodSelect = document.getElementById("select-campaign-period");
+          // Bản hiện tại chưa dựng lại bảng khi xem lịch sử; không được xuất nhầm dữ liệu đợt hiện tại.
+          if (periodSelect && periodSelect.value !== "current") {
+            throw new Error("Bảng dữ liệu của đợt lịch sử chưa được hiển thị đầy đủ. Vui lòng chọn 'Đợt hiện tại (Mới nhất)' trước khi xuất PDF.");
+          }
+          const tbody = document.getElementById("dangbo-matrix-body");
+          if (!tbody) throw new Error("Không tìm thấy bảng theo dõi khối lượng số hóa.");
+          // Không phụ thuộc ô tìm kiếm: bao gồm mọi hàng của đợt hiện tại và hàng tổng số.
+          const rows = Array.from(tbody.querySelectorAll("tr"))
+            .map((row) => Array.from(row.querySelectorAll("td")).map((cell) =>
+              String(cell.textContent || "").replace(/\s+/g, " ").trim()))
+            .filter((cells) => cells.length === 12);
+          const numberOfUnits = rows.filter((cells) => !cells[1].includes("TỔNG SỐ CÁC ĐƠN VỊ")).length;
+          if (!numberOfUnits) {
+            throw new Error("Chưa có số liệu đơn vị để xuất. Hãy mở phân hệ 'Các đơn vị trực thuộc' và chờ bảng tải xong.");
+          }
+
+          if (button) {
+            button.disabled = true;
+            button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xuất...';
+          }
+          if (document.fonts?.ready) await document.fonts.ready;
+
+          const W = 842; // A4 ngang, point
+          const H = 595;
+          const SCALE = 2.5;
+          const LEFT = 22;
+          const widths = [30, 189, 55, 55, 55, 55, 55, 55, 55, 55, 55, 84];
+          const xs = [LEFT];
+          widths.forEach((width) => xs.push(xs[xs.length - 1] + width));
+          const top = 103;
+          const groupH = 22;
+          const subH = 50;
+          const tableDataY = top + groupH + subH;
+          const tableBottom = 555;
+          const now = new Date();
+          const dateText = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()}`;
+          const periodText = periodSelect?.selectedOptions?.[0]?.textContent?.trim() || "Đợt hiện tại";
+
+          const probeCtx = document.createElement("canvas").getContext("2d");
+          if (!probeCtx) throw new Error("Trình duyệt không hỗ trợ Canvas 2D.");
+          const nameFont = '9px "Times New Roman", "Liberation Serif", serif';
+          const numFont = '9px "Times New Roman", "Liberation Serif", serif';
+          const boldFont = 'bold 9px "Times New Roman", "Liberation Serif", serif';
+
+          const wrap = (ctx, text, maxWidth, font) => {
+            ctx.font = font;
+            const words = String(text || "").split(/\s+/).filter(Boolean);
+            const lines = [];
+            let line = "";
+            for (const word of words) {
+              const candidate = line ? `${line} ${word}` : word;
+              if (ctx.measureText(candidate).width <= maxWidth) {
+                line = candidate;
+                continue;
+              }
+              if (line) lines.push(line);
+              line = "";
+              // Bảo toàn cả từ quá dài, không cắt mất ký tự ở cạnh bảng.
+              for (const char of word) {
+                if (line && ctx.measureText(line + char).width > maxWidth) {
+                  lines.push(line);
+                  line = char;
+                } else {
+                  line += char;
+                }
+              }
+            }
+            if (line) lines.push(line);
+            return lines.length ? lines : [""];
+          };
+
+          const rowInfos = rows.map((cells) => {
+            const isTotal = cells[1].includes("TỔNG SỐ CÁC ĐƠN VỊ");
+            const lines = wrap(probeCtx, cells[1], widths[1] - 12, isTotal ? boldFont : nameFont);
+            const statusLines = wrap(probeCtx, cells[11], widths[11] - 7, isTotal ? boldFont : numFont);
+            const height = Math.max(25, 8 + 11 * Math.max(lines.length, statusLines.length));
+            return { cells, isTotal, lines, statusLines, height };
+          });
+
+          // Tính số trang cần thiết, sau đó phân bổ hàng tương đối đều để tránh trang cuối chỉ có 1-2 dòng.
+          const greedyPages = [];
+          let pageRows = [];
+          let used = tableDataY;
+          for (const info of rowInfos) {
+            if (pageRows.length && used + info.height > tableBottom) {
+              greedyPages.push(pageRows);
+              pageRows = [];
+              used = tableDataY;
+            }
+            pageRows.push(info);
+            used += info.height;
+          }
+          if (pageRows.length) greedyPages.push(pageRows);
+
+          const pages = [];
+          let next = 0;
+          for (let pageIndex = 0; pageIndex < greedyPages.length && next < rowInfos.length; pageIndex++) {
+            const remainingRows = rowInfos.length - next;
+            const remainingPages = greedyPages.length - pageIndex;
+            const targetCount = Math.ceil(remainingRows / remainingPages);
+            const currentPage = [];
+            let heightUsed = tableDataY;
+            while (next < rowInfos.length && currentPage.length < targetCount) {
+              const item = rowInfos[next];
+              if (currentPage.length && heightUsed + item.height > tableBottom) break;
+              currentPage.push(item);
+              heightUsed += item.height;
+              next++;
+            }
+            pages.push(currentPage);
+          }
+          // Trường hợp các tên đơn vị đặc biệt dài khiến phân bổ đều không đủ chỗ.
+          while (next < rowInfos.length) {
+            const currentPage = [];
+            let heightUsed = tableDataY;
+            while (next < rowInfos.length) {
+              const item = rowInfos[next];
+              if (currentPage.length && heightUsed + item.height > tableBottom) break;
+              currentPage.push(item);
+              heightUsed += item.height;
+              next++;
+            }
+            pages.push(currentPage);
+          }
+
+          const renderPage = (pageRows, pageNum) => {
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(W * SCALE);
+            canvas.height = Math.round(H * SCALE);
+            const ctx = canvas.getContext("2d");
+            if (!ctx) throw new Error("Không khởi tạo được vùng vẽ báo cáo.");
+            ctx.scale(SCALE, SCALE);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, W, H);
+            ctx.textBaseline = "middle";
+            const text = (value, x, y, font, align = "center", color = "#172334") => {
+              ctx.fillStyle = color;
+              ctx.font = font;
+              ctx.textAlign = align;
+              ctx.fillText(String(value), x, y);
+            };
+            const lines = (items, x, centerY, spacing, font, align = "center", color = "#172334") => {
+              const startY = centerY - (items.length - 1) * spacing / 2;
+              items.forEach((value, i) => text(value, x, startY + i * spacing, font, align, color));
+            };
+            const hline = (x1, x2, y, color = "#b9c7d8") => {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 0.48;
+              ctx.beginPath();
+              ctx.moveTo(x1, y);
+              ctx.lineTo(x2, y);
+              ctx.stroke();
+            };
+            const vline = (x, y1, y2, color = "#b9c7d8") => {
+              ctx.strokeStyle = color;
+              ctx.lineWidth = 0.48;
+              ctx.beginPath();
+              ctx.moveTo(x, y1);
+              ctx.lineTo(x, y2);
+              ctx.stroke();
+            };
+
+            text("BẢNG THEO DÕI KHỐI LƯỢNG CHỈNH LÝ, SỐ HÓA TÀI LIỆU CÁC ĐƠN VỊ TRỰC THUỘC",
+              W / 2, 39, 'bold 13px "Times New Roman", "Liberation Serif", serif');
+            text(`Đợt báo cáo: ${periodText}    •    Ngày xuất: ${dateText}`,
+              W / 2, 60, 'italic 10px "Times New Roman", "Liberation Serif", serif', "center", "#46566b");
+            text(`Tổng số đơn vị có số liệu: ${numberOfUnits}`,
+              LEFT, 83, '9px "Times New Roman", "Liberation Serif", serif', "left", "#46566b");
+
+            ctx.fillStyle = "#eef3f9";
+            ctx.fillRect(xs[0], top, xs[12] - xs[0], groupH + subH);
+            ctx.fillStyle = "#e6efff";
+            ctx.fillRect(xs[2], top, xs[6] - xs[2], groupH);
+            ctx.fillStyle = "#e5f5ec";
+            ctx.fillRect(xs[6], top, xs[11] - xs[6], groupH);
+            text("Chỉnh lý", (xs[2] + xs[6]) / 2, top + groupH / 2,
+              'bold 10px "Times New Roman", "Liberation Serif", serif', "center", "#0056b3");
+            text("Số hóa", (xs[6] + xs[11]) / 2, top + groupH / 2,
+              'bold 10px "Times New Roman", "Liberation Serif", serif', "center", "#157744");
+
+            lines(["STT"], (xs[0] + xs[1]) / 2, top + (groupH + subH) / 2, 10, boldFont);
+            lines(["Cơ quan, đơn vị,", "địa phương"],
+              (xs[1] + xs[2]) / 2, top + (groupH + subH) / 2, 11, boldFont);
+            lines(["Giao nộp", "lưu trữ", "lịch sử"],
+              (xs[11] + xs[12]) / 2, top + (groupH + subH) / 2, 10, boldFont);
+            const subHeaders = [
+              ["Tổng", "(mét)", "1=2+3+4"],
+              ["Đã chỉnh lý", "(mét)", "2"],
+              ["Đang thực", "hiện (mét)", "3"],
+              ["Chưa chỉnh lý", "(mét)", "4"],
+              ["Tổng", "(mét)", "5=6+8+9"],
+              ["Đã số hóa", "(mét)", "6"],
+              ["Trang A4", "7"],
+              ["Đang thực", "hiện (mét)", "8"],
+              ["Chưa số hóa", "(mét)", "9"]
+            ];
+            subHeaders.forEach((header, index) => {
+              lines(header, (xs[index + 2] + xs[index + 3]) / 2,
+                top + groupH + subH / 2, 11,
+                'bold 7.8px "Times New Roman", "Liberation Serif", serif',
+                "center", index === 6 ? "#9b59b6" : "#24364a");
+            });
+
+            // Đường kẻ phần tiêu đề: 3 cột STT/Tên/Giao nộp gộp theo chiều dọc.
+            for (const c of [0, 1, 2, 6, 11, 12]) vline(xs[c], top, tableDataY);
+            for (let c = 3; c <= 10; c++) vline(xs[c], top + groupH, tableDataY);
+            hline(xs[0], xs[12], top);
+            hline(xs[2], xs[11], top + groupH);
+            hline(xs[0], xs[12], tableDataY);
+
+            let y = tableDataY;
+            pageRows.forEach((entry, rowIndex) => {
+              const { cells, isTotal, height, lines: nameLines, statusLines } = entry;
+              const centerY = y + height / 2;
+              if (isTotal) {
+                ctx.fillStyle = "#e6f0fc";
+                ctx.fillRect(xs[0], y, xs[12] - xs[0], height);
+              } else if (rowIndex % 2 === 1) {
+                ctx.fillStyle = "#f7f9fc";
+                ctx.fillRect(xs[0], y, xs[12] - xs[0], height);
+              }
+              text(cells[0], (xs[0] + xs[1]) / 2, centerY, isTotal ? boldFont : numFont);
+              lines(nameLines, xs[1] + 6, centerY, 11, isTotal ? boldFont : nameFont, "left");
+              for (let c = 2; c <= 10; c++) {
+                text(cells[c], xs[c + 1] - 4, centerY,
+                  isTotal || c === 2 || c === 6 ? boldFont : numFont,
+                  "right", c === 8 ? "#9333b9" : "#172334");
+              }
+              const statusColor = isTotal ? "#166534" :
+                cells[11].includes("Chưa") ? "#b91c1c" : "#15803d";
+              lines(statusLines, (xs[11] + xs[12]) / 2, centerY, 11,
+                isTotal ? boldFont : numFont, "center", statusColor);
+              for (const x of xs) vline(x, y, y + height);
+              hline(xs[0], xs[12], y + height);
+              y += height;
+            });
+
+            hline(xs[0], xs[12], tableDataY);
+            text("Nguồn: Dữ liệu đang hiển thị trên Hệ thống theo dõi tiến độ số hóa",
+              LEFT, H - 19, 'italic 8.5px "Times New Roman", "Liberation Serif", serif', "left", "#64748b");
+            text(`Trang ${pageNum}/${pages.length}`,
+              W - LEFT, H - 19, '8.5px "Times New Roman", "Liberation Serif", serif', "right", "#64748b");
+            return canvas;
+          };
+
+          const images = [];
+          for (let i = 0; i < pages.length; i++) {
+            const canvas = renderPage(pages[i], i + 1);
+            const blob = await new Promise((resolve, reject) =>
+              canvas.toBlob((value) => value ? resolve(value) : reject(new Error("Không tạo được ảnh trang báo cáo.")), "image/jpeg", 0.94));
+            const bytes = new Uint8Array(await blob.arrayBuffer());
+            if (bytes.length < 1500 || bytes[0] !== 0xff || bytes[1] !== 0xd8) {
+              throw new Error(`Trang ${i + 1} không kết xuất được nội dung.`);
+            }
+            images.push({ bytes, width: canvas.width, height: canvas.height });
+          }
+
+          // Tạo PDF nhiều trang từ các ảnh đã vẽ; mỗi trang là A4 ngang.
+          // Không đưa dữ liệu vào html2canvas/html2pdf (đã từng gây trang trắng).
+          const encoder = new TextEncoder();
+          const chunks = [];
+          const objectCount = 2 + images.length * 3;
+          const offsets = new Array(objectCount + 1).fill(0);
+          let size = 0;
+          const add = (value) => {
+            const bytes = typeof value === "string" ? encoder.encode(value) : value;
+            chunks.push(bytes);
+            size += bytes.length;
+          };
+          const begin = (id) => {
+            offsets[id] = size;
+            add(`${id} 0 obj\n`);
+          };
+          const end = () => add("\nendobj\n");
+          add("%PDF-1.4\n% PDF report generated locally\n");
+          begin(1);
+          add("<< /Type /Catalog /Pages 2 0 R >>");
+          end();
+          const pageIds = images.map((_, index) => 3 + index * 3);
+          begin(2);
+          add(`<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`);
+          end();
+          for (let i = 0; i < images.length; i++) {
+            const pageId = pageIds[i];
+            const imageId = pageId + 1;
+            const contentId = pageId + 2;
+            const im = images[i];
+            begin(pageId);
+            add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im1 ${imageId} 0 R >> >> /Contents ${contentId} 0 R >>`);
+            end();
+            begin(imageId);
+            add(`<< /Type /XObject /Subtype /Image /Width ${im.width} /Height ${im.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${im.bytes.length} >>\nstream\n`);
+            add(im.bytes);
+            add("\nendstream");
+            end();
+            const commands = `q\n${W} 0 0 ${H} 0 0 cm\n/Im1 Do\nQ\n`;
+            begin(contentId);
+            add(`<< /Length ${encoder.encode(commands).length} >>\nstream\n${commands}endstream`);
+            end();
+          }
+          const xrefAt = size;
+          add(`xref\n0 ${objectCount + 1}\n0000000000 65535 f \n`);
+          for (let id = 1; id <= objectCount; id++) {
+            add(`${String(offsets[id]).padStart(10, "0")} 00000 n \n`);
+          }
+          add(`trailer\n<< /Size ${objectCount + 1} /Root 1 0 R >>\nstartxref\n${xrefAt}\n%%EOF\n`);
+
+          const pdf = new Blob(chunks, { type: "application/pdf" });
+          if (pdf.size < 3000) throw new Error("Tệp PDF chưa được tạo hợp lệ.");
+          const objectUrl = URL.createObjectURL(pdf);
+          try {
+            const a = document.createElement("a");
+            a.href = objectUrl;
+            a.download = `Bang_theo_doi_so_hoa_don_vi_${dateText.replace(/\//g, "-")}.pdf`;
+            a.style.display = "none";
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+          } finally {
+            setTimeout(() => URL.revokeObjectURL(objectUrl), 30000);
+          }
+        } catch (error) {
+          console.error("Lỗi xuất bảng theo dõi đơn vị ra PDF:", error);
+          notifyError(String(error?.message || "Lỗi không xác định"));
+        } finally {
+          if (button) {
+            button.disabled = false;
+            button.innerHTML = oldLabel;
+          }
+        }
+      };
+
       // Hàm kích hoạt mở cửa sổ thông báo tùy biến thay thế Window.Alert
       window.showCustomAlert = function (title, message) {
         const modal = document.getElementById("customAlertModal");
@@ -3085,7 +3434,7 @@
             </h3>
 
             <!-- Thêm cụm nút điều hướng bên phải -->
-            <div style="display: flex; gap: 8px">
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end">
               <button onclick="exportSummaryPDF()" style="
                     background: #0056b3;
                     color: #ffffff;
@@ -3101,6 +3450,14 @@
                     box-shadow: 0 2px 4px rgba(0, 86, 179, 0.15);
                   ">
                 <i class="fa-solid fa-file-pdf"></i> Báo cáo
+              </button>
+              <!-- Xuất nguyên bảng 12 cột sang PDF, giữ nguyên nút Báo cáo tổng hợp hiện có -->
+              <button type="button" id="btn-export-units-table-pdf" onclick="exportUnitsTablePDF()"
+                title="Xuất toàn bộ danh sách đơn vị theo STT, không phụ thuộc ô tìm kiếm"
+                style="background: #334155; color: #fff; border: none; padding: 6px 12px;
+                border-radius: 6px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+                display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-file-pdf"></i> Xuất bảng PDF
               </button>
               <!-- NÚT MỚI: Kiểm tra các đơn vị chưa báo cáo -->
               <button onclick="checkMissingUnits()" style="
