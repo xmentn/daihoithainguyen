@@ -402,15 +402,20 @@
       let subUnitsGeoJsonData = null;
       let currentSubUnitsMapMetric = "chinhly";
 
-      // Chuẩn hóa tên để ghép "Đảng ủy xã/phường ..." trong Firestore với ten_xa trong GeoJSON.
+      // Bỏ tiền tố hành chính TRƯỚC khi bỏ dấu, tránh nhầm "Phượng" với "phường".
+      // Giữ nguyên tên riêng (vd. Phượng Tiến) để khớp với ten_xa trong GeoJSON.
       const normalizeMapUnitName = (value) => {
-        return String(value || "")
+        const unitName = String(value || "")
+          .normalize("NFC")
+          .trim()
+          .replace(/^(?:đảng\s+(?:ủy|bộ)|dang\s+(?:uy|bo))\s+/iu, "")
+          .replace(/^(?:xã|xa|phường|thị trấn|thi tran)\s+/iu, "");
+
+        return unitName
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .replace(/[đĐ]/g, "d")
           .toLowerCase()
-          .replace(/^(dang uy|dang bo)\s+/i, "")
-          .replace(/^(xa|phuong)\s+/i, "")
           .replace(/[^\p{L}\p{N}\s]/gu, " ")
           .replace(/\s+/g, " ")
           .trim();
