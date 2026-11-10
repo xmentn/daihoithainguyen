@@ -1,7 +1,8 @@
 /* Website GPMB & TĐC V4 — giao diện kế thừa demo, dữ liệu Firebase thực. */
 import {auth,db as fs} from './firebase.js';
+import {northRender,northInit,northStartPrivate,northHandleAction,northHandleChange,northHandleInput,northHandleSubmit} from './north.js';
 import {onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
-import {collection,doc,getDoc,getDocs,query,orderBy,limit,onSnapshot,serverTimestamp,runTransaction,updateDoc,setDoc} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
+import {collection,doc,getDoc,getDocs,query,orderBy,limit,onSnapshot,serverTimestamp,runTransaction,updateDoc,setDoc,deleteField} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {UNITS,STAGES,METRICS,METRIC_MAP,STAGE_MAP,STATUS,readRow,validate,percent,fmtNumber,fmtDate as formatDate,isDecimal,asDate} from './data.js';
 const stageDefs=STAGES,metricDefs=METRICS,stageById=STAGE_MAP,metricById=METRIC_MAP;
 const db={units:UNITS,records:{},history:[]};
@@ -194,7 +195,7 @@ function renderUpdate(){
  if(!ms.some(m=>m.id===ui.editMetric))ui.editMetric=ms[0].id;
  const m=metricById[ui.editMetric],r=getRec(ui.editUnit,m.id);
  const history=db.history.filter(h=>!u||h.unitId===u.id).slice(0,18);
- const logs=history.length?history.map(h=>{const unit=db.units.find(u=>u.id===h.unitId),hm=metricById[h.metricId];return `<div class="journal-item"><div class="journal-date">${fmtDate(h.at)}</div><div><div class="journal-title">${esc(unit?.name||h.unitId)}</div><div class="journal-sub">${esc(hm?.label||h.metricId)} · ${esc(h.note||'')}</div></div><div class="journal-delta">${fmt(h.before?.completed,hm?.unit)} → ${fmt(h.after?.completed,hm?.unit)}</div></div>`;}).join(''):'<div class="empty">Chưa có nhật ký cập nhật trên Firestore.</div>';
+ const logs=history.length?history.map(h=>{const unit=db.units.find(u=>u.id===h.unitId),hm=metricById[h.metricId],removed=h.action==='delete';return `<div class="journal-item"><div class="journal-date">${fmtDate(h.at)}</div><div><div class="journal-title">${esc(unit?.name||h.unitId)}</div><div class="journal-sub">${esc(hm?.label||h.metricId)} · ${esc(h.note||'')}</div></div><div class="journal-delta ${removed?'journal-removed':''}">${fmt(h.before?.completed,hm?.unit)} → ${removed?'Đã xóa':fmt(h.after?.completed,hm?.unit)}</div></div>`;}).join(''):'<div class="empty">Chưa có nhật ký cập nhật trên Firestore.</div>';
  return `${pageHead('CẬP NHẬT TRỰC TIẾP','Cập nhật số liệu & nhật ký','Mỗi đơn vị có 01 tài liệu tiến độ; sửa từng chỉ tiêu độc lập, cập nhật thời gian máy chủ Firebase.')}${dataNote()}
  <div class="panel-grid update-cols"><section class="panel form-card"><div class="panel-toolbar"><div><h2 class="panel-title">Nhập kết quả thực hiện</h2><p class="subtext">Lưu lũy kế, không nhập lại theo tuần. Cập nhật riêng từng chỉ tiêu.</p></div></div>
  <div class="info-line">Ngày bắt đầu/kết thúc theo từng chỉ tiêu (không bắt buộc); hai giá trị phải thực hiện/đã thực hiện dùng đúng đơn vị tính trong biểu Excel. Các dòng tô vàng là mốc chốt công đoạn. Toàn tuyến tổng hợp tự động từ xã/phường.</div>
@@ -208,7 +209,9 @@ function renderUpdate(){
  <div class="field wide"><label class="field-label" for="status">Trạng thái</label><select required class="field-select" id="status"><option value="">— Chọn trạng thái —</option>${Object.entries(STATUS).map(([key,label])=>`<option value="${key}" ${key===r.status?'selected':''}>${label}</option>`).join('')}</select></div>
  <div class="field wide"><label class="field-label" for="note">Khó khăn, vướng mắc, kiến nghị</label><textarea maxlength="1500" id="note" class="field-textarea" placeholder="Nêu rõ khó khăn, vướng mắc và đề xuất (nếu có)">${esc(r.note)}</textarea></div></div>
  <div id="form-preview" class="preview-previous">Còn lại: <strong>${r.target!=null&&r.value!=null?fmt(r.target-r.value,m.unit):'—'}</strong> · Hoàn thành: <strong>${ptxt(pct(r.value,r.target))}</strong> · Lần cập nhật: ${fmtDate(r.updatedAt)}</div>
- <div class="form-actions mt-20"><button type="submit" class="btn btn-primary" ${pending?'disabled':''}>✓ ${pending?'Đang lưu…':'Lưu kết quả cập nhật'}</button><button type="button" class="btn" data-action="go-units">Xem hồ sơ đơn vị</button></div></form>
+  <div class="form-actions mt-20"><button type="submit" class="btn btn-primary" ${pending?'disabled':''}>✓ ${pending?'Đang xử lý…':'Lưu kết quả cập nhật'}</button><button type="button" class="btn" data-action="go-units">Xem hồ sơ đơn vị</button>
+  ${r.target!==null?`<button type="button" class="btn btn-soft" data-action="reset-metric" ${pending?'disabled':''}>↺ Đặt về 0</button><button type="button" class="btn btn-danger btn-outline-danger" data-action="delete-metric" ${pending?'disabled':''}>⌫ Xóa số liệu chỉ tiêu</button>`:''}</div>
+  ${r.target!==null?'<p class="form-delete-help">Đặt về 0: giữ chỉ tiêu với kế hoạch và kết quả bằng 0. Xóa số liệu: đưa chỉ tiêu về trạng thái chưa từng nhập; lịch sử cập nhật vẫn được giữ.</p>':''}</form>
  </section>${section('Nhật ký thay đổi gần nhất',logs,'Chỉ người đăng nhập được xem nhật ký; lịch sử tách khỏi dữ liệu hiện hành.')}</div>
  <div class="lower-section">${section('Danh sách đơn vị thuộc tuyến',`<div class="unit-list">${db.units.map(u=>`<div class="unit-card"><div><strong>${esc(u.name)}</strong><p>${fmtDate(latestUnit(u.id))} · ${metricDefs.filter(m=>getRec(u.id,m.id).target!==null).length}/${metricDefs.length} chỉ tiêu có số liệu</p></div>${mayWrite(u.id)?`<button class="btn btn-soft" data-action="edit-unit" data-unit="${u.id}">Cập nhật</button>`:''}</div>`).join('')}</div>`,'Danh mục 10 xã, phường cố định, không thay đổi bằng tài khoản nhập liệu.')}</div>`;
 }
@@ -220,14 +223,14 @@ function renderManage(){
  <div class="info-line">Đầu tiên tạo tài khoản email/mật khẩu trong Firebase Console → Authentication → Users. Sau đó sao chép UID và cấp hồ sơ tại đây. Không nhập mật khẩu người dùng vào website.</div>
  <form id="user-form" style="margin-top:17px"><div class="field-grid"><div class="field wide"><label class="field-label">Firebase User UID</label><input id="user-uid" class="field-input" maxlength="128" required placeholder="Dán UID từ Authentication"></div>
  <div class="field wide"><label class="field-label">Email đã tạo trong Authentication</label><input id="user-email" class="field-input" type="email" maxlength="254" required></div><div class="field wide"><label class="field-label">Tên hiển thị</label><input id="user-name" class="field-input" maxlength="100" required></div>
- <div class="field"><label class="field-label">Vai trò</label><select id="user-role" class="field-select"><option value="nhaplieu_xa">nhaplieu_xa – Một xã</option><option value="nhaplieu">nhaplieu – Toàn tuyến</option><option value="admin">admin – Quản trị</option></select></div><div class="field"><label class="field-label">Đơn vị</label><select id="user-unit" class="field-select">${selectOptions([{value:'TINH',name:'Toàn tuyến'},...UNITS.map(u=>({value:u.id,name:u.name}))],'BAC_KAN')}</select></div><div class="field wide"><label><input type="checkbox" id="user-active" checked> Tài khoản đang hoạt động</label></div></div>
+ <div class="field"><label class="field-label">Vai trò</label><select id="user-role" class="field-select"><option value="nhaplieu_xa">nhaplieu_xa – Một xã</option><option value="nhaplieu">nhaplieu – Toàn tuyến</option><option value="nhaplieu_ban">nhaplieu_ban – Ban Quản lý phía Bắc</option><option value="admin">admin – Quản trị</option></select></div><div class="field"><label class="field-label">Đơn vị</label><select id="user-unit" class="field-select">${selectOptions([{value:'TINH',name:'Toàn tuyến'},{value:'BAN_PHIA_BAC',name:'Ban Quản lý phía Bắc'},...UNITS.map(u=>({value:u.id,name:u.name}))],'BAC_KAN')}</select></div><div class="field wide"><label><input type="checkbox" id="user-active" checked> Tài khoản đang hoạt động</label></div></div>
  <div class="form-actions mt-20"><button type="submit" class="btn btn-primary">Lưu hồ sơ phân quyền</button></div></form></section>
  ${section('Các tài khoản đã có',`<div class="table-scroll"><table class="data-table"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Đơn vị</th><th>Trạng thái</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5">Chưa có hồ sơ</td></tr>'}</tbody></table></div>`,'Không thay đổi Authentication UID; không tự tạo mật khẩu từ trình duyệt.')}</div>
  <div class="lower-section">${section('Dữ liệu cũ V2.1 – chỉ đọc',`<p class="subtext">Các báo cáo theo tuần trong <code>reports</code> được giữ nguyên. Admin có thể chọn từng báo cáo, xem trước và chuyển các chỉ tiêu hợp lệ chưa có trong <code>progress</code>; không tự động chuyển số liệu thử nghiệm hoặc báo cáo TINH.</p><button class="btn" data-action="load-legacy">Đọc danh sách báo cáo cũ (admin)</button><div class="unit-list mt-12">${legacyDocs.map(x=>`<div class="unit-card"><span><strong>${esc(x.id)}</strong><p>${esc(x.unitName||'')} · ${esc(x.period||'')}</p></span>${UNITS.some(u=>u.id===x.unitId)?`<button class="btn btn-soft" data-action="migrate-legacy" data-report="${esc(x.id)}">Kiểm tra và chuyển chỉ tiêu chưa có</button>`:`<span class="pill neutral">Báo cáo toàn tuyến cũ, không chuyển</span>`}</div>`).join('')}</div>`,'Để nhập dữ liệu chính thức, dùng biểu Cập nhật & nhật ký; không sao chép tự động các báo cáo thử.')}</div>`;
 }
 function render(){
- const lookup={overview:renderOverview,stages:renderStages,compare:renderCompare,units:renderUnits,update:renderUpdate,manage:renderManage};
- const title={overview:'Tổng quan',stages:'Tiến độ công đoạn',compare:'So sánh địa phương',units:'Hồ sơ đơn vị',update:'Cập nhật & nhật ký',manage:'Quản lý phân quyền'};
+ const lookup={overview:renderOverview,stages:renderStages,compare:renderCompare,units:renderUnits,update:renderUpdate,manage:renderManage,north:northRender};
+ const title={overview:'Tổng quan',stages:'Tiến độ công đoạn',compare:'So sánh địa phương',units:'Hồ sơ đơn vị',update:'Cập nhật & nhật ký',manage:'Quản lý phân quyền',north:'Ban Quản lý phía Bắc'};
  $('#main').innerHTML=`<div class="page">${(lookup[ui.page]||renderOverview)()}</div>`;
  $('#topbar-section').textContent=title[ui.page]||'Tổng quan';
  document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.page===ui.page));
@@ -269,7 +272,7 @@ function askConfirm({title='Xác nhận thao tác',message='Bạn muốn tiếp 
  $('#confirm-message').textContent=message;
  const detail=$('#confirm-details');detail.textContent=details;detail.hidden=!details;
  $('#confirm-accept').textContent=accept;
- $('#confirm-icon').textContent=tone==='warning'?'!':'?';
+ $('#confirm-icon').textContent=(tone==='warning'||tone==='danger')?'!':'?';
  confirmDialog.dataset.tone=tone;
  confirmDialog.returnValue='cancel';
  return new Promise(resolve=>{pendingConfirm=resolve;confirmDialog.showModal();});
@@ -300,6 +303,61 @@ async function saveMetric(unitId,metricId,row,{onlyIfEmpty=false}={}){
   tx.set(logRef,{unitId,metricId,before:{target:old?.target??null,completed:old?.value??null,status:old?.status??'',startDate:old?.startDate||'',endDate:old?.endDate||''},after:{target:row.target,completed:row.value,status:row.status,startDate:row.startDate||'',endDate:row.endDate||''},note:row.note,createdBy:currentUser.uid,at:serverTimestamp()});
  });
 }
+// V4.1.4: Xóa riêng một chỉ tiêu trong rows, KHÔNG xóa tài liệu progress/{unitId}.
+// Luôn ghi lịch sử cùng giao dịch và kiểm tra chống ghi đè nếu có người khác vừa cập nhật.
+async function removeMetric(unitId,metricId){
+ if(!currentUser||!mayWrite(unitId)||!metricById[metricId])throw Error('Không có quyền xóa chỉ tiêu của đơn vị này.');
+ const progressRef=doc(fs,'progress',unitId),logRef=doc(collection(fs,'history'));
+ await runTransaction(fs,async tx=>{
+  const snap=await tx.get(progressRef),raw=snap.exists()?snap.data().rows?.[metricId]:null;
+  if(!raw)throw Error('Chỉ tiêu hiện không còn dữ liệu. Hãy tải lại trang để kiểm tra.');
+  const old=readRow(raw),shown=getRec(unitId,metricId);
+  if((old.updatedAt?.getTime()||0)!==(shown.updatedAt?.getTime()||0))throw Error('Có người vừa cập nhật chỉ tiêu này. Hãy tải lại và kiểm tra trước khi xóa.');
+  tx.update(progressRef,{
+   updatedAt:serverTimestamp(),updatedBy:currentUser.uid,
+   lastMetricId:metricId,lastHistoryId:logRef.id,
+   [`rows.${metricId}`]:deleteField()
+  });
+  tx.set(logRef,{
+   unitId,metricId,action:'delete',
+   before:{target:raw.target??null,completed:raw.completed??null,status:raw.status??'',note:raw.note||'',startDate:raw.startDate||'',endDate:raw.endDate||'',updatedAt:raw.updatedAt??null,updatedBy:raw.updatedBy||''},
+   after:{},note:'Xóa số liệu hiện hành của chỉ tiêu',createdBy:currentUser.uid,at:serverTimestamp()
+  });
+ });
+}
+// Hai thao tác khác nhau: đặt về 0 vẫn tồn tại bản ghi; xóa thì không còn bản ghi hiện hành.
+async function onResetOrDeleteMetric(action){
+ if(pending)return;
+ const unitId=ui.editUnit,metricId=ui.editMetric,m=metricById[metricId],u=UNITS.find(x=>x.id===unitId);
+ if(!m||!u||!mayWrite(unitId))return toast('Không có quyền thực hiện tại đơn vị này.','error');
+ const old=getRec(unitId,metricId);
+ if(old.target===null)return toast('Chỉ tiêu này chưa có dữ liệu để xử lý.','warning');
+ const removing=action==='delete';
+ const approved=await askConfirm({
+  title:removing?'Xác nhận xóa số liệu chỉ tiêu':'Xác nhận đặt chỉ tiêu về 0',
+  message:removing?'Số liệu hiện hành của CHỈ TIÊU này sẽ bị xóa khỏi các dashboard. Không xóa các chỉ tiêu khác và không xóa nhật ký.':'Kế hoạch và kết quả sẽ được đặt về 0; trạng thái chuyển thành Chưa thực hiện. Chỉ tiêu vẫn còn trong Firestore.',
+  details:`Đơn vị: ${u.name}\nChỉ tiêu: ${m.code} · ${m.label}\nKế hoạch hiện tại: ${fmt(old.target,m.unit)} ${m.unit}\nĐã thực hiện: ${fmt(old.value,m.unit)} ${m.unit}\n\n${removing?'Không thể tự động khôi phục số liệu đã xóa; hãy sao lưu trước khi thực hiện.':'Thao tác được lưu vào nhật ký; không tác động tới chỉ tiêu khác.'}`,
+  accept:removing?'Xóa số liệu':'Đặt về 0',tone:removing?'danger':'warning'
+ });
+ if(!approved)return;
+ if(!currentUser||!mayWrite(unitId))return toast('Phiên đăng nhập không còn quyền thực hiện.','error');
+ pending=true;
+ try{
+  if(removing){
+   await removeMetric(unitId,metricId);
+   delete db.records[`${unitId}|${metricId}`];
+   toast('Đã xóa số liệu chỉ tiêu; nhật ký vẫn được lưu trên Firebase.','success');
+  }else{
+   const zero={target:0,value:0,status:'chua_thuc_hien',note:'',startDate:'',endDate:''};
+   if(old.target===0&&old.value===0&&old.status===zero.status&&!old.note&&!old.startDate&&!old.endDate){toast('Chỉ tiêu đã ở giá trị 0, không cần cập nhật.','info');return;}
+   await saveMetric(unitId,metricId,zero);
+   toast('Đã đưa kế hoạch và kết quả về 0, đồng thời ghi nhật ký.','success');
+  }
+  render();
+ }catch(e){console.error(e);toast(`Không thể ${removing?'xóa':'đặt về 0'}: ${e.message}`,'error');}
+ finally{pending=false;render();}
+}
+
 async function onSaveMetric(form){if(pending)return;const unitId=ui.editUnit,m=metricById[ui.editMetric];if(!m||!mayWrite(unitId))return toast('Không có quyền nhập liệu.');
  const targetStr=form.querySelector('#target').value.trim(),doneStr=form.querySelector('#value').value.trim();
  const row={target:targetStr===''?null:Number(targetStr),value:doneStr===''?null:Number(doneStr),status:form.querySelector('#status').value,note:form.querySelector('#note').value.trim(),startDate:form.querySelector('#startDate').value,endDate:form.querySelector('#endDate').value};
@@ -316,7 +374,7 @@ async function onSaveUser(form){
  if(!isAdmin()||userSavePending)return;
  const uid=form.querySelector('#user-uid').value.trim(),email=form.querySelector('#user-email').value.trim(),name=form.querySelector('#user-name').value.trim(),role=form.querySelector('#user-role').value,unitId=form.querySelector('#user-unit').value,active=form.querySelector('#user-active').checked;
  if(!uid||uid.includes('/')||!email||!name)return toast('UID, email, tên hiển thị chưa hợp lệ.','warning');
- if((role==='nhaplieu_xa'&&!UNITS.some(u=>u.id===unitId))||(role!=='nhaplieu_xa'&&unitId!=='TINH'))return toast('Vai trò và đơn vị không khớp. Tài khoản toàn tuyến phải có unitId = TINH.','warning');
+ if((role==='nhaplieu_xa'&&!UNITS.some(u=>u.id===unitId))||(role==='nhaplieu_ban'&&unitId!=='BAN_PHIA_BAC')||(role!=='nhaplieu_xa'&&role!=='nhaplieu_ban'&&unitId!=='TINH'))return toast('Vai trò và đơn vị không khớp. Tài khoản toàn tuyến phải có unitId = TINH.','warning');
  if(uid===currentUser.uid&&(!active||role!=='admin'))return toast('Không thể tự khóa hoặc hạ vai trò tài khoản admin đang sử dụng.','error');
  const existing=profileRows.some(u=>u.id===uid);
  const unitName=unitId==='TINH'?'Toàn tuyến':(UNITS.find(u=>u.id===unitId)?.name||unitId);
@@ -363,9 +421,11 @@ async function migrateLegacyReport(reportId){
  catch(e){if(String(e.message).includes('đã có dữ liệu'))skipped++;else {failed++;console.error('Migration:',m.id,e);}}}
  toast(`Đã chuyển ${copied} chỉ tiêu, bỏ qua ${skipped} đã có, ${failed} lỗi. Báo cáo gốc giữ nguyên.`,failed?'warning':'success');
 }
-function handleAction(el){const a=el.dataset.action;switch(a){
+function handleAction(el){if(northHandleAction(el))return;const a=el.dataset.action;switch(a){
  case 'export-csv':exportCsv();break;
- case 'export-json':exportJson();break;
+  case 'export-json':exportJson();break;
+  case 'reset-metric':onResetOrDeleteMetric('reset');break;
+  case 'delete-metric':onResetOrDeleteMetric('delete');break;
  case 'print':window.print();break;
  case 'login':$('#login-dialog').showModal();break;
  case 'go-update':openPage('update');break;
@@ -387,6 +447,7 @@ function handleAction(el){const a=el.dataset.action;switch(a){
  }}
 document.addEventListener('click',e=>{const nav=e.target.closest('[data-page]');if(nav){openPage(nav.dataset.page);return;}const action=e.target.closest('[data-action]');if(action)handleAction(action);});
 document.addEventListener('change',e=>{
+ if(northHandleChange(e.target))return;
  if(e.target.matches('[data-overview-metric]')){
   const metricId=e.target.dataset.overviewMetric;
   if(metricById[metricId]&&stageById[metricById[metricId].stage]?.kind==='gpmb'){
@@ -395,9 +456,9 @@ document.addEventListener('change',e=>{
   }
   return;
  }
- if(e.target.id==='user-role'){const s=$('#user-unit');if(s)s.value=e.target.value==='nhaplieu_xa'?'BAC_KAN':'TINH';return;}const sel=e.target.closest('[data-select]');if(!sel)return;switch(sel.dataset.select){case 'scope':ui.scope=sel.value;break;case 'unit':ui.unit=sel.value;break;case 'comp-stage':ui.compStage=sel.value;ui.compMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'comp-metric':ui.compMetric=sel.value;break;case 'edit-unit':ui.editUnit=sel.value;break;case 'edit-stage':ui.editStage=sel.value;ui.editMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'edit-metric':ui.editMetric=sel.value;break;}render();});
-document.addEventListener('input',e=>{if(e.target.closest('#update-form')&&['target','value'].includes(e.target.id)){const f=e.target.closest('#update-form');onFormPreview(f);}});
-document.addEventListener('submit',e=>{if(e.target.id==='update-form'){e.preventDefault();onSaveMetric(e.target);}if(e.target.id==='user-form'){e.preventDefault();onSaveUser(e.target);}});
+ if(e.target.id==='user-role'){const s=$('#user-unit');if(s)s.value=e.target.value==='nhaplieu_xa'?'BAC_KAN':e.target.value==='nhaplieu_ban'?'BAN_PHIA_BAC':'TINH';return;}const sel=e.target.closest('[data-select]');if(!sel)return;switch(sel.dataset.select){case 'scope':ui.scope=sel.value;break;case 'unit':ui.unit=sel.value;break;case 'comp-stage':ui.compStage=sel.value;ui.compMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'comp-metric':ui.compMetric=sel.value;break;case 'edit-unit':ui.editUnit=sel.value;break;case 'edit-stage':ui.editStage=sel.value;ui.editMetric=metricDefs.find(m=>m.stage===sel.value).id;break;case 'edit-metric':ui.editMetric=sel.value;break;}render();});
+document.addEventListener('input',e=>{if(northHandleInput(e.target))return;if(e.target.closest('#update-form')&&['target','value'].includes(e.target.id)){const f=e.target.closest('#update-form');onFormPreview(f);}});
+document.addEventListener('submit',e=>{if(e.target.id==='north-form'){e.preventDefault();northHandleSubmit(e.target);return;}if(e.target.id==='update-form'){e.preventDefault();onSaveMetric(e.target);}if(e.target.id==='user-form'){e.preventDefault();onSaveUser(e.target);}});
 $('#mobile-menu').addEventListener('click',()=>$('#sidebar').classList.toggle('open'));
 $('#login-btn').addEventListener('click',()=>$('#login-dialog').showModal());
 $('#logout-btn').addEventListener('click',async()=>{try{await signOut(auth);toast('Đã đăng xuất.','success');}catch(e){toast(e.message);}});
@@ -409,6 +470,7 @@ function resetPrivate(){usersUnsubscribe?.();historyUnsubscribe?.();usersUnsubsc
 function startPrivate(){resetPrivate();if(!profile?.active)return;
  historyUnsubscribe=onSnapshot(query(collection(fs,'history'),orderBy('at','desc'),limit(60)),s=>{db.history=s.docs.map(d=>({id:d.id,...d.data()}));if(ui.page==='update')render();},e=>console.warn('History:',e));
  if(isAdmin())usersUnsubscribe=onSnapshot(collection(fs,'users'),s=>{profileRows=s.docs.map(d=>({id:d.id,...d.data()}));if(ui.page==='manage')render();},e=>console.warn('Users:',e));}
-onAuthStateChanged(auth,user=>{currentUser=user;profileUnsubscribe?.();profileUnsubscribe=null;profile=null;resetPrivate();if(!user){if(['update','manage'].includes(ui.page))ui.page='overview';render();return;}
- profileUnsubscribe=onSnapshot(doc(fs,'users',user.uid),s=>{profile=s.exists()?s.data():null;if(profile?.role==='nhaplieu_xa'&&profile.unitId)ui.editUnit=profile.unitId;if(!canEdit()&&['update','manage'].includes(ui.page))ui.page='overview';if(!isAdmin()&&ui.page==='manage')ui.page='overview';startPrivate();render();},e=>{profile=null;console.error(e);toast('Không đọc được hồ sơ phân quyền.');render();});});
+northInit({getUser:()=>currentUser,getProfile:()=>profile,toast,confirm:askConfirm,redraw:()=>{if(ui.page==='north')render();}});
+onAuthStateChanged(auth,user=>{currentUser=user;profileUnsubscribe?.();profileUnsubscribe=null;profile=null;resetPrivate();if(!user){northStartPrivate();if(['update','manage'].includes(ui.page))ui.page='overview';render();return;}
+ profileUnsubscribe=onSnapshot(doc(fs,'users',user.uid),s=>{profile=s.exists()?s.data():null;if(profile?.role==='nhaplieu_xa'&&profile.unitId)ui.editUnit=profile.unitId;if(!canEdit()&&['update','manage'].includes(ui.page))ui.page='overview';if(!isAdmin()&&ui.page==='manage')ui.page='overview';startPrivate();northStartPrivate();render();},e=>{profile=null;console.error(e);toast('Không đọc được hồ sơ phân quyền.');render();});});
 subscribeProgress();render();
