@@ -1,6 +1,6 @@
 /* Website GPMB & TĐC V4 — giao diện kế thừa demo, dữ liệu Firebase thực. */
 import {auth,db as fs} from './firebase.js';
-import {northRender,northInit,northStartPrivate,northHandleAction,northHandleChange,northHandleInput,northHandleSubmit} from './north.js';
+import {northRender,northInit,northStartPrivate,northHandleAction,northHandleChange,northHandleInput,northHandleSubmit} from './north.js?v=4.2.1';
 import {onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import {collection,doc,getDoc,getDocs,query,orderBy,limit,onSnapshot,serverTimestamp,runTransaction,updateDoc,setDoc,deleteField} from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {UNITS,STAGES,METRICS,METRIC_MAP,STAGE_MAP,STATUS,readRow,validate,percent,fmtNumber,fmtDate as formatDate,isDecimal,asDate} from './data.js';

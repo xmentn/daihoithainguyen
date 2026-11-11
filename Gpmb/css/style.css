@@ -253,3 +253,160 @@ body{font-size:15px;color:var(--ink);background:linear-gradient(180deg,#eff8ff 0
 @media(max-width:1150px){.north-detail-layout{grid-template-columns:minmax(0,1fr)}.north-detail-aside{grid-template-columns:1fr 1fr}}
 @media(max-width:680px){.north-detail-aside{grid-template-columns:1fr}}
 .north-all-warnings .north-panel-heading h2{font-size:19px;color:#12476e;margin:0}.north-all-warnings .north-panel-heading>span{font-size:12px;color:#b64f3b;background:#fff0e9;border-radius:24px;padding:6px 12px;font-weight:770}
+
+
+/* ========================================================================
+   V4.2.1 - TINH CHỈNH NHẬN DIỆN THEO DEMO ĐÃ DUYỆT
+   Chỉ sửa màu sắc, kiểu chữ, không đổi dữ liệu, logic, Firebase và Rules.
+   ======================================================================== */
+:root {
+  --blue: #0875e6;
+  --blue2: #1894f5;
+  --navy: #064e9e;
+  --cyan: #08a9c7;
+  --green: #069e73;
+  --amber: #e9971d;
+  --ink: #123765;
+  --muted: #4d6581;
+  --line: #d7e6f5;
+  --bg: #f3f8ff;
+  --shadow: 0 7px 23px rgba(16,83,151,.105);
+}
+body {
+  color: var(--ink);
+  background: linear-gradient(180deg,#edf6ff 0%,#f7fbff 390px,#f7fbff 100%);
+}
+/* Thanh điều hướng bên trái: xanh dương tươi, sáng như ảnh mẫu */
+.sidebar {
+  background: linear-gradient(165deg,#0665d8 0%,#087de9 49%,#0a98ee 100%);
+  box-shadow: 5px 0 23px rgba(7,107,203,.12);
+  color: #fff;
+}
+.brand-mark {
+  color:#0868cc;
+  background:linear-gradient(135deg,#ffffff,#c7ecff);
+  box-shadow:0 6px 16px rgba(0,47,120,.16);
+}
+.brand-name,.brand-sub,.nav-title {color:#fff}
+.brand-sub{opacity:.94}
+.nav-title {opacity:.9}
+.nav-item {
+  color:#fff;
+  font-size:14.5px;
+  font-weight:760;
+  letter-spacing:.03px;
+  border:1px solid transparent;
+  transition:background-color .17s ease,box-shadow .17s ease;
+}
+.nav-ico {color:#e5f8ff;font-weight:750}
+.nav-aux {color:#edf9ff;opacity:.87}
+.nav-item:hover,.nav-item:focus-visible {background:rgba(255,255,255,.19);color:#fff}
+.nav-item.active {
+  color:#0754b0;
+  border-color:rgba(255,255,255,.85);
+  background:linear-gradient(100deg,#f8fcff,#dff3ff);
+  box-shadow:0 5px 16px rgba(0,64,139,.17);
+}
+.nav-item.active .nav-ico,.nav-item.active .nav-aux {color:#0871e0}
+.sidebar-footer {color:#f0fbff;border-color:rgba(255,255,255,.32)}
+.topbar {background:#fff;border-bottom:1px solid #d7e8f8}
+.topbar-project,.eyebrow{color:#096ec3}
+.btn-primary {background:linear-gradient(125deg,#168cf3,#0868e4);border-color:#117be9;color:#fff;box-shadow:0 5px 13px rgba(5,112,228,.19)}
+.btn-primary:hover {background:linear-gradient(125deg,#1175e2,#0557c7);color:#fff}
+.panel,.metric-card,.stage-card {border-color:#d6e5f2;box-shadow:var(--shadow)}
+.work-tab.active {background:linear-gradient(115deg,#0e81ee,#0a9fdf);border-color:#1984ec}
+/* Phân hệ Ban Phía Bắc: sắc độ, kích thước và thẻ dashboard */
+.north-page{color:#102f59}
+.north-page-heading{margin-bottom:20px;align-items:center}
+.north-title-group{display:flex;align-items:center;gap:17px;min-width:0}
+.north-title-group>div{min-width:0}
+.north-title-icon{
+  display:grid;place-items:center;flex:none;
+  height:57px;width:57px;border-radius:15px;
+  background:linear-gradient(145deg,#219dff,#0468e4);
+  color:#fff;font-size:32px;font-weight:850;
+  box-shadow:0 7px 16px rgba(7,116,227,.22);
+}
+.north-page-heading .eyebrow{font-size:12.5px;font-weight:860;color:#1375d8;letter-spacing:1.05px;margin:0 0 5px}
+.north-page-heading h1{font-size:27px;letter-spacing:-.3px;margin:0;color:#082e64;line-height:1.27;font-weight:890}
+.north-heading-actions{gap:9px}
+.north-heading-actions .btn{font-size:13px;font-weight:800;border-radius:10px}
+.north-tabs{gap:13px;margin-bottom:18px}
+.north-tab{
+  min-height:60px;border-radius:13px;
+  font-size:16.5px;font-weight:870;
+  background:linear-gradient(110deg,#eef5ff,#dfeafb);
+  border:1px solid #d2e2f5;color:#0b366e;
+  box-shadow:0 4px 13px rgba(16,82,149,.075);
+}
+.north-tab:hover{border-color:#89bdf6;background:#e7f3ff}
+.north-tab.active,.north-tab.active:hover{
+  color:#fff;border-color:#0e79eb;
+  background:linear-gradient(110deg,#219dff 0%,#0868e8 90%);
+  box-shadow:0 7px 18px rgba(12,103,226,.22);
+}
+.north-kpis{gap:13px;margin-bottom:17px}
+.north-kpi{
+  background:#fff;border:1px solid #d3e2f2;
+  padding:17px 16px;border-radius:16px;
+  box-shadow:0 6px 19px rgba(18,80,143,.105);
+}
+.north-kpi-icon{height:55px;width:55px;background:linear-gradient(145deg,#ddf1ff,#bde6ff);color:#087be9;border-radius:14px;font-size:28px}
+.north-kpi.cyan .north-kpi-icon{background:linear-gradient(145deg,#e3f4ff,#c9e7ff);color:#087ce5}
+.north-kpi.green .north-kpi-icon{background:linear-gradient(145deg,#e2f9ec,#bdf0d4);color:#109563}
+.north-kpi.orange .north-kpi-icon{background:linear-gradient(145deg,#fff3e4,#ffdfae);color:#ee870e}
+.north-kpi span:not(.north-kpi-icon){font-size:13.5px;color:#324e70;font-weight:750}
+.north-kpi strong{font-size:32px;color:#082f67;font-weight:900}
+.north-kpi.orange strong{color:#d82e2b}
+.north-kpi small{font-size:12px;color:#577491}
+.north-summary{
+  border:1px solid #d3e3f3;background:#fff;
+  border-radius:17px;box-shadow:0 8px 24px rgba(22,83,151,.095);
+}
+.north-summary-icon{background:linear-gradient(135deg,#e2f2ff,#c4e5ff);color:#057fea}
+.north-summary:nth-child(2) .north-summary-icon{background:#d9f6f7;color:#00a3b6}
+.north-summary header h3{font-size:17px;color:#0b356b}
+.north-summary header strong{color:#0568e6;font-size:31px}
+.north-summary header small{color:#52718b;font-size:12.5px}
+.north-track{height:13px;background:#e0eaf6}
+.north-track span{background:linear-gradient(90deg,#189cfc,#086bef)}
+.north-summary:nth-child(2) .north-track span{background:linear-gradient(90deg,#12ba9e,#00a78a)}
+.north-summary-states span{font-size:12.5px;color:#405d7b}
+.north-summary-states b{font-size:15px}
+.north-overview-bottom .panel,.north-detail-aside .panel{background:#fff;border-color:#d4e2f0;box-shadow:var(--shadow)}
+.north-overview-bottom h3,.north-history h3{font-size:18px;color:#0c3166}
+.north-guide-col .panel p{color:#3c5773}
+.north-guide-col .panel p.north-alert-explain,.north-detail-aside .north-alert-explain{background:#ffeded;color:#ad2826;border:1px solid #ffd5d4}
+.north-table-wrap{border-color:#cddff4}
+.north-table thead th{background:#e2efff;color:#153e75;font-size:12.5px}
+.north-table td{color:#263f61;font-size:13px}
+.north-table .north-work{font-weight:740}
+.north-group td,.north-group-area td{background:#d5e9ff!important;color:#073d83}
+.north-group-group td{background:#e7f3ff!important}
+.north-badge.dang_thuc_hien{color:#0069df;background:#e1f0ff;border-color:#c6e1ff}
+.north-badge.da_hoan_thanh{color:#087e53;background:#def8e7;border-color:#c4f0d3}
+.north-badge.chua_thuc_hien,.north-badge.unknown{color:#4d6278;background:#edf1f5}
+.north-badge.due{color:#b92120;background:#ffe0dc;border-color:#f9bab3}
+.north-badge.overdue{color:#fff;background:#d42e2a}
+.north-due-row{background:#fff0f0!important}
+.north-overdue-row{background:#ffe0dd!important}
+.north-filters input,.north-filters select{border-color:#c9def3;color:#153f6d;font-size:13.5px}
+.north-side-stat{background:#f0f7ff}
+.north-side-stat strong{color:#0a62c8}
+/* Tương thích màn hình nhỏ và bản in */
+@media(max-width:830px){
+ .sidebar{width:256px}
+ .north-page-heading h1{font-size:24px}
+ .north-title-icon{height:49px;width:49px;font-size:27px}
+}
+@media(max-width:580px){
+ .north-title-group{gap:11px}
+ .north-page-heading h1{font-size:20px}
+ .north-tabs{gap:9px}
+ .north-tab{font-size:14px;min-height:56px;padding:10px}
+ .north-kpi strong{font-size:29px}
+}
+@media print{.sidebar,.north-heading-actions{display:none!important}}
+/* Giữ mục Ban Quản lý phía Bắc trên một dòng ở thanh menu rộng. */
+.nav-item[data-page="north"] {gap:8px;font-size:13.2px;letter-spacing:-.15px;white-space:nowrap}
+.nav-item[data-page="north"] .nav-aux {display:none}
