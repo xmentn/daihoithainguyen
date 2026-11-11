@@ -1,0 +1,3 @@
+[submodule "Gpmb"]
+	path = Gpmb
+	url = https://github.com/xmentn/gpmb.git
